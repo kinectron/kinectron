@@ -1,0 +1,47 @@
+<html>
+	<head>
+
+		<script src="peer.min.js"></script>
+		<script type="text/javascript">
+
+			var mypeerid = null;
+		  var peer = null;
+		  var connection = null;
+
+			peer = new Peer({host: 'liveweb.itp.io', port: 9001, path: '/'})
+//peer = new Peer({key: 'uohu08l7r6swcdi'});
+			peer.on('open', function(id) {
+				console.log('My peer ID is: ' + id);
+				mypeerid = id;
+			});
+
+			peer.on('connection', function(conn) {
+				connection = conn;
+				connection.on('open', function() {
+          console.log("connected");
+				});
+				connection.on('data', function(data) {
+					console.log(data);
+				});
+			});
+
+      function makeConnection() {
+        var peerid = document.getElementById('peerid').value;
+        connection = peer.connect(peerid); // get a webrtc DataConnection
+  			connection.on('open', function(data) {
+  				console.log("Oen data connection with server");
+  				
+  			});
+
+  			connection.on('data', function(data) {
+          console.log(data);
+        });
+      }
+
+		</script>
+	</head>
+	<body>
+    <input type="text" id="peerid" value="Peer Id To Connect To">
+    <input type="button" value="Connect" onclick="makeConnection();">
+	</body>
+</html>

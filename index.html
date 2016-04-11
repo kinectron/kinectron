@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+    <script src="peer.min.js"></script>
+    <script type="text/JavaScript">
+      var Kinect2 = require('kinect2');
+      var kinect = new Kinect2();
+
+      var mypeerid = null;
+      var peer = null;
+      var peer_ids = [];
+      var peer_connections = [];
+
+      function initpeer() {
+          peer = new Peer({host: 'liveweb.itp.io', port: 9001, path: '/'});
+
+          peer.on('error',function(err) {
+            console.log(err);
+          });
+
+          peer.on('open', function(id) {
+            console.log('My peer ID is: ' + id);
+            mypeerid = id;
+        });
+
+        peer.on('connection', function(conn) {
+          connection = conn;
+          console.log("Got a new data connection from peer: "+connection.peer);
+          peer_connections.push(connection);
+
+          connection.on('open', function() {
+            console.log("Connection opened.");
+          });
+          connection.on('data', function(data) {
+            console.log("Data Received: "+data);
+          });
+        });
+
+}
+
+function sendKinectToPeer(data) {
+  peer_connections.forEach(function(connection) {
+    connection.send(data);
+  });
+}
+
+function startTracking() {
+      if (kinect.open()) {
+	       console.log("Kinect Opened");
+
+         //listen for body frames
+	        kinect.on('bodyFrame', function(bodyFrame){
+		          for (var i = 0;  i < bodyFrame.bodies.length; i++) {
+			             if (bodyFrame.bodies[i].tracked) {
+				                 console.log(bodyFrame.bodies[i]);
+                         sendKinectToPeer(bodyFrame.bodies[i]);
+			             }
+		          }
+	        });
+
+	         //request body frames
+	          kinect.openBodyReader();
+          }
+}
+
+function stopTracking() {
+  kinect.close();
+}
+
+function loadFile(e) {
+  //console.log(e);
+  window.location.href = e.target.files[0].path;
+}
+
+function init() {
+  document.getElementById('loadfile').addEventListener('change',loadFile);
+}
+
+window.addEventListener('load',initpeer);
+window.addEventListener('load',init);
+
+</script>
+
+  </head>
+  <body style="background-color: white;">
+    <h1>Hello Kinect!</h1>
+
+    <br />
+    <input type="button" value="Start Skeleton Tracking" onclick="startTracking();">
+    <input type="button" value="Stop Skeleton Tracking" onclick="stopTracking();">
+    <br />
+    Load a different page:
+    <input type="file" id="loadfile">
+  </body>
+</html>
