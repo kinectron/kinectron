@@ -13,6 +13,14 @@
       var peer_ids = [];
       var peer_connections = [];
 
+      var canvas = null;
+      var context = null;
+      var imageData = null;
+      var imageDataSize = null;
+      var imageDataArray = null;
+
+      var busy = false;
+
       function initpeer() {
           peer = new Peer({host: 'liveweb.itp.io', port: 9001, path: '/'});
 
@@ -38,49 +46,81 @@
           });
         });
 
-}
+      }
 
-function sendKinectToPeer(data) {
-  peer_connections.forEach(function(connection) {
-    connection.send(data);
-  });
-}
+      function sendToPeer(evt, data) {
+        var dataToSend = {"event": evt, "data": data};
+        peer_connections.forEach(function(connection) {
+          connection.send(dataToSend);
+        });
+      }
 
-function startTracking() {
-      if (kinect.open()) {
-	       console.log("Kinect Opened");
+      function startTracking() {
+            if (kinect.open()) {
+      	       console.log("Kinect Opened");
 
-         //listen for body frames
-	        kinect.on('bodyFrame', function(bodyFrame){
-		          for (var i = 0;  i < bodyFrame.bodies.length; i++) {
-			             if (bodyFrame.bodies[i].tracked) {
-				                 console.log(bodyFrame.bodies[i]);
-                         sendKinectToPeer(bodyFrame.bodies[i]);
-			             }
-		          }
-	        });
+               //listen for body frames
+      	        kinect.on('bodyFrame', function(bodyFrame){
+                  console.log(bodyFrame);
+                  sendToPeer('bodyFrame',bodyFrame);
+      		          for (var i = 0;  i < bodyFrame.bodies.length; i++) {
+      			             if (bodyFrame.bodies[i].tracked) {
+      			             }
+      		          }
+      	        });
 
-	         //request body frames
-	          kinect.openBodyReader();
-          }
-}
+      	        //request body frames
+      	        kinect.openBodyReader();
+            }
+      }
 
-function stopTracking() {
-  kinect.close();
-}
+      function stopTracking() {
+        kinect.close();
+      }
 
-function loadFile(e) {
-  //console.log(e);
-  window.location.href = e.target.files[0].path;
-}
 
-function init() {
-  document.getElementById('loadfile').addEventListener('change',loadFile);
-}
+      function startRGB() {
 
-window.addEventListener('load',initpeer);
-window.addEventListener('load',init);
+        if(kinect.open()) {
+          kinect.on('colorFrame', function(newPixelData){
+            if(busy) {
+              return;
+            }
+            busy = true;
+            //sendToPeer('colorFrame',newPixelData);
 
+            for (var i = 0; i < imageDataSize; i++) {
+              imageDataArray[i] = newPixelData[i];
+            }
+            context.putImageData(imageData, 0, 0);
+            busy = false;
+          });
+        }
+        kinect.openColorReader();
+
+      }
+
+      function stopRGB() {
+        kinect.closeColorReader();
+        busy = false;
+      }
+
+      function loadFile(e) {
+        //console.log(e);
+        window.location.href = e.target.files[0].path;
+      }
+
+      function init() {
+        document.getElementById('loadfile').addEventListener('change',loadFile);
+        canvas = document.getElementById('outputCanvas');
+        context = canvas.getContext('2d');
+        imageData = context.createImageData(canvas.width, canvas.height);
+        imageDataSize = imageData.data.length;
+        imageDataArray = imageData.data;
+      }
+
+      window.addEventListener('load',initpeer);
+      window.addEventListener('load',init);
 </script>
 
   </head>
@@ -90,6 +130,11 @@ window.addEventListener('load',init);
     <br />
     <input type="button" value="Start Skeleton Tracking" onclick="startTracking();">
     <input type="button" value="Stop Skeleton Tracking" onclick="stopTracking();">
+    <br />
+    <input type="button" value="Start RGB Camera" onclick="startRGB();">
+    <input type="button" value="Stop RGB Camera" onclick="stopRGB();">
+    <br />
+    <canvas id="outputCanvas" width="1920" height="1080"></canvas>
     <br />
     Load a different page:
     <input type="file" id="loadfile">

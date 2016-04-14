@@ -8,6 +8,12 @@
 		  var peer = null;
 		  var connection = null;
 
+			var canvas = null;
+			var context = null;
+			var imageData = null;
+			var imageDataSize = null;
+			var imageDataArray = null;
+
 			peer = new Peer({host: 'liveweb.itp.io', port: 9001, path: '/'})
 //peer = new Peer({key: 'uohu08l7r6swcdi'});
 			peer.on('open', function(id) {
@@ -29,19 +35,41 @@
         var peerid = document.getElementById('peerid').value;
         connection = peer.connect(peerid); // get a webrtc DataConnection
   			connection.on('open', function(data) {
-  				console.log("Oen data connection with server");
-  				
+  				console.log("Open data connection with server");
+
   			});
 
-  			connection.on('data', function(data) {
-          console.log(data);
+  			connection.on('data', function(dataReceived) {
+          //console.log(dataReceived);
+					if (dataReceived.event == 'bodyFrame') {
+						console.log("Body Frame:");
+						console.log(dataReceived.data);
+					} else if (dataReceived.event == "colorFrame") {
+						console.log("Color Frame:");
+						console.log(dataReceived.data);
+						for (var i = 0; i < imageDataSize; i++) {
+              imageDataArray[i] = dataReceived.data[i];
+            }
+						context.putImageData(imageData, 0, 0);
+
+					}
         });
       }
+
+			window.addEventListener('load', function() {
+				canvas = document.getElementById('outputCanvas');
+        context = canvas.getContext('2d');
+        imageData = context.createImageData(canvas.width, canvas.height);
+        imageDataSize = imageData.data.length;
+        imageDataArray = imageData.data;
+			});
 
 		</script>
 	</head>
 	<body>
     <input type="text" id="peerid" value="Peer Id To Connect To">
     <input type="button" value="Connect" onclick="makeConnection();">
+
+  <canvas id="outputCanvas" width="1920" height="1080"></canvas>
 	</body>
 </html>
