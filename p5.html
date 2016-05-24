@@ -21,7 +21,8 @@
           console.log("connected");
 				});
 				connection.on('data', function(data) {
-					console.log(data);
+					skeletonData(data);
+					//console.log(data);
 				});
 			});
 
@@ -33,33 +34,36 @@
 
   			});
 
-  			connection.on('data', function(dataReceived) {
-          //console.log(dataReceived);
-					if (dataReceived.event == 'bodyFrame') {
-						//console.log("Body Frame:");
-						//console.log(dataReceived.data);
+				connection.on('data', function(data) {
+					skeletonData(data);
+				});
+			}
 
-						for (var i = 0; i < dataReceived.data.bodies.length; i++) {
-							if (dataReceived.data.bodies[i].tracked == true) {
-								console.log(dataReceived.data.bodies[i].joints);
-								for (var j = 0; j < dataReceived.data.bodies[i].joints.length; j++) {
-									joints[j] = {x: (dataReceived.data.bodies[i].joints[j].cameraX)*characterWidth/2+width/2,
-									 				y: (dataReceived.data.bodies[i].joints[j].cameraY*-1)*characterHeight/2+height/2+50};
+			function skeletonData(dataReceived) {
+        //console.log(dataReceived);
+				if (dataReceived.event == 'bodyFrame') {
+					//console.log("Body Frame:");
+					//console.log(dataReceived.data);
 
-									console.log(""+characterWidth/2+" "+width/2+" "+characterHeight/2+" "+height/2);
-
-								}
-								console.log(joints);
+					for (var i = 0; i < dataReceived.data.bodies.length; i++) {
+						if (dataReceived.data.bodies[i].tracked == true) {
+							//console.log(dataReceived.data.bodies[i].joints);
+							for (var j = 0; j < dataReceived.data.bodies[i].joints.length; j++) {
+								joints[i][j] = {x: (dataReceived.data.bodies[i].joints[j].cameraX)*characterWidth/2+width/2,
+								 				y: (dataReceived.data.bodies[i].joints[j].cameraY*-1)*characterHeight/2+height/2+50};
+								//console.log(""+characterWidth/2+" "+width/2+" "+characterHeight/2+" "+height/2);
+							}
+							//console.log(joints);
+						}
+						else {
+							// Not being tracked
+							for (var j = 0; j < joints[i].length; j++) {
+								joints[i][j] = {x: 0, y: 0};
 							}
 						}
-								// joints[data.position] = {x: (data.x)*characterWidth/2+width/2,
-								// 				y: (data.y*-1)*characterHeight/2+height/2+50};
-
-
 					}
-        });
-      }
-
+				}
+			}
 
 			var STROKESIZE = 5;
 			var ERASESTROKESIZE = 20;
@@ -75,8 +79,11 @@
 			var characterColor = 200;
 
 			var joints = [];
-			for (var a = 0; a < 23; a++) {
-				joints[a] = 0;
+			for (var b = 0; b < 7; b++) {
+				joints[b] = [];
+				for (var a = 0; a < 23; a++) {
+					joints[b][a] = 0;
+				}
 			}
 
 			var center = {x: 0, y: 0};
@@ -99,62 +106,64 @@
 				strokeWeight(STROKESIZE);
 				ellipseMode(CENTER);
 
-				if (joints[2] != null) {
-					if (joints[3] != null) {
-						line(joints[2].x, joints[2].y, joints[3].x, joints[3].y);
+				for (var c = 0; c < joints.length; c++) {
+					if (joints[c][2] != null) {
+						if (joints[c][3] != null) {
+							line(joints[c][2].x, joints[c][2].y, joints[c][3].x, joints[c][3].y);
 
-						ellipse(
-							(joints[2].x + joints[3].x)/2,
-							(joints[2].y + joints[3].y)/2 - (joints[2].y - joints[3].y)*2,
-							(joints[2].y - joints[3].y)*4,
-							(joints[2].y - joints[3].y)*4
-						);
-					}
-
-					if (joints[20] != null) {
-						line(joints[2].x, joints[2].y, joints[20].x, joints[20].y);
-
-						if (joints[1] != null) {
-
-							line(joints[20].x, joints[20].y, joints[1].x, joints[1].y);
-							if (joints[17] != null) {
-								line(joints[1].x, joints[1].y, joints[17].x, joints[17].y);
-								if (joints[19] != null) {
-									line(joints[17].x, joints[17].y, joints[19].x, joints[19].y);
-								}
-							}
-
-							if (joints[13] != null) {
-
-								line(joints[1].x, joints[1].y, joints[13].x, joints[13].y);
-								if (joints[15] != null) {
-									line(joints[13].x, joints[13].y, joints[15].x, joints[15].y);
-								}
-							}
+							ellipse(
+								(joints[c][2].x + joints[c][3].x)/2,
+								(joints[c][2].y + joints[c][3].y)/2 - (joints[c][2].y - joints[c][3].y)*2,
+								(joints[c][2].y - joints[c][3].y)*4,
+								(joints[c][2].y - joints[c][3].y)*4
+							);
 						}
 
-						if (joints[8] != null) {
-							line(joints[20].x, joints[20].y, joints[8].x, joints[8].y);
-							if (joints[9] != null) {
-								line(joints[8].x, joints[8].y, joints[9].x, joints[9].y);
-								if (joints[10] != null) {
-									line(joints[9].x, joints[9].y, joints[10].x, joints[10].y);
-									if (joints[23] != null) {
-										line(joints[10].x, joints[10].y, joints[23].x, joints[23].y);
+						if (joints[c][20] != null) {
+							line(joints[c][2].x, joints[c][2].y, joints[c][20].x, joints[c][20].y);
+
+							if (joints[c][1] != null) {
+
+								line(joints[c][20].x, joints[c][20].y, joints[c][1].x, joints[c][1].y);
+								if (joints[c][17] != null) {
+									line(joints[c][1].x, joints[c][1].y, joints[c][17].x, joints[c][17].y);
+									if (joints[c][19] != null) {
+										line(joints[c][17].x, joints[c][17].y, joints[c][19].x, joints[c][19].y);
+									}
+								}
+
+								if (joints[c][13] != null) {
+
+									line(joints[c][1].x, joints[c][1].y, joints[c][13].x, joints[c][13].y);
+									if (joints[c][15] != null) {
+										line(joints[c][13].x, joints[c][13].y, joints[c][15].x, joints[c][15].y);
 									}
 								}
 							}
-						}
 
-						if (joints[4] != null) {
-							line(joints[20].x, joints[20].y, joints[4].x, joints[4].y);
-							if (joints[5] != null) {
-								line(joints[4].x, joints[4].y, joints[5].x, joints[5].y);
-								if (joints[6] != null) {
-									line(joints[5].x, joints[5].y, joints[6].x, joints[6].y);
+							if (joints[c][8] != null) {
+								line(joints[c][20].x, joints[c][20].y, joints[c][8].x, joints[c][8].y);
+								if (joints[c][9] != null) {
+									line(joints[c][8].x, joints[c][8].y, joints[c][9].x, joints[c][9].y);
+									if (joints[c][10] != null) {
+										line(joints[c][9].x, joints[c][9].y, joints[c][10].x, joints[c][10].y);
+										if (joints[c][23] != null) {
+											line(joints[c][10].x, joints[c][10].y, joints[c][23].x, joints[c][23].y);
+										}
+									}
+								}
+							}
 
-									if (joints[21] != null) {
-										line(joints[6].x, joints[6].y, joints[21].x, joints[21].y);
+							if (joints[c][4] != null) {
+								line(joints[c][20].x, joints[c][20].y, joints[c][4].x, joints[c][4].y);
+								if (joints[c][5] != null) {
+									line(joints[c][4].x, joints[c][4].y, joints[c][5].x, joints[c][5].y);
+									if (joints[c][6] != null) {
+										line(joints[c][5].x, joints[c][5].y, joints[c][6].x, joints[c][6].y);
+
+										if (joints[c][21] != null) {
+											line(joints[c][6].x, joints[c][6].y, joints[c][21].x, joints[c][21].y);
+										}
 									}
 								}
 							}
