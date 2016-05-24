@@ -22,7 +22,7 @@
       var busy = false;
 
       function initpeer() {
-          peer = new Peer({host: 'liveweb.itp.io', port: 9001, path: '/'});
+          peer = new Peer('shawn',{host: 'liveweb.itp.io', port: 9000, path: '/', secure: true});
 
           peer.on('error',function(err) {
             console.log(err);
@@ -61,12 +61,14 @@
 
                //listen for body frames
       	        kinect.on('bodyFrame', function(bodyFrame){
-                  console.log(bodyFrame);
                   sendToPeer('bodyFrame',bodyFrame);
-      		          for (var i = 0;  i < bodyFrame.bodies.length; i++) {
-      			             if (bodyFrame.bodies[i].tracked) {
-      			             }
-      		          }
+      		          // for (var i = 0;  i < bodyFrame.bodies.length; i++) {
+      			        //      if (bodyFrame.bodies[i].tracked) {
+                    //        console.log("Tracked");
+                    //        sendToPeer('bodyFrame',bodyFrame);
+                    //        console.log(bodyFrame);
+      			        //      }
+      		          // }
       	        });
 
       	        //request body frames
