@@ -15,6 +15,10 @@
 
       var canvas = null;
       var context = null;
+
+      var outputCanvas = null;
+      var outputContext = null;
+
       var imageData = null;
       var imageDataSize = null;
       var imageDataArray = null;
@@ -83,8 +87,15 @@
 
       function startRGB() {
 
+        canvas.width = 1920;
+        canvas.height = 1080;
+        imageData = context.createImageData(canvas.width, canvas.height);
+        imageDataSize = imageData.data.length;
+        imageDataArray = imageData.data;
+
         if(kinect.open()) {
           kinect.on('colorFrame', function(newPixelData){
+            //console.log(newPixelData.length);
             if(busy) {
               return;
             }
@@ -95,6 +106,9 @@
               imageDataArray[i] = newPixelData[i];
             }
             context.putImageData(imageData, 0, 0);
+
+            outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+            sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
             busy = false;
           });
         }
@@ -107,6 +121,46 @@
         busy = false;
       }
 
+      function startDepth() {
+        console.log("startDepth Camera");
+
+        canvas.width = 512;
+        canvas.height = 424;
+        imageData = context.createImageData(canvas.width, canvas.height);
+        imageDataSize = imageData.data.length;
+        imageDataArray = imageData.data;
+
+        if(kinect.open()) {
+          kinect.on('depthFrame', function(newPixelData){
+            console.log("depthFrame");
+        					if(busy) {
+        						return;
+        					}
+        					busy = true;
+
+                  newPixelDataIndex = 0;
+                  for (var i = 0; i < imageDataSize; i+=4) {
+                    imageDataArray[i] = newPixelData[newPixelDataIndex];
+                    imageDataArray[i+1] = newPixelData[newPixelDataIndex];
+                    imageDataArray[i+2] = newPixelData[newPixelDataIndex];
+                    imageDataArray[i+3] = newPixelData[newPixelDataIndex];
+                    newPixelDataIndex++;
+                  }
+                  context.putImageData(imageData, 0, 0);
+
+                  outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+                  sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
+        					busy = false;
+        				});
+        			}
+        kinect.openDepthReader();
+      }
+
+      function stopDepth() {
+        kinect.closeDepthReader();
+        busy = false;
+      }
+
       function loadFile(e) {
         //console.log(e);
         window.location.href = e.target.files[0].path;
@@ -114,11 +168,15 @@
 
       function init() {
         document.getElementById('loadfile').addEventListener('change',loadFile);
-        canvas = document.getElementById('outputCanvas');
+        canvas = document.getElementById('inputCanvas');
         context = canvas.getContext('2d');
         imageData = context.createImageData(canvas.width, canvas.height);
         imageDataSize = imageData.data.length;
         imageDataArray = imageData.data;
+
+        outputCanvas = document.getElementById('outputCanvas');
+        outputContext = outputCanvas.getContext('2d');
+
       }
 
       window.addEventListener('load',initpeer);
@@ -136,7 +194,11 @@
     <input type="button" value="Start RGB Camera" onclick="startRGB();">
     <input type="button" value="Stop RGB Camera" onclick="stopRGB();">
     <br />
-    <canvas id="outputCanvas" width="1920" height="1080"></canvas>
+    <input type="button" value="Start Depth Camera" onclick="startDepth();">
+    <input type="button" value="Stop Depth Camera" onclick="stopDepth();">
+    <br />
+    <canvas id="inputCanvas" width="1920" height="1080"></canvas>
+    <canvas id="outputCanvas" width="960" height="540"></canvas>
     <br />
     Load a different page:
     <input type="file" id="loadfile">

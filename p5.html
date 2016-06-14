@@ -8,7 +8,7 @@
 		  var peer = null;
 		  var connection = null;
 
-			peer = new Peer({host: 'liveweb.itp.io', port: 9000, path: '/'})
+			peer = new Peer({host: 'liveweb.itp.io', port: 9000, path: '/', secure: true})
 			//peer = new Peer({key: 'uohu08l7r6swcdi'});
 			peer.on('open', function(id) {
 				console.log('My peer ID is: ' + id);
@@ -107,6 +107,11 @@
 				ellipseMode(CENTER);
 
 				for (var c = 0; c < joints.length; c++) {
+
+					fill(255,0,0);
+					ellipse(joints[c][21].x, joints[c][21].y, 100, 100);
+					noFill();
+
 					if (joints[c][2] != null) {
 						if (joints[c][3] != null) {
 							line(joints[c][2].x, joints[c][2].y, joints[c][3].x, joints[c][3].y);

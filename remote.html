@@ -14,7 +14,9 @@
 			var imageDataSize = null;
 			var imageDataArray = null;
 
-			peer = new Peer({host: 'liveweb.itp.io', port: 9001, path: '/'})
+			var image = null;
+
+			peer = new Peer({host: 'liveweb.itp.io', port: 9000, path: '/', secure: true})
 //peer = new Peer({key: 'uohu08l7r6swcdi'});
 			peer.on('open', function(id) {
 				console.log('My peer ID is: ' + id);
@@ -46,11 +48,7 @@
 						console.log(dataReceived.data);
 					} else if (dataReceived.event == "colorFrame") {
 						console.log("Color Frame:");
-						console.log(dataReceived.data);
-						for (var i = 0; i < imageDataSize; i++) {
-              imageDataArray[i] = dataReceived.data[i];
-            }
-						context.putImageData(imageData, 0, 0);
+						image.src = dataReceived.data;
 
 					}
         });
@@ -62,6 +60,8 @@
         imageData = context.createImageData(canvas.width, canvas.height);
         imageDataSize = imageData.data.length;
         imageDataArray = imageData.data;
+
+				image = document.getElementById('image');
 			});
 
 		</script>
@@ -69,7 +69,7 @@
 	<body>
     <input type="text" id="peerid" value="Peer Id To Connect To">
     <input type="button" value="Connect" onclick="makeConnection();">
-
-  <canvas id="outputCanvas" width="1920" height="1080"></canvas>
+  	<canvas id="outputCanvas" width="1920" height="1080"></canvas>
+	<img id="image" src="" width="960" height="540">
 	</body>
 </html>
