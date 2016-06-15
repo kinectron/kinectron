@@ -24,7 +24,7 @@
 
 				connection.on('data', function(data) {
 					skeletonData(data);
-					//console.log(data);
+					// console.log(data);
 				});
 			});
 
@@ -46,6 +46,14 @@
 					for (var i = 0; i < dataReceived.data.bodies.length; i++) {
 						// If it's being tracked
 						if (dataReceived.data.bodies[i].tracked == true) {
+
+							// **********************************
+							// Capture hand state
+							//console.log(dataReceived.data.bodies[i]);
+							joints[i].leftHandState = dataReceived.data.bodies[i].leftHandState;
+							joints[i].rightHandState = dataReceived.data.bodies[i].rightHandState;
+							// **************************************
+
 							for (var j = 0; j < dataReceived.data.bodies[i].joints.length; j++) {
 								// Put into joints array
 								joints[i][j] = {x: (dataReceived.data.bodies[i].joints[j].cameraX)*characterWidth/2+width/2,
@@ -67,15 +75,15 @@
 
 			var backgroundColor = 0;
 			var characterColor = 200;
-			
-			// Change number
-			var handClosed = false;
-			var handJoint = 10;
+
+			// **********************************
+			var handJoint = 23;
 			var x = 100;
 			var y = 100;
-			var xdir = 1;
+			var xdir = 2;
 			var ydir = 1;
 			var caught = false;
+			// **********************************
 
 			// Initialized joints array // 7 bodies
 			var joints = [];
@@ -103,41 +111,53 @@
 				fill(characterColor);
 				ellipseMode(CENTER);
 
+				// **********************************
 				// DEBUGGING without KINECT
-				handClosed = mouseIsPressed; // Change to kinect version
-				joints[0][handJoint].x = mouseX;
-				joints[0][handJoint].y = mouseY;
+				// handClosed = mouseIsPressed; // Change to kinect version
+				// joints[0][handJoint].x = mouseX;
+				// joints[0][handJoint].y = mouseY;
+				// **********************************
 
+				// **********************************
 				caught = false;
-				
+				// **********************************
+
+
 				// Loop through bodies
 				for (var c = 0; c < joints.length; c++) {
 
+					// **********************************
 					// Catch the ball!
-					if (handClosed) {
+					if (joints[c].rightHandState == 3) {
+						fill(255,0,0);
+						ellipse(joints[c][handJoint].x, joints[c][handJoint].y, 50, 50);
+
 						if (dist(joints[c][handJoint].x, joints[c][handJoint].y, x, y) < 25) {
 							x = joints[c][handJoint].x;
 							y = joints[c][handJoint].y;
 							caught = true;
 						}
 					}
-					
+					fill(characterColor);
+
+					// **********************************
+
 					// Loop through joints
 					for (var d = 0; d < joints[c].length; d++) {
-						ellipse(joints[c][d].x, joints[c][d].y, 50, 50);
+						ellipse(joints[c][d].x, joints[c][d].y, 25, 25);
 						text(c + "," + d, x, y);
 					}
 				}
-				
+
 				if (!caught) {
 					x += xdir;
 					y += ydir;
 					if (x >= width || x <= 0) xdir *= -1;
 					if (y >= height || y <= 0) ydir *= -1;
 				}
-				
+
 				ellipse(x,y,50,50);
-				
+
 
 			}
 
