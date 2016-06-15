@@ -59,6 +59,77 @@
         });
       }
 
+
+      var trackedBodyIndex = -1;
+      var emptyPixels = new Uint8Array(1920 * 1080 * 4);
+
+      function getClosestBodyIndex(bodies) {
+    		var closestZ = Number.MAX_VALUE;
+    		var closestBodyIndex = -1;
+    		for(var i = 0; i < bodies.length; i++) {
+    			if(bodies[i].tracked && bodies[i].joints[Kinect2.JointType.spineMid].cameraZ < closestZ) {
+    				closestZ = bodies[i].joints[Kinect2.JointType.spineMid].cameraZ;
+    				closestBodyIndex = i;
+    			}
+    		}
+    		return closestBodyIndex;
+    	}
+
+      function startKey() {
+
+        if(kinect.open()) {
+        		kinect.on('multiSourceFrame', function(frame) {
+        			var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
+        			if(closestBodyIndex !== trackedBodyIndex) {
+        				if(closestBodyIndex > -1) {
+        					kinect.trackPixelsForBodyIndices([closestBodyIndex]);
+        				} else {
+        					kinect.trackPixelsForBodyIndices(false);
+        					//clear canvas
+        				}
+        			}
+        			else {
+        				if (closestBodyIndex > -1) {
+        					if (frame.bodyIndexColor.bodies[closestBodyIndex].buffer) {
+        						//processImageData(frame.bodyIndexColor.bodies[closestBodyIndex].buffer, colorCanvas.width, colorCanvas.height);
+
+                    newPixelData = frame.bodyIndexColor.bodies[closestBodyIndex].buffer
+
+                    canvas.width = 1920;
+                    canvas.height = 1080;
+                    imageData = context.createImageData(canvas.width, canvas.height);
+                    imageDataSize = imageData.data.length;
+                    imageDataArray = imageData.data;
+
+                        //console.log(newPixelData.length);
+                        if(busy) {
+                          return;
+                        }
+                        busy = true;
+                        //sendToPeer('colorFrame',newPixelData);
+
+                        for (var i = 0; i < imageDataSize; i++) {
+                          imageDataArray[i] = newPixelData[i];
+                        }
+                        context.putImageData(imageData, 0, 0);
+
+                        outputContext.clearRect(0,0,outputCanvas.width,outputCanvas.height);
+
+                        outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+                        sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
+                        busy = false;
+
+        					}
+        				}
+        			}
+        			trackedBodyIndex = closestBodyIndex;
+        		});
+}
+            kinect.openMultiSourceReader({
+              frameTypes: Kinect2.FrameType.bodyIndexColor | Kinect2.FrameType.body
+            });
+      }
+
       function startTracking() {
             if (kinect.open()) {
       	       console.log("Kinect Opened");
@@ -106,7 +177,6 @@
               imageDataArray[i] = newPixelData[i];
             }
             context.putImageData(imageData, 0, 0);
-
             outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
             sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
             busy = false;
@@ -149,7 +219,7 @@
                   context.putImageData(imageData, 0, 0);
 
                   outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
-                  sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
+                  sendToPeer('depthFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
         					busy = false;
         				});
         			}
@@ -196,6 +266,9 @@
     <br />
     <input type="button" value="Start Depth Camera" onclick="startDepth();">
     <input type="button" value="Stop Depth Camera" onclick="stopDepth();">
+    <br />
+    <input type="button" value="Start Key Camera" onclick="startKey();">
+    <input type="button" value="Stop Key Camera" onclick="">
     <br />
     <canvas id="inputCanvas" width="1920" height="1080"></canvas>
     <canvas id="outputCanvas" width="960" height="540"></canvas>
