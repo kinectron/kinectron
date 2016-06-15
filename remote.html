@@ -49,7 +49,9 @@
 					} else if (dataReceived.event == "colorFrame") {
 						console.log("Color Frame:");
 						image.src = dataReceived.data;
-
+					} else if (dataReceived.event == "depthFrame") {
+						console.log("Depth Frame:");
+						image.src = dataReceived.data;
 					}
         });
       }
