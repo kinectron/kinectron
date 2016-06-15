@@ -67,6 +67,15 @@
 
 			var backgroundColor = 0;
 			var characterColor = 200;
+			
+			// Change number
+			var handClosed = false;
+			var handJoint = 10;
+			var x = 100;
+			var y = 100;
+			var xdir = 1;
+			var ydir = 1;
+			var caught = false;
 
 			// Initialized joints array // 7 bodies
 			var joints = [];
@@ -94,73 +103,42 @@
 				fill(characterColor);
 				ellipseMode(CENTER);
 
+				// DEBUGGING without KINECT
+				handClosed = mouseIsPressed; // Change to kinect version
+				joints[0][handJoint].x = mouseX;
+				joints[0][handJoint].y = mouseY;
+
+				caught = false;
+				
 				// Loop through bodies
 				for (var c = 0; c < joints.length; c++) {
 
-					// Connect the joints
-					if (joints[c][2] != null) {
-						if (joints[c][3] != null) {
-							line(joints[c][2].x, joints[c][2].y, joints[c][3].x, joints[c][3].y);
-
-							ellipse(
-								(joints[c][2].x + joints[c][3].x)/2,
-								(joints[c][2].y + joints[c][3].y)/2 - (joints[c][2].y - joints[c][3].y)*2,
-								(joints[c][2].y - joints[c][3].y)*4,
-								(joints[c][2].y - joints[c][3].y)*4
-							);
-						}
-
-						if (joints[c][20] != null) {
-							line(joints[c][2].x, joints[c][2].y, joints[c][20].x, joints[c][20].y);
-
-							if (joints[c][1] != null) {
-
-								line(joints[c][20].x, joints[c][20].y, joints[c][1].x, joints[c][1].y);
-								if (joints[c][17] != null) {
-									line(joints[c][1].x, joints[c][1].y, joints[c][17].x, joints[c][17].y);
-									if (joints[c][19] != null) {
-										line(joints[c][17].x, joints[c][17].y, joints[c][19].x, joints[c][19].y);
-									}
-								}
-
-								if (joints[c][13] != null) {
-
-									line(joints[c][1].x, joints[c][1].y, joints[c][13].x, joints[c][13].y);
-									if (joints[c][15] != null) {
-										line(joints[c][13].x, joints[c][13].y, joints[c][15].x, joints[c][15].y);
-									}
-								}
-							}
-
-							if (joints[c][8] != null) {
-								line(joints[c][20].x, joints[c][20].y, joints[c][8].x, joints[c][8].y);
-								if (joints[c][9] != null) {
-									line(joints[c][8].x, joints[c][8].y, joints[c][9].x, joints[c][9].y);
-									if (joints[c][10] != null) {
-										line(joints[c][9].x, joints[c][9].y, joints[c][10].x, joints[c][10].y);
-										if (joints[c][23] != null) {
-											line(joints[c][10].x, joints[c][10].y, joints[c][23].x, joints[c][23].y);
-										}
-									}
-								}
-							}
-
-							if (joints[c][4] != null) {
-								line(joints[c][20].x, joints[c][20].y, joints[c][4].x, joints[c][4].y);
-								if (joints[c][5] != null) {
-									line(joints[c][4].x, joints[c][4].y, joints[c][5].x, joints[c][5].y);
-									if (joints[c][6] != null) {
-										line(joints[c][5].x, joints[c][5].y, joints[c][6].x, joints[c][6].y);
-
-										if (joints[c][21] != null) {
-											line(joints[c][6].x, joints[c][6].y, joints[c][21].x, joints[c][21].y);
-										}
-									}
-								}
-							}
+					// Catch the ball!
+					if (handClosed) {
+						if (dist(joints[c][handJoint].x, joints[c][handJoint].y, x, y) < 25) {
+							x = joints[c][handJoint].x;
+							y = joints[c][handJoint].y;
+							caught = true;
 						}
 					}
+					
+					// Loop through joints
+					for (var d = 0; d < joints[c].length; d++) {
+						ellipse(joints[c][d].x, joints[c][d].y, 50, 50);
+						text(c + "," + d, x, y);
+					}
 				}
+				
+				if (!caught) {
+					x += xdir;
+					y += ydir;
+					if (x >= width || x <= 0) xdir *= -1;
+					if (y >= height || y <= 0) ydir *= -1;
+				}
+				
+				ellipse(x,y,50,50);
+				
+
 			}
 
 			function debug(message) {
