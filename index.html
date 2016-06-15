@@ -59,7 +59,7 @@
         });
       }
 
-
+      // Key Tracking needs cleanup
       var trackedBodyIndex = -1;
       var emptyPixels = new Uint8Array(1920 * 1080 * 4);
 
@@ -76,9 +76,20 @@
     	}
 
       function startKey() {
+        canvas.width = 1920;
+        canvas.height = 1080;
+        imageData = context.createImageData(canvas.width, canvas.height);
+        imageDataSize = imageData.data.length;
+        imageDataArray = imageData.data;
 
         if(kinect.open()) {
         		kinect.on('multiSourceFrame', function(frame) {
+
+              if(busy) {
+                return;
+              }
+              busy = true;
+
         			var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
         			if(closestBodyIndex !== trackedBodyIndex) {
         				if(closestBodyIndex > -1) {
@@ -95,18 +106,6 @@
 
                     newPixelData = frame.bodyIndexColor.bodies[closestBodyIndex].buffer
 
-                    canvas.width = 1920;
-                    canvas.height = 1080;
-                    imageData = context.createImageData(canvas.width, canvas.height);
-                    imageDataSize = imageData.data.length;
-                    imageDataArray = imageData.data;
-
-                        //console.log(newPixelData.length);
-                        if(busy) {
-                          return;
-                        }
-                        busy = true;
-                        //sendToPeer('colorFrame',newPixelData);
 
                         for (var i = 0; i < imageDataSize; i++) {
                           imageDataArray[i] = newPixelData[i];
@@ -117,17 +116,23 @@
 
                         outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
                         sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
-                        busy = false;
 
         					}
         				}
         			}
         			trackedBodyIndex = closestBodyIndex;
-        		});
-}
+              busy = false;
+
+            }); // kinect.on
+          } // open
             kinect.openMultiSourceReader({
               frameTypes: Kinect2.FrameType.bodyIndexColor | Kinect2.FrameType.body
             });
+      }
+
+      function stopKey() {
+        kinect.closeMultiSourceReader();
+        busy = false;
       }
 
       function startTracking() {
@@ -268,7 +273,7 @@
     <input type="button" value="Stop Depth Camera" onclick="stopDepth();">
     <br />
     <input type="button" value="Start Key Camera" onclick="startKey();">
-    <input type="button" value="Stop Key Camera" onclick="">
+    <input type="button" value="Stop Key Camera" onclick="stopKey();">
     <br />
     <canvas id="inputCanvas" width="1920" height="1080"></canvas>
     <canvas id="outputCanvas" width="960" height="540"></canvas>
