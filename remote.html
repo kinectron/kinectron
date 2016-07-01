@@ -52,6 +52,9 @@
 					} else if (dataReceived.event == "depthFrame") {
 						console.log("Depth Frame:");
 						image.src = dataReceived.data;
+					} else if (dataReceived.event == "infraredFrame") {
+						console.log("Ifrared Frame:");
+						image.src = dataReceived.data;
 					}
         });
       }
