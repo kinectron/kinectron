@@ -52,6 +52,9 @@
 					} else if (dataReceived.event == "depthFrame") {
 						console.log("Depth Frame:");
 						image.src = dataReceived.data;
+					} else if (dataReceived.event == "infraredFrame") {
+						console.log("Ifrared Frame:");
+						image.src = dataReceived.data;
 					}
         });
       }
@@ -69,7 +72,7 @@
 		</script>
 	</head>
 	<body>
-    <input type="text" id="peerid" value="Peer Id To Connect To">
+    <input type="text" id="peerid" placeholder="Peer Id To Connect To">
     <input type="button" value="Connect" onclick="makeConnection();">
   	<canvas id="outputCanvas" width="1920" height="1080"></canvas>
 	<img id="image" src="" width="960" height="540">

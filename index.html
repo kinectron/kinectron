@@ -26,7 +26,7 @@
       var busy = false;
 
       function initpeer() {
-          peer = new Peer('shawn',{host: 'liveweb.itp.io', port: 9000, path: '/', secure: true});
+          peer = new Peer('lisa',{host: 'liveweb.itp.io', port: 9000, path: '/', secure: true});
 
           peer.on('error',function(err) {
             console.log(err);
@@ -236,6 +236,108 @@
         busy = false;
       }
 
+      function startInfrared() {
+        console.log('starting Infrared Camera');
+
+        canvas.width = 512;
+        canvas.height = 424;
+        imageData = context.createImageData(canvas.width, canvas.height);
+        imageDataSize = imageData.data.length;
+
+        
+
+        if(kinect.open()) {
+          kinect.on('infraredFrame', function(imageBuffer){
+            if(busy) {
+              return;
+            }
+  
+            busy = true;
+  
+            var pixelArray = imageData.data;
+            var newPixelData = new Uint8Array(imageBuffer);
+            var depthPixelIndex = 0;
+    
+            for (var i = 0; i < imageDataSize; i+=4) {
+              pixelArray[i] = newPixelData[depthPixelIndex];
+              pixelArray[i+1] = newPixelData[depthPixelIndex];
+              pixelArray[i+2] = newPixelData[depthPixelIndex];
+              pixelArray[i+3] = 0xff;
+              depthPixelIndex++
+            }
+  
+            context.putImageData(imageData, 0, 0);
+            
+            outputContext.clearRect(0,0,outputCanvas.width, outputCanvas.height);
+            outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+            sendToPeer('infraredFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
+
+            busy = false;
+          });
+
+        }
+
+        kinect.openInfraredReader();
+
+      }
+
+
+      function stopInfrared() {
+        console.log('stopping Infrared Camera');
+        kinect.closeInfraredReader();
+        busy = false;
+      }
+
+      function startLEInfrared() {
+        console.log('starting LE Infrared');
+
+        canvas.width = 512;
+        canvas.height = 424;
+        var imageData = context.createImageData(canvas.width, canvas.height);
+        var imageDataSize = imageData.data.length;
+
+        if(kinect.open()) {
+          kinect.on('longExposureInfraredFrame', function(imageBuffer){
+            if(busy) {
+              return;
+            }
+
+            busy = true;
+            var pixelArray = imageData.data;
+            var newPixelData = new Uint8Array(imageBuffer);
+            var depthPixelIndex = 0;
+            for (var i = 0; i < imageDataSize; i+=4) {
+              pixelArray[i] = newPixelData[depthPixelIndex];
+              pixelArray[i+1] = newPixelData[depthPixelIndex];
+              pixelArray[i+2] = newPixelData[depthPixelIndex];
+              pixelArray[i+3] = 0xff;
+              depthPixelIndex++
+            }
+            
+            context.putImageData(imageData, 0, 0);
+            outputContext.clearRect(0,0,outputCanvas.width, outputCanvas.height);
+            outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+            sendToPeer('infraredFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
+
+            busy = false;
+          });
+
+        }
+
+        kinect.openLongExposureInfraredReader();
+      }
+
+      function stopLEInfrared() {
+        console.log('stopping LE Infrared');
+        kinect.closeLongExposureInfraredReader();
+        busy = false;
+      }
+
+
+
+
+
+
       function loadFile(e) {
         //console.log(e);
         window.location.href = e.target.files[0].path;
@@ -274,6 +376,12 @@
     <br />
     <input type="button" value="Start Key Camera" onclick="startKey();">
     <input type="button" value="Stop Key Camera" onclick="stopKey();">
+    <br />
+    <input type="button" value="Start Infrared Camera" onclick="startInfrared();">
+    <input type="button" value="Stop Infrared Camera" onclick="stopInfrared();">
+    <br />
+    <input type="button" value="Start Long Exposure Infrared" onclick="startLEInfrared();">
+    <input type="button" value="Stop Long Exposure Infrared" onclick="stopLEInfrared();">
     <br />
     <canvas id="inputCanvas" width="1920" height="1080"></canvas>
     <canvas id="outputCanvas" width="960" height="540"></canvas>
