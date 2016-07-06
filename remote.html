@@ -26,7 +26,7 @@
 			peer.on('connection', function(conn) {
 				connection = conn;
 				connection.on('open', function() {
-          console.log("connected");
+          	console.log("connected");
 				});
 				connection.on('data', function(data) {
 					console.log(data);
@@ -55,26 +55,55 @@
 					} else if (dataReceived.event == "infraredFrame") {
 						console.log("Ifrared Frame:");
 						image.src = dataReceived.data;
+					} else if (dataReceived.event == "skeleton") {
+						//console.log("skeleton");
+						drawSkeleton(dataReceived.data);
+					} else if (dataReceived.event == "clearCanvas") {
+						//console.log("clear");
+						clearCanvas();
+					} else if (dataReceived.event == "drawHand") {
+						console.log("drawhand");
+						console.log(dataReceived.data);
+						drawHand(dataReceived.data);
 					}
         });
       }
 
-			window.addEventListener('load', function() {
-				canvas = document.getElementById('outputCanvas');
-        context = canvas.getContext('2d');
-        imageData = context.createImageData(canvas.width, canvas.height);
-        imageDataSize = imageData.data.length;
-        imageDataArray = imageData.data;
+		window.addEventListener('load', function() {
+			canvas = document.getElementById('outputCanvas');
+    		context = canvas.getContext('2d');
+	        imageData = context.createImageData(canvas.width, canvas.height);
+	        imageDataSize = imageData.data.length;
+	        imageDataArray = imageData.data;
 
-				image = document.getElementById('image');
-			});
+			image = document.getElementById('image');
+		});
+
+		function drawSkeleton(data) {
+	      context.fillStyle = data.color;
+          context.fillRect(data.depthX * 512, data.depthY * 424, 10, 10);
+		}
+
+		function drawHand(data) {
+			context.globalAlpha = 0.75;
+	        context.beginPath();
+	        context.fillStyle = data.handColor;
+	        context.arc(data.depthX * 512, data.depthY * 424, data.handSize, 0, Math.PI * 2, true);
+	        context.fill();
+	        context.closePath();
+	        context.globalAlpha = 1;
+		}
+
+		function clearCanvas() {
+			context.clearRect(0, 0, canvas.width, canvas.height);
+		}
 
 		</script>
 	</head>
 	<body>
     <input type="text" id="peerid" placeholder="Peer Id To Connect To">
     <input type="button" value="Connect" onclick="makeConnection();">
-  	<canvas id="outputCanvas" width="1920" height="1080"></canvas>
+  	<canvas id="outputCanvas" width="512" height="424"></canvas>
 	<img id="image" src="" width="960" height="540">
 	</body>
 </html>
