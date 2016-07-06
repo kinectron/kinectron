@@ -25,6 +25,10 @@
 
       var busy = false;
 
+      //added for floor height joint 
+      var ImageBufferRendererWebgl = require('./js/image-buffer-renderer-webgl.js');
+      var colorRenderer = null;
+
       function initpeer() {
           peer = new Peer('lisa',{host: 'liveweb.itp.io', port: 9000, path: '/', secure: true});
 
@@ -115,6 +119,7 @@
                         outputContext.clearRect(0,0,outputCanvas.width,outputCanvas.height);
 
                         outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+                        
                         sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
 
         					}
@@ -333,7 +338,112 @@
         busy = false;
       }
 
+      function processImageData(imageBuffer, width, height) {
 
+        if (colorRenderer.isProcessing || (width <= 0) || (height <= 0)) {
+          return;
+        }
+
+        colorRenderer.isProcessing = true;
+        colorRenderer.processImageData(imageBuffer, width, height);
+        colorRenderer.isProcessing = false;
+
+      }
+
+      function startFHJoint() {
+        console.log('starting FHJoint');
+
+        canvas.width = 1920;
+        canvas.height = 1080;
+
+        imageData = context.createImageData(canvas.width, canvas.height);
+        imageDataSize = imageData.data.length;
+        imageDataArray = imageData.data;
+        
+        var hiddenCanvas = document.createElement('canvas');
+        hiddenCanvas.setAttribute('width', 1920);
+        hiddenCanvas.setAttribute('height', 1080);
+
+        colorRenderer = new ImageBufferRendererWebgl(hiddenCanvas);
+        trackedBodyIndex = -1;
+
+        if(kinect.open()) {
+          kinect.on('multiSourceFrame', function(frame){
+            //draw camera feed - fast to hidden webgl canvas - copy to visible 2D canvas
+            processImageData(frame.color.buffer, canvas.width, canvas.height);
+            context.drawImage(hiddenCanvas, 0, 0);
+
+            outputContext.clearRect(0,0,outputCanvas.width,outputCanvas.height);
+
+            outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+                  
+            sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
+            //
+            var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
+            if(closestBodyIndex !== trackedBodyIndex) {
+              if(closestBodyIndex > -1) {
+                kinect.trackPixelsForBodyIndices([closestBodyIndex]);
+              } else {
+                kinect.trackPixelsForBodyIndices(false);
+                //clear canvas
+                processImageData(emptyPixels.buffer, canvas.width, canvas.height);
+              }
+            }
+            else {
+              if(closestBodyIndex > -1) {
+                //measure distance from floor
+                if(frame.body.floorClipPlane)
+                {
+                  //get position of left hand
+                  var joint = frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.handLeft];
+
+                  //https://social.msdn.microsoft.com/Forums/en-US/594cf9ed-3fa6-4700-872c-68054cac5bf0/angle-of-kinect-device-and-effect-on-xyz-positional-data?forum=kinectv2sdk
+                  var cameraAngleRadians= Math.atan(frame.body.floorClipPlane.z / frame.body.floorClipPlane.y);
+                  var cosCameraAngle = Math.cos(cameraAngleRadians);
+                  var sinCameraAngle = Math.sin(cameraAngleRadians);
+                  var yprime = joint.cameraY * cosCameraAngle + joint.cameraZ * sinCameraAngle;
+                  var jointDistanceFromFloor = frame.body.floorClipPlane.w + yprime;
+
+                  //show height in canvas
+                  context.beginPath();
+                  context.fillStyle = "red";
+                  context.arc(joint.colorX * 1920, joint.colorY * 1080, 10, 0, Math.PI * 2, true);
+                  context.fill();
+                  context.closePath();
+                  context.font = "48px sans";
+                  context.fillText(jointDistanceFromFloor.toFixed(2) + "m", 20 + joint.colorX * 1920, joint.colorY * 1080);
+
+                  outputContext.beginPath();
+                  outputContext.fillStyle = "red";
+                  outputContext.arc(joint.colorX * 960, joint.colorY * 540, 10, 0, Math.PI * 2, true);
+                  outputContext.fill();
+                  outputContext.closePath();
+                  outputContext.font = "48px sans";
+                  outputContext.fillText(jointDistanceFromFloor.toFixed(2) + "m", 20 + joint.colorX * 960, joint.colorY * 540);
+
+                  var jointDataToSend = { colorX: joint.colorX, colorY: joint.colorY, distance: jointDistanceFromFloor};
+
+                  sendToPeer('floorHeightTracker', jointDataToSend);
+
+                }
+              }
+            }
+
+            trackedBodyIndex = closestBodyIndex;
+          });
+
+          kinect.openMultiSourceReader({
+            frameTypes: Kinect2.FrameType.body | Kinect2.FrameType.color
+          });
+        }
+
+
+      }
+
+      function stopFHJoint() {
+        console.log('stopping FHJoint');
+        kinect.closeMultiSourceReader();
+      }
 
 
 
@@ -382,6 +492,9 @@
     <br />
     <input type="button" value="Start Long Exposure Infrared" onclick="startLEInfrared();">
     <input type="button" value="Stop Long Exposure Infrared" onclick="stopLEInfrared();">
+    <br />
+    <input type="button" value="Start Floor Height Joint" onclick="startFHJoint();">
+    <input type="button" value="Stop Floor Height Joint" onclick="stopFHJoint();">
     <br />
     <canvas id="inputCanvas" width="1920" height="1080"></canvas>
     <canvas id="outputCanvas" width="960" height="540"></canvas>
