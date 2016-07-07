@@ -349,23 +349,23 @@
       // lasso hand state color
       var HANDLASSOCOLOR = "blue";
 
-      function updateHandState(handState, jointPoint) {
+      function updateHandState(context, handState, jointPoint) {
         switch (handState) {
           case Kinect2.HandState.closed:
-            drawHand(jointPoint, HANDCLOSEDCOLOR);
+            drawHand(context, jointPoint, HANDCLOSEDCOLOR);
           break;
 
           case Kinect2.HandState.open:
-            drawHand(jointPoint, HANDOPENCOLOR);
+            drawHand(context, jointPoint, HANDOPENCOLOR);
           break;
 
           case Kinect2.HandState.lasso:
-            drawHand(jointPoint, HANDLASSOCOLOR);
+            drawHand(context, jointPoint, HANDLASSOCOLOR);
           break;
         }
       }
 
-      function drawHand(jointPoint, handColor) {
+      function drawHand(context, jointPoint, handColor) {
         // draw semi transparent hand cicles
         var handData = {depthX: jointPoint.depthX, depthY: jointPoint.depthY, handColor: handColor, handSize: HANDSIZE};
         sendToPeer('drawHand', handData);
@@ -376,14 +376,6 @@
         context.fill();
         context.closePath();
         context.globalAlpha = 1;
-
-        outputContext.globalAlpha = 0.75;
-        outputContext.beginPath();
-        outputContext.fillStyle = handColor;
-        outputContext.arc(jointPoint.depthX * 512, jointPoint.depthY * 424, HANDSIZE, 0, Math.PI * 2, true);
-        outputContext.fill();
-        outputContext.closePath();
-        outputContext.globalAlpha = 1;
       }
       
 
@@ -415,8 +407,10 @@
                   outputContext.fillRect(joint.depthX * 512, joint.depthY * 424, 10, 10);
                 }
                 //draw hand states
-                updateHandState(body.leftHandState, body.joints[Kinect2.JointType.handLeft]);
-                updateHandState(body.rightHandState, body.joints[Kinect2.JointType.handRight]);
+                updateHandState(context, body.leftHandState, body.joints[Kinect2.JointType.handLeft]);
+                updateHandState(outputContext, body.leftHandState, body.joints[Kinect2.JointType.handLeft]);
+                updateHandState(context, body.rightHandState, body.joints[Kinect2.JointType.handRight]);
+                updateHandState(outputContext, body.rightHandState, body.joints[Kinect2.JointType.handRight]);
                 index++;
               }
             });
