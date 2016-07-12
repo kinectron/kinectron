@@ -47,7 +47,7 @@
   			});
 
   			connection.on('data', function(dataReceived) {
-          //console.log(dataReceived);
+          	//console.log(dataReceived);
 					if (dataReceived.event == 'bodyFrame') {
 						console.log("Body Frame:");
 						console.log(dataReceived.data);
@@ -62,7 +62,7 @@
 						image.src = dataReceived.data;
 					} else if (dataReceived.event == "floorHeightTracker") {
 						console.log('Floor Height');
-						drawFloorHeightMarker(dataReceived.data);
+						showHeight(dataReceived.data);
 					}
         });
       }
@@ -77,15 +77,15 @@
 			image = document.getElementById('image');
 		});
 
-		function drawFloorHeightMarker(data) {
+		function showHeight(data) {
 			context.clearRect(0, 0, canvas.width, canvas.height);
 			context.beginPath();
       		context.fillStyle = "red";
-            context.arc(data.colorX * 960, data.colorY * 540, 10, 0, Math.PI * 2, true);
+            context.arc(data.joint.colorX * canvas.width, data.joint.colorY * canvas.height, 10, 0, Math.PI * 2, true);
             context.fill();
             context.closePath();
             context.font = "48px sans";
-            context.fillText(data.distance.toFixed(2) + "m", 20 + data.colorX * 960, data.colorY * 540);
+            context.fillText(data.distance.toFixed(2) + "m", 20 + data.joint.colorX * canvas.width, data.joint.colorY * canvas.height);
 		}
 
 		</script>

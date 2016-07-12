@@ -335,7 +335,6 @@
       }
 
       function showHeight(context, joint, jointDistance) {
-        console.log('showing height');
         context.beginPath();
         context.fillStyle = "red";
         context.arc(joint.colorX * context.canvas.width, joint.colorY * context.canvas.height, 10, 0, Math.PI * 2, true);
@@ -346,7 +345,6 @@
       }
 
       function startFHJoint() {
-        console.log('starting FHJoint');
 
         canvas.width = 1920;
         canvas.height = 1080;
@@ -355,29 +353,29 @@
         imageDataSize = imageData.data.length;
         imageDataArray = imageData.data;
         
-        //what does this do? where should it go?
         trackedBodyIndex = -1;
 
         if(kinect.open()) {
           kinect.on('multiSourceFrame', function(frame){
-            
+          
+            // draw color image to canvas          
             var newPixelData = frame.color.buffer;
-
             for (var i = 0; i < imageDataSize; i++) {
               imageDataArray[i] = newPixelData[i];
             }
             context.putImageData(imageData, 0, 0);
             outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
 
-            sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
-            //busy = false;
+            // send color image to remote
+            sendToPeer('colorFrame', outputCanvas.toDataURL("image/jpeg", 0.5));
+            
+            // get closest body
             var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
             if(closestBodyIndex !== trackedBodyIndex) {
               if(closestBodyIndex > -1) {
                 kinect.trackPixelsForBodyIndices([closestBodyIndex]);
               } else {
                 kinect.trackPixelsForBodyIndices(false);
-
               }
             }
             else {
@@ -397,13 +395,12 @@
 
                   //show height in canvas
                   showHeight(context, joint, jointDistanceFromFloor);
-
                   showHeight(outputContext, joint, jointDistanceFromFloor);
 
-                  var jointDataToSend = { colorX: joint.colorX, colorY: joint.colorY, distance: jointDistanceFromFloor};
+                  //send height data to remote
+                  var jointDataToSend = {joint: joint, distance: jointDistanceFromFloor};
 
                   sendToPeer('floorHeightTracker', jointDataToSend);
-
                 }
               }
             }
@@ -415,8 +412,6 @@
             frameTypes: Kinect2.FrameType.body | Kinect2.FrameType.color
           });
         }
-
-
       }
 
       function stopFHJoint() {
