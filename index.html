@@ -334,6 +334,17 @@
         busy = false;
       }
 
+      function showHeight(context, joint, jointDistance) {
+        console.log('showing height');
+        context.beginPath();
+        context.fillStyle = "red";
+        context.arc(joint.colorX * context.canvas.width, joint.colorY * context.canvas.height, 10, 0, Math.PI * 2, true);
+        context.fill();
+        context.closePath();
+        context.font = "48px sans";
+        context.fillText(jointDistance.toFixed(2) + "m", 20 + joint.colorX * context.canvas.width, joint.colorY * context.canvas.height);
+      }
+
       function startFHJoint() {
         console.log('starting FHJoint');
 
@@ -385,21 +396,9 @@
                   var jointDistanceFromFloor = frame.body.floorClipPlane.w + yprime;
 
                   //show height in canvas
-                  context.beginPath();
-                  context.fillStyle = "red";
-                  context.arc(joint.colorX * 1920, joint.colorY * 1080, 10, 0, Math.PI * 2, true);
-                  context.fill();
-                  context.closePath();
-                  context.font = "48px sans";
-                  context.fillText(jointDistanceFromFloor.toFixed(2) + "m", 20 + joint.colorX * 1920, joint.colorY * 1080);
+                  showHeight(context, joint, jointDistanceFromFloor);
 
-                  outputContext.beginPath();
-                  outputContext.fillStyle = "red";
-                  outputContext.arc(joint.colorX * 960, joint.colorY * 540, 10, 0, Math.PI * 2, true);
-                  outputContext.fill();
-                  outputContext.closePath();
-                  outputContext.font = "48px sans";
-                  outputContext.fillText(jointDistanceFromFloor.toFixed(2) + "m", 20 + joint.colorX * 960, joint.colorY * 540);
+                  showHeight(outputContext, joint, jointDistanceFromFloor);
 
                   var jointDataToSend = { colorX: joint.colorX, colorY: joint.colorY, distance: jointDistanceFromFloor};
 
