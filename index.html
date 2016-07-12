@@ -362,6 +362,11 @@
 
         if(kinect.open()) {
           kinect.on('multiSourceFrame', function(frame){
+
+            if(busy) {
+              return;
+            }
+            busy = true;
           
             // draw color image to canvas          
             var newPixelData = frame.color.buffer;
@@ -411,6 +416,7 @@
             }
 
             trackedBodyIndex = closestBodyIndex;
+            busy = false;
           });
 
           kinect.openMultiSourceReader({
@@ -422,6 +428,7 @@
       function stopFHJoint() {
         console.log('stopping FHJoint');
         kinect.closeMultiSourceReader();
+        busy = false;
       }
 
 
