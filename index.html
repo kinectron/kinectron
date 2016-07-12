@@ -26,8 +26,8 @@
       var busy = false;
 
       //added for floor height joint 
-      var ImageBufferRendererWebgl = require('./js/image-buffer-renderer-webgl.js');
-      var colorRenderer = null;
+      //var ImageBufferRendererWebgl = require('./js/image-buffer-renderer-webgl.js');
+      //var colorRenderer = null;
 
       function initpeer() {
           peer = new Peer('lisa',{host: 'liveweb.itp.io', port: 9000, path: '/', secure: true});
@@ -356,28 +356,30 @@
         canvas.width = 1920;
         canvas.height = 1080;
 
-        imageData = context.createImageData(canvas.width, canvas.height);
-        imageDataSize = imageData.data.length;
-        imageDataArray = imageData.data;
+        //imageData = context.createImageData(canvas.width, canvas.height);
+       //imageDataSize = imageData.data.length;
+        //imageDataArray = imageData.data;
         
-        var hiddenCanvas = document.createElement('canvas');
-        hiddenCanvas.setAttribute('width', 1920);
-        hiddenCanvas.setAttribute('height', 1080);
+        //var hiddenCanvas = document.createElement('canvas');
+        //hiddenCanvas.setAttribute('width', 1920);
+        //hiddenCanvas.setAttribute('height', 1080);
 
-        colorRenderer = new ImageBufferRendererWebgl(hiddenCanvas);
+        //colorRenderer = new ImageBufferRendererWebgl(hiddenCanvas);
+        
+        //what does this do? where should it go?
         trackedBodyIndex = -1;
 
         if(kinect.open()) {
           kinect.on('multiSourceFrame', function(frame){
             //draw camera feed - fast to hidden webgl canvas - copy to visible 2D canvas
-            processImageData(frame.color.buffer, canvas.width, canvas.height);
-            context.drawImage(hiddenCanvas, 0, 0);
+            //processImageData(frame.color.buffer, canvas.width, canvas.height);
+            //context.drawImage(hiddenCanvas, 0, 0);
 
-            outputContext.clearRect(0,0,outputCanvas.width,outputCanvas.height);
+           // outputContext.clearRect(0,0,outputCanvas.width,outputCanvas.height);
 
-            outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+            //outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
                   
-            sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
+            //sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
             //
             var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
             if(closestBodyIndex !== trackedBodyIndex) {
@@ -386,12 +388,17 @@
               } else {
                 kinect.trackPixelsForBodyIndices(false);
                 //clear canvas
-                processImageData(emptyPixels.buffer, canvas.width, canvas.height);
+                //processImageData(emptyPixels.buffer, canvas.width, canvas.height);
+
               }
             }
             else {
               if(closestBodyIndex > -1) {
                 //measure distance from floor
+
+                console.log('clearing contexts');
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                outputContext.clearRect(0, 0, canvas.width, canvas.height);
                 if(frame.body.floorClipPlane)
                 {
                   //get position of left hand
