@@ -242,10 +242,12 @@
 
         canvas.width = 512;
         canvas.height = 424;
+
         imageData = context.createImageData(canvas.width, canvas.height);
         imageDataSize = imageData.data.length;
 
-        
+        outputCanvas.width = 1024;
+        outputCanvas.height = 848;        
 
         if(kinect.open()) {
           kinect.on('infraredFrame', function(imageBuffer){
@@ -294,8 +296,11 @@
 
         canvas.width = 512;
         canvas.height = 424;
-        var imageData = context.createImageData(canvas.width, canvas.height);
-        var imageDataSize = imageData.data.length;
+        imageData = context.createImageData(canvas.width, canvas.height);
+        imageDataSize = imageData.data.length;
+
+        outputCanvas.width = 1024;
+        outputCanvas.height = 848;     
 
         if(kinect.open()) {
           kinect.on('longExposureInfraredFrame', function(imageBuffer){
