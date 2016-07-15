@@ -1,5 +1,10 @@
 <html>
 	<head>
+	<style type="text/css">
+		#outputCanvas {
+			position: absolute;
+		}
+	</style>
 
 		<script src="peer.min.js"></script>
 		<script type="text/javascript">
@@ -42,7 +47,7 @@
   			});
 
   			connection.on('data', function(dataReceived) {
-          //console.log(dataReceived);
+          	//console.log(dataReceived);
 					if (dataReceived.event == 'bodyFrame') {
 						console.log("Body Frame:");
 						console.log(dataReceived.data);
@@ -54,27 +59,46 @@
 						image.src = dataReceived.data;
 					} else if (dataReceived.event == "infraredFrame") {
 						console.log("Ifrared Frame:");
+						image.width = 1024;
+						image.height = 848;
 						image.src = dataReceived.data;
+					} else if (dataReceived.event == "floorHeightTracker") {
+						console.log('Floor Height');
+						showHeight(dataReceived.data);
 					}
         });
       }
 
-			window.addEventListener('load', function() {
-				canvas = document.getElementById('outputCanvas');
-        context = canvas.getContext('2d');
-        imageData = context.createImageData(canvas.width, canvas.height);
-        imageDataSize = imageData.data.length;
-        imageDataArray = imageData.data;
+		window.addEventListener('load', function() {
+			canvas = document.getElementById('outputCanvas');
+	        context = canvas.getContext('2d');
+	        imageData = context.createImageData(canvas.width, canvas.height);
+	        imageDataSize = imageData.data.length;
+	        imageDataArray = imageData.data;
 
-				image = document.getElementById('image');
-			});
+			image = document.getElementById('image');
+		});
+
+		function showHeight(data) {
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.beginPath();
+      		context.fillStyle = "red";
+            context.arc(data.joint.colorX * canvas.width, data.joint.colorY * canvas.height, 10, 0, Math.PI * 2, true);
+            context.fill();
+            context.closePath();
+            context.font = "48px sans";
+            context.fillText(data.distance.toFixed(2) + "m", 20 + data.joint.colorX * canvas.width, data.joint.colorY * canvas.height);
+		}
 
 		</script>
 	</head>
 	<body>
     <input type="text" id="peerid" placeholder="Peer Id To Connect To">
     <input type="button" value="Connect" onclick="makeConnection();">
-  	<canvas id="outputCanvas" width="1920" height="1080"></canvas>
-	<img id="image" src="" width="960" height="540">
+    <div id="canvasContainer">
+    	<canvas id="outputCanvas" width="960" height="540"></canvas>
+		<img id="image" src="" width="960" height="540">	
+    </div>
+  	
 	</body>
 </html>
