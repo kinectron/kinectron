@@ -26,7 +26,7 @@
       var busy = false;
 
       function initpeer() {
-          peer = new Peer('lisa',{host: 'liveweb.itp.io', port: 9000, path: '/', secure: true});
+          peer = new Peer('l',{host: 'liveweb.itp.io', port: 9000, path: '/', secure: true});
 
           peer.on('error',function(err) {
             console.log(err);
@@ -179,6 +179,7 @@
 
       function stopTracking() {
         kinect.close();
+        busy = false;
       }
 
 
@@ -551,6 +552,8 @@
 
       function stopScaleUser() {
         console.log('stop scale user');
+        kinect.closeMultiSourceReader();
+        busy = false;
       }
 
 
