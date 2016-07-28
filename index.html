@@ -452,6 +452,8 @@
       function stopFHJoint() {
         console.log('stopping FHJoint');
         kinect.closeMultiSourceReader();
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        sendToPeer('clearCanvas', {});
         busy = false;
       }
 
