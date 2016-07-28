@@ -50,7 +50,6 @@
           	//console.log(dataReceived);
 					if (dataReceived.event == 'bodyFrame') {
 						console.log("Body Frame:");
-						console.log(dataReceived.data);
 					} else if (dataReceived.event == "colorFrame") {
 						console.log("Color Frame:");
 						image.src = dataReceived.data;
