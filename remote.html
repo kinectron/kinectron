@@ -5,38 +5,37 @@
 			position: absolute;
 		}
 	</style>
+        <script src="peer.min.js"></script>
+        <script type="text/javascript">
 
-		<script src="peer.min.js"></script>
-		<script type="text/javascript">
+          var mypeerid = null;
+          var peer = null;
+          var connection = null;
 
-			var mypeerid = null;
-		  var peer = null;
-		  var connection = null;
+          var canvas = null;
+          var context = null;
+          var imageData = null;
+          var imageDataSize = null;
+          var imageDataArray = null;
 
-			var canvas = null;
-			var context = null;
-			var imageData = null;
-			var imageDataSize = null;
-			var imageDataArray = null;
+          var image = null;
 
-			var image = null;
+          peer = new Peer({host: 'liveweb.itp.io', port: 9000, path: '/', secure: true})
+          //peer = new Peer({key: 'uohu08l7r6swcdi'});
+          peer.on('open', function(id) {
+              console.log('My peer ID is: ' + id);
+              mypeerid = id;
+          });
 
-			peer = new Peer({host: 'liveweb.itp.io', port: 9000, path: '/', secure: true})
-//peer = new Peer({key: 'uohu08l7r6swcdi'});
-			peer.on('open', function(id) {
-				console.log('My peer ID is: ' + id);
-				mypeerid = id;
-			});
-
-			peer.on('connection', function(conn) {
-				connection = conn;
-				connection.on('open', function() {
+          peer.on('connection', function(conn) {
+              connection = conn;
+              connection.on('open', function() {
           console.log("connected");
-				});
-				connection.on('data', function(data) {
-					console.log(data);
-				});
-			});
+              });
+              connection.on('data', function(data) {
+                 // console.log(data);
+              });
+          });
 
       function makeConnection() {
         var peerid = document.getElementById('peerid').value;
@@ -50,6 +49,9 @@
           	//console.log(dataReceived);
 					if (dataReceived.event == 'bodyFrame') {
 						console.log("Body Frame:");
+            canvas.width = 512;
+            canvas.height = 424;
+            bodyTracked(dataReceived.data);
 					} else if (dataReceived.event == "colorFrame") {
 						console.log("Color Frame:");
 						image.src = dataReceived.data;
@@ -63,6 +65,8 @@
 						image.src = dataReceived.data;
 					} else if (dataReceived.event == "floorHeightTracker") {
 						console.log('Floor Height');
+            canvas.width = 960;
+            canvas.height = 540;
             image.width = 960;
             image.height = 540;
 						showHeight(dataReceived.data);
@@ -94,9 +98,77 @@
             context.fillText(data.distance.toFixed(2) + "m", 20 + data.joint.colorX * canvas.width, data.joint.colorY * canvas.height);
 		}
 
-		</script>
-	</head>
-	<body>
+      //variables for skeleton
+
+      var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
+
+      // handstate circle size
+      var HANDSIZE = 20;
+
+      // closed hand state color
+      var HANDCLOSEDCOLOR = "red";
+
+      // open hand state color
+      var HANDOPENCOLOR = "green";
+
+      // lasso hand state color
+      var HANDLASSOCOLOR = "blue"; 
+
+      var index = 0;
+
+      function updateHandState(handState, jointPoint) {
+        switch (handState) {
+          // 3 is Kinect2 closed handstate
+          case 3:
+            drawHand(jointPoint, HANDCLOSEDCOLOR);
+          break;
+
+          // 2 is Kinect2 open handstate
+          case 2:
+            drawHand(jointPoint, HANDOPENCOLOR);
+          break;
+
+          // 4 is Kinect2 open handstate
+          case 4:
+            drawHand(jointPoint, HANDLASSOCOLOR);
+          break;
+        }
+      }
+
+      function drawHand(jointPoint, handColor) {
+        // draw semi transparent hand cicles
+        var handData = {depthX: jointPoint.depthX, depthY: jointPoint.depthY, handColor: handColor, handSize: HANDSIZE};
+        context.globalAlpha = 0.75;
+        context.beginPath();
+        context.fillStyle = handColor;
+        context.arc(jointPoint.depthX * canvas.width, jointPoint.depthY * canvas.height, HANDSIZE, 0, Math.PI * 2, true);
+        context.fill();
+        context.closePath();
+        context.globalAlpha = 1;
+      }
+
+
+      function bodyTracked(body) {
+        // clear canvas each time
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        for(var jointType in body.joints) {
+          var joint = body.joints[jointType];
+          context.fillStyle = colors[index];
+          context.fillRect(joint.depthX * canvas.width, joint.depthY * canvas.height, 10, 10);
+          var skeletonJointData = {color: colors[index], depthX: joint.depthX, depthY: joint.depthY};
+
+        }
+        //draw hand states
+        //7 is left hand in Kinect2
+        updateHandState(body.leftHandState, body.joints[7]);
+        // 11 is right hand in Kinect2
+        updateHandState(body.rightHandState, body.joints[11]);
+      }
+
+
+        </script>
+    </head>
+    <body>
     <input type="text" id="peerid" placeholder="Peer Id To Connect To">
     <input type="button" value="Connect" onclick="makeConnection();">
     <div id="canvasContainer">
