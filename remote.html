@@ -63,6 +63,8 @@
 						image.src = dataReceived.data;
 					} else if (dataReceived.event == "floorHeightTracker") {
 						console.log('Floor Height');
+            image.width = 960;
+            image.height = 540;
 						showHeight(dataReceived.data);
 					}
         });
