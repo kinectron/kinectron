@@ -25,6 +25,32 @@
 
       var busy = false;
 
+      // Key Tracking needs cleanup
+      var trackedBodyIndex = -1;
+      var emptyPixels = new Uint8Array(1920 * 1080 * 4);
+
+      // Skeleton variables
+      var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
+      var HANDSIZE = 20;
+      var HANDCLOSEDCOLOR = 'red';
+      var HANDOPENCOLOR = 'green';
+      var HANDLASSOCOLOR = 'blue';
+
+      window.addEventListener('load', initpeer);
+      window.addEventListener('load', init);
+
+      function init() {
+        document.getElementById('loadfile').addEventListener('change', loadFile);
+        canvas = document.getElementById('inputCanvas');
+        context = canvas.getContext('2d');
+        imageData = context.createImageData(canvas.width, canvas.height);
+        imageDataSize = imageData.data.length;
+        imageDataArray = imageData.data;
+
+        outputCanvas = document.getElementById('outputCanvas');
+        outputContext = outputCanvas.getContext('2d');
+      }
+
       function initpeer() {
           peer = new Peer('l',{host: 'liveweb.itp.io', port: 9000, path: '/', secure: true});
 
@@ -59,42 +85,6 @@
         });
       }
 
-      // Key Tracking needs cleanup
-      var trackedBodyIndex = -1;
-      var emptyPixels = new Uint8Array(1920 * 1080 * 4);
-
-      function getClosestBodyIndex(bodies) {
-    		var closestZ = Number.MAX_VALUE;
-    		var closestBodyIndex = -1;
-    		for(var i = 0; i < bodies.length; i++) {
-    			if(bodies[i].tracked && bodies[i].joints[Kinect2.JointType.spineMid].cameraZ < closestZ) {
-    				closestZ = bodies[i].joints[Kinect2.JointType.spineMid].cameraZ;
-    				closestBodyIndex = i;
-    			}
-    		}
-    		return closestBodyIndex;
-    	}
-
-
-      function calculateLength(joints) {
-        var length = 0;
-        var numJoints = joints.length;
-        for(var i = 1; i < numJoints; i++) {
-          length += Math.sqrt(Math.pow(joints[i].colorX - joints[i-1].colorX, 2) + Math.pow(joints[i].colorY - joints[i-1].colorY, 2));
-        }
-        return length;
-      }
-
-      function calculatePixelWidth(horizontalFieldOfView, depth)
-      {
-        // measure the size of the pixel
-        var hFov = horizontalFieldOfView / 2;
-        var numPixels = canvas.width / 2;
-        var T = Math.tan((Math.PI * 180) / hFov);
-        var pixelWidth = T * depth;
-        return pixelWidth / numPixels;
-      }
-
       function startKey() {
         canvas.width = 1920;
         canvas.height = 1080;
@@ -103,7 +93,7 @@
         imageDataArray = imageData.data;
 
         if(kinect.open()) {
-        		kinect.on('multiSourceFrame', function(frame) {
+            kinect.on('multiSourceFrame', function(frame) {
               console.log('key');
               console.log(trackedBodyIndex);
 
@@ -112,19 +102,19 @@
               }
               busy = true;
 
-        			var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
-        			if(closestBodyIndex !== trackedBodyIndex) {
-        				if(closestBodyIndex > -1) {
-        					kinect.trackPixelsForBodyIndices([closestBodyIndex]);
-        				} else {
-        					kinect.trackPixelsForBodyIndices(false);
-        					//clear canvas
-        				}
-        			}
-        			else {
-        				if (closestBodyIndex > -1) {
-        					if (frame.bodyIndexColor.bodies[closestBodyIndex].buffer) {
-        						//processImageData(frame.bodyIndexColor.bodies[closestBodyIndex].buffer, colorCanvas.width, colorCanvas.height);
+              var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
+              if(closestBodyIndex !== trackedBodyIndex) {
+                if(closestBodyIndex > -1) {
+                  kinect.trackPixelsForBodyIndices([closestBodyIndex]);
+                } else {
+                  kinect.trackPixelsForBodyIndices(false);
+                  //clear canvas
+                }
+              }
+              else {
+                if (closestBodyIndex > -1) {
+                  if (frame.bodyIndexColor.bodies[closestBodyIndex].buffer) {
+                    //processImageData(frame.bodyIndexColor.bodies[closestBodyIndex].buffer, colorCanvas.width, colorCanvas.height);
 
                     newPixelData = frame.bodyIndexColor.bodies[closestBodyIndex].buffer
 
@@ -140,10 +130,10 @@
                         
                         sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
 
-        					}
-        				}
-        			}
-        			trackedBodyIndex = closestBodyIndex;
+                  }
+                }
+              }
+              trackedBodyIndex = closestBodyIndex;
               busy = false;
 
             }); // kinect.on
@@ -160,22 +150,22 @@
 
       function startTracking() {
             if (kinect.open()) {
-      	       console.log("Kinect Opened");
+               console.log("Kinect Opened");
 
                //listen for body frames
-      	        kinect.on('bodyFrame', function(bodyFrame){
+                kinect.on('bodyFrame', function(bodyFrame){
                   sendToPeer('bodyFrame',bodyFrame);
-      		          // for (var i = 0;  i < bodyFrame.bodies.length; i++) {
-      			        //      if (bodyFrame.bodies[i].tracked) {
+                    // for (var i = 0;  i < bodyFrame.bodies.length; i++) {
+                    //      if (bodyFrame.bodies[i].tracked) {
                     //        console.log("Tracked");
                     //        sendToPeer('bodyFrame',bodyFrame);
                     //        console.log(bodyFrame);
-      			        //      }
-      		          // }
-      	        });
+                    //      }
+                    // }
+                });
 
-      	        //request body frames
-      	        kinect.openBodyReader();
+                //request body frames
+                kinect.openBodyReader();
             }
       }
 
@@ -183,7 +173,6 @@
         kinect.close();
         busy = false;
       }
-
 
       function startRGB() {
 
@@ -232,10 +221,10 @@
         if(kinect.open()) {
           kinect.on('depthFrame', function(newPixelData){
             console.log("depthFrame");
-        					if(busy) {
-        						return;
-        					}
-        					busy = true;
+                  if(busy) {
+                    return;
+                  }
+                  busy = true;
 
                   newPixelDataIndex = 0;
                   for (var i = 0; i < imageDataSize; i+=4) {
@@ -249,9 +238,9 @@
                   outputContext.clearRect(0,0,outputCanvas.width, outputCanvas.height);
                   outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
                   sendToPeer('depthFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
-        					busy = false;
-        				});
-        			}
+                  busy = false;
+                });
+              }
         kinect.openDepthReader();
       }
 
@@ -289,7 +278,7 @@
               pixelArray[i+1] = newPixelData[depthPixelIndex];
               pixelArray[i+2] = newPixelData[depthPixelIndex];
               pixelArray[i+3] = 0xff;
-              depthPixelIndex++
+              depthPixelIndex++;
             }
   
             context.putImageData(imageData, 0, 0);
@@ -306,7 +295,6 @@
         kinect.openInfraredReader();
 
       }
-
 
       function stopInfrared() {
         console.log('stopping Infrared Camera');
@@ -340,7 +328,7 @@
               pixelArray[i+1] = newPixelData[depthPixelIndex];
               pixelArray[i+2] = newPixelData[depthPixelIndex];
               pixelArray[i+3] = 0xff;
-              depthPixelIndex++
+              depthPixelIndex++;
             }
             
             context.putImageData(imageData, 0, 0);
@@ -360,17 +348,6 @@
         console.log('stopping LE Infrared');
         kinect.closeLongExposureInfraredReader();
         busy = false;
-      }
-
-
-      function showHeight(context, joint, jointDistance) {
-        context.beginPath();
-        context.fillStyle = "red";
-        context.arc(joint.colorX * context.canvas.width, joint.colorY * context.canvas.height, 10, 0, Math.PI * 2, true);
-        context.fill();
-        context.closePath();
-        context.font = "48px sans";
-        context.fillText(jointDistance.toFixed(2) + "m", 20 + joint.colorX * context.canvas.width, joint.colorY * context.canvas.height);
       }
 
       function startFHJoint() {
@@ -558,61 +535,13 @@
           includeJointFloorData: true
         });
       }
-
       }
 
       function stopScaleUser() {
         console.log('stop scale user');
         kinect.closeMultiSourceReader();
         busy = false;
-      }
-
-
-      //variables for skeleton
-
-      var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
-
-      // handstate circle size
-      var HANDSIZE = 20;
-
-      // closed hand state color
-      var HANDCLOSEDCOLOR = "red";
-
-      // open hand state color
-      var HANDOPENCOLOR = "green";
-
-      // lasso hand state color
-      var HANDLASSOCOLOR = "blue";
-
-      function updateHandState(context, handState, jointPoint) {
-        switch (handState) {
-          case Kinect2.HandState.closed:
-            drawHand(context, jointPoint, HANDCLOSEDCOLOR);
-          break;
-
-          case Kinect2.HandState.open:
-            drawHand(context, jointPoint, HANDOPENCOLOR);
-          break;
-
-          case Kinect2.HandState.lasso:
-            drawHand(context, jointPoint, HANDLASSOCOLOR);
-          break;
-        }
-      }
-
-      function drawHand(context, jointPoint, handColor) {
-        // draw semi transparent hand cicles
-        var handData = {depthX: jointPoint.depthX, depthY: jointPoint.depthY, handColor: handColor, handSize: HANDSIZE};
-        //sendToPeer('drawHand', handData);
-        context.globalAlpha = 0.75;
-        context.beginPath();
-        context.fillStyle = handColor;
-        context.arc(jointPoint.depthX * 512, jointPoint.depthY * 424, HANDSIZE, 0, Math.PI * 2, true);
-        context.fill();
-        context.closePath();
-        context.globalAlpha = 1;
-      }
-      
+      }      
 
       function startSkeletonTracking() {
         console.log('starting skeleton');
@@ -671,21 +600,76 @@
         window.location.href = e.target.files[0].path;
       }
 
-      function init() {
-        document.getElementById('loadfile').addEventListener('change',loadFile);
-        canvas = document.getElementById('inputCanvas');
-        context = canvas.getContext('2d');
-        imageData = context.createImageData(canvas.width, canvas.height);
-        imageDataSize = imageData.data.length;
-        imageDataArray = imageData.data;
-
-        outputCanvas = document.getElementById('outputCanvas');
-        outputContext = outputCanvas.getContext('2d');
-
+      function getClosestBodyIndex(bodies) {
+        var closestZ = Number.MAX_VALUE;
+        var closestBodyIndex = -1;
+        for(var i = 0; i < bodies.length; i++) {
+          if(bodies[i].tracked && bodies[i].joints[Kinect2.JointType.spineMid].cameraZ < closestZ) {
+            closestZ = bodies[i].joints[Kinect2.JointType.spineMid].cameraZ;
+            closestBodyIndex = i;
+          }
+        }
+        return closestBodyIndex;
       }
 
-      window.addEventListener('load',initpeer);
-      window.addEventListener('load',init);
+      function calculateLength(joints) {
+        var length = 0;
+        var numJoints = joints.length;
+        for(var i = 1; i < numJoints; i++) {
+          length += Math.sqrt(Math.pow(joints[i].colorX - joints[i-1].colorX, 2) + Math.pow(joints[i].colorY - joints[i-1].colorY, 2));
+        }
+        return length;
+      }
+
+      function calculatePixelWidth(horizontalFieldOfView, depth)
+      {
+        // measure the size of the pixel
+        var hFov = horizontalFieldOfView / 2;
+        var numPixels = canvas.width / 2;
+        var T = Math.tan((Math.PI * 180) / hFov);
+        var pixelWidth = T * depth;
+        return pixelWidth / numPixels;
+      }
+
+      function showHeight(context, joint, jointDistance) {
+        context.beginPath();
+        context.fillStyle = 'red';
+        context.arc(joint.colorX * context.canvas.width, joint.colorY * context.canvas.height, 10, 0, Math.PI * 2, true);
+        context.fill();
+        context.closePath();
+        context.font = '48px sans';
+        context.fillText(jointDistance.toFixed(2) + 'm', 20 + joint.colorX * context.canvas.width, joint.colorY * context.canvas.height);
+      }
+
+      function updateHandState(context, handState, jointPoint) {
+        switch (handState) {
+          case Kinect2.HandState.closed:
+            drawHand(context, jointPoint, HANDCLOSEDCOLOR);
+          break;
+
+          case Kinect2.HandState.open:
+            drawHand(context, jointPoint, HANDOPENCOLOR);
+          break;
+
+          case Kinect2.HandState.lasso:
+            drawHand(context, jointPoint, HANDLASSOCOLOR);
+          break;
+        }
+      }
+
+      function drawHand(context, jointPoint, handColor) {
+        // draw semi transparent hand cicles
+        var handData = {depthX: jointPoint.depthX, depthY: jointPoint.depthY, handColor: handColor, handSize: HANDSIZE};
+        //sendToPeer('drawHand', handData);
+        context.globalAlpha = 0.75;
+        context.beginPath();
+        context.fillStyle = handColor;
+        context.arc(jointPoint.depthX * 512, jointPoint.depthY * 424, HANDSIZE, 0, Math.PI * 2, true);
+        context.fill();
+        context.closePath();
+        context.globalAlpha = 1;
+      }
+
 </script>
 
   </head>
