@@ -661,6 +661,7 @@
 
       function stopSkeletonTracking() {
         console.log('stopping skeleton');
+        sendToPeer('clearCanvas', {});
         kinect.closeBodyReader();
 
       }
