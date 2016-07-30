@@ -2,45 +2,48 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Hello World!</title>
+    <title>Kinectron</title>
+
     <script src="peer.min.js"></script>
     <script src='examples.js' type="text/JavaScript"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
   </head>
 
   <body style="background-color: white;">
     <h1>Hello Kinect!</h1>
-
-    <br />
-<!--     <input type="button" value="Start Skeleton Tracking" onclick="startTracking();">
-    <input type="button" value="Stop Skeleton Tracking" onclick="stopTracking();">
-    <br /> -->
-    <input type="button" value="Start RGB Camera" onclick="startRGB();">
-    <input type="button" value="Stop RGB Camera" onclick="stopRGB();">
-    <br />
-    <input type="button" value="Start Depth Camera" onclick="startDepth();">
-    <input type="button" value="Stop Depth Camera" onclick="stopDepth();">
-    <br />
-    <input type="button" value="Start Key Camera" onclick="startKey();">
-    <input type="button" value="Stop Key Camera" onclick="stopKey();">
-    <br />
-    <input type="button" value="Start Infrared Camera" onclick="startInfrared();">
-    <input type="button" value="Stop Infrared Camera" onclick="stopInfrared();">
-    <br />
-    <input type="button" value="Start Long Exposure Infrared" onclick="startLEInfrared();">
-    <input type="button" value="Stop Long Exposure Infrared" onclick="stopLEInfrared();">
-    <br />
-    <input type="button" value="Start Floor Height Joint" onclick="startFHJoint();">
-    <input type="button" value="Stop Floor Height Joint" onclick="stopFHJoint();">
-    <br />
-    <input type="button" value="Start Scale User" onclick="startScaleUser();">
-    <input type="button" value="Stop Scale User" onclick="stopScaleUser();">
-    <input type="button" value="Start Skeleton Tracking 2" onclick="startSkeletonTracking();">
-    <input type="button" value="Stop Skeleton Tracking 2" onclick="stopSkeletonTracking();">
-    <br />
-    <canvas id="inputCanvas" width="1920" height="1080"></canvas>
-    <canvas id="outputCanvas" width="960" height="540"></canvas>
-    <br />
-    Load a different page:
-    <input type="file" id="loadfile">
+    <div id="controls">
+      <div class="intro">
+        <p class="intro">Your peer id is: xxxx </p>
+      </div>
+      <div class="intro">
+        <p >Choose a feed</p>  
+        <div id="options">
+          <input type="button" id="rgb" value="RGB">
+          <input type="button" id="depth" value="Depth">
+          <input type="button" id="skeleton" value="Skeleton Tracking">
+          <input type="button" id="infrared" value="Infrared">
+          <input type="button" id="le-infrared" value="Long Exposure Infrared">
+          <input type="button" id="key" value="Key">
+          <input type="button" id="fh-joint" value="Floor Height Joint">
+          <input type="button" id="scale" value="Scale User">
+          <input type="button" id="stop-all" value="Stop All">
+        </div>  
+        <div style="clear:both"></div>
+      </div>   
+      <div class="intro" id="load-file">
+        <p>Or load a different page</p>
+        <label id="custom-file-upload">
+          <input type="file" id="loadfile">
+          Choose File
+        </label>
+        <div style="clear:both"></div>
+      </div>
+    </div>
+    <div>
+      <h4>Feed from Kinect</h4>
+      <canvas id="inputCanvas" width="1920" height="1080"></canvas>
+      <h4>Feed output to peer</h4>
+      <canvas id="outputCanvas" width="960" height="540"></canvas>
+    </div>
   </body>
 </html>

@@ -1,0 +1,36 @@
+html {
+  font-family: 'courier', 'Arial', sans-serif;
+  text-transform: uppercase;
+}
+
+input, #custom-file-upload {
+  border: 1px solid black;
+  background: white;
+  color: black;
+  font-family: 'courier', 'Arial', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 5px 20px;
+  float: left;
+  display: inline-block;
+  cursor: pointer;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+#custom-file-upload:hover, input[type="button"]:hover, input[type="button"]:focus {
+  background: #1daad8;
+} 
+
+div.intro {
+  font-weight: bold;
+  margin-bottom: 1em;
+  margin-top: 0.5em;
+}
+
+.intro p {
+  margin-bottom: 0.5em;
+}

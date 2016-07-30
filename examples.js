@@ -12,15 +12,21 @@ var context = null;
 var outputCanvas = null;
 var outputContext = null;
 
+var COLORWIDTH = 1920;
+var COLORHEIGHT = 1080;
+
+var DEPTHWIDTH = 512;
+var DEPTHHEIGHT = 424;
+
 var imageData = null;
 var imageDataSize = null;
 var imageDataArray = null;
 
 var busy = false;
+var currentCamera = null;
 
 // Key Tracking needs cleanup
 var trackedBodyIndex = -1;
-var emptyPixels = new Uint8Array(1920 * 1080 * 4);
 
 // Skeleton variables
 var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
@@ -32,8 +38,72 @@ var HANDLASSOCOLOR = 'blue';
 window.addEventListener('load', initpeer);
 window.addEventListener('load', init);
 
+function chooseCamera(camera) {
+  if (currentCamera) {
+    console.log('stopping');
+    console.log(currentCamera);
+    changeCameraState(currentCamera, 'stop');
+  }
+
+  if (currentCamera == camera || camera == 'stop-all') {
+    console.log('resetting');
+    console.log(currentCamera);
+    currentCamera = null;
+    return
+  }
+
+  console.log('starting');
+  console.log(currentCamera);
+  changeCameraState(camera, 'start');
+  currentCamera = camera;
+}
+
+
+function changeCameraState(camera, state) {
+  var cameraCode;
+  var changeStateFunction;
+
+  switch (camera) {
+    case 'rgb':
+      cameraCode = 'RGB';  
+    break;
+
+    case 'depth':
+      cameraCode = 'Depth';
+    break;
+
+    case 'key':
+      cameraCode = 'Key';
+    break;
+
+    case 'infrared': 
+      cameraCode = 'Infrared';
+    break;
+
+    case 'le-infrared':
+      cameraCode = 'LEInfrared';
+    break;
+
+    case 'fh-joint':
+      cameraCode = 'FHJoint';
+    break;
+
+    case 'scale':
+      cameraCode = 'ScaleUser';
+    break;
+
+    case 'skeleton':
+      cameraCode = 'SkeletonTracking';
+    break;
+  }
+
+  changeStateFunction = window[state + cameraCode];
+  changeStateFunction();    
+}
+
+
+
 function init() {
-  document.getElementById('loadfile').addEventListener('change', loadFile);
   canvas = document.getElementById('inputCanvas');
   context = canvas.getContext('2d');
 
@@ -41,6 +111,18 @@ function init() {
   outputContext = outputCanvas.getContext('2d');
 
   setImageData();
+
+  document.getElementById('loadfile').addEventListener('change', loadFile);
+  document.getElementById('rgb').addEventListener('click', function() {chooseCamera('rgb')});
+  document.getElementById('depth').addEventListener('click', function() {chooseCamera('depth')});
+  document.getElementById('key').addEventListener('click', function() {chooseCamera('key')});
+  document.getElementById('infrared').addEventListener('click', function() {chooseCamera('infrared')});
+  document.getElementById('le-infrared').addEventListener('click', function() {chooseCamera('le-infrared')});
+  document.getElementById('fh-joint').addEventListener('click', function() {chooseCamera('fh-joint')});
+  document.getElementById('scale').addEventListener('click', function() {chooseCamera('scale')});
+  document.getElementById('skeleton').addEventListener('click', function() {chooseCamera('skeleton')});
+  document.getElementById('stop-all').addEventListener('click', function() {
+    chooseCamera('stop-all')});
 }
 
 function initpeer() {
@@ -545,12 +627,12 @@ function resetCanvas(context, size) {
   sendToPeer('clearCanvas', {});
   
   if (size == 'depth') {
-    context.canvas.width = 512;
-    context.canvas.height = 424;
+    context.canvas.width = DEPTHWIDTH;
+    context.canvas.height = DEPTHHEIGHT;
     sendToPeer('framesize', {'size': 'depth'});
   } else if (size == 'color') {
-    context.canvas.width = 1920;
-    context.canvas.height = 1080; 
+    context.canvas.width = COLORWIDTH;
+    context.canvas.height = COLORHEIGHT; 
     sendToPeer('framesize', {'size': 'color'});
   }
 }
