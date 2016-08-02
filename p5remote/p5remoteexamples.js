@@ -89,7 +89,7 @@ window.addEventListener('load', function() {
 
 // p5 setup
 function setup() {
-  canvas = createCanvas(512, 424);
+  canvas = createCanvas(960, 540);
   canvas.parent("container");
   console.log(canvas.canvas.width, canvas.canvas.height);
 
@@ -119,14 +119,20 @@ function setImageSize(size) {
 
 function showHeight(data) {
   //context.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
-  clear();
-  context.beginPath();
-  context.fillStyle = "red";
-  context.arc(data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height, 10, 0, Math.PI * 2, true);
-  context.fill();
-  context.closePath();
-  context.font = "48px sans";
-  context.fillText(data.distance.toFixed(2) + "m", 20 + data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height);
+  //clear();
+  background(255);
+  //context.beginPath();
+  fill("red");
+  //context.arc(data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height, 10, 0, Math.PI * 2, true);
+  ellipse(data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height, 20, 20);
+  
+  //context.fill();
+  //context.closePath();
+  textSize(48);
+  textFont("sans");
+  //context.font = "48px sans";
+  text(data.distance.toFixed(2) + "m", 20 + data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height);
+  //context.fillText(data.distance.toFixed(2) + "m", 20 + data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height);
 }
 
 
