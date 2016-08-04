@@ -8,7 +8,7 @@ var imageData = null;
 var imageDataSize = null;
 var imageDataArray = null;
 
-var image = null;
+var img = null;
 
 //variables for skeleton
 var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
@@ -47,7 +47,7 @@ function makeConnection() {
     switch (dataReceived.event) {
       case 'frame':
         console.log(dataReceived.data.name);
-        image.src = dataReceived.data.imagedata;
+        img.src = dataReceived.data.imagedata;
       break;
       
       case 'framesize':
@@ -58,9 +58,9 @@ function makeConnection() {
      
       case 'clearCanvas':
         console.log('Clear Canvas');
-        image.src = " ";
+        img.src = " ";
         //context.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
-        clear();
+        background(255);
       break;
       
       case 'bodyFrame':
@@ -91,11 +91,9 @@ window.addEventListener('load', function() {
 function setup() {
   canvas = createCanvas(960, 540);
   canvas.parent("container");
-  console.log(canvas.canvas.width, canvas.canvas.height);
-
   context = canvas.drawingContext;
 
-  image = createImage();
+  img = document.getElementById('img');
 
   noStroke();
 }
@@ -106,20 +104,19 @@ function setImageSize(size) {
     console.log('resetting color');
     canvas.canvas.width = 960;
     canvas.canvas.height = 540;
-    image.width = 960;
-    image.height = 540;
+    //img.width = 960;
+    //img.height = 540;
   } else if (size == 'depth') {
     console.log('resetting depth');
     canvas.canvas.width = 512;
     canvas.canvas.height = 424;
-    image.width = 512;
-    image.height = 424;
+    //img.width = 512;
+    //img.height = 424;
   }
 }
 
 function showHeight(data) {
   //context.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
-  //clear();
   background(255);
   //context.beginPath();
   fill("red");
