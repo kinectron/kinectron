@@ -77,6 +77,9 @@ window.addEventListener('load', function() {
   context = canvas.getContext('2d');
 
   image = document.getElementById('image');
+  console.log('image');
+  console.log(image);
+
 });
 
 function setImageSize(size) {
