@@ -161,8 +161,7 @@ function sendToPeer(evt, data) {
 function startKey() {
   console.log('starting key');
 
-  resetCanvas(context, 'color');
-  resetCanvas(outputContext, 'color');
+  resetCanvas('color')
   setImageData();
 
   if(kinect.open()) {
@@ -238,8 +237,7 @@ function stopTracking() {
 
 function startRGB() {
 
-  resetCanvas(context, 'color');
-  resetCanvas(outputContext, 'color');
+  resetCanvas('color');
   setImageData();
 
   if(kinect.open()) {
@@ -272,8 +270,7 @@ function stopRGB() {
 function startDepth() {
   console.log("startDepth Camera");
 
-  resetCanvas(context, 'depth');
-  resetCanvas(outputContext, 'depth');
+  resetCanvas('depth');
   setImageData();
 
   if(kinect.open()) {
@@ -308,8 +305,7 @@ function stopDepth() {
 function startInfrared() {
   console.log('starting Infrared Camera');
 
-  resetCanvas(context, 'depth');
-  resetCanvas(outputContext, 'depth');
+  resetCanvas('depth');
   setImageData();
      
   if(kinect.open()) {
@@ -350,8 +346,7 @@ function stopInfrared() {
 function startLEInfrared() {
   console.log('starting LE Infrared');
 
-  resetCanvas(context, 'depth');
-  resetCanvas(outputContext, 'depth');
+  resetCanvas('depth');
   setImageData();
 
 
@@ -391,8 +386,7 @@ function stopLEInfrared() {
 
 function startFHJoint() {
 
-  resetCanvas(context, 'color');
-  resetCanvas(outputContext, 'color');
+  resetCanvas('color');
   setImageData();
   
   trackedBodyIndex = -1;
@@ -469,8 +463,7 @@ function stopFHJoint() {
 function startScaleUser() {
   console.log('start scale user');
 
-  resetCanvas(context, 'color');
-  resetCanvas(outputContext, 'color');
+  resetCanvas('color');
   setImageData();
 
   trackedBodyIndex = -1;
@@ -569,8 +562,7 @@ function stopScaleUser() {
 function startSkeletonTracking() {
   console.log('starting skeleton');
   
-  resetCanvas(context, 'depth');
-  resetCanvas(outputContext, 'depth');
+  resetCanvas('depth');
 
   if(kinect.open()) {
     //console.log('kinect opened');
@@ -622,17 +614,22 @@ function setImageData() {
   imageDataArray = imageData.data;
 }
 
-function resetCanvas(context, size) {
-  context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-  sendToPeer('clearCanvas', {});
+function resetCanvas(size) {
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+  //sendToPeer('clearCanvas', {});
   
   if (size == 'depth') {
-    context.canvas.width = DEPTHWIDTH;
-    context.canvas.height = DEPTHHEIGHT;
+    canvas.width = DEPTHWIDTH;
+    canvas.height = DEPTHHEIGHT;
+    outputCanvas.width = DEPTHWIDTH;
+    outputCanvas.height = DEPTHHEIGHT;
     sendToPeer('framesize', {'size': 'depth'});
   } else if (size == 'color') {
-    context.canvas.width = COLORWIDTH;
-    context.canvas.height = COLORHEIGHT; 
+    canvas.width = COLORWIDTH;
+    canvas.height = COLORHEIGHT; 
+    outputCanvas.width = COLORWIDTH;
+    outputCanvas.height = COLORHEIGHT;
     sendToPeer('framesize', {'size': 'color'});
   }
 }

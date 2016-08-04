@@ -7,13 +7,13 @@ var context = null;
 
 var img = null;
 
+// Kinect color and depth cameras have different dimensions
 var COLORWIDTH = 960;
 var COLORHEIGHT = 540;
-
 var DEPTHWIDTH = 512;
 var DEPTHHEIGHT = 424;
 
-//variables for skeleton
+// variables for drawing skeleton
 var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
 var HANDSIZE = 40;
 var HANDCLOSEDCOLOR = "red";
@@ -21,6 +21,7 @@ var HANDOPENCOLOR = "green";
 var HANDLASSOCOLOR = "blue"; 
 var index = 0;
 
+// create new peer 
 peer = new Peer({host: 'liveweb.itp.io', port: 9000, path: '/', secure: true})
 
 peer.on('open', function(id) {
@@ -34,7 +35,6 @@ peer.on('connection', function(conn) {
     console.log("connected");
   });
   connection.on('data', function(data) {
-     // console.log(data);
   });
 });
 
@@ -46,30 +46,31 @@ function makeConnection() {
 
   });
 
+  // Route incoming traffic from Kinectron
   connection.on('data', function(dataReceived) {
     switch (dataReceived.event) {
+      // If image data draw image
       case 'frame':
         console.log(dataReceived.data.name);
         img.elt.src = dataReceived.data.imagedata;
       break;
-      
+      // If new feed reset canvas and image
       case 'framesize':
-        console.log('size');
-        console.log(dataReceived.data);
-        setImageSize(dataReceived.data.size);
+        if (dataReceived.data.size == 'color') {
+          setImageSize(COLORWIDTH, COLORHEIGHT);
+        } else if (dataReceived.data.size == 'depth') {
+          setImageSize(DEPTHWIDTH, DEPTHHEIGHT);
+        }
       break;
-     
-      case 'clearCanvas':
-        console.log('Clear Canvas');
-        img.src = " ";
-        background(255);
-      break;
-      
+     // If skeleton data, draw skeleton
       case 'bodyFrame':
         console.log('Body Frame:');
+
+        // TO FIX: Resetting image on each frame bc frame not resetting with canvas reset function
+        img.elt.src = " ";
         bodyTracked(dataReceived.data);
       break;
-
+      
       case 'floorHeightTracker':
         console.log('Floor Height');
         showHeight(dataReceived.data);
@@ -80,43 +81,39 @@ function makeConnection() {
 
 // p5 setup
 function setup() {
+  // create canvas and context
   canvas = createCanvas();
   canvas.parent("container");
   context = canvas.drawingContext;
 
+  // create iamge 
   img = createImg(" ");
   img.parent("container");  
 
-  canvas.style("width: " + COLORWIDTH + "; height: " + COLORHEIGHT);
+  // set initial size of canvas and image and layer
+  canvas.style("width: " + COLORWIDTH + "; height: " + COLORHEIGHT + "; position: absolute;");
   img.style("width: " + COLORWIDTH + "; height: " + COLORHEIGHT);
 
   noStroke();
 }
 
 
-function setImageSize(size) {
-  if (size == 'color') {
-    console.log('resetting color');
-    canvas.width = COLORWIDTH;
-    canvas.height = COLORHEIGHT;
-    canvas.canvas.width = COLORWIDTH;
-    canvas.canvas.height = COLORHEIGHT;
-    canvas.style("width: " + COLORWIDTH + "; height: " + COLORHEIGHT);
-    img.style("width: " + COLORWIDTH + "; height: " + COLORHEIGHT);
-  } else if (size == 'depth') {
-    console.log('resetting depth');
-    canvas.width = DEPTHWIDTH;
-    canvas.height = DEPTHHEIGHT;
-    canvas.canvas.width = DEPTHWIDTH;
-    canvas.canvas.height = DEPTHHEIGHT;
-    canvas.style("width: " + DEPTHWIDTH + "; height: " + DEPTHHEIGHT);
-    img.style("width: " + DEPTHWIDTH + "; height: " + DEPTHHEIGHT);
-  }
+function setImageSize(width, height) {
+  // clear canvas and img
+  clear();
+  img.elt.src = " ";
+  // reset size of canvas and image
+  canvas.width = width;
+  canvas.height = height;
+  canvas.canvas.width = width;
+  canvas.canvas.height = height;
+  canvas.style("width: " + width + "; height: " + height);
+  img.style("width: " + width + "; height: " + height); 
 }
 
 function showHeight(data) {
   // clear canvas
-  background(255);
+  clear();
   // draw height
   fill("red");
   ellipse(data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height, 20, 20);
