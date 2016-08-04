@@ -7,6 +7,12 @@ var context = null;
 
 var img = null;
 
+var COLORWIDTH = 960;
+var COLORHEIGHT = 540;
+
+var DEPTHWIDTH = 512;
+var DEPTHHEIGHT = 424;
+
 //variables for skeleton
 var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
 var HANDSIZE = 40;
@@ -56,7 +62,6 @@ function makeConnection() {
       case 'clearCanvas':
         console.log('Clear Canvas');
         img.src = " ";
-        //context.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
         background(255);
       break;
       
@@ -75,13 +80,15 @@ function makeConnection() {
 
 // p5 setup
 function setup() {
-  canvas = createCanvas(960, 540);
+  canvas = createCanvas();
   canvas.parent("container");
   context = canvas.drawingContext;
 
-  img = createImg(" ", "no image yet");
+  img = createImg(" ");
   img.parent("container");  
-  img.style("width: 960; height: 540");
+
+  canvas.style("width: " + COLORWIDTH + "; height: " + COLORHEIGHT);
+  img.style("width: " + COLORWIDTH + "; height: " + COLORHEIGHT);
 
   noStroke();
 }
@@ -90,16 +97,20 @@ function setup() {
 function setImageSize(size) {
   if (size == 'color') {
     console.log('resetting color');
-    canvas.canvas.width = 960;
-    canvas.canvas.height = 540;
-    //img.width = 960;
-    //img.height = 540;
+    canvas.width = COLORWIDTH;
+    canvas.height = COLORHEIGHT;
+    canvas.canvas.width = COLORWIDTH;
+    canvas.canvas.height = COLORHEIGHT;
+    canvas.style("width: " + COLORWIDTH + "; height: " + COLORHEIGHT);
+    img.style("width: " + COLORWIDTH + "; height: " + COLORHEIGHT);
   } else if (size == 'depth') {
     console.log('resetting depth');
-    canvas.canvas.width = 512;
-    canvas.canvas.height = 424;
-    //img.width = 512;
-    //img.height = 424;
+    canvas.width = DEPTHWIDTH;
+    canvas.height = DEPTHHEIGHT;
+    canvas.canvas.width = DEPTHWIDTH;
+    canvas.canvas.height = DEPTHHEIGHT;
+    canvas.style("width: " + DEPTHWIDTH + "; height: " + DEPTHHEIGHT);
+    img.style("width: " + DEPTHWIDTH + "; height: " + DEPTHHEIGHT);
   }
 }
 
