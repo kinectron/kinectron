@@ -533,12 +533,8 @@ function startScaleUser() {
             imageDataArray[i] = newPixelData[i];
           }
           
-          context.putImageData(imageData, 0, 0);
-          outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-          outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
-          console.log(outputCanvas);  
-          sendToPeer('colorFrame',outputCanvas.toDataURL("image/jpeg", 0.5));
-        }
+          drawAndSendImage('scaleuser');
+          }
       }
     }
 
