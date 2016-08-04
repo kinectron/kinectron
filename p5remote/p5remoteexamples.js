@@ -44,7 +44,7 @@ function makeConnection() {
     switch (dataReceived.event) {
       case 'frame':
         console.log(dataReceived.data.name);
-        img.src = dataReceived.data.imagedata;
+        img.elt.src = dataReceived.data.imagedata;
       break;
       
       case 'framesize':
@@ -79,7 +79,9 @@ function setup() {
   canvas.parent("container");
   context = canvas.drawingContext;
 
-  img = document.getElementById('img');
+  img = createImg(" ", "no image yet");
+  img.parent("container");  
+  img.style("width: 960; height: 540");
 
   noStroke();
 }
@@ -102,20 +104,14 @@ function setImageSize(size) {
 }
 
 function showHeight(data) {
-  //context.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
+  // clear canvas
   background(255);
-  //context.beginPath();
+  // draw height
   fill("red");
-  //context.arc(data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height, 10, 0, Math.PI * 2, true);
   ellipse(data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height, 20, 20);
-  
-  //context.fill();
-  //context.closePath();
   textSize(48);
   textFont("sans");
-  //context.font = "48px sans";
   text(data.distance.toFixed(2) + "m", 20 + data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height);
-  //context.fillText(data.distance.toFixed(2) + "m", 20 + data.joint.colorX * canvas.canvas.width, data.joint.colorY * canvas.canvas.height);
 }
 
 
