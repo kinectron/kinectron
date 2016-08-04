@@ -4,9 +4,6 @@ var connection = null;
 
 var canvas = null;
 var context = null;
-var imageData = null;
-var imageDataSize = null;
-var imageDataArray = null;
 
 var image = null;
 
@@ -78,10 +75,6 @@ function makeConnection() {
 window.addEventListener('load', function() {
   canvas = document.getElementById('outputCanvas');
   context = canvas.getContext('2d');
-
-  imageData = context.createImageData(canvas.width, canvas.height);
-  imageDataSize = imageData.data.length;
-  imageDataArray = imageData.data;
 
   image = document.getElementById('image');
 });
