@@ -138,7 +138,6 @@ function initpeer() {
     peer.on('open', function(id) {
       console.log('My peer ID is: ' + id);
       mypeerid = id;
-      console.log(mypeerid);
       peerIdDisplay.innerHTML = mypeerid;
   });
 
@@ -195,7 +194,7 @@ function startKey() {
                 imageDataArray[i] = newPixelData[i];
               }
 
-              drawAndSendImage('key');
+              drawAndSendImage('key', 'png');
             }
           }
         }
@@ -217,8 +216,6 @@ function stopKey() {
 
 function startTracking() {
       if (kinect.open()) {
-         console.log("Kinect Opened");
-
          //listen for body frames
           kinect.on('bodyFrame', function(bodyFrame){
             sendToPeer('bodyFrame',bodyFrame);
@@ -259,7 +256,7 @@ function startRGB() {
         imageDataArray[i] = newPixelData[i];
       }
 
-      drawAndSendImage('color');
+      drawAndSendImage('color', 'jpeg');
       busy = false;
 
     });
@@ -275,14 +272,13 @@ function stopRGB() {
 }
 
 function startDepth() {
-  console.log("startDepth Camera");
+  console.log("start Depth Camera");
 
   resetCanvas('depth');
   setImageData();
 
   if(kinect.open()) {
     kinect.on('depthFrame', function(newPixelData){
-      console.log("depthFrame");
             if(busy) {
               return;
             }
@@ -297,7 +293,7 @@ function startDepth() {
               newPixelDataIndex++;
             }
 
-            drawAndSendImage('depth');
+            drawAndSendImage('depth', 'png');
             busy = false;
           });
         }
@@ -336,7 +332,7 @@ function startInfrared() {
         depthPixelIndex++;
       }
 
-      drawAndSendImage('infrared');
+      drawAndSendImage('infrared', 'jpeg');
       busy = false;
     });
   }
@@ -377,7 +373,7 @@ function startLEInfrared() {
         depthPixelIndex++;
       }
       
-      drawAndSendImage('LEinfrared');
+      drawAndSendImage('LEinfrared', 'jpeg');
 
       busy = false;
     });
@@ -403,8 +399,7 @@ function startFHJoint() {
 
   if(kinect.open()) {
     kinect.on('multiSourceFrame', function(frame){
-      console.log('fh');
-      console.log(trackedBodyIndex);
+
       if(busy) {
         return;
       }
@@ -416,7 +411,7 @@ function startFHJoint() {
         imageDataArray[i] = newPixelData[i];
       }
 
-      drawAndSendImage('fhcolor');
+      drawAndSendImage('fhcolor', 'jpeg');
   
       // get closest body
       var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
@@ -481,8 +476,6 @@ function startScaleUser() {
 
   if(kinect.open()) {
   kinect.on('multiSourceFrame', function(frame){
-    console.log('scale');
-    console.log(trackedBodyIndex);
     var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
     if(closestBodyIndex !== trackedBodyIndex) {
       if(closestBodyIndex > -1) {
@@ -544,7 +537,7 @@ function startScaleUser() {
             imageDataArray[i] = newPixelData[i];
           }
           
-          drawAndSendImage('scaleuser');
+          drawAndSendImage('scaleuser', 'png');
           }
       }
     }
@@ -573,7 +566,6 @@ function startSkeletonTracking() {
   resetCanvas('depth');
 
   if(kinect.open()) {
-    //console.log('kinect opened');
     kinect.on('bodyFrame', function(bodyFrame){
 
       context.clearRect(0, 0, canvas.width, canvas.height);
@@ -613,7 +605,6 @@ function stopSkeletonTracking() {
 }
 
 function loadFile(e) {
-  //console.log(e);
   window.location.href = e.target.files[0].path;
 }
 
@@ -643,14 +634,14 @@ function resetCanvas(size) {
   }
 }
     
-function drawAndSendImage(frameType) {
+function drawAndSendImage(frameType, imageType) {
   var outputCanvasData;
   var dataToSend;
 
   context.putImageData(imageData, 0, 0);
   outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
   outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
-  outputCanvasData = outputCanvas.toDataURL("image/jpeg", 0.5);
+  outputCanvasData = outputCanvas.toDataURL("image/" + imageType, 0.5);
   dataToSend = {'name': frameType, 'imagedata': outputCanvasData};
 
   sendToPeer('frame', dataToSend);
