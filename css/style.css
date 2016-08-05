@@ -34,3 +34,7 @@ div.intro {
 .intro p {
   margin-bottom: 0.5em;
 }
+
+span#peerid {
+  text-transform: none;
+}

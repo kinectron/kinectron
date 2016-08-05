@@ -5,6 +5,7 @@ var mypeerid = null;
 var peer = null;
 var peer_ids = [];
 var peer_connections = [];
+var peerIdDisplay = null;
 
 var canvas = null;
 var context = null;
@@ -112,6 +113,8 @@ function init() {
 
   setImageData();
 
+  peerIdDisplay = document.getElementById('peerid');
+
   document.getElementById('loadfile').addEventListener('change', loadFile);
   document.getElementById('rgb').addEventListener('click', function() {chooseCamera('rgb')});
   document.getElementById('depth').addEventListener('click', function() {chooseCamera('depth')});
@@ -135,6 +138,8 @@ function initpeer() {
     peer.on('open', function(id) {
       console.log('My peer ID is: ' + id);
       mypeerid = id;
+      console.log(mypeerid);
+      peerIdDisplay.innerHTML = mypeerid;
   });
 
   peer.on('connection', function(conn) {
