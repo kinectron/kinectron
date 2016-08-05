@@ -206,6 +206,7 @@ function startKey() {
 
 function stopKey() {
   kinect.closeMultiSourceReader();
+  kinect.removeAllListeners();
   busy = false;
 }
 
@@ -232,6 +233,7 @@ function startTracking() {
 
 function stopTracking() {
   kinect.close();
+  kinect.removeAllListeners();
   busy = false;
 }
 
@@ -242,12 +244,11 @@ function startRGB() {
 
   if(kinect.open()) {
     kinect.on('colorFrame', function(newPixelData){
-      //console.log(newPixelData.length);
+
       if(busy) {
         return;
       }
       busy = true;
-      //sendToPeer('colorFrame',newPixelData);
 
       for (var i = 0; i < imageDataSize; i++) {
         imageDataArray[i] = newPixelData[i];
@@ -264,6 +265,7 @@ function startRGB() {
 
 function stopRGB() {
   kinect.closeColorReader();
+  kinect.removeAllListeners();
   busy = false;
 }
 
@@ -299,6 +301,7 @@ function startDepth() {
 
 function stopDepth() {
   kinect.closeDepthReader();
+  kinect.removeAllListeners();
   busy = false;
 }
 
@@ -340,6 +343,7 @@ function startInfrared() {
 function stopInfrared() {
   console.log('stopping Infrared Camera');
   kinect.closeInfraredReader();
+  kinect.removeAllListeners();  
   busy = false;
 }
 
@@ -381,6 +385,7 @@ function startLEInfrared() {
 function stopLEInfrared() {
   console.log('stopping LE Infrared');
   kinect.closeLongExposureInfraredReader();
+  kinect.removeAllListeners();
   busy = false;
 }
 
@@ -457,6 +462,7 @@ function startFHJoint() {
 function stopFHJoint() {
   console.log('stopping FHJoint');
   kinect.closeMultiSourceReader();
+  kinect.removeAllListeners();
   busy = false;
 }
 
@@ -552,6 +558,7 @@ function startScaleUser() {
 function stopScaleUser() {
   console.log('stop scale user');
   kinect.closeMultiSourceReader();
+  kinect.removeAllListeners();
   busy = false;
 }      
 
@@ -596,6 +603,7 @@ function startSkeletonTracking() {
 function stopSkeletonTracking() {
   console.log('stopping skeleton');
   kinect.closeBodyReader();
+  kinect.removeAllListeners();
 
 }
 
