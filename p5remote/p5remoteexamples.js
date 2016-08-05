@@ -7,6 +7,9 @@ var context = null;
 
 var img = null;
 
+// All possible camera options 
+var cameraOptions = ['rgb', 'depth', 'key', 'infrared', 'le-infrared', 'fh-joint', 'scale', 'skeleton', 'stop-all'];
+
 // Kinect color and depth cameras have different dimensions
 var COLORWIDTH = 960;
 var COLORHEIGHT = 540;
@@ -78,6 +81,28 @@ function makeConnection() {
     }
   });
 }
+
+function sendToPeer() {
+  var evt = 'feed';
+  var data = document.getElementById('feed').value;
+  var verified = verifyFeed(data);
+  var dataToSend = {"event": evt, "data": data};
+
+  if (verified) {
+    connection.send(dataToSend);
+  }
+}
+
+function verifyFeed(name) {
+  var nameExists = false; 
+  for (var i = 0; i < cameraOptions.length; i++) {
+    if (cameraOptions[i] == name) {
+      nameExists = true;
+    } 
+  }
+  return nameExists;
+}
+
 
 // p5 setup
 function setup() {

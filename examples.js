@@ -152,6 +152,13 @@ function initpeer() {
     connection.on('data', function(data) {
       console.log("Data Received: " + data);
     });
+
+    connection.on('data', function(dataReceived) {
+      if (dataReceived.event == 'feed') {
+        console.log(dataReceived.data);
+        chooseCamera(dataReceived.data);
+      }
+    });
   });
 }
 
