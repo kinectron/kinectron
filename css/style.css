@@ -35,6 +35,19 @@ div.intro {
   margin-bottom: 0.5em;
 }
 
-span#peerid {
+span.highlight {
   text-transform: none;
+  background: #D87C1D;
+}
+
+input#newpeerid {
+  width: 100px;
+}
+
+input::-webkit-input-placeholder {
+  text-transform: none;
+}
+
+div#connectionopen {
+  display: none;
 }

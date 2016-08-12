@@ -5,7 +5,7 @@
     <title>Kinectron</title>
 
     <script src="js/peer.min.js"></script>
-    <script src='examples.js' type="text/JavaScript"></script>
+    <script src='p5examples.js' type="text/JavaScript"></script>
     <link rel="stylesheet" type="text/css" href="css/style.css">
   </head>
 
@@ -13,10 +13,18 @@
     <h1>Hello Kinect!</h1>
     <div id="controls">
       <div class="intro">
-        <p class="intro">Your peer id is: <span id="peerid">xxxx</span></p>
+        <p>Have your own peer server? Enter id and server details here:</p> 
+        <input type="text" placeholder="ie. myname" id="newpeerid"><input type="text" id="peercreds" placeholder="ie. {&quot;host&quot;: &quot;myserver.com&quot;, &quot;port&quot;: &quot;9000&quot;, &quot;path&quot;: &quot;/myapp&quot;,}"><input type="submit" id="peersubmit" value="Submit">
+        <div style="clear:both"></div>
+        <p>OR</p>
+        <input type="button" id="localhost" value="Start Local Host">
+        <div style="clear:both"></div>
+        <div id="connectionopen">
+        <p>Connection opened.<br/>Peer ID: <span class='highlight' id="peerid">xxxx</span> IP Address: <span class='highlight' id="ipaddress">xxxx</span> Port: <span class="highlight" id="port">xxxx</span> </p>
+        </div>
       </div>
       <div class="intro">
-        <p >Choose a feed</p>  
+        <p>Choose a feed</p>  
         <div id="options">
           <input type="button" id="rgb" value="RGB">
           <input type="button" id="depth" value="Depth">

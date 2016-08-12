@@ -1,0 +1,294 @@
+(function(window) {
+
+// Import Peer.js 
+var Peer = require('peerjs');
+
+//Drawing variables
+var img = null;
+var myDiv = null;
+
+var incomingW = null;
+var incomingH = null;
+
+// All possible camera options 
+var cameraOptions = ['rgb', 'depth', 'key', 'infrared', 'le-infrared', 'fh-joint', 'scale', 'skeleton', 'stop-all'];
+
+// Skeleton variables
+var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
+var HANDSIZE = 40;
+var HANDCLOSEDCOLOR = 'red';
+var HANDOPENCOLOR = 'green';
+var HANDLASSOCOLOR = 'blue';
+var index = 0;
+
+p5.Kinect2 = function(peerid, creds, canvas, feed, scale, callback) {  
+  // Canvas variables
+  this.canvas = canvas;
+  this.context = this.canvas.drawingContext;
+  this.scaleDim = null;
+  this.scaleSize = null;
+  
+  // Image to draw to
+  this.img = null;
+
+  // Peer variables
+  this.peerid = peerid;
+  this.peercreds = creds;
+  this.mypeerid = null;
+
+  // User options
+  this.feed = null;
+  this.callback = null;
+
+  //Create new peer 
+  var peer = new Peer(this.peercreds);
+  var connection = null;
+
+  peer.on('open', function(id) {
+    console.log('My peer ID is: ' + id);
+    this.mypeerid = id;
+  });
+
+  peer.on('connection', function(conn) {
+    connection = conn;
+    connection.on('open', function() {
+      console.log("connected");
+    });
+    connection.on('data', function(data) {
+    });
+  });
+
+
+  // Create hidden image to draw to
+  myDiv = createDiv();
+  img = createImg(" ");
+  img.parent(myDiv);
+  myDiv.style("visibility: hidden");
+  this.img = img;
+
+  // Set initial feed if user sets one
+  if (feed) {
+    this.feed = feed;
+  } 
+
+  // Dimension defaults to 'height' if not set
+  if (scale) {
+    this.scaleDim = scale;
+  } else {
+    this.scaleDim = 'height';
+  }
+
+  // Set callback if user sets one
+  if (callback) {
+    console.log('setting callback');
+    this.callback = callback;
+  } 
+
+  // Set the size of scale dimension
+  this.scaleSize = setScale(canvas, this.scaleDim);
+
+
+  // Make peer connection
+  this.makeConnection = function() {
+    connection = peer.connect(this.peerid); // get a webrtc DataConnection
+    connection.on('open', function(data) {
+      console.log("Open data connection with server");
+    });
+
+    // Route incoming traffic from Kinectron
+    connection.on('data', function(dataReceived) {
+      switch (dataReceived.event) {
+        // Wait for ready from Kinectron to initialize
+        case 'ready':
+          var verified = false;
+          var dataToSend = null;
+
+          // Verify camera exists before sending data
+          verified = verifyFeed(this.feed);
+          if (verified || this.feed === null) {
+            dataToSend = {'feed': this.feed, 'dimension':this.scaleDim, 'size':this.scaleSize};
+            this._sendToPeer('initfeed', dataToSend);
+          } else {
+            console.log('Error: Cannot initialize. Feed does not exist');
+          }  
+        break;
+        // If image data draw image
+        case 'frame':
+          console.log(dataReceived.data.name);
+          if (this.callback) {
+            this.callback(dataReceived.data);
+          } else {
+            // Is it ok to clear the canvas on each frame?
+            clear();
+            this.img.elt.src = dataReceived.data.imagedata;
+            image(this.img, 0, 0);
+          }  
+        break;
+        // If new feed reset canvas and image
+        case 'framesize':
+          incomingW = dataReceived.data.width;
+          incomingH = dataReceived.data.height;
+          setImageSize(this.img, incomingW, incomingH);
+        break;
+        // If skeleton data, draw skeleton
+        case 'bodyFrame':
+          if (this.callback) {
+            this.callback(dataReceived.data);
+          } else {
+            bodyTracked(dataReceived.data);
+          }
+        break;
+        // If floor height, draw left hand and height
+        case 'floorHeightTracker':
+          showHeight(dataReceived.data);
+        break;
+      }
+    }.bind(this));
+  };
+
+  // Start or change camera set by user
+  this.startCamera = function(camera, callback) {
+    var verified = false;
+    this.callback = null;
+    
+    if (callback) {
+      this.callback = callback;
+    }
+
+    verified = verifyFeed(camera);
+
+    if (verified) {
+      this._setFeed(camera);
+    } else {
+      console.log('Error: Feed does not exist');
+    }
+  };
+
+  // this.startSkeleton = function(callback) {
+  //   if (callback) {
+  //     this.callback = callback;
+  //   }
+
+  //   this._setFeed('skeleton');
+
+  // }
+  
+  // this.startFloorHeight = function() {
+  //   if (callback) {
+  //     this.callback = callback;
+  //   }
+
+  //   this._setFeed('fh-joint');
+  // }
+
+  // Stop all feeds
+  this.stopAll = function() {
+    console.log('stop it!');
+    this._setFeed('stop-all');
+  };
+
+  // Private function to change feed on user input
+  this._setFeed = function(feed) {
+    var dataToSend = null;
+   
+    this.feed = feed;
+    dataToSend = {'feed': this.feed};
+    this._sendToPeer('feed', dataToSend);
+  };
+
+  this._sendToPeer = function(evt, data) {
+    var dataToSend = {"event": evt, "data": data};
+    connection.send(dataToSend);
+  };
+};
+
+// Helper functions //
+
+
+function setScale(canvas, scale) {
+  if (scale == 'width') {
+    return canvas.width;
+  } else {
+    return canvas.height;
+  }
+}
+
+function setImageSize(img, width, height) {
+  clear();
+  img.elt.src = " ";
+  img.style("width: " + width + "; height: " + height); 
+}
+
+function verifyFeed(name) {
+  var nameExists = false; 
+  for (var i = 0; i < cameraOptions.length; i++) {
+    if (cameraOptions[i] == name) {
+      nameExists = true;
+    } 
+  }
+  return nameExists;
+}
+
+function bodyTracked(body) {
+  // clear canvas each time
+  clear();
+  // draw body joints
+  for(var jointType in body.joints) {
+    var joint = body.joints[jointType];
+    stroke(colors[index]);
+    fill(colors[index]);
+    rect(joint.depthX * incomingW, joint.depthY * incomingH, 10, 10);
+    var skeletonJointData = {color: colors[index], depthX: joint.depthX, depthY: joint.depthY};
+  }
+  // draw hand states
+  // 7 is left hand in Kinect2
+  updateHandState(body.leftHandState, body.joints[7]);
+  // 11 is right hand in Kinect2
+  updateHandState(body.rightHandState, body.joints[11]);
+}
+
+
+function updateHandState(handState, jointPoint) {
+  switch (handState) {
+    // 3 is Kinect2 closed handstate
+    case 3:
+      drawHand(jointPoint, HANDCLOSEDCOLOR);
+    break;
+
+    // 2 is Kinect2 open handstate
+    case 2:
+      drawHand(jointPoint, HANDOPENCOLOR);
+    break;
+
+    // 4 is Kinect2 open handstate
+    case 4:
+      drawHand(jointPoint, HANDLASSOCOLOR);
+    break;
+  }
+}
+
+function drawHand(jointPoint, handColor) {
+  // draw hand cicles
+  var handData = {depthX: jointPoint.depthX, depthY: jointPoint.depthY, handColor: handColor, handSize: HANDSIZE};
+  stroke(handColor);
+  fill(handColor);
+  ellipse(jointPoint.depthX * incomingW, jointPoint.depthY * incomingH, HANDSIZE, HANDSIZE);
+}
+
+function showHeight(data) {
+  // clear canvas
+  clear();
+  // draw height
+  fill("red");
+  ellipse(data.joint.colorX * incomingW, data.joint.colorY * incomingH, 20, 20);
+  textSize(48);
+  textFont("sans");
+  text(data.distance.toFixed(2) + "m", 20 + data.joint.colorX * incomingW, data.joint.colorY * incomingH);
+}
+
+// if (typeof(p5.Kinect2) === 'undefined') {
+//   window.p5.Kinect2 =  
+// }
+
+
+})(window);
