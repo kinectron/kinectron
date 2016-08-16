@@ -49,17 +49,11 @@
 	// Import Peer.js 
 	var Peer = __webpack_require__(1);
 
-	//Drawing variables
-	var img = null;
-	var myDiv = null;
-
+	// Width and height variables available for skeleton and floor height joint helper functions
 	var incomingW = null;
 	var incomingH = null;
 
-	// All possible camera options 
-	var cameraOptions = ['rgb', 'depth', 'key', 'infrared', 'le-infrared', 'fh-joint', 'scale', 'skeleton', 'stop-all'];
-
-	// Skeleton variables
+	// Skeleton variables for helper functions
 	var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
 	var HANDSIZE = 40;
 	var HANDCLOSEDCOLOR = 'red';
@@ -86,10 +80,18 @@
 	  this.feed = null;
 	  this.callback = null;
 
-	  //Create new peer 
+	  // Peer variables 
 	  var peer = new Peer(this.peercreds);
 	  var connection = null;
 
+	  // Hidden div variables
+	  var myDiv = createDiv();
+	  var img = createImg(" ");
+
+	  // All possible camera options 
+	  var cameraOptions = ['rgb', 'depth', 'key', 'infrared', 'le-infrared', 'fh-joint', 'scale', 'skeleton', 'stop-all'];
+
+	  // Create new peer
 	  peer.on('open', function(id) {
 	    console.log('My peer ID is: ' + id);
 	    this.mypeerid = id;
@@ -103,11 +105,8 @@
 	    connection.on('data', function(data) {
 	    });
 	  });
-
-
+	  
 	  // Create hidden image to draw to
-	  myDiv = createDiv();
-	  img = createImg(" ");
 	  img.parent(myDiv);
 	  myDiv.style("visibility: hidden");
 	  this.img = img;
@@ -124,14 +123,23 @@
 	    this.scaleDim = 'height';
 	  }
 
+	  // Function returns scale size based on dimension
+	  this._setScale = function(scale) {
+	    if (scale == 'width') {
+	      return this.canvas.width;
+	    } else {
+	      return this.canvas.height;
+	    }
+	  };
+
+	  // Set the size based on dimension
+	  this.scaleSize = this._setScale(this.scaleDim);
+
 	  // Set callback if user sets one
 	  if (callback) {
 	    console.log('setting callback');
 	    this.callback = callback;
 	  } 
-
-	  // Set the size of scale dimension
-	  this.scaleSize = setScale(canvas, this.scaleDim);
 
 
 	  // Make peer connection
@@ -150,7 +158,7 @@
 	          var dataToSend = null;
 
 	          // Verify camera exists before sending data
-	          verified = verifyFeed(this.feed);
+	          verified = this._verifyFeed(this.feed);
 	          if (verified || this.feed === null) {
 	            dataToSend = {'feed': this.feed, 'dimension':this.scaleDim, 'size':this.scaleSize};
 	            this._sendToPeer('initfeed', dataToSend);
@@ -174,7 +182,7 @@
 	        case 'framesize':
 	          incomingW = dataReceived.data.width;
 	          incomingH = dataReceived.data.height;
-	          setImageSize(this.img, incomingW, incomingH);
+	          this._setImageSize(incomingW, incomingH);
 	        break;
 	        // If skeleton data, draw skeleton
 	        case 'bodyFrame':
@@ -201,7 +209,7 @@
 	      this.callback = callback;
 	    }
 
-	    verified = verifyFeed(camera);
+	    verified = this._verifyFeed(camera);
 
 	    if (verified) {
 	      this._setFeed(camera);
@@ -233,7 +241,9 @@
 	    this._setFeed('stop-all');
 	  };
 
-	  // Private function to change feed on user input
+	  // Private functions //
+
+	  // Change feed on user input
 	  this._setFeed = function(feed) {
 	    var dataToSend = null;
 	   
@@ -242,39 +252,37 @@
 	    this._sendToPeer('feed', dataToSend);
 	  };
 
+	  // Send data to peer
 	  this._sendToPeer = function(evt, data) {
 	    var dataToSend = {"event": evt, "data": data};
 	    connection.send(dataToSend);
 	  };
+
+	  // Reset image size to correct dimension for kinect data
+	  this._setImageSize = function(width, height) {
+	    clear();
+	    this.img.elt.src = " ";
+	    img.style("width: " + width + "; height: " + height); 
+	  };
+
+	  // Verify camera feed is valid
+	  this._verifyFeed = function(name) {
+	    var nameExists = false; 
+	    for (var i = 0; i < cameraOptions.length; i++) {
+	      if (cameraOptions[i] == name) {
+	        nameExists = true;
+	      } 
+	    }
+	    return nameExists;
+	  };
+
+
 	};
 
 	// Helper functions //
 
 
-	function setScale(canvas, scale) {
-	  if (scale == 'width') {
-	    return canvas.width;
-	  } else {
-	    return canvas.height;
-	  }
-	}
-
-	function setImageSize(img, width, height) {
-	  clear();
-	  img.elt.src = " ";
-	  img.style("width: " + width + "; height: " + height); 
-	}
-
-	function verifyFeed(name) {
-	  var nameExists = false; 
-	  for (var i = 0; i < cameraOptions.length; i++) {
-	    if (cameraOptions[i] == name) {
-	      nameExists = true;
-	    } 
-	  }
-	  return nameExists;
-	}
-
+	// Draw skeleton 
 	function bodyTracked(body) {
 	  // clear canvas each time
 	  clear();
@@ -292,7 +300,6 @@
 	  // 11 is right hand in Kinect2
 	  updateHandState(body.rightHandState, body.joints[11]);
 	}
-
 
 	function updateHandState(handState, jointPoint) {
 	  switch (handState) {
@@ -321,6 +328,7 @@
 	  ellipse(jointPoint.depthX * incomingW, jointPoint.depthY * incomingH, HANDSIZE, HANDSIZE);
 	}
 
+	// Show height in floor-height feed
 	function showHeight(data) {
 	  // clear canvas
 	  clear();

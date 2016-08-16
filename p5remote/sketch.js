@@ -5,7 +5,7 @@ function setup() {
 	myCanvas = createCanvas(500,500);
 	background(0);
 
-	kinect2 = new p5.Kinect2('l', {host: '192.168.1.5', port: 9001, path: '/'}, myCanvas);
+	kinect2 = new p5.Kinect2('l', {host: '192.168.1.4', port: 9001, path: '/'}, myCanvas);
 	kinect2.makeConnection();
 }
 
@@ -19,7 +19,7 @@ function keyPressed() {
 	} else if (keyCode === UP_ARROW) {
 	 	kinect2.startCamera('rgb');
 	} else if (keyCode === DOWN_ARROW) { 
-		kinect2.startCamera('depth');
+		kinect2.startCamera('key');
 	} else if (keyCode === LEFT_ARROW) {
 		kinect2.startCamera('key', function(data) {
 			myCallback(data);
