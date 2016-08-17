@@ -16,56 +16,45 @@ var HANDLASSOCOLOR = 'blue';
 var index = 0;
 
 p5.Kinect2 = function(peerid, creds, canvas, feed, scale, callback) {  
-  // Canvas variables
   this.canvas = canvas;
-  this.context = this.canvas.drawingContext;
   this.scaleDim = null;
   this.scaleSize = null;
-  
-  // Image to draw to
   this.img = null;
-
-  // Peer variables
-  this.peerid = peerid;
-  this.peercreds = creds;
-  this.mypeerid = null;
-
-  // User options
   this.feed = null;
   this.callback = null;
 
+   // All possible camera options 
+  var cameraOptions = ['rgb', 'depth', 'key', 'infrared', 'le-infrared', 'fh-joint', 'scale', 'skeleton', 'stop-all'];
+
   // Peer variables 
-  var peer = new Peer(this.peercreds);
+  var peer = null;
   var connection = null;
 
   // Hidden div variables
-  var myDiv = createDiv();
-  var img = createImg(" ");
-
-  // All possible camera options 
-  var cameraOptions = ['rgb', 'depth', 'key', 'infrared', 'le-infrared', 'fh-joint', 'scale', 'skeleton', 'stop-all'];
+  var myDiv = null;
+  var img = null;
 
   // Create new peer
+  peer = new Peer(creds);
+  
   peer.on('open', function(id) {
     console.log('My peer ID is: ' + id);
-    this.mypeerid = id;
   });
 
-  peer.on('connection', function(conn) {
-    connection = conn;
+  peer.on('connection', function(connection) {
     connection.on('open', function() {
-      console.log("connected");
-    });
-    connection.on('data', function(data) {
+      console.log("Peer js is connected");
     });
   });
   
   // Create hidden image to draw to
+  myDiv = createDiv();
+  img = createImg(" ");
   img.parent(myDiv);
   myDiv.style("visibility: hidden");
   this.img = img;
 
-  // Set initial feed if user sets one
+  // Set initial camera feed if user sets one
   if (feed) {
     this.feed = feed;
   } 
@@ -98,13 +87,14 @@ p5.Kinect2 = function(peerid, creds, canvas, feed, scale, callback) {
 
   // Make peer connection
   this.makeConnection = function() {
-    connection = peer.connect(this.peerid); // get a webrtc DataConnection
+    connection = peer.connect(peerid); // get a webrtc DataConnection
     connection.on('open', function(data) {
       console.log("Open data connection with server");
     });
 
     // Route incoming traffic from Kinectron
     connection.on('data', function(dataReceived) {
+      var data = dataReceived.data;
       switch (dataReceived.event) {
         // Wait for ready from Kinectron to initialize
         case 'ready':
@@ -114,41 +104,46 @@ p5.Kinect2 = function(peerid, creds, canvas, feed, scale, callback) {
           // Verify camera exists before sending data
           verified = this._verifyFeed(this.feed);
           if (verified || this.feed === null) {
-            dataToSend = {'feed': this.feed, 'dimension':this.scaleDim, 'size':this.scaleSize};
+            dataToSend = {
+              feed: this.feed, 
+              dimension: this.scaleDim, 
+              size: this.scaleSize
+            };
             this._sendToPeer('initfeed', dataToSend);
           } else {
-            console.log('Error: Cannot initialize. Feed does not exist');
+            throw new Error('Error: Feed does not exist');
           }  
         break;
         // If image data draw image
         case 'frame':
-          console.log(dataReceived.data.name);
+          console.log(data.name);
           if (this.callback) {
-            this.callback(dataReceived.data);
+            // Passing full data object because just image feed crashes when logged
+            this.callback(data);
           } else {
             // Is it ok to clear the canvas on each frame?
             clear();
-            this.img.elt.src = dataReceived.data.imagedata;
+            this.img.elt.src = data.imagedata;
             image(this.img, 0, 0);
           }  
         break;
         // If new feed reset canvas and image
         case 'framesize':
-          incomingW = dataReceived.data.width;
-          incomingH = dataReceived.data.height;
+          incomingW = data.width;
+          incomingH = data.height;
           this._setImageSize(incomingW, incomingH);
         break;
         // If skeleton data, draw skeleton
         case 'bodyFrame':
           if (this.callback) {
-            this.callback(dataReceived.data);
+            this.callback(data);
           } else {
-            bodyTracked(dataReceived.data);
+            bodyTracked(data);
           }
         break;
         // If floor height, draw left hand and height
         case 'floorHeightTracker':
-          showHeight(dataReceived.data);
+          showHeight(data);
         break;
       }
     }.bind(this));
@@ -168,7 +163,7 @@ p5.Kinect2 = function(peerid, creds, canvas, feed, scale, callback) {
     if (verified) {
       this._setFeed(camera);
     } else {
-      console.log('Error: Feed does not exist');
+      throw new Error('Error: Feed does not exist');
     }
   };
 
@@ -202,13 +197,16 @@ p5.Kinect2 = function(peerid, creds, canvas, feed, scale, callback) {
     var dataToSend = null;
    
     this.feed = feed;
-    dataToSend = {'feed': this.feed};
+    dataToSend = {feed: this.feed};
     this._sendToPeer('feed', dataToSend);
   };
 
   // Send data to peer
   this._sendToPeer = function(evt, data) {
-    var dataToSend = {"event": evt, "data": data};
+    var dataToSend = {
+      event: evt, 
+      data: data
+    };
     connection.send(dataToSend);
   };
 
@@ -246,7 +244,7 @@ function bodyTracked(body) {
     stroke(colors[index]);
     fill(colors[index]);
     rect(joint.depthX * incomingW, joint.depthY * incomingH, 10, 10);
-    var skeletonJointData = {color: colors[index], depthX: joint.depthX, depthY: joint.depthY};
+    //var skeletonJointData = {color: colors[index], depthX: joint.depthX, depthY: joint.depthY};
   }
   // draw hand states
   // 7 is left hand in Kinect2
@@ -276,7 +274,7 @@ function updateHandState(handState, jointPoint) {
 
 function drawHand(jointPoint, handColor) {
   // draw hand cicles
-  var handData = {depthX: jointPoint.depthX, depthY: jointPoint.depthY, handColor: handColor, handSize: HANDSIZE};
+  //var handData = {depthX: jointPoint.depthX, depthY: jointPoint.depthY, handColor: handColor, handSize: HANDSIZE};
   stroke(handColor);
   fill(handColor);
   ellipse(jointPoint.depthX * incomingW, jointPoint.depthY * incomingH, HANDSIZE, HANDSIZE);
