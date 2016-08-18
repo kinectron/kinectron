@@ -6,7 +6,7 @@ function setup() {
 	background(0);
 
 	// Enter peer credentials provided by Kinectron 
-	kinect2 = new p5.Kinect2('l', {host: '192.168.1.5', port: 9001, path: '/'}, myCanvas, 'skeleton');
+	kinect2 = new p5.Kinect2(myCanvas);
 	kinect2.makeConnection();
 }
 

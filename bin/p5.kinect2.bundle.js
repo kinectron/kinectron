@@ -61,7 +61,7 @@
 	var HANDLASSOCOLOR = 'blue';
 	var index = 0;
 
-	p5.Kinect2 = function(peerid, creds, canvas, feed, scale, callback) {  
+	p5.Kinect2 = function(canvas, peerid, network, feed, scale, callback) {  
 	  this.canvas = canvas;
 	  this.scaleDim = null;
 	  this.scaleSize = null;
@@ -75,13 +75,29 @@
 	  // Peer variables 
 	  var peer = null;
 	  var connection = null;
+	  var peerNet = null;
+	  var peerId = null;
 
 	  // Hidden div variables
 	  var myDiv = null;
 	  var img = null;
 
+	  // Connect to peer over local host by default
+	  if (network) {
+	    peerNet = network;
+	  } else {
+	    peerNet = {host: 'localhost', port: 9001, path: '/'};
+	  }
+
+	  if (peerid) {
+	    peerId = peerid;
+	  } else {
+	    peerId = 'kinectron';
+	  }
+
 	  // Create new peer
-	  peer = new Peer(creds);
+
+	  peer = new Peer(peerNet);
 	  
 	  peer.on('open', function(id) {
 	    console.log('My peer ID is: ' + id);
@@ -133,7 +149,7 @@
 
 	  // Make peer connection
 	  this.makeConnection = function() {
-	    connection = peer.connect(peerid); // get a webrtc DataConnection
+	    connection = peer.connect(peerId); // get a webrtc DataConnection
 	    connection.on('open', function(data) {
 	      console.log("Open data connection with server");
 	    });

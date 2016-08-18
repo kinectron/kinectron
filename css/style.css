@@ -47,7 +47,3 @@ input#newpeerid {
 input::-webkit-input-placeholder {
   text-transform: none;
 }
-
-div#connectionopen {
-  display: none;
-}

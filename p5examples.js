@@ -5,8 +5,9 @@ var kinect = new Kinect2();
 var PeerServer = require('peer').PeerServer;
 var server = PeerServer({port: 9001, path: '/'});
 
-var peerCreds = null;
-var myPeerId = null;
+// Set peer credentials for localhost by default
+var peerNet = {host: 'localhost', port: 9001, path: '/'};
+var myPeerId = 'kinectron';
 var peer_ids = [];
 var peer_connections = [];
 var peer = null;
@@ -49,7 +50,7 @@ var HANDCLOSEDCOLOR = 'red';
 var HANDOPENCOLOR = 'green';
 var HANDLASSOCOLOR = 'blue';
 
-//window.addEventListener('load', initpeer);
+window.addEventListener('load', initpeer);
 window.addEventListener('load', init);
 
 function chooseCamera(camera) {
@@ -128,23 +129,13 @@ function init() {
 
   peerIdDisplay = document.getElementById('peerid');
 
-  document.getElementById('localhost').addEventListener('click', function(evt) {
-    evt.preventDefault();
-    myPeerId = 'l';
-    peerCreds = {host: 'localhost', port: 9001, path: '/'};
-
-    initpeer();
-  });
-
-  document.getElementById('peersubmit').addEventListener('click', function(evt) {
-    evt.preventDefault();
-    myPeerId = document.getElementById('newpeerid').value;
-    var peerCreds1 = document.getElementById('peercreds').value;
-    peerCreds = JSON.parse(peerCreds1);
+  // document.getElementById('localhost').addEventListener('click', function(evt) {
+  //   evt.preventDefault();
     
-    initpeer();
-  });
+  //   initpeer();
+  // });
 
+  document.getElementById('peersubmit').addEventListener('click', newPeerServer);
   document.getElementById('loadfile').addEventListener('change', loadFile);
   document.getElementById('rgb').addEventListener('click', function() {chooseCamera('rgb')});
   document.getElementById('depth').addEventListener('click', function() {chooseCamera('depth')});
@@ -159,7 +150,7 @@ function init() {
 }
 
 function initpeer() {
-    peer = new Peer(myPeerId, peerCreds);
+    peer = new Peer(myPeerId, peerNet);
     peer.on('error',function(err) {
       console.log(err);
     });
@@ -206,29 +197,29 @@ function initpeer() {
   peer.on('close', function() {
     console.log('closed');
 
-    // if (newPeerEntry) {
-    //   peer = null;
-    //   initpeer();
-    //   newPeerEntry = false;
-    //   debugger;
-    // }
+    // Only create new peer if old peer destroyed and new peer requested
+    if (newPeerEntry) {
+      peer = null;
+      initpeer();
+      newPeerEntry = false;
+    }
   });
 }
 
 
-// function newPeerServer() {
-//   console.log('here');
-//   //var tempID = document.getElementById('newpeerid').value;
-//   //myPeerId = "'" + tempID + "'";
-//   myPeerId = document.getElementById('newpeerid').value;
-//   console.log('newpeer', myPeerId);
-//   peerCreds = document.getElementById('peercreds').value;
-//   console.log('newcreds', peerCreds);
-//   newPeerEntry = true;
-  
-//   peer.disconnect();
-//   peer.destroy();
-// }
+function newPeerServer(evt) {
+  console.log('newpeerserver');
+  newPeerEntry = true;
+  evt.preventDefault();
+  myPeerId = document.getElementById('newpeerid').value;
+  var peerNetTemp = document.getElementById('peernet').value;
+  peerNet = JSON.parse(peerNetTemp);
+
+  // Distroy default peer before creating new one
+  peer.disconnect();
+  peer.destroy();
+
+}
 
 function sendToPeer(evt, data) {
   var dataToSend = {"event": evt, "data": data};

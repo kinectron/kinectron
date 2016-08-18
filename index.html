@@ -13,15 +13,16 @@
     <h1>Hello Kinect!</h1>
     <div id="controls">
       <div class="intro">
-        <p>Have your own peer server? Enter id and server details here:</p> 
-        <input type="text" placeholder="ie. myname" id="newpeerid"><input type="text" id="peercreds" placeholder="ie. {&quot;host&quot;: &quot;myserver.com&quot;, &quot;port&quot;: &quot;9000&quot;, &quot;path&quot;: &quot;/myapp&quot;,}"><input type="submit" id="peersubmit" value="Submit">
-        <div style="clear:both"></div>
-        <p>OR</p>
-        <input type="button" id="localhost" value="Start Local Host">
-        <div style="clear:both"></div>
         <div id="connectionopen">
-        <p>Connection opened.<br/>Peer ID: <span class='highlight' id="peerid">xxxx</span> IP Address: <span class='highlight' id="ipaddress">xxxx</span> Port: <span class="highlight" id="port">xxxx</span> </p>
+          <p>You are running on localhost.<br/>Peer ID: <span class='highlight' id="peerid">xxxx</span> IP Address: <span class='highlight' id="ipaddress">xxxx</span> Port: <span class="highlight" id="port">xxxx</span> </p>
         </div>
+        <p>Have your own peer server? Enter id and server details here:</p> 
+        <input type="text" placeholder="ie. myname" id="newpeerid"><input type="text" id="peernet" placeholder="ie. {&quot;host&quot;: &quot;myserver.com&quot;, &quot;port&quot;: &quot;9000&quot;, &quot;path&quot;: &quot;/myapp&quot;,}"><input type="submit" id="peersubmit" value="Submit">
+        <div style="clear:both"></div>
+<!--         <p>OR</p>
+        <input type="button" id="localhost" value="Start Local Host">
+        <div style="clear:both"></div> -->
+        
       </div>
       <div class="intro">
         <p>Choose a feed</p>  
