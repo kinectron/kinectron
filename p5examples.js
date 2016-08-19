@@ -54,22 +54,17 @@ var HANDLASSOCOLOR = 'blue';
 window.addEventListener('load', initpeer);
 window.addEventListener('load', init);
 
-function chooseCamera(camera) {
+function chooseCamera(evt) {
+  var camera = evt.srcElement.id;
   if (currentCamera) {
-    console.log('stopping');
-    console.log(currentCamera);
     changeCameraState(currentCamera, 'stop');
   }
 
   if (currentCamera == camera || camera == 'stop-all') {
-    console.log('resetting');
-    console.log(currentCamera);
     currentCamera = null;
     return;
   }
 
-  console.log('starting');
-  console.log(currentCamera);
   changeCameraState(camera, 'start');
   currentCamera = camera;
 }
@@ -138,16 +133,15 @@ function init() {
   document.getElementById('depthheight').addEventListener('change', updateDimFields);
   document.getElementById('colorsubmit').addEventListener('click', setOutputDimensions);
   document.getElementById('depthsubmit').addEventListener('click', setOutputDimensions);
-  document.getElementById('rgb').addEventListener('click', function() {chooseCamera('rgb')});
-  document.getElementById('depth').addEventListener('click', function() {chooseCamera('depth')});
-  document.getElementById('key').addEventListener('click', function() {chooseCamera('key')});
-  document.getElementById('infrared').addEventListener('click', function() {chooseCamera('infrared')});
-  document.getElementById('le-infrared').addEventListener('click', function() {chooseCamera('le-infrared')});
-  document.getElementById('fh-joint').addEventListener('click', function() {chooseCamera('fh-joint')});
-  document.getElementById('scale').addEventListener('click', function() {chooseCamera('scale')});
-  document.getElementById('skeleton').addEventListener('click', function() {chooseCamera('skeleton')});
-  document.getElementById('stop-all').addEventListener('click', function() {
-    chooseCamera('stop-all')});
+  document.getElementById('rgb').addEventListener('click', chooseCamera);
+  document.getElementById('depth').addEventListener('click', chooseCamera);
+  document.getElementById('key').addEventListener('click', chooseCamera);
+  document.getElementById('infrared').addEventListener('click', chooseCamera);
+  document.getElementById('le-infrared').addEventListener('click', chooseCamera);
+  document.getElementById('fh-joint').addEventListener('click', chooseCamera);
+  document.getElementById('scale').addEventListener('click', chooseCamera);
+  document.getElementById('skeleton').addEventListener('click', chooseCamera);
+  document.getElementById('stop-all').addEventListener('click', chooseCamera);
 }
 
 function initpeer() {
