@@ -19,10 +19,21 @@
         <p>Have your own peer server? Enter id and server details here:</p> 
         <input type="text" placeholder="ie. myname" id="newpeerid"><input type="text" id="peernet" placeholder="ie. {&quot;host&quot;: &quot;myserver.com&quot;, &quot;port&quot;: &quot;9000&quot;, &quot;path&quot;: &quot;/myapp&quot;,}"><input type="submit" id="peersubmit" value="Submit">
         <div style="clear:both"></div>
-<!--         <p>OR</p>
-        <input type="button" id="localhost" value="Start Local Host">
-        <div style="clear:both"></div> -->
-        
+        <div id="imagesize" >
+          <p>Images sizes are set by default. Change them (or don't) here. Dimensions are fixed.</p>
+          <span>Color: </span>
+          <input type="text" placeholder="960" class="dimensions" id="colorwidth">
+          <span> X </span>
+          <input type="text" placeholder="540" class="dimensions" id="colorheight">
+          <input type="submit" id="colorsubmit" value="Submit">
+          <div style="clear:both"></div>
+          <span>Depth: </span>
+          <input type="text" placeholder="512" class="dimensions" id="depthwidth">
+          <span> X </span>
+          <input type="text" placeholder="424" class="dimensions" id="depthheight">
+          <input type="submit" id="depthsubmit" value="Submit">
+        </div>
+        <div style="clear:both"></div>
       </div>
       <div class="intro">
         <p>Choose a feed</p>  

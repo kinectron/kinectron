@@ -47,3 +47,17 @@ input#newpeerid {
 input::-webkit-input-placeholder {
   text-transform: none;
 }
+
+input.dimensions {
+  width: 40px; 
+}
+
+#imagesize span {
+  float: left;
+  padding-top: 5px;
+}
+
+#imagesize span, #imagesize input {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}

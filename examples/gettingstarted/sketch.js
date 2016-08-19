@@ -6,7 +6,7 @@ function setup() {
 	background(0);
 
 	// Enter peer credentials provided by Kinectron 
-	kinect2 = new p5.Kinect2(myCanvas);
+	kinect2 = new p5.Kinect2();
 	kinect2.makeConnection();
 }
 

@@ -61,10 +61,8 @@
 	var HANDLASSOCOLOR = 'blue';
 	var index = 0;
 
-	p5.Kinect2 = function(canvas, peerid, network, feed, scale, callback) {  
-	  this.canvas = canvas;
-	  this.scaleDim = null;
-	  this.scaleSize = null;
+	p5.Kinect2 = function(peerid, network, feed, callback) {  
+	  // this.canvas = canvas;
 	  this.img = null;
 	  this.feed = null;
 	  this.callback = null;
@@ -121,25 +119,6 @@
 	    this.feed = feed;
 	  } 
 
-	  // Dimension defaults to 'height' if not set
-	  if (scale) {
-	    this.scaleDim = scale;
-	  } else {
-	    this.scaleDim = 'height';
-	  }
-
-	  // Function returns scale size based on dimension
-	  this._setScale = function(scale) {
-	    if (scale == 'width') {
-	      return this.canvas.width;
-	    } else {
-	      return this.canvas.height;
-	    }
-	  };
-
-	  // Set the size based on dimension
-	  this.scaleSize = this._setScale(this.scaleDim);
-
 	  // Set callback if user sets one
 	  if (callback) {
 	    console.log('setting callback');
@@ -168,8 +147,6 @@
 	          if (verified || this.feed === null) {
 	            dataToSend = {
 	              feed: this.feed, 
-	              dimension: this.scaleDim, 
-	              size: this.scaleSize
 	            };
 	            this._sendToPeer('initfeed', dataToSend);
 	          } else {
@@ -189,12 +166,7 @@
 	            image(this.img, 0, 0);
 	          }  
 	        break;
-	        // If new feed reset canvas and image
-	        case 'framesize':
-	          incomingW = data.width;
-	          incomingH = data.height;
-	          this._setImageSize(incomingW, incomingH);
-	        break;
+	 
 	        // If skeleton data, draw skeleton
 	        case 'bodyFrame':
 	          if (this.callback) {
@@ -203,6 +175,7 @@
 	            bodyTracked(data);
 	          }
 	        break;
+
 	        // If floor height, draw left hand and height
 	        case 'floorHeightTracker':
 	          showHeight(data);
@@ -272,13 +245,6 @@
 	    connection.send(dataToSend);
 	  };
 
-	  // Reset image size to correct dimension for kinect data
-	  this._setImageSize = function(width, height) {
-	    clear();
-	    this.img.elt.src = " ";
-	    img.style("width: " + width + "; height: " + height); 
-	  };
-
 	  // Verify camera feed is valid
 	  this._verifyFeed = function(name) {
 	    var nameExists = false; 
@@ -290,11 +256,9 @@
 	    return nameExists;
 	  };
 
-
 	};
 
 	// Helper functions //
-
 
 	// Draw skeleton 
 	function bodyTracked(body) {
