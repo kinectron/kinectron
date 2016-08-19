@@ -109,7 +109,7 @@
 	  
 	  // Create hidden image to draw to
 	  myDiv = createDiv();
-	  img = createImg(" ");
+	  img = createImg();
 	  img.parent(myDiv);
 	  myDiv.style("visibility: hidden");
 	  this.img = img;
