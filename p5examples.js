@@ -54,8 +54,17 @@ var HANDLASSOCOLOR = 'blue';
 window.addEventListener('load', initpeer);
 window.addEventListener('load', init);
 
-function chooseCamera(evt) {
-  var camera = evt.srcElement.id;
+function chooseCamera(evt, feed) {
+  var camera;
+
+  if (evt) {
+    camera = evt.srcElement.id;
+  } else {
+    camera = feed;
+  }
+
+  console.log('got one', camera);
+
   if (currentCamera) {
     changeCameraState(currentCamera, 'stop');
   }
@@ -177,12 +186,12 @@ function initpeer() {
 
         if (dataReceived.data.feed) {
           console.log('yes got feed');
-          chooseCamera(dataReceived.data.feed);
+          chooseCamera(null, dataReceived.data.feed);
         } else {
           console.log('no feed not setting one');
         }
       } else if (dataReceived.event == 'feed') {
-        chooseCamera(dataReceived.data.feed);
+        chooseCamera(null, dataReceived.data.feed);
       }
     });
 
