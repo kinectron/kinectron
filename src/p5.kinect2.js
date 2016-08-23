@@ -6,6 +6,7 @@ var Peer = require('peerjs');
 p5.Kinect2 = function(peerid, network) {  
   this.img = null;
   this.feed = null;
+  this.body = null;
   this.callback = null;
 
   // Peer variables 
@@ -78,6 +79,7 @@ p5.Kinect2 = function(peerid, network) {
  
         // If skeleton data, draw skeleton
         case 'bodyFrame':
+          this.body = data;
           this.callback(data);
         break;
 
@@ -139,6 +141,34 @@ p5.Kinect2 = function(peerid, network) {
     image(this.img, 0, 0);
   };
 
+  this.getJoints = function(callback) {
+    var jointCallback = callback;
+    var joint = null;
+
+    for(var jointType in this.body.joints) {
+      joint = this.body.joints[jointType];
+      jointCallback(joint);
+    }
+  };
+
+  this.getHands = function(callback) {
+    var handCallback = callback;
+    var leftHand = this.body.joints[7];
+    var rightHand = this.body.joints[11];
+    var leftHandState = this._getHandState(this.body.leftHandState);
+    var rightHandState = this._getHandState(this.body.rightHandState);
+    var hands = { 
+      leftHand: leftHand,
+      rightHand: rightHand,
+      leftHandState: leftHandState,
+      rightHandState: rightHandState
+    };
+
+    handCallback(hands);
+
+  };
+
+
   // Private functions //
 
   // Change feed on user input
@@ -159,6 +189,31 @@ p5.Kinect2 = function(peerid, network) {
       data: data
     };
     connection.send(dataToSend);
+  };
+
+  // Make handstate more readable
+  this._getHandState = function(handState) {
+    switch (handState) {
+      case 0:
+        return 'unknown';
+      break;
+
+      case 1:
+        return 'notTracked';
+      break;
+
+      case 2:
+        return 'open';
+      break;
+
+      case 3:
+        return 'closed';
+      break;
+
+      case 4:
+        return 'lasso';
+      break;
+    }
   };
 
 };
