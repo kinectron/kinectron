@@ -29,7 +29,8 @@ function keyPressed() {
 
 function myCallback(img) {
 	console.log(img);
-	image(img, 0, 0);
+	//image(img, 0, 0);
+	kinect2.drawFeed();
 }
 
 

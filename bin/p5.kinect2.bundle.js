@@ -181,6 +181,10 @@
 	    this._setFeed('stop-all');
 	  };
 
+	  this.drawFeed = function() {
+	    image(this.img, 0, 0);
+	  };
+
 	  // Private functions //
 
 	  // Change feed on user input
