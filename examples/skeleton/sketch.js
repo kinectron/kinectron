@@ -18,14 +18,20 @@ function setup() {
 
 	kinect2 = new p5.Kinect2();
 	kinect2.makeConnection();
-	kinect2.startSkeleton(bodyTracked);
+	kinect2.startTrackedBodies(bodyTracked);
+  //kinect2.startBodies(allBodies);
 }
 
 function draw() {
 
 }
 
+function allBodies(bodies) {
+  console.log(bodies);
+}
+
 function bodyTracked(body) {
+  console.log(body);
   background(0, 20);
 
   kinect2.getJoints(drawJoint); 

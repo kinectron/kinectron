@@ -122,9 +122,13 @@
 	          this.img.elt.src = data.imagedata;
 	          this.callback(this.img);
 	        break;
+
+	        case 'bodyFrame':
+	          this.callback(data);
+	        break;
 	 
 	        // If skeleton data, draw skeleton
-	        case 'bodyFrame':
+	        case 'trackedBodyFrame':
 	          this.body = data;
 	          this.callback(data);
 	        break;
@@ -157,7 +161,12 @@
 	    this._setFeed('le-infrared');
 	  };
 
-	  this.startSkeleton = function(callback) {
+	  this.startBodies = function(callback) {
+	    this.callback = callback;
+	    this._setFeed('body');
+	  };
+
+	  this.startTrackedBodies = function(callback) {
 	    this.callback = callback;
 	    this._setFeed('skeleton');
 	  };
@@ -167,10 +176,10 @@
 	    this._setFeed('key');
 	  };
 
-	  this.startScale = function(callback) {
-	    this.callback = callback;
-	    this._setFeed('scale');
-	  };
+	  // this.startScale = function(callback) {
+	  //   this.callback = callback;
+	  //   this._setFeed('scale');
+	  // };
 
 	  this.startFloorHeight = function(callback) {
 	    this.callback = callback;
