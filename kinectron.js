@@ -837,6 +837,8 @@ function calculatePixelWidth(horizontalFieldOfView, depth)
 }
 
 function showHeight(context, joint, jointDistance) {
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
   context.beginPath();
   context.fillStyle = 'red';
   context.arc(joint.colorX * context.canvas.width, joint.colorY * context.canvas.height, 10, 0, Math.PI * 2, true);
