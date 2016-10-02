@@ -44,7 +44,7 @@ input#newpeerid {
   width: 100px;
 }
 
-input::-webkit-input-placeholder {
+input::-webkit-input-placeholder, input[type="text"] {
   text-transform: none;
 }
 

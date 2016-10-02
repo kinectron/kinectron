@@ -1,15 +1,15 @@
 var myCanvas = null;
-var kinect2 = null;
+var kinectron = null;
 
 function setup() {
 	myCanvas = createCanvas(500,500);
 	background(0);
 
-	// Enter peer credentials provided by Kinectron 
-	kinect2 = new p5.Kinect2();
-	kinect2.makeConnection();
-	kinect2.startRGB(myCallback);
-
+	kinectron = new Kinectron();
+	kinectron.makeConnection();
+	
+	kinectron.startRGB(colorCallback);
+	kinectron.setDepthCallback(depthCallback);
 }
 
 function draw() {
@@ -18,19 +18,23 @@ function draw() {
 
 function keyPressed() {
 	if (keyCode === ENTER) {
-	 	kinect2.startScale(myCallback);
+	 	kinectron.startDepth();
 	} else if (keyCode === UP_ARROW) {
-	 	kinect2.startDepth(myCallback);
+	 	kinectron.startRGB(colorCallback);
 	} else if (keyCode === DOWN_ARROW) {
-		kinect2.startRGB(myCallback);
+		kinectron.startRGB(myCallback);
 	}
  }
 
 
-function myCallback(img) {
-	console.log(img);
-	image(img, 0, 0);
-	//kinect2.drawFeed();
+function colorCallback(img) {
+	loadImage(img.src, function(loadedImage) {
+    image(loadedImage, 0, 0);
+  });
+}
+
+function depthCallback(img) {
+	console.log('depth is deep');
 }
 
 

@@ -38,26 +38,34 @@
       <div class="intro">
         <p>Choose a feed</p>  
         <div id="options">
-          <input type="button" class="feed-option" id="rgb" value="RGB">
+          <input type="button" class="feed-option" id="rgb" value="Color">
           <input type="button" class="feed-option" id="depth" value="Depth">
-          <input type="button" class="feed-option" id="skeleton" value="Skeleton Tracking">
+          <!-- <input type="button" class="feed-option" id="raw-depth" value="Raw Depth"> -->
+          <input type="button" class="feed-option" id="skeleton" value="Skeleton (Tracked Bodies)">
+          <input type="button" class="feed-option" id="body" value="All Bodies">
           <input type="button" class="feed-option" id="infrared" value="Infrared">
           <input type="button" class="feed-option" id="le-infrared" value="Long Exposure Infrared">
           <input type="button" class="feed-option" id="key" value="Key">
-          <input type="button" class="feed-option" id="fh-joint" value="Floor Height Joint">
+          <!-- <input type="button" class="feed-option" id="fh-joint" value="Floor Height Joint"> -->
           <!-- <input type="button" class="feed-option" id="scale" value="Scale User"> -->
           <input type="button" class="feed-option" id="stop-all" value="Stop All">
+          <div style="clear:both"></div>
+          <!-- <p>Or choose more than one: Enter feed names separated by commas. Names are case sensitive. </p>
+          <input type="text" value="rawDepth, depthColor" class="" id="multi-options">
+          <input type="button" class="feed-option" id="multi" value="Start Multiframe">
+          <input type="button" class-"feed-option" id="stop-multi" value="Stop Multiframe"> -->
         </div>  
         <div style="clear:both"></div>
+
       </div>   
-      <div class="intro" id="load-file">
+<!--       <div class="intro" id="load-file">
         <p>Or load a different page</p>
         <label id="custom-file-upload">
           <input type="file" id="loadfile">
           Choose File
         </label>
         <div style="clear:both"></div>
-      </div>
+      </div> -->
     </div>
     <div>
       <h4>Feed from Kinect</h4>

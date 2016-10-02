@@ -1,7 +1,7 @@
  module.exports = {
-     entry: './src/p5.kinect2.js',
+     entry: './src/kinectron.js',
      output: {
          path: './bin',
-         filename: 'p5.kinect2.bundle.js',
+         filename: 'kinectron.bundle.js',
      }
  };

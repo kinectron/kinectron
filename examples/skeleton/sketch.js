@@ -1,5 +1,5 @@
 var myCanvas = null;
-var kinect2 = null;
+var kinectron = null;
 
 // drawHand variables
 var start = 30;
@@ -16,10 +16,10 @@ function setup() {
 	background(0);
 	noStroke();
 
-	kinect2 = new p5.Kinect2();
-	kinect2.makeConnection();
-	kinect2.startTrackedBodies(bodyTracked);
-  //kinect2.startBodies(allBodies);
+	kinectron = new Kinectron();
+	kinectron.makeConnection();
+	kinectron.startTrackedBodies(bodyTracked);
+  //kinectron.startBodies(allBodies);
 }
 
 function draw() {
@@ -31,11 +31,11 @@ function allBodies(bodies) {
 }
 
 function bodyTracked(body) {
-  console.log(body);
+  //console.log(body);
   background(0, 20);
 
-  kinect2.getJoints(drawJoint); 
-  kinect2.getHands(drawHands);
+  kinectron.getJoints(drawJoint); 
+  kinectron.getHands(drawHands);
 }
 
 // Draw skeleton
