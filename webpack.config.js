@@ -1,7 +1,7 @@
  module.exports = {
-     entry: './src/kinectron.js',
+     entry: './client/src/kinectron.js',
      output: {
-         path: './bin',
+         path: './client/bin',
          filename: 'kinectron.bundle.js',
      }
  };
