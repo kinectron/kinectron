@@ -73,6 +73,8 @@ function init() {
   outputCanvas = document.getElementById('outputCanvas');
   outputContext = outputCanvas.getContext('2d');
 
+  updateIpAddress();
+
   setImageData();
 
   peerIdDisplay = document.getElementById('peerid');
@@ -1094,59 +1096,16 @@ function drawHand(context, jointPoint, handColor) {
   context.globalAlpha = 1;
 }
 
-
-// Get IP Address. Taken from http://net.ipcalf.com/
-if (RTCPeerConnection) (function () {
-    var rtc = new RTCPeerConnection({iceServers:[]});
-    if (1 || window.mozRTCPeerConnection) {      // FF [and now Chrome!] needs a channel/stream to proceed
-        rtc.createDataChannel('', {reliable:false});
-    }
-    
-    rtc.onicecandidate = function (evt) {
-        // convert the candidate to SDP so we can run it through our general parser
-        // see https://twitter.com/lancestout/status/525796175425720320 for details
-        if (evt.candidate) grepSDP("a="+evt.candidate.candidate);
-    };
-    rtc.createOffer(function (offerDesc) {
-        grepSDP(offerDesc.sdp);
-        rtc.setLocalDescription(offerDesc);
-    }, function (e) { console.warn("offer failed", e); });
-    
-    
-    var addrs = Object.create(null);
-    addrs["0.0.0.0"] = false;
-    function updateDisplay(newAddr) {
-        if (newAddr in addrs) return;
-        else addrs[newAddr] = true;
-        var ips = Object.getOwnPropertyNames(addrs).sort();
-
-        // find local ip address
-        for (i = 0; i < ips.length; i++) {
-          if (ips[i].includes('192')) {
-            var displayAddrs = ips[i];
-          }
-          
-        }
-        //var displayAddrs = Object.keys(addrs).filter(function (k) { return addrs[k]; });
-        document.getElementById('ipaddress').textContent = displayAddrs;
-    }
-    
-    function grepSDP(sdp) {
-        var hosts = [];
-        sdp.split('\r\n').forEach(function (line) { // c.f. http://tools.ietf.org/html/rfc4566#page-39
-            if (~line.indexOf("a=candidate")) {     // http://tools.ietf.org/html/rfc4566#section-5.13
-                var parts = line.split(' '),        // http://tools.ietf.org/html/rfc5245#section-15.1
-                    addr = parts[4],
-                    type = parts[7];
-                if (type === 'host') updateDisplay(addr);
-            } else if (~line.indexOf("c=")) {       // http://tools.ietf.org/html/rfc4566#section-5.7
-                var parts = line.split(' '),
-                    addr = parts[2];
-                updateDisplay(addr);
-            }
-        });
-    }
-})(); else {
-    document.getElementById('ipaddress').innerHTML = "<code>ifconfig | grep inet | grep -v inet6 | cut -d\" \" -f2 | tail -n1</code>";
-    document.getElementById('ipaddress').nextSibling.textContent = "In Chrome and Firefox your IP should display automatically, by the power of WebRTCskull.";
+// Show IP Address 
+function updateIpAddress() {
+  var oReq = new XMLHttpRequest();
+  oReq.addEventListener("load", function(){
+    console.log(this);
+    document.getElementById('ipaddress').innerHTML = this.responseText;
+  });
+  oReq.open("GET", "http://localhost:8080/ipaddress");
+  oReq.send();
 }
+
+
+
