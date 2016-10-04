@@ -1,3 +1,5 @@
+var os = require('os');
+
 var Kinect2 = require('kinect2');
 var kinect = new Kinect2();
 
@@ -67,17 +69,22 @@ window.addEventListener('load', init);
 
 
 function init() {
+  var ipAddresses;
+  var allIpAddresses;
+
+  ipAddresses = getIpAddress();
+  allIpAddresses = ipAddresses.join(", ");
+  document.getElementById('ipaddress').innerHTML = allIpAddresses;
+
+  peerIdDisplay = document.getElementById('peerid');
+
   canvas = document.getElementById('inputCanvas');
   context = canvas.getContext('2d');
 
   outputCanvas = document.getElementById('outputCanvas');
   outputContext = outputCanvas.getContext('2d');
 
-  updateIpAddress();
-
   setImageData();
-
-  peerIdDisplay = document.getElementById('peerid');
 
   document.getElementById('peersubmit').addEventListener('click', newPeerServer);
   //document.getElementById('loadfile').addEventListener('change', loadFile);
@@ -100,6 +107,35 @@ function init() {
   document.getElementById('stop-all').addEventListener('click', chooseCamera);
   //document.getElementById('multi').addEventListener('click', chooseMulti);
   //document.getElementById('stop-multi').addEventListener('click', stopMulti);
+}
+
+function getIpAddress() {
+  var ifaces = os.networkInterfaces();
+  var ipAddresses = [];
+    
+  Object.keys(ifaces).forEach(function (ifname) {
+    var alias = 0;
+
+    ifaces[ifname].forEach(function (iface) {
+     // console.log('iface', iface);
+      if ('IPv4' !== iface.family || iface.internal !== false) {
+        // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
+        return;
+      }
+
+      if (alias >= 1) {
+        // this single interface has multiple ipv4 addresses
+        ipAddresses.push(iface.address);
+
+      } else {
+        // this interface has only one ipv4 adress
+        ipAddresses.push(iface.address);
+      }
+      ++alias;
+    });
+  });
+
+  return ipAddresses;
 }
 
 
@@ -125,12 +161,13 @@ function initpeer() {
       console.log("Connection opened.");
       sendToPeer('ready', {});
     });
-    connection.on('data', function(data) {
-      console.log("Data Received: " + data);
-    });
+
+    // connection.on('data', function(data) {
+    //   console.log("Data Received: " + data);
+    // });
 
     connection.on('data', function(dataReceived) {
-      console.log('received', dataReceived);
+      //console.log('received', dataReceived);
 
       switch (dataReceived.event) {
         case 'initfeed':
@@ -1096,16 +1133,10 @@ function drawHand(context, jointPoint, handColor) {
   context.globalAlpha = 1;
 }
 
-// Show IP Address 
-function updateIpAddress() {
-  var oReq = new XMLHttpRequest();
-  oReq.addEventListener("load", function(){
-    console.log(this);
-    document.getElementById('ipaddress').innerHTML = this.responseText;
-  });
-  oReq.open("GET", "http://localhost:8080/ipaddress");
-  oReq.send();
-}
+
+
+
+
 
 
 

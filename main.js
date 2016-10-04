@@ -1,7 +1,5 @@
 'use strict';
 
-const http = require('http');
-const os = require('os');
 const electron = require('electron');
 const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;  // Module to create native browser window.
@@ -42,56 +40,4 @@ app.on('ready', function() {
 });
 
 
-// new url '/ipaddress' - when this url gets called then return getLocalIp()
-
-//Lets define a port we want to listen to
-const PORT=8080; 
-
-//We need a function which handles requests and send response
-function handleRequest(request, response){
-  var ipAddress;
-
-  if (request.url === "/ipaddress") {
-    ipAddress = getLocalIp();
-    response.end(ipAddress);  
-  }
-}
-
-//Create a server
-var server = http.createServer(handleRequest);
-
-//Lets start our server
-server.listen(PORT, function(){
-  //Callback triggered when server is successfully listening. Hurray!
-  console.log("Server listening on: http://localhost:%s", PORT);
-});
-
-// Getting local IP addressed based on http://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js/8440736#8440736
-function getLocalIp() {
-  var ifaces = os.networkInterfaces();
-  var ipAddress;
-
-  Object.keys(ifaces).forEach(function (ifname) {
-    var alias = 0;
-
-    ifaces[ifname].forEach(function (iface) {
-      if ('IPv4' !== iface.family || iface.internal !== false) {
-        // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-        return;
-      }
-
-      if (alias >= 1) {
-        // this single interface has multiple ipv4 addresses
-        console.log(ifname + ':' + alias, iface.address);
-        ipAddress = iface.address;
-      } else {
-        // this interface has only one ipv4 adress
-        console.log(ifname, iface.address);
-        ipAddress = iface.address;
-      }
-      ++alias;
-    });
-  });
-  return ipAddress;
-}
 
