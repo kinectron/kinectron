@@ -8,8 +8,9 @@ function setup() {
 	kinectron = new Kinectron();
 	kinectron.makeConnection();
 	
-	kinectron.startRGB(colorCallback);
-	kinectron.setDepthCallback(depthCallback);
+	kinectron.setRGBCallback(drawFeed);
+	kinectron.setDepthCallback(drawFeed);
+	kinectron.setInfraredCallback(drawFeed);
 }
 
 function draw() {
@@ -18,24 +19,22 @@ function draw() {
 
 function keyPressed() {
 	if (keyCode === ENTER) {
-	 	kinectron.startDepth();
+	 	kinectron.startRGB();
 	} else if (keyCode === UP_ARROW) {
-	 	kinectron.startRGB(colorCallback);
+	 	kinectron.startDepth();
 	} else if (keyCode === DOWN_ARROW) {
-		kinectron.startRGB(myCallback);
+		kinectron.startInfrared();
+	} else if (keyCode === RIGHT_ARROW) {
+		kinectron.stopAll();
 	}
  }
 
-
-function colorCallback(img) {
+function drawFeed(img) {
 	loadImage(img.src, function(loadedImage) {
     image(loadedImage, 0, 0);
   });
 }
 
-function depthCallback(img) {
-	console.log('depth is deep');
-}
 
 
 

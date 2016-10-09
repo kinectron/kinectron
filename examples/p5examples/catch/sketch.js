@@ -1,10 +1,11 @@
 var myCanvas = null;
-var kinect2 = null;
+var kinectron = null;
 
 var characterWidth = 250;
 var characterHeight = 400;
 
 var backgroundColor = 255;
+var ballColor = 150;
 var characterColor = 0;
 
 var leftHandState = 0;
@@ -34,13 +35,24 @@ function setup() {
 	background(0);
 
 	// Enter peer credentials provided by Kinectron 
-	kinect2 = new p5.Kinect2('l', {host: '192.168.1.5', port: 9001, path: '/'}, myCanvas, 'skeleton', 'height', playCatch);
-	kinect2.makeConnection();
+	kinectron = new Kinectron();
+	kinectron.makeConnection();
+	kinectron.startTrackedBodies(playCatch);
 }
 
 function draw() {
 
 }
+
+// Start and stop game 
+function keyPressed() {
+	if (keyCode === ENTER) {
+	 	kinectron.stopAll();
+	} else if (keyCode === UP_ARROW) {
+	 	kinectron.startTrackedBodies();
+	}
+ }
+
 
 function playCatch(body) {
 	background(backgroundColor);
@@ -57,46 +69,36 @@ function playCatch(body) {
 		rightHandState = body.rightHandState;
 
 		for (var j = 0; j < body.joints.length; j++) {
-			// Put into joints array
+			// Put joints into array
 			joints[j] = {x: (body.joints[j].cameraX)*characterWidth/2+width/2,
 			 				y: (body.joints[j].cameraY*-1)*characterHeight/2+height/2+50};
 		}
 
 		// Catch the ball!
-		if (rightHandState == 3) {
-			fill(255,0,0);
-			console.log('joint', joints[handJoint]);
-			ellipse(joints[handJoint].x, joints[handJoint].y, 50, 50);
-
-			if (dist(joints[handJoint].x, joints[handJoint].y, x, y) < 25) {
-				x = joints[handJoint].x;
-				y = joints[handJoint].y;
-				caught = true;
-			}
+		if (dist(joints[handJoint].x, joints[handJoint].y, x, y) < 50) {
+			caught = true;
+			ballColor = color(random(255), random(255), random(255));
 		}
-		fill(characterColor);
 
-		// Loop through joints
+		// Loop through and draw joints
+		fill(characterColor);
 		for (var d = 0; d < joints.length; d++) {
 			ellipse(joints[d].x, joints[d].y, 25, 25);
 		}
 
+		// Keep ball moving 
 		if (!caught) {
-			x += xdir;
-			y += ydir;
+			x += xdir * 2;
+			y += ydir * 2;
 			if (x >= width || x <= 0) xdir *= -1;
 			if (y >= height || y <= 0) ydir *= -1;
 		}
 
+		// Draw ball 
+		fill(ballColor);
 		ellipse(x, y, 50, 50);
 		processing = false;
 	}
 }
 
-function keyPressed() {
-	if (keyCode === ENTER) {
-	 	kinect2.stopAll();
-	} else if (keyCode === UP_ARROW) {
-	 	kinect2.startCamera('skeleton');
-	}
- }
+

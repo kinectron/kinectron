@@ -488,7 +488,7 @@ function startDepth() {
       busy = true;
 
       processDepthBuffer(newPixelData);
-      drawImageToCanvas('depth', 'png');
+      drawImageToCanvas('depth', 'jpeg');
       busy = false;
     });
   }

@@ -12,26 +12,20 @@ var lerpAmt = 0.3;
 var state = 'ascending';
 
 function setup() {
-	myCanvas = createCanvas(500,500);
+	myCanvas = createCanvas(500, 500);
 	background(0);
 	noStroke();
 
 	kinectron = new Kinectron();
 	kinectron.makeConnection();
 	kinectron.startTrackedBodies(bodyTracked);
-  //kinectron.startBodies(allBodies);
 }
 
 function draw() {
 
 }
 
-function allBodies(bodies) {
-  console.log(bodies);
-}
-
 function bodyTracked(body) {
-  //console.log(body);
   background(0, 20);
 
   kinectron.getJoints(drawJoint); 

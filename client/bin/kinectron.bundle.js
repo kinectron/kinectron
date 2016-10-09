@@ -59,8 +59,8 @@
 	  //this.rawDepthCallback = null;
 	  this.infraredCallback = null;
 	  this.leInfraredCallback = null; 
-	  this.bodyCallback = null;
-	  this.trackedBodyCallback = null;
+	  this.bodiesCallback = null;
+	  this.trackedBodiesCallback = null;
 	  this.keyCallback = null;
 	  this.fhCallback = null;
 
@@ -163,13 +163,13 @@
 	        
 	        // If skeleton data, send skeleton
 	        case 'bodyFrame':
-	          this.bodyCallback(data);
+	          this.bodiesCallback(data);
 	        break;
 	 
 	        // If tracked skeleton data, send skeleton
 	        case 'trackedBodyFrame':
 	          this.body = data;
-	          this.trackedBodyCallback(data);
+	          this.trackedBodiesCallback(data);
 	        break;
 
 	        // If floor height, draw left hand and height
@@ -240,7 +240,7 @@
 
 	  this.startBodies = function(callback) {
 	    if (callback) {
-	      this.bodyCallback = callback;  
+	      this.bodiesCallback = callback;  
 	    }
 	    
 	    this._setFeed('body');
@@ -248,7 +248,7 @@
 
 	  this.startTrackedBodies = function(callback) {
 	    if (callback) {
-	      this.trackedBodyCallback = callback;  
+	      this.trackedBodiesCallback = callback;  
 	    }
 	    
 	    this._setFeed('skeleton');
@@ -306,12 +306,12 @@
 	    this.leInfraredCallback = callback; 
 	  };
 
-	  this.setBodyCallback = function(callback) {
-	    this.bodyCallback = callback;  
+	  this.setBodiesCallback = function(callback) {
+	    this.bodiesCallback = callback;  
 	  };
 	  
-	  this.setTrackedBodyCallback = function(callback) {
-	    this.trackedBodyCallback = callback;  
+	  this.setTrackedBodiesCallback = function(callback) {
+	    this.trackedBodiesCallback = callback;  
 	  };
 	  
 	  this.setKeyCallback = function(callback) {

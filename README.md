@@ -59,11 +59,11 @@ Kinectron currently supports sending only one feed. (Multifeed support coming ve
 
 To start a feed, click the corresponding button. The feed will start automatically. If you click a different button, Kinectron will automatically stop the current feed and begin the new feed. Clicking the same button twice starts, then stops, that feed.
 
--"Color" returns a jpg of the color camera.  
--"Depth" returns a png of the depth camera.  
+-"Color" returns a jpeg of the color camera.  
+-"Depth" returns a jpeg of the depth camera.  
 -"Skeleton (Tracked Bodies)" returns all tracked bodies one at a time. It does not differentiate between tracked bodies. For troubleshooting, Kinectron by default will draw the tracked bodies on the application interface, however, only the data is sent over the peer connection.  
 -"All Bodies" returns an array of all six bodies, tracked or not tracked. For troubleshooting, Kinectron by default will draw the tracked bodies on the application interface, however, only the data is sent over the peer connection. 
--"Infrared" returns a png of the infrared camera.  
+-"Infrared" returns a jpeg of the infrared camera.  
 -"Long Exposure Infrared" returns a longer exposure png of the infrared camera.  
 -"Key" returns a png of the image of the tracked bodies on a transparent background.  
 -"Stop All" stops all feeds. 
@@ -136,11 +136,18 @@ Callbacks on the feeds can be set either as an argument on the start function (s
 ```
 kinectron.setRGBCallback(myCallback);
 kinectron.setDepthCallback(myCallback);
-kinectron.setTrackedBodyCallback(myCallback);
-kinectron.setBodyCallback(myCallback);
+kinectron.setTrackedBodiesCallback(myCallback);
+kinectron.setBodiesCallback(myCallback);
 kinectron.setInfraredCallback(myCallback);
 kinectron.setLeInfraredCallback(myCallback);
 kinectron.setKeyCallback(myCallback);
+```
+
+### Stop Feeds 
+Stop all feeds with the stop all function. 
+
+```
+kinectron.stopAll();
 ```
 
 ### Additional Skeleton (Tracked Bodies) Functions
