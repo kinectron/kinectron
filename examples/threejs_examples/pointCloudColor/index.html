@@ -1,0 +1,23 @@
+<html>
+  <head>
+  <style type="text/css">
+    img {
+      background-color: #fff;
+    }
+  </style>
+    <script src="../../../client/bin/kinectron.bundle.js"></script>
+    <script src="../shared/image-buffer-renderer-webgl-browser.js"></script>
+    <script src="../shared/three.min.js"></script>
+    <script src="../shared/TrackballControls.js"></script>
+    <script src="sketch.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <canvas id="outputCanvas" width="960" height="540"></canvas>
+    <canvas id="cloudCanvas" width="960" height="540"></canvas>
+    <canvas id="colorCanvas" width="512" height="424"></canvas>
+    <canvas id="depthCanvas" width="512" height="212"></canvas>
+    <canvas id="webGLCanvas" width="512" height="424"></canvas>
+    <img id="image" src="" width="512" height="424">
+    <img id="image2" src="" width="512" height="212">    
+  </body>
+</html>

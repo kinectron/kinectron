@@ -99,7 +99,7 @@ function init() {
   document.getElementById('depthsubmit').addEventListener('click', setOutputDimensions);
   document.getElementById('rgb').addEventListener('click', chooseCamera);
   document.getElementById('depth').addEventListener('click', chooseCamera);
-  // document.getElementById('raw-depth').addEventListener('click', chooseCamera);
+  document.getElementById('raw-depth').addEventListener('click', chooseCamera);
   document.getElementById('infrared').addEventListener('click', chooseCamera);
   document.getElementById('le-infrared').addEventListener('click', chooseCamera);
   document.getElementById('key').addEventListener('click', chooseCamera);
@@ -146,7 +146,6 @@ function toggleAdvancedOptions(evt) {
   var hide = "<a id=\"advanced-link\" href=\"#\">Hide Advanced Options</a>";
   var show = "<a id=\"advanced-link\" href=\"#\">Show Advanced Options</a>";
   advLink.innerHTML = advLink.innerHTML == hide ? show : hide;
-
 }
 
 function getIpAddress() {
@@ -597,6 +596,7 @@ function startRawDepth() {
 
   if(kinect.open()) {
     kinect.on('rawDepthFrame', function(newPixelData){
+
       if(busy) {
         return;
       }
@@ -798,7 +798,7 @@ function startMulti(multiFrames) {
 
         newPixelData = frame.depth.buffer;
         processDepthBuffer(newPixelData);
-        temp = drawImageToCanvas(null, 'png');
+        temp = drawImageToCanvas(null, 'jpeg');
         multiToSend.depth = temp;
       }
 
@@ -813,22 +813,49 @@ function startMulti(multiFrames) {
         multiToSend.rawDepth = temp;
       }
 
-      // TO DO Implement depthColor and bodyIndexColor -- RGBD?
-      // if (frame.depthColor) {
+      if (frame.depthColor) {
+        resetCanvas('depth');
+        canvasState = 'depth';
+        setImageData();
+
+        newPixelData = frame.depthColor.buffer;
+        processColorBuffer(newPixelData);
+        temp = drawImageToCanvas(null, 'jpeg');
+        multiToSend.depthColor = temp;
+
+      }
+
+      // function drawColorBuffer(imageBuffer) {
+      //   if(busy) {
+      //     return;
+      //   }
+      //   busy = true;
+      //   var newPixelData = new Uint8Array(imageBuffer);
+      //   for (var i = 0; i < imageDataSize; i++) {
+      //     imageDataArray[i] = newPixelData[i];
+      //   }
+      //   context.putImageData(imageData, 0, 0);
+      //   busy = false;
+      //   // send really low quality image data to prioritize depth data
+      //   return canvas.toDataURL("image/jpeg", 0.1);
       // }
+
+
+      // TO DO Implement depthColor and bodyIndexColor -- RGBD?
+      
 
       // Used in greenkey  
       // if (frame.bodyIndexColor) { 
       // }
 
-      // Frame rate limiting
-      // if (Date.now() > sentTime + 42) {
-      //   sendToPeer('multiFrame', multiToSend);
-      //   sentTime = Date.now();
-      // }
+      //Frame rate limiting
+      if (Date.now() > sentTime + 1000) {
+        sendToPeer('multiFrame', multiToSend);
+        sentTime = Date.now();
+      }
       
       // No Framerate limiting
-      sendToPeer('multiFrame', multiToSend);
+      //sendToPeer('multiFrame', multiToSend);
 
       busy = false;
 

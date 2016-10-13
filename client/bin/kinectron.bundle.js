@@ -314,7 +314,7 @@
 	    
 	    this._setFeed('skeleton');
 	  };
-
+	  
 	  this.startTrackedJoint = function(jointName, callback) {
 	    if (typeof jointName == 'undefined') {
 	       console.warn("Joint name does not exist.");
@@ -400,6 +400,10 @@
 
 	  this.setFhCallback = function(callback) {
 	    this.fhCallback = callback;  
+	  };
+
+	  this.setMultiFrameCallback = function(callback) {
+	    this.multiFrameCallback = callback;
 	  };
 	  
 	  this.getJoints = function(callback) {

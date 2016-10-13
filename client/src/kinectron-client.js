@@ -268,7 +268,7 @@ Kinectron = function(arg1, arg2) {
     
     this._setFeed('skeleton');
   };
-
+  
   this.startTrackedJoint = function(jointName, callback) {
     if (typeof jointName == 'undefined') {
        console.warn("Joint name does not exist.");
@@ -354,6 +354,10 @@ Kinectron = function(arg1, arg2) {
 
   this.setFhCallback = function(callback) {
     this.fhCallback = callback;  
+  };
+
+  this.setMultiFrameCallback = function(callback) {
+    this.multiFrameCallback = callback;
   };
   
   this.getJoints = function(callback) {
