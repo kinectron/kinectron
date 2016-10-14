@@ -5,9 +5,9 @@ Kinectron is a node-based library that broadcasts Kinect2 data over a peer conne
 Kinectron has two components--an electron application to broadcast Kinect2 data over a peer connection, and a client-side API to request and receive Kinect2 data over a peer connection.
 
 ## Kinectron Application Installation 
-You will need to be running Windows 10 and install [the official Kinect 2 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=44561) for the app to run correctly.  
+You will need to be running Windows 10 for the app to run correctly.  
 
-Download and unzip file. [need to add file]
+Download and unzip [preview release 0.0.4](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4).
 
 In the unzipped folder, click on the Electron application to run. 
 
