@@ -302,7 +302,7 @@ function chooseCamera(evt, feed) {
   }
 
   if (currentCamera) {
-    changeCameraState(currentCamera, 'stop');
+    return;
   }
 
   if (currentCamera == camera || camera == 'stop-all') {
