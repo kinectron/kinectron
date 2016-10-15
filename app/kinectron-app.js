@@ -301,17 +301,19 @@ function chooseCamera(evt, feed) {
     camera = feed;
   }
 
-  if (currentCamera) {
+  if (currentCamera == camera) {
     return;
-  }
-
-  if (currentCamera == camera || camera == 'stop-all') {
+  } else if (camera == 'stop-all') {
+    changeCameraState(currentCamera, 'stop');
     currentCamera = null;
     return;
+  } else {
+    if (currentCamera) {
+      changeCameraState(currentCamera, 'stop');
+    } 
+    changeCameraState(camera, 'start');
+    currentCamera = camera;
   }
-
-  changeCameraState(camera, 'start');
-  currentCamera = camera;
 }
 
 function changeCameraState(camera, state) {
