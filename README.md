@@ -7,7 +7,7 @@ Kinectron has two components--an electron application to broadcast Kinect2 data 
 ## Kinectron Application Installation 
 You will need to be running Windows 10 for the app to run correctly.  
 
-Download and unzip [preview release 0.0.4](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4).
+Download and unzip [preview release 0.0.4.1](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4.1).
 
 In the unzipped folder, click on the Electron application to run. 
 
