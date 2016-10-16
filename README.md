@@ -123,6 +123,7 @@ Request a feed from the application using the start function for the desired fee
 kinectron.startRGB(myCallback);
 kinectron.startDepth(myCallback);
 kinectron.startTrackedBodies(myCallback);
+kinectron.startTrackedJoint('jointName', myCallback); // More "Accessing Joints" below
 kinectron.startBodies(myCallback);
 kinectron.startInfrared(myCallback);
 kinectron.startLEInfrared(myCallback);
@@ -141,6 +142,61 @@ kinectron.setBodiesCallback(myCallback);
 kinectron.setInfraredCallback(myCallback);
 kinectron.setLeInfraredCallback(myCallback);
 kinectron.setKeyCallback(myCallback);
+```
+
+### Accessing Individual Joints
+
+The startTrackedJoint function allows to you access just one joint from a tracked body and perform a callback on that specific joint. 
+
+
+```
+kinectron.startTrackedJoint('handRight', drawRightHand);
+
+function drawRightHand(hand) {
+  background(0);
+  fill(255);
+  ellipse(hand.depthX * myCanvas.width, hand.depthY * myCanvas.height, 50, 50);
+}
+```
+
+The available joints and their corrent spellings are as follows: 
+
+```
+spineBase
+spineMid
+neck
+head
+shoulderLeft
+elbowLeft
+wristLeft
+handLeft
+shoulderRight
+elbowRight
+wristRight
+handRight
+hipLeft
+kneeLeft
+ankleLeft
+footLeft
+hipRight
+kneeRight
+ankleRight
+footRight
+spineShoulder
+handTipLeft
+thumbLeft
+handTipRight
+thumbRight
+```
+
+Individual joints are also accessible by name on tracked bodies.
+
+```
+kinectron.startTrackedBodies(bodyTracked);
+
+function bodyTracked(body) {
+  var rightHand = body.joints[kinectron.JointType.handRight];
+}
 ```
 
 ### Stop Feeds 

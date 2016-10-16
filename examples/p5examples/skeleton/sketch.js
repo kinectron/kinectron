@@ -27,7 +27,6 @@ function draw() {
 
 function bodyTracked(body) {
   background(0, 20);
-
   kinectron.getJoints(drawJoint); 
   kinectron.getHands(drawHands);
 }

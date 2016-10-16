@@ -53,6 +53,7 @@
 	  this.img = null;
 	  this.feed = null;
 	  this.body = null;
+	  this.jointName = null;
 
 	  this.rgbCallback = null;
 	  this.depthCallback = null;
@@ -61,8 +62,37 @@
 	  this.leInfraredCallback = null; 
 	  this.bodiesCallback = null;
 	  this.trackedBodiesCallback = null;
+	  this.trackedJointCallback = null;
 	  this.keyCallback = null;
 	  this.fhCallback = null;
+
+	  this.JointType = {
+	    spineBase       : 0,
+	    spineMid        : 1,
+	    neck            : 2,
+	    head            : 3,
+	    shoulderLeft    : 4,
+	    elbowLeft       : 5,
+	    wristLeft       : 6,
+	    handLeft        : 7,
+	    shoulderRight   : 8,
+	    elbowRight      : 9,
+	    wristRight      : 10,
+	    handRight       : 11,
+	    hipLeft         : 12,
+	    kneeLeft        : 13,
+	    ankleLeft       : 14,
+	    footLeft        : 15,
+	    hipRight        : 16,
+	    kneeRight       : 17,
+	    ankleRight      : 18,
+	    footRight       : 19,
+	    spineShoulder   : 20,
+	    handTipLeft     : 21,
+	    thumbLeft       : 22,
+	    handTipRight    : 23,
+	    thumbRight      : 24
+	  };
 
 	  // Peer variables 
 	  var peer = null;
@@ -72,7 +102,7 @@
 
 	  // Hidden div variables
 	  var myDiv = null;
-	  
+
 	  // Connect to peer over local host by default
 	  if (network) {
 	    peerNet = network;
@@ -169,7 +199,16 @@
 	        // If tracked skeleton data, send skeleton
 	        case 'trackedBodyFrame':
 	          this.body = data;
-	          this.trackedBodiesCallback(data);
+
+	          if (this.jointName && this.trackedJointCallback) {
+	            var jointIndex = this.JointType[this.jointName];
+	            var joint = this.body.joints[jointIndex]; 
+	            this.trackedJointCallback(joint);
+	          }
+
+	          if (this.trackedBodiesCallback) {
+	            this.trackedBodiesCallback(data);
+	          }
 	        break;
 
 	        // If floor height, draw left hand and height
@@ -254,6 +293,20 @@
 	    this._setFeed('skeleton');
 	  };
 
+	  this.startTrackedJoint = function(jointName, callback) {
+	    if (jointName && !(jointName in this.JointType)) {
+	      console.warn("Joint name " + jointName + " does not exist!");
+	      return;
+	    }
+
+	    if (jointName && callback) {
+	      this.jointName = jointName;
+	      this.trackedJointCallback = callback;
+	    }
+	    
+	    this._setFeed('skeleton');
+	  };
+
 	  // this.startMultiFrame = function(frames) {
 	      //if (callback) { this._sendToPeer('multi', frames); }
 	  //   
@@ -332,9 +385,9 @@
 	    }
 	  };
 
-	  this.drawFeed = function() {
-	    image(this.img, 0, 0);
-	  };
+	  // this.drawFeed = function() {
+	  //   image(this.img, 0, 0);
+	  // };
 	  
 	  this.getHands = function(callback) {
 	    var handCallback = callback;
