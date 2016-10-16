@@ -7,7 +7,7 @@ Kinectron has two components--an electron application to broadcast Kinect2 data 
 ## Kinectron Application Installation 
 You will need to be running Windows 10 for the app to run correctly.  
 
-Download and unzip [preview release 0.0.4.1](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4.1).
+Download and unzip [preview release 0.0.4.2](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4.2).
 
 In the unzipped folder, click on the Electron application to run. 
 
@@ -123,7 +123,7 @@ Request a feed from the application using the start function for the desired fee
 kinectron.startRGB(myCallback);
 kinectron.startDepth(myCallback);
 kinectron.startTrackedBodies(myCallback);
-kinectron.startTrackedJoint('jointName', myCallback); // More "Accessing Joints" below
+kinectron.startTrackedJoint('jointName', myCallback); // More info in "Accessing Joints" below
 kinectron.startBodies(myCallback);
 kinectron.startInfrared(myCallback);
 kinectron.startLEInfrared(myCallback);
