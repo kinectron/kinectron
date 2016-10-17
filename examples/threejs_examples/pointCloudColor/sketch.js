@@ -29,7 +29,6 @@ var colorRenderer = null;
 var webGLCanvas = null;
 
 
-
 function mfCallback(dataReceived) {
   depthColorBuffer = drawBuffer(dataReceived.depthColor, image, colorContext);
   depthBuffer = drawBuffer(dataReceived.rawDepth, image2, depthContext);
@@ -80,7 +79,6 @@ function drawBuffer(data, image, context) {
    context.drawImage(image, 0, 0);
    var imageData = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
    var dataBuffer = imageData.data;
-   //console.log(dataBuffer);
    return dataBuffer;
 }
 
@@ -172,16 +170,11 @@ function pointCloud(depthBuffer, depthColorBuffer) {
     var mapDepthToByte = nDepthMaxDistance / 256;
     var j = 0, k = 0;
 
-    //debugger;
     for(var i = 0; i < depthBuffer.length; i+=2) {
 
      var depth = (depthBuffer[i+1] << 8) + depthBuffer[i]; //get uint16 data from buffer
      if(depth <= nDepthMinReliableDistance || depth >= nDepthMaxDistance) depth = Number.MAX_VALUE; //push them far far away so we don't see them
-      //console.log(particles.vertices[j].z);
       particles.vertices[j].z = (nDepthMaxDistance - depth) - 2000;
-      // console.log(particles);
-      // debugger;
-      //particles.vertices[j].z = 1000;
       particles.colors[j].setRGB(depthColorBuffer[k] / 255, depthColorBuffer[k+1] / 255, depthColorBuffer[k+2] / 255);
       j++;
       k+=4;
