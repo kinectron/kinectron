@@ -279,6 +279,7 @@ Kinectron = function(arg1, arg2) {
       this.jointName = jointName;
       this.trackedJointCallback = callback;
     }
+
     
     this._setFeed('skeleton');
   };

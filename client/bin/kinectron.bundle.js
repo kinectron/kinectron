@@ -325,6 +325,7 @@
 	      this.jointName = jointName;
 	      this.trackedJointCallback = callback;
 	    }
+
 	    
 	    this._setFeed('skeleton');
 	  };
