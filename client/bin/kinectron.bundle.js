@@ -66,34 +66,33 @@
 	  this.keyCallback = null;
 	  this.fhCallback = null;
 
-	  this.JointType = {
-	    spineBase       : 0,
-	    spineMid        : 1,
-	    neck            : 2,
-	    head            : 3,
-	    shoulderLeft    : 4,
-	    elbowLeft       : 5,
-	    wristLeft       : 6,
-	    handLeft        : 7,
-	    shoulderRight   : 8,
-	    elbowRight      : 9,
-	    wristRight      : 10,
-	    handRight       : 11,
-	    hipLeft         : 12,
-	    kneeLeft        : 13,
-	    ankleLeft       : 14,
-	    footLeft        : 15,
-	    hipRight        : 16,
-	    kneeRight       : 17,
-	    ankleRight      : 18,
-	    footRight       : 19,
-	    spineShoulder   : 20,
-	    handTipLeft     : 21,
-	    thumbLeft       : 22,
-	    handTipRight    : 23,
-	    thumbRight      : 24
-	  };
-
+	  // Joint Name Constants
+	  this.SPINEBASE = 0;
+	  this.SPINEMID = 1;
+	  this.NECK = 2;
+	  this.HEAD = 3;
+	  this.SHOULDERLEFT = 4;
+	  this.ELBOWLEFT = 5;
+	  this.WRISTLEFT = 6;
+	  this.HANDLEFT = 7;
+	  this.SHOULDERRIGHT = 8;
+	  this.ELBOWRIGHT = 9;
+	  this.WRISTRIGHT = 10;
+	  this.HANDRIGHT = 11;
+	  this.HIPLEFT = 12;
+	  this.KNEELEFT = 13;
+	  this.ANKLELEFT = 14;
+	  this.FOOTLEFT = 15;
+	  this.HIPRIGHT = 16;
+	  this.KNEERIGHT = 17;
+	  this.ANKLERIGHT = 18;
+	  this.FOOTRIGHT = 19;
+	  this.SPINESHOULDER = 20;
+	  this.HANDTIPLEFT  = 21;
+	  this.THUMBLEFT = 22;
+	  this.HANDTIPRIGHT = 23;
+	  this.THUMBRIGHT = 24;
+	  
 	  // Peer variables 
 	  var peer = null;
 	  var connection = null;
@@ -201,8 +200,7 @@
 	          this.body = data;
 
 	          if (this.jointName && this.trackedJointCallback) {
-	            var jointIndex = this.JointType[this.jointName];
-	            var joint = this.body.joints[jointIndex]; 
+	            var joint = this.body.joints[this.jointName]; 
 	            this.trackedJointCallback(joint);
 	          }
 
@@ -294,9 +292,9 @@
 	  };
 
 	  this.startTrackedJoint = function(jointName, callback) {
-	    if (jointName && !(jointName in this.JointType)) {
-	      console.warn("Joint name " + jointName + " does not exist!");
-	      return;
+	    if (typeof jointName == 'undefined') {
+	       console.warn("Joint name does not exist.");
+	       return;
 	    }
 
 	    if (jointName && callback) {

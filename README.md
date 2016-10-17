@@ -123,7 +123,7 @@ Request a feed from the application using the start function for the desired fee
 kinectron.startRGB(myCallback);
 kinectron.startDepth(myCallback);
 kinectron.startTrackedBodies(myCallback);
-kinectron.startTrackedJoint('jointName', myCallback); // More info in "Accessing Joints" below
+kinectron.startTrackedJoint(kinectron.HANDRIGHT, myCallback); // See "Accessing Joints" below
 kinectron.startBodies(myCallback);
 kinectron.startInfrared(myCallback);
 kinectron.startLEInfrared(myCallback);
@@ -150,7 +150,7 @@ The startTrackedJoint function allows to you access just one joint from a tracke
 
 
 ```
-kinectron.startTrackedJoint('handRight', drawRightHand);
+kinectron.startTrackedJoint(kinectron.HANDRIGHT, drawRightHand);
 
 function drawRightHand(hand) {
   background(0);
@@ -159,34 +159,34 @@ function drawRightHand(hand) {
 }
 ```
 
-The available joints and their corrent spellings are as follows: 
+The available joints and their corresponding numbers are as follows: 
 
 ```
-spineBase
-spineMid
-neck
-head
-shoulderLeft
-elbowLeft
-wristLeft
-handLeft
-shoulderRight
-elbowRight
-wristRight
-handRight
-hipLeft
-kneeLeft
-ankleLeft
-footLeft
-hipRight
-kneeRight
-ankleRight
-footRight
-spineShoulder
-handTipLeft
-thumbLeft
-handTipRight
-thumbRight
+kinectron.SPINEBASE = 0;
+kinectron.SPINEMID = 1;
+kinectron.NECK = 2;
+kinectron.HEAD = 3;
+kinectron.SHOULDERLEFT = 4;
+kinectron.ELBOWLEFT = 5;
+kinectron.WRISTLEFT = 6;
+kinectron.HANDLEFT = 7;
+kinectron.SHOULDERRIGHT = 8;
+kinectron.ELBOWRIGHT = 9;
+kinectron.WRISTRIGHT = 10;
+kinectron.HANDRIGHT = 11;
+kinectron.HIPLEFT = 12;
+kinectron.KNEELEFT = 13;
+kinectron.ANKLELEFT = 14;
+kinectron.FOOTLEFT = 15;
+kinectron.HIPRIGHT = 16;
+kinectron.KNEERIGHT = 17;
+kinectron.ANKLERIGHT = 18;
+kinectron.FOOTRIGHT = 19;
+kinectron.SPINESHOULDER = 20;
+kinectron.HANDTIPLEFT  = 21;
+kinectron.THUMBLEFT = 22;
+kinectron.HANDTIPRIGHT = 23;
+kinectron.THUMBRIGHT = 24;
 ```
 
 Individual joints are also accessible by name on tracked bodies.
@@ -195,7 +195,7 @@ Individual joints are also accessible by name on tracked bodies.
 kinectron.startTrackedBodies(bodyTracked);
 
 function bodyTracked(body) {
-  var rightHand = body.joints[kinectron.JointType.handRight];
+  var handRight = body.joints[kinectron.HANDRIGHT];
 }
 ```
 

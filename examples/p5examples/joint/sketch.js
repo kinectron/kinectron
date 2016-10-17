@@ -1,16 +1,6 @@
 var myCanvas = null;
 var kinectron = null;
 
-// drawHand variables
-var start = 30;
-var target = 100;
-var diameter = start;
-var light = 255;
-var dark = 100;
-var hueValue = light;
-var lerpAmt = 0.3;
-var state = 'ascending';
-
 function setup() {
 	myCanvas = createCanvas(512, 424);
 	background(0);
@@ -18,7 +8,7 @@ function setup() {
 
 	kinectron = new Kinectron();
 	kinectron.makeConnection();
-  kinectron.startTrackedJoint('handRight', drawRightHand);
+  kinectron.startTrackedJoint(kinectron.HANDRIGHT, drawRightHand);
 }
 
 function draw() {
