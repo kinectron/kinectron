@@ -9,6 +9,8 @@ You will need to be running Windows 10 for the app to run correctly.
 
 Download and unzip [preview release 0.0.4.3](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4.3).
 
+We recommend unzipping the folder directly at the C:\ drive level to avoid an error with Windows filename size limitations.
+
 In the unzipped folder, click on the Electron application to run. 
 
 **Important!** When you run the application for the first time you will get a Windows Firewall warning. Allow for both private and public networks to connect. 
