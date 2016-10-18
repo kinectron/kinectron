@@ -29,8 +29,8 @@
     "kinect2",
     "peer"
   ],
-  "author": "Shawn Van Every <Shawn.Van.Every@nyu.edu>, Lisa Jamhoury <lisa.jamhoury@nyu.edu>",
-  "license": "",
+  "author": "Lisa Jamhoury <lisa.jamhoury@nyu.edu>, Shawn Van Every <Shawn.Van.Every@nyu.edu>",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/lisajamhoury/kinectron/issues"
   },
