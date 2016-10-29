@@ -155,6 +155,7 @@ Kinectron = function(peerid, network) {
 
           if (this.jointName && this.trackedJointCallback) {
             var joint = this.body.joints[this.jointName]; 
+            joint.trackingId  = this.body.trackingId;
             this.trackedJointCallback(joint);
           }
 
