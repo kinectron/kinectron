@@ -148,8 +148,7 @@ kinectron.setKeyCallback(myCallback);
 
 ### Accessing Individual Joints
 
-The startTrackedJoint function allows to you access just one joint from a tracked body and perform a callback on that specific joint. 
-
+The startTrackedJoint function allows to you access just one joint from a tracked body and perform a callback on that specific joint. The joint maintains the unique tracking ID property from its body. Use joint.trackingId to access the ID. 
 
 ```
 kinectron.startTrackedJoint(kinectron.HANDRIGHT, drawRightHand);

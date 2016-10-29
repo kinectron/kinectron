@@ -199,10 +199,14 @@
 	        case 'trackedBodyFrame':
 	          this.body = data;
 
-	          if (this.jointName && this.trackedJointCallback) {
+	          // Check that joint exists
+	          // TODO Why does joint come in as 0 when undefined
+	          if (this.jointName && this.trackedJointCallback && this.body.joints[this.jointName] !== 0) {
 	            var joint = this.body.joints[this.jointName]; 
+
 	            joint.trackingId  = this.body.trackingId;
 	            this.trackedJointCallback(joint);
+	            
 	          }
 
 	          if (this.trackedBodiesCallback) {
