@@ -50,7 +50,7 @@ function drawRightHand(hand) {
 	} else {
 		// If we don't have a color for the hand yet
 		// Create a random RGB color
-		var randomColor = [random(255), random(255), random(255)]
+		var randomColor = [random(255), random(255), random(255)];
 		// Create color property on the hand and assign it a random color
 		hand.color = randomColor;
 		// Add it to an array for easy look up
