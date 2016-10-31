@@ -38,6 +38,7 @@ div.intro {
 span.highlight {
   text-transform: none;
   background: #D87C1D;
+  font-size: 2em;
 }
 
 input#newpeerid {

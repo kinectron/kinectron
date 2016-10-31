@@ -49,7 +49,7 @@
 	// Import Peer.js 
 	var Peer = __webpack_require__(1);
 
-	Kinectron = function(peerid, network) {  
+	Kinectron = function(arg1, arg2) {  
 	  this.img = null;
 	  this.feed = null;
 	  this.body = null;
@@ -93,26 +93,25 @@
 	  this.HANDTIPRIGHT = 23;
 	  this.THUMBRIGHT = 24;
 	  
-	  // Peer variables 
+	  // Peer variables and defaults 
 	  var peer = null;
 	  var connection = null;
-	  var peerNet = null;
-	  var peerId = null;
+	  var peerNet = {host: 'localhost', port: 9001, path: '/'}; // Connect to localhost by default
+	  var peerId = 'kinectron'; // Connect to peer Id Kinectron by default 
 
 	  // Hidden div variables
 	  var myDiv = null;
-
-	  // Connect to peer over local host by default
-	  if (network) {
-	    peerNet = network;
-	  } else {
-	    peerNet = {host: 'localhost', port: 9001, path: '/'};
-	  }
-
-	  if (peerid) {
+	  
+	  var argAmount = arguments.length;
+	  
+	  if (argAmount === 1) {
+	    var host = arg1;
+	    peerNet.host = host;
+	  } else if (argAmount === 2) {
+	    var peerid = arg1;
+	    var network = arg2;
 	    peerId = peerid;
-	  } else {
-	    peerId = 'kinectron';
+	    peerNet = network;
 	  }
 
 	  // Create new peer
