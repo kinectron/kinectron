@@ -7,7 +7,7 @@ Kinectron has two components--an electron application to broadcast Kinect2 data 
 ## Kinectron Application Installation 
 You will need to be running Windows 10 for the app to run correctly.  
 
-Download and unzip [preview release 0.0.4.3](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4.3).
+Download and unzip [preview release 0.0.4.4](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4.4).
 
 We recommend unzipping the folder directly at the C:\ drive level to avoid an error with Windows filename size limitations.
 
@@ -71,10 +71,10 @@ To start a feed, click the corresponding button. The feed will start automatical
 -"Stop All" stops all feeds. 
 
 ## Using the Client-side API
-Download and include the library in the head of your document. 
+Include the library in the head of your document. 
 
 ```
-<script src="kinectron.bundle.js" type="text/javascript"></script>
+<script src="https://itp.nyu.edu/kinectron/kinectron.bundle.js"></script>
 ```
 
 ### Create an Instance of Kinectron 
