@@ -101,18 +101,18 @@
 
 	  // Hidden div variables
 	  var myDiv = null;
-	  
-	  var argAmount = arguments.length;
-	  
-	  if (argAmount === 1) {
+
+	  // Check for ip address in "quickstart" method  
+	  if (typeof arg1 !=="undefined" && typeof arg2 == "undefined") {
 	    var host = arg1;
 	    peerNet.host = host;
-	  } else if (argAmount === 2) {
+	    // Check for new network provided by user
+	  } else if (typeof arg1 !== "undefined" && typeof arg2 !== "undefined") {
 	    var peerid = arg1;
 	    var network = arg2;
 	    peerId = peerid;
 	    peerNet = network;
-	  }
+	  } 
 
 	  // Create new peer
 	  peer = new Peer(peerNet);

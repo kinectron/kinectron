@@ -62,3 +62,7 @@ input.dimensions {
   margin-right: 10px;
   margin-bottom: 10px;
 }
+
+#newpeercreated {
+  display: none;
+}

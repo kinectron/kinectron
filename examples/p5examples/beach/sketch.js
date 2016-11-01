@@ -16,7 +16,12 @@ function setup() {
 	myCanvas = createCanvas(640, 426);
 	background(255);
 
-	kinectron = new Kinectron();
+	// Create instance of Kinectron
+  kinectron = new Kinectron("192.168.1.7");
+
+  // CONNECT TO MIRCROSTUDIO
+  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
+  
 	kinectron.makeConnection();
 	kinectron.startKey(goToBeach);
 }

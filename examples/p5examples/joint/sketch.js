@@ -16,20 +16,8 @@ function setup() {
 	// Create instance of Kinectron
   kinectron = new Kinectron("192.168.1.7");
 
-
-  // CONNECT TO KINECTRON APPLICATION
-  // kinectron = new Kinectron("kinectron", { // username matches application display, default is kinectron 
-  //   "host": "192.168.1.7", // host IP address matches application display
-  //   "port": "9001", // port matches application display
-  //   "path": "/" // path defaults to /
-  // });
-  
   // CONNECT TO MIRCROSTUDIO
-  // kinectron = new Kinectron("kinectron", { 
-  //   "host": "kinectron.itp.tsoa.nyu.edu", 
-  //   "port": "9001", 
-  //   "path": "/"
-  // });
+  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
 
   // Connect with application over peer
 	kinectron.makeConnection();

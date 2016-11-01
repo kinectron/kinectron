@@ -13,9 +13,12 @@
     <h1>Hello Kinect!</h1>
     <div id="controls">
       <div class="intro">
-        <div id="connectionopen">
+         <div id="connectionopen">
           <p>Your IP Address is <br>
           <span class='highlight' id="ipaddress">xxxx</span></p>
+        </div>
+        <div id="newpeercreated">
+          <p>You created a new peer server. Your network details are: <br/><br/>Peer ID: <span class='highlight' id="peerid">xxxx</span> IP Address: <span class='highlight' id="newipaddress">xxxx</span> Port: <span class="highlight" id="port">xxxx</span><br/><br/></p>
         </div>
         <p>Have your own peer server? Enter id and server details here:</p> 
         <input type="text" placeholder="ie. myname" id="newpeerid"><input type="text" id="peernet" placeholder="ie. {&quot;host&quot;: &quot;myserver.com&quot;, &quot;port&quot;: &quot;9000&quot;, &quot;path&quot;: &quot;/myapp&quot;,}"><input type="submit" id="peersubmit" value="Submit">

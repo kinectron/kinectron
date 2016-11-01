@@ -149,7 +149,7 @@ function initpeer() {
       myPeerId = id;
       peerIdDisplay.innerHTML = myPeerId;
       document.getElementById('port').innerHTML = peer.options.port;
-      document.getElementById('connectionopen').style.display = 'block';
+      document.getElementById('newipaddress').innerHTML = peer.options.host;
   });
 
   peer.on('connection', function(conn) {
@@ -162,12 +162,7 @@ function initpeer() {
       sendToPeer('ready', {});
     });
 
-    // connection.on('data', function(data) {
-    //   console.log("Data Received: " + data);
-    // });
-
     connection.on('data', function(dataReceived) {
-      //console.log('received', dataReceived);
 
       switch (dataReceived.event) {
         case 'initfeed':
@@ -214,6 +209,9 @@ function newPeerServer(evt) {
   peer.disconnect();
   peer.destroy();
 
+  // Show new peer credentials. Hide default ip address
+  document.getElementById("connectionopen").style.display = 'none';
+  document.getElementById("newpeercreated").style.display = 'block';
 }
 
 function sendToPeer(evt, data) {

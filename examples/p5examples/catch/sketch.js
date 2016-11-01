@@ -34,9 +34,14 @@ function setup() {
 	myCanvas = createCanvas(windowWidth, windowHeight-100);
 	background(0);
 
-	// Enter peer credentials provided by Kinectron 
-	kinectron = new Kinectron();
+
+	// Create instance of Kinectron
+  kinectron = new Kinectron("192.168.1.7");
+
+  // CONNECT TO MIRCROSTUDIO
+  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
 	kinectron.makeConnection();
+	
 	kinectron.startTrackedBodies(playCatch);
 }
 

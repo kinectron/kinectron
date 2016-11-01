@@ -71,7 +71,7 @@ To start a feed, click the corresponding button. The feed will start automatical
 -"Stop All" stops all feeds. 
 
 ## Using the Client-side API
-Download and include the library in the <head> of your document. 
+Download and include the library in the head of your document. 
 
 ```
 <script src="kinectron.bundle.js" type="text/javascript"></script>
