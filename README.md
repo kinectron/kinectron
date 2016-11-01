@@ -82,33 +82,27 @@ Kinectron uses a peer server to transfer Kinect data to the browser. The peer se
 
 1. Connect to localhost. By default the application creates a peer connection using peer.js on localhost at port 9001 with "kinectron" as username. This is used to connect to the application on the same computer that is running the application. 
 	
-```
-var kinectron = new Kinectron();
-```
-2. Connect to local network. To work with the Kinect2 data on a different computer that is on the same local network as the computer running the Kinectron application, enter the peer ID, IP address, and port number displayed by the application on start.
+	```
+	var kinectron = new Kinectron();
+	```
+2. Connect to local network. To work with the Kinect2 data on a different computer that is on the same local network as the computer running the Kinectron application, enter the IP address displayed by the application on start.
 	
-```
-var kinectron = new Kinectron("kinectron", { // username matches application display 
-	"host": "172.16.242.138",  // host matches application display
-	"port": "9001", // port matches application display
-	"path": "/"
-});
-```
-
-**Important!** In order to parse correctly, server details must be enclosed within curly brackets and properties must be within double quotes.   
+		```
+		var kinectron = new Kinectron("172.16.242.138");
+		```
 
 3. Connect to personal peer network. Use your own peer server by entering your ID and server details as follows: 
 
-```
-var kinectron = new Kinectron("myusername", {  // enter the username to connect to
-	"host": "myserver.com", // your personal peer server
-	"port": "9001", // your portnumber
-	"path": "/", // your path
-	"secure": "true" // include parameters per peer.js documentation 
-});
-```
+		```
+		var kinectron = new Kinectron("myusername", {  // enter the username to connect to
+			"host": "myserver.com", // your personal peer server
+			"port": "9001", // your portnumber
+			"path": "/", // your path
+			"secure": "true" // include parameters per peer.js documentation 
+		});
+		```
 
-**Important!** In order to parse correctly, server details must be enclosed within curly brackets and properties must be within double quotes.   
+	**Important!** In order to parse correctly, server details must be enclosed within curly brackets and properties must be within double quotes.   
 
 ### Create Peer Connection
 Connect over the peer network.
