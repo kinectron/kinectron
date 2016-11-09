@@ -105,8 +105,8 @@ function init() {
   document.getElementById('body').addEventListener('click', chooseCamera);  
   document.getElementById('skeleton').addEventListener('click', chooseCamera);
   document.getElementById('stop-all').addEventListener('click', chooseCamera);
-  //document.getElementById('multi').addEventListener('click', chooseMulti);
-  //document.getElementById('stop-multi').addEventListener('click', stopMulti);
+  document.getElementById('multi').addEventListener('click', chooseMulti);
+  document.getElementById('stop-multi').addEventListener('click', stopMulti);
 }
 
 function getIpAddress() {

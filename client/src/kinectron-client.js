@@ -177,26 +177,26 @@ Kinectron = function(arg1, arg2) {
         //   rawDepthCallback(processedData);
         // break;
 
-        // case 'multiFrame':
-        //   if (data.color) {
-        //     this.img.src = data.color;
-        //     this.rgbCallback(this.img);
-        //   }
+        case 'multiFrame':
+          if (data.color) {
+            this.img.src = data.color;
+            this.rgbCallback(this.img);
+          }
 
-        //   if (data.depth) {
-        //     this.img.src = data.depth;
-        //     this.depthCallback(this.img);
-        //   }
+          if (data.depth) {
+            this.img.src = data.depth;
+            this.depthCallback(this.img);
+          }
 
-        //   if (data.body) {
-        //     this.bodyCallback(data.body);
-        //   }
+          if (data.body) {
+            this.bodiesCallback(data.body);
+          }
 
-        //   if (data.rawDepth) {
-        //     processedData = this._processRawDepth(data.rawDepth);
-        //     rawDepthCallback(processedData);
-        //   }
-        // break;
+          // if (data.rawDepth) {
+          //   processedData = this._processRawDepth(data.rawDepth);
+          //   rawDepthCallback(processedData);
+          // }
+        break;
       }
     }.bind(this));
   };
@@ -263,10 +263,10 @@ Kinectron = function(arg1, arg2) {
     this._setFeed('skeleton');
   };
 
-  // this.startMultiFrame = function(frames) {
-      //if (callback) { this._sendToPeer('multi', frames); }
-  //   
-  // };
+  this.startMultiFrame = function(frames) {
+      if (callback) { this._sendToPeer('multi', frames); }
+    
+  };
 
   this.startKey = function(callback) {
     if (callback) {
