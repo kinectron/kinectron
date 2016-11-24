@@ -3,7 +3,7 @@ html {
   text-transform: uppercase;
 }
 
-input, #custom-file-upload {
+input[type="button"], #custom-file-upload {
   border: 1px solid black;
   background: white;
   color: black;
@@ -84,14 +84,14 @@ input.dimensions {
   padding: 20px;
 }
 
-#multi-feed {
-  display: none;
-}
-
-/*#single-feed {
+/*#multi-feed {
   display: none;
 }
 */
+#single-feed {
+  display: none;
+}
+
 #controls div {
   margin-bottom: 20px;
 }
@@ -145,9 +145,7 @@ input[type="checkbox"] {
   -webkit-transform: rotate(-45deg);
           transform: rotate(-45deg);
 }
-.styleCheckBox label:hover::after {
-  opacity: 0.5;
-}
+
 .styleCheckBox input[type=checkbox] {
   visibility: hidden;
 }
