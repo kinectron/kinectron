@@ -315,12 +315,13 @@
 	  };
 
 	  this.startMultiFrame = function(frames, callback) {
-	    if (callback) { 
+	    if (typeof callback !== "undefined") {
 	      this.multiFrameCallBack = callback;
-	    };
+	    } else if (typeof callback == "undefined") {
+	      this.multiFrameCallBack = null;
+	    }
 
-	    this._sendToPeer('multi', frames); 
-	    
+	    this._sendToPeer('multi', frames);     
 	  };
 
 	  this.startKey = function(callback) {

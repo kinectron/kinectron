@@ -26,6 +26,10 @@ function keyPressed() {
 	if (keyCode === ENTER) {
 	 	kinectron.startMultiFrame(["color", "depth", "body"], multiFrameCallback);
 	} 
+
+	if (keyCode === UP_ARROW) {
+	 	kinectron.startMultiFrame(["color", "depth", "body"]);
+	} 
  }
 
 function rgbCallback(img) {
