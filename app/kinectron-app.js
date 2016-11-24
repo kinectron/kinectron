@@ -446,7 +446,7 @@ function chooseMulti(evt, incomingFrames) {
     }
   } 
 
-  // TO DO Simplifyy the case and result per Shawn 
+  // TO DO Simplify the case and result per Shawn 
   for (var i = 0; i < frames.length; i++) {
     var frameName;
     var tempName;

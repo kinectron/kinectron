@@ -113,7 +113,7 @@ input[type="checkbox"] {
 /* .styleCheckBox */
 .styleCheckBox {
   float: left;
-  width: 80px;
+  width: 100px;
   position: relative;
   margin-right: 20px;
   line-height: 20px;
