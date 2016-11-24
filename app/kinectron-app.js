@@ -338,6 +338,11 @@ function chooseCamera(evt, feed) {
     camera = feed;
   }
 
+  // Turn off multiframe if it is running
+  if (multiFrame) {
+    stopMulti();
+  }
+
   if (currentCamera == camera) {
     return;
   } else if (camera == 'stop-all') {
@@ -427,6 +432,11 @@ function changeCameraState(camera, state) {
 function chooseMulti(evt, incomingFrames) {
   if (evt) {
     evt.preventDefault();
+  }
+
+  // if single feed running, stop the feed
+  if (currentCamera) { 
+    chooseCamera(null, 'stop-all');
   }
   
   var temp;
