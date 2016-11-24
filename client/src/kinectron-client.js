@@ -11,7 +11,7 @@ Kinectron = function(arg1, arg2) {
 
   this.rgbCallback = null;
   this.depthCallback = null;
-  //this.rawDepthCallback = null;
+  this.rawDepthCallback = null;
   this.infraredCallback = null;
   this.leInfraredCallback = null; 
   this.bodiesCallback = null;
@@ -222,6 +222,15 @@ Kinectron = function(arg1, arg2) {
     this._setFeed('depth');
   };
 
+  this.startRawDepth = function(callback) {
+    if (callback) {
+      this.rawDepthCallback = callback;  
+    } 
+
+    this._setFeed('raw-depth');
+  };
+
+
   this.startInfrared = function(callback) {
     if (callback) {
       this.infraredCallback = callback;
@@ -313,9 +322,9 @@ Kinectron = function(arg1, arg2) {
     this.depthCallback = callback;
   };
 
-  // this.setRawDepthCallback = function(callback) {
-  //   this.rawDepthCallback = callback;
-  // };
+  this.setRawDepthCallback = function(callback) {
+    this.rawDepthCallback = callback;
+  };
 
   this.setInfraredCallback = function(callback) {
     this.infraredCallback = callback;  
@@ -394,7 +403,7 @@ Kinectron = function(arg1, arg2) {
     connection.send(dataToSend);
   };
 
-  // Choose callbak for image-based frames
+  // Choose callback for image-based frames
   this._chooseCallback = function(frame) {
     switch (frame) {
       case 'color':
@@ -415,6 +424,10 @@ Kinectron = function(arg1, arg2) {
 
       case 'key':
         this.keyCallback(this.img);
+      break;
+
+      case 'rawDepth':
+        this.rawDepthCallback(this.img);
       break;
     }
   };

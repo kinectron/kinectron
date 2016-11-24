@@ -98,7 +98,7 @@ function init() {
   document.getElementById('depthsubmit').addEventListener('click', setOutputDimensions);
   document.getElementById('rgb').addEventListener('click', chooseCamera);
   document.getElementById('depth').addEventListener('click', chooseCamera);
-  //document.getElementById('raw-depth').addEventListener('click', chooseCamera);
+  document.getElementById('raw-depth').addEventListener('click', chooseCamera);
   document.getElementById('infrared').addEventListener('click', chooseCamera);
   document.getElementById('le-infrared').addEventListener('click', chooseCamera);
   document.getElementById('key').addEventListener('click', chooseCamera);
@@ -576,35 +576,34 @@ function stopDepth() {
   busy = false;
 }
 
-// TO DO Does this work? 
-// function startRawDepth() {
-//   console.log("start Raw Depth Camera");
+function startRawDepth() {
+  console.log("start Raw Depth Camera");
 
-//   resetCanvas('raw');
-//   canvasState = 'raw';
-//   setImageData();
+  resetCanvas('raw');
+  canvasState = 'raw';
+  setImageData();
 
-//   if(kinect.open()) {
-//     kinect.on('rawDepth', function(newPixelData){
-//       if(busy) {
-//         return;
-//       }
-//       busy = true;
+  if(kinect.open()) {
+    kinect.on('rawDepthFrame', function(newPixelData){
+      if(busy) {
+        return;
+      }
+      busy = true;
 
-//       processRawDepthBuffer(newPixelData);
-//       drawImageToCanvas('rawDepth', 'png');
-//       busy = false;
-//     });
-//   }
-//   kinect.openRawDepthReader();
-// }
+      processRawDepthBuffer(newPixelData);
+      drawImageToCanvas('rawDepth', 'png');
+      busy = false;
+    });
+  }
+  kinect.openRawDepthReader();
+}
 
-// function stopRawDepth() {
-//   kinect.closeRawDepthReader();
-//   kinect.removeAllListeners();
-//   canvasState = null;
-//   busy = false;
-// }
+function stopRawDepth() {
+  kinect.closeRawDepthReader();
+  kinect.removeAllListeners();
+  canvasState = null;
+  busy = false;
+}
 
 function startInfrared() {
   console.log('starting infrared camera');

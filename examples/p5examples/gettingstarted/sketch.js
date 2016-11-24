@@ -8,7 +8,7 @@ function setup() {
   background(0);
 
   // Define and create an instance of kinectron
-  kinectron = new Kinectron("192.168.1.7");
+  kinectron = new Kinectron();
 
   // CONNECT TO MIRCROSTUDIO
   //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
@@ -19,6 +19,7 @@ function setup() {
   // Set callbacks
   kinectron.setRGBCallback(drawFeed);
   kinectron.setDepthCallback(drawFeed);
+  kinectron.setRawDepthCallback(drawRawDepthFeed);
   kinectron.setInfraredCallback(drawFeed);
 }
 
@@ -34,6 +35,8 @@ function keyPressed() {
     kinectron.startDepth();
   } else if (keyCode === DOWN_ARROW) {
     kinectron.startInfrared();
+  } else if (keyCode === LEFT_ARROW) {
+    kinectron.startRawDepth();
   } else if (keyCode === RIGHT_ARROW) {
     kinectron.stopAll();
   }
@@ -42,6 +45,15 @@ function keyPressed() {
 function drawFeed(img) {
   // Draws feed using p5 load and display image functions  
   loadImage(img.src, function(loadedImage) {
+    image(loadedImage, 0, 0);
+  });
+}
+
+function drawRawDepthFeed(img) {
+  // Draws feed using p5 load and display image functions  
+  loadImage(img.src, function(loadedImage) {
+    //clear background for png tranparency
+    background(255);
     image(loadedImage, 0, 0);
   });
 }
