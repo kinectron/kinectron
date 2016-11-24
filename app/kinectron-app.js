@@ -806,11 +806,13 @@ function startMulti(multiFrames) {
 }
 
 function stopMulti() {
-  kinect.closeMultiSourceReader();
-  kinect.removeAllListeners();
-  canvasState = null;
-  busy = false;
-  multiFrame = false;
+  if (multiFrame) {
+    kinect.closeMultiSourceReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+    busy = false;
+    multiFrame = false;
+  }
 }
 
 function startKey() {
