@@ -98,7 +98,7 @@ function init() {
   document.getElementById('depthsubmit').addEventListener('click', setOutputDimensions);
   document.getElementById('rgb').addEventListener('click', chooseCamera);
   document.getElementById('depth').addEventListener('click', chooseCamera);
-  document.getElementById('raw-depth').addEventListener('click', chooseCamera);
+  // document.getElementById('raw-depth').addEventListener('click', chooseCamera);
   document.getElementById('infrared').addEventListener('click', chooseCamera);
   document.getElementById('le-infrared').addEventListener('click', chooseCamera);
   document.getElementById('key').addEventListener('click', chooseCamera);
@@ -338,6 +338,11 @@ function chooseCamera(evt, feed) {
     camera = feed;
   }
 
+  if (currentCamera === null) {
+    console.log("its null");
+    toggleImagePreviewWarning("none");
+  }
+
   // Turn off multiframe if it is running
   if (multiFrame) {
     stopMulti();
@@ -460,6 +465,11 @@ function chooseMulti(evt, incomingFrames) {
     }
   } 
 
+  if (frames.length === 0) {
+    console.warn("Select at least on feed.");
+    return;
+  }
+
   // TO DO Simplify the case and result per Shawn 
   for (var i = 0; i < frames.length; i++) {
     var frameName;
@@ -492,7 +502,7 @@ function chooseMulti(evt, incomingFrames) {
         multiFrames.push(Kinect2.FrameType.depthColor);
       break;
 
-      //infrared doesn't appear to be implemented yet
+      //infrared is not implemented for multiframe yet
       // case 'infrared': 
       //    multiFrames.push(Kinect2.FrameType.infrared);
       // break;
@@ -724,11 +734,24 @@ function stopSkeletonTracking() {
 
 }
 
+function toggleImagePreviewWarning(style) {
+  var allWarningDivs = document.getElementsByClassName('multi-warning');
+
+  for (var i = 0; i < allWarningDivs.length; i++) {
+    allWarningDivs[i].style.display = style;
+  } 
+}
+
 function startMulti(multiFrames) {
   console.log('starting multi');
 
   var options = {frameTypes: multiFrames};
   var multiToSend = {};
+
+  // show image preview warning 
+  if (multiFrame === false) {
+    toggleImagePreviewWarning("block");
+  }
 
   multiFrame = true;
 

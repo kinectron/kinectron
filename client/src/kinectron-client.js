@@ -154,7 +154,7 @@ Kinectron = function(arg1, arg2) {
           this.body = data;
 
           // Check that joint exists
-          // TODO Why does joint come in as 0 when undefined
+          // TO DO Why does joint come in as 0 when undefined
           if (this.jointName && this.trackedJointCallback && this.body.joints[this.jointName] !== 0) {
             var joint = this.body.joints[this.jointName]; 
 
@@ -194,6 +194,12 @@ Kinectron = function(arg1, arg2) {
 
             if (data.body) {
               this.bodiesCallback(data.body);
+            }
+
+            // TO DO Rawdepth currently returns image, should return number
+            if (data.rawDepth) {
+              this.img.src = data.rawDepth;
+              this.rawDepthCallback(this.img);
             }
 
             // if (data.rawDepth) {

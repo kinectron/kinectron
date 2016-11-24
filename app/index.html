@@ -32,7 +32,7 @@
             <div id="options">
               <input type="button" class="feed-option" id="rgb" value="Color">
               <input type="button" class="feed-option" id="depth" value="Depth">
-              <input type="button" class="feed-option" id="raw-depth" value="Raw Depth">
+              <!-- <input type="button" class="feed-option" id="raw-depth" value="Raw Depth"> -->
               <input type="button" class="feed-option" id="skeleton" value="Skeleton (Tracked Bodies)">
               <input type="button" class="feed-option" id="body" value="All Bodies">
               <input type="button" class="feed-option" id="infrared" value="Infrared">
@@ -55,9 +55,9 @@
               <div class="styleCheckBox">
               <input class="cb-multi" type="checkbox" id="cbox-skeleton" value="body"> <label for="cbox-skeleton">Skeleton</label>
               </div>
-              <!--<div class="styleCheckBox">
+<!--               <div class="styleCheckBox">
               <input class="cb-multi" type="checkbox" id="cbox-rawdepth" value="rawDepth"> <label for="cbox-rawdepth">RawDepth</label>
-              </div> -->
+              </div>  -->
               <div class="clear-class" style="clear:both"></div>
               <input type="button" class="feed-option" id="multi" value="Start Multiframe">
               <input type="button" class="feed-option" id="stop-multi" value="Stop Multiframe">
@@ -92,8 +92,14 @@
       </div>
     <div id="feed-images">
       <h4>Feed from Kinect</h4>
+      <div class="multi-warning">
+        <p>Image preview does not reflect multiple feeds.</p>
+      </div>
       <canvas id="inputCanvas" width="1920" height="1080"></canvas>
       <h4>Feed output to peer</h4>
+      <div class="multi-warning">
+        <p>Image preview does not reflect multiple feeds.</p>
+      </div>
       <canvas id="outputCanvas" width="960" height="540"></canvas>
     </div>
   </body>

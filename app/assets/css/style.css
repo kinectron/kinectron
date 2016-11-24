@@ -168,3 +168,9 @@ div#choose-feed {
   margin-bottom: 40px;
 }
 
+div.multi-warning {
+  display: none;
+}
+.multi-warning p {
+
+}
