@@ -3,7 +3,7 @@ html {
   text-transform: uppercase;
 }
 
-input[type="button"], #custom-file-upload {
+input, #custom-file-upload {
   border: 1px solid black;
   background: white;
   color: black;
