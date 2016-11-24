@@ -24,7 +24,7 @@ function draw() {
 
 function keyPressed() {
 	if (keyCode === ENTER) {
-	 	kinectron.startMultiFrame(["color", "body"]);
+	 	kinectron.startMultiFrame(["color", "depth", "body"], multiFrameCallback);
 	} 
  }
 
@@ -71,5 +71,9 @@ function bodyTracked(body) {
 	  context.fillRect(joint.depthX * 330, joint.depthY * 273.2, 10, 10);
 	  
 	}
+}
+
+function multiFrameCallback(data) {
+	console.log(data);
 }
 

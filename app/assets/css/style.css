@@ -84,13 +84,13 @@ input.dimensions {
   padding: 20px;
 }
 
-/*#multi-feed {
+#multi-feed {
   display: none;
 }
-*/
-#single-feed {
+
+/*#single-feed {
   display: none;
-}
+}*/
 
 #controls div {
   margin-bottom: 20px;
