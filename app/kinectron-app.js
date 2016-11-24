@@ -88,6 +88,8 @@ function init() {
 
   document.getElementById('peersubmit').addEventListener('click', newPeerServer);
   //document.getElementById('loadfile').addEventListener('change', loadFile);
+  document.getElementById('single-feed-btn').addEventListener('click', toggleFeedType);
+  document.getElementById('multi-feed-btn').addEventListener('click', toggleFeedType);
   document.getElementById('colorwidth').addEventListener('change', updateDimFields);
   document.getElementById('colorheight').addEventListener('change', updateDimFields);
   document.getElementById('depthwidth').addEventListener('change', updateDimFields);
@@ -107,6 +109,43 @@ function init() {
   document.getElementById('stop-all').addEventListener('click', chooseCamera);
   document.getElementById('multi').addEventListener('click', chooseMulti);
   document.getElementById('stop-multi').addEventListener('click', stopMulti);
+  document.getElementById('advanced-link').addEventListener('click', toggleAdvancedOptions);
+
+}
+
+function toggleFeedType(evt) {
+  evt.preventDefault();
+  var button = evt.srcElement;
+  var state = button.id;
+
+  if (state == "single-feed-btn") {
+    button.style.background = "#1daad8";
+    document.getElementById('multi-feed-btn').style.background = "#fff";
+
+    document.getElementById('single-feed').style.display = 'block';
+    document.getElementById('multi-feed').style.display = 'none';
+    
+  } else if (state == "multi-feed-btn") {
+    button.style.background = "#1daad8";
+    document.getElementById('single-feed-btn').style.background = "#fff";
+
+    document.getElementById('single-feed').style.display = 'none';
+    document.getElementById('multi-feed').style.display = 'block';
+
+  }
+}
+
+function toggleAdvancedOptions(evt) {
+  evt.preventDefault();
+
+  var advOptions = document.getElementById('advanced-options');
+  advOptions.style.display = advOptions.style.display == "block" ? "none" : "block";
+
+  var advLink = document.getElementById('advanced-link');
+  var hide = "<a id=\"advanced-link\" href=\"#\">Hide Advanced Options</a>";
+  var show = "<a id=\"advanced-link\" href=\"#\">Show Advanced Options</a>";
+  advLink.innerHTML = advLink.innerHTML == hide ? show : hide;
+
 }
 
 function getIpAddress() {
@@ -303,14 +342,29 @@ function chooseCamera(evt, feed) {
     return;
   } else if (camera == 'stop-all') {
     changeCameraState(currentCamera, 'stop');
+    toggleButtonState(currentCamera, 'inactive');
     currentCamera = null;
     return;
   } else {
     if (currentCamera) {
       changeCameraState(currentCamera, 'stop');
+      toggleButtonState(currentCamera, 'inactive');
     } 
     changeCameraState(camera, 'start');
+    toggleButtonState(camera, 'active');
     currentCamera = camera;
+  }
+}
+
+function toggleButtonState(camera, state) {
+  var button = document.getElementById(camera);
+
+  if (state == "active") {
+    console.log("active");
+    button.style.background = "#1daad8";
+  } else if (state == "inactive") {
+    console.log("inactive");
+    button.style.background = "#fff";
   }
 }
 

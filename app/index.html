@@ -11,18 +11,65 @@
 
   <body style="background-color: white;">
     <h1>Hello Kinect!</h1>
-    <div id="controls">
       <div class="intro">
-         <div id="connectionopen">
+        <div id="ip-display">
+        <div id="connectionopen">
           <p>Your IP Address is <br>
           <span class='highlight' id="ipaddress">xxxx</span></p>
         </div>
         <div id="newpeercreated">
           <p>You created a new peer server. Your network details are: <br/><br/>Peer ID: <span class='highlight' id="peerid">xxxx</span> IP Address: <span class='highlight' id="newipaddress">xxxx</span> Port: <span class="highlight" id="port">xxxx</span><br/><br/></p>
         </div>
-        <p>Have your own peer server? Enter id and server details here:</p> 
-        <input type="text" placeholder="ie. myname" id="newpeerid"><input type="text" id="peernet" placeholder="ie. {&quot;host&quot;: &quot;myserver.com&quot;, &quot;port&quot;: &quot;9000&quot;, &quot;path&quot;: &quot;/myapp&quot;,}"><input type="submit" id="peersubmit" value="Submit">
-        <div style="clear:both"></div>
+        </div>
+        <div id="controls">
+        <div id="choose-feed">
+          <input type="button" class="feed-type" id="single-feed-btn" value="Single Feed"> 
+          <input type="button" class="feed-type" id="multi-feed-btn" value="Multi Feed">
+
+          <div class="clear-class" style="clear:both"></div>
+          <div id="single-feed">
+            <p>Choose a single feed to begin broadcast. Click stop all to end broadcast.</p>  
+            <div id="options">
+              <input type="button" class="feed-option" id="rgb" value="Color">
+              <input type="button" class="feed-option" id="depth" value="Depth">
+              <!-- <input type="button" class="feed-option" id="raw-depth" value="Raw Depth"> -->
+              <input type="button" class="feed-option" id="skeleton" value="Skeleton (Tracked Bodies)">
+              <input type="button" class="feed-option" id="body" value="All Bodies">
+              <input type="button" class="feed-option" id="infrared" value="Infrared">
+              <input type="button" class="feed-option" id="le-infrared" value="Long Exposure Infrared">
+              <input type="button" class="feed-option" id="key" value="Key">
+              <!-- <input type="button" class="feed-option" id="fh-joint" value="Floor Height Joint"> -->
+              <!-- <input type="button" class="feed-option" id="scale" value="Scale User"> -->
+              <input type="button" class="feed-option" id="stop-all" value="Stop All">
+              <div class="clear-class" style="clear:both"></div>
+            </div>
+          </div>
+          <div id="multi-feed">
+            <p>Choose feeds then click start multiframe to broadcast. Click stop multiframe to end broadcast.</p>
+              <div class="styleCheckBox">
+              <input type="checkbox" id="cbox-rgb" value="cb-rgb"> <label for ="cbox-rgb"><span class="label-text"> Color</label>
+              </div>
+              <div class="styleCheckBox">
+              <input type="checkbox" id="cbox-depth" value="cb-depth"> <label for="cbox-depth">Depth</label>
+              </div>
+              <div class="styleCheckBox">
+              <input type="checkbox" id="cbox-skeleton" value="cb-skeleton"> <label for="cbox-skeleton">Skeleton</label>
+              </div>
+
+              <div class="clear-class" style="clear:both"></div>
+              
+             <!--  <input type="text" value="color, depth" class="" id="multi-options">
+              --> <input type="button" class="feed-option" id="multi" value="Start Multiframe">
+              <input type="button" class="feed-option" id="stop-multi" value="Stop Multiframe">
+          </div>  
+          <div class="clear-class" style="clear:both"></div>
+          </div>
+      <div id="advanced-options">
+        <div id="new-peer">
+          <p>Have your own peer server? Enter id and server details here:</p> 
+            <input type="text" placeholder="ie. myname" id="newpeerid"><input type="text" id="peernet" placeholder="ie. {&quot;host&quot;: &quot;myserver.com&quot;, &quot;port&quot;: &quot;9000&quot;, &quot;path&quot;: &quot;/myapp&quot;,}"><input type="submit" id="peersubmit" value="Submit">
+          </div>
+        <div class="clear-class" style="clear:both"></div>
         <div id="imagesize" >
           <p>Images sizes are set by default. Change them (or don't) here. Dimensions are fixed.</p>
           <span>Color: </span>
@@ -30,48 +77,20 @@
           <span> X </span>
           <input type="text" placeholder="540" class="dimensions" id="colorheight">
           <input type="submit" id="colorsubmit" value="Submit">
-          <div style="clear:both"></div>
+          <div class="clear-class" style="clear:both"></div>
           <span>Depth: </span>
           <input type="text" placeholder="512" class="dimensions" id="depthwidth">
           <span> X </span>
           <input type="text" placeholder="424" class="dimensions" id="depthheight">
           <input type="submit" id="depthsubmit" value="Submit">
         </div>
-        <div style="clear:both"></div>
-      </div>
-      <div class="intro">
-        <p>Choose a feed</p>  
-        <div id="options">
-          <input type="button" class="feed-option" id="rgb" value="Color">
-          <input type="button" class="feed-option" id="depth" value="Depth">
-          <!-- <input type="button" class="feed-option" id="raw-depth" value="Raw Depth"> -->
-          <input type="button" class="feed-option" id="skeleton" value="Skeleton (Tracked Bodies)">
-          <input type="button" class="feed-option" id="body" value="All Bodies">
-          <input type="button" class="feed-option" id="infrared" value="Infrared">
-          <input type="button" class="feed-option" id="le-infrared" value="Long Exposure Infrared">
-          <input type="button" class="feed-option" id="key" value="Key">
-          <!-- <input type="button" class="feed-option" id="fh-joint" value="Floor Height Joint"> -->
-          <!-- <input type="button" class="feed-option" id="scale" value="Scale User"> -->
-          <input type="button" class="feed-option" id="stop-all" value="Stop All">
-          <div style="clear:both"></div>
-          <p>Or choose more than one: Enter feed names separated by commas. Names are case sensitive. </p>
-          <input type="text" value="color, depth" class="" id="multi-options">
-          <input type="button" class="feed-option" id="multi" value="Start Multiframe">
-          <input type="button" class-"feed-option" id="stop-multi" value="Stop Multiframe">
-        </div>  
-        <div style="clear:both"></div>
+        <div class="clear-class" style="clear:both"></div>
 
+      </div>
+      <div id="toggle-advanced"><a id="advanced-link" href="#">Show Advanced Options</a></div>  
       </div>   
-<!--       <div class="intro" id="load-file">
-        <p>Or load a different page</p>
-        <label id="custom-file-upload">
-          <input type="file" id="loadfile">
-          Choose File
-        </label>
-        <div style="clear:both"></div>
-      </div> -->
-    </div>
-    <div>
+      </div>
+    <div id="feed-images">
       <h4>Feed from Kinect</h4>
       <canvas id="inputCanvas" width="1920" height="1080"></canvas>
       <h4>Feed output to peer</h4>
