@@ -346,10 +346,14 @@ function chooseCamera(evt, feed) {
   if (currentCamera == camera) {
     return;
   } else if (camera == 'stop-all') {
-    changeCameraState(currentCamera, 'stop');
-    toggleButtonState(currentCamera, 'inactive');
-    currentCamera = null;
-    return;
+    if (currentCamera) {
+      changeCameraState(currentCamera, 'stop');
+      toggleButtonState(currentCamera, 'inactive');
+      currentCamera = null;
+      return;
+    } else {
+      return;
+    }
   } else {
     if (currentCamera) {
       changeCameraState(currentCamera, 'stop');
