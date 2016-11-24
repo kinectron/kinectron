@@ -124,7 +124,7 @@ function toggleFeedType(evt) {
 
     document.getElementById('single-feed').style.display = 'block';
     document.getElementById('multi-feed').style.display = 'none';
-    
+
   } else if (state == "multi-feed-btn") {
     button.style.background = "#1daad8";
     document.getElementById('single-feed-btn').style.background = "#fff";
@@ -437,8 +437,13 @@ function chooseMulti(evt, incomingFrames) {
   if (incomingFrames) {
     frames = incomingFrames;
   } else {
-    temp = document.getElementById('multi-options').value;
-    frames = temp.split(', ');
+    //find which feeds are checked
+    var allCheckBoxes = document.getElementsByClassName('cb-multi');
+    for(var i=0; i < allCheckBoxes.length; i++){
+      if(allCheckBoxes[i].checked){
+        frames.push(allCheckBoxes[i].value);
+      }
+    }
   } 
 
   // TO DO Simplifyy the case and result per Shawn 
