@@ -165,6 +165,7 @@ Example with multiframe callback set.
 ```
  	kinectron.startMultiFrame(["color", "depth", "body"], multiFrameCallback);
  
+ 	// Frames are delivered together in one object to the multiFrame callback
  	function multiFrameCallback(data) {
 		drawKinectronImage(data.color);
 		drawKinectronImage(data.depth);
@@ -181,6 +182,20 @@ Example with individual callbacks set.
 	kinectron.setBodiesCallback(bodyCallback);
 
 	kinectron.startMultiFrame(["color", "depth", "body"]);
+
+	// Frames are delivered individually to their respective callbacks
+
+	colorCallback(colorImg) {
+		//process color frame here
+	}
+
+	depthCallback(depthImg) {
+		//process depth frame here
+	}
+
+	bodyCallback(body) {
+		//process body object here
+	}
 
 ```
 
