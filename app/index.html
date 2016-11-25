@@ -22,30 +22,30 @@
         </div>
         </div>
         <div id="controls">
-        <div id="choose-feed">
-          <input type="button" class="feed-type" id="single-feed-btn" value="Single Feed"> 
-          <input type="button" class="feed-type" id="multi-feed-btn" value="Multi Feed">
+        <div id="choose-frame">
+          <input type="button" class="frame-type" id="single-frame-btn" value="Single Frame"> 
+          <input type="button" class="frame-type" id="multi-frame-btn" value="Multiple Frames">
 
           <div class="clear-class" style="clear:both"></div>
-          <div id="single-feed">
-            <p>Choose a single feed to begin broadcast. Click stop all to end broadcast.</p>  
+          <div id="single-frame">
+            <p>Choose a single frame to begin broadcast. Click stop all to end broadcast.</p>  
             <div id="options">
-              <input type="button" class="feed-option" id="rgb" value="Color">
-              <input type="button" class="feed-option" id="depth" value="Depth">
-              <!-- <input type="button" class="feed-option" id="raw-depth" value="Raw Depth"> -->
-              <input type="button" class="feed-option" id="skeleton" value="Skeleton (Tracked Bodies)">
-              <input type="button" class="feed-option" id="body" value="All Bodies">
-              <input type="button" class="feed-option" id="infrared" value="Infrared">
-              <input type="button" class="feed-option" id="le-infrared" value="Long Exposure Infrared">
-              <input type="button" class="feed-option" id="key" value="Key">
-              <!-- <input type="button" class="feed-option" id="fh-joint" value="Floor Height Joint"> -->
-              <!-- <input type="button" class="feed-option" id="scale" value="Scale User"> -->
-              <input type="button" class="feed-option" id="stop-all" value="Stop All">
+              <input type="button" class="frame-option" id="rgb" value="Color">
+              <input type="button" class="frame-option" id="depth" value="Depth">
+              <!-- <input type="button" class="frame-option" id="raw-depth" value="Raw Depth"> -->
+              <input type="button" class="frame-option" id="skeleton" value="Skeleton (Tracked Bodies)">
+              <input type="button" class="frame-option" id="body" value="All Bodies">
+              <input type="button" class="frame-option" id="infrared" value="Infrared">
+              <input type="button" class="frame-option" id="le-infrared" value="Long Exposure Infrared">
+              <input type="button" class="frame-option" id="key" value="Key">
+              <!-- <input type="button" class="frame-option" id="fh-joint" value="Floor Height Joint"> -->
+              <!-- <input type="button" class="frame-option" id="scale" value="Scale User"> -->
+              <input type="button" class="frame-option" id="stop-all" value="Stop All">
               <div class="clear-class" style="clear:both"></div>
             </div>
           </div>
-          <div id="multi-feed">
-            <p>Choose feeds then click start multiframe to broadcast. Click stop multiframe to end broadcast.</p>
+          <div id="multi-frame">
+            <p>Choose frames then click start multiframe to broadcast. Click stop multiframe to end broadcast.</p>
               <div class="styleCheckBox">
               <input class="cb-multi" type="checkbox" id="cbox-color" value="color"> <label for ="cbox-color"><span class="label-text">Color</label>
               </div>
@@ -59,8 +59,8 @@
               <input class="cb-multi" type="checkbox" id="cbox-rawdepth" value="rawDepth"> <label for="cbox-rawdepth">RawDepth</label>
               </div>  -->
               <div class="clear-class" style="clear:both"></div>
-              <input type="button" class="feed-option" id="multi" value="Start Multiframe">
-              <input type="button" class="feed-option" id="stop-multi" value="Stop Multiframe">
+              <input type="button" class="frame-option" id="multi" value="Start Multiframe">
+              <input type="button" class="frame-option" id="stop-multi" value="Stop Multiframe">
           </div>  
           <div class="clear-class" style="clear:both"></div>
           </div>
@@ -93,12 +93,12 @@
     <div id="feed-images">
       <h4>Feed from Kinect</h4>
       <div class="multi-warning">
-        <p>Image preview does not reflect multiple feeds. Currently broadcasting: <span class="current-feeds"></span> </p>
+        <p>Image preview does not reflect multiple frames. Currently broadcasting: <span class="current-frames"></span> </p>
       </div>
       <canvas id="inputCanvas" width="1920" height="1080"></canvas>
       <h4>Feed output to peer</h4>
       <div class="multi-warning">
-        <p>Image preview does not reflect multiple feeds. Currently broadcasting: <span class="current-feeds"></span></p>
+        <p>Image preview does not reflect multiple frames. Currently broadcasting: <span class="current-frames"></span></p>
       </div>
       <canvas id="outputCanvas" width="960" height="540"></canvas>
     </div>

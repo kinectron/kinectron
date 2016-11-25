@@ -84,13 +84,9 @@ input.dimensions {
   padding: 20px;
 }
 
-#multi-feed {
+#multi-frame {
   display: none;
 }
-
-/*#single-feed {
-  display: none;
-}*/
 
 #controls div {
   margin-bottom: 20px;
@@ -100,7 +96,7 @@ input.dimensions {
   margin-bottom: 0;
 }
 
-#single-feed-btn {
+#single-frame-btn {
   background-color: #1daad8;
 }
 
@@ -164,7 +160,7 @@ h1, #ip-display {
   margin-left: 20px;
 }
 
-div#choose-feed {
+div#choose-frame {
   margin-bottom: 40px;
 }
 

@@ -89,8 +89,8 @@ function init() {
 
   document.getElementById('peersubmit').addEventListener('click', newPeerServer);
   //document.getElementById('loadfile').addEventListener('change', loadFile);
-  document.getElementById('single-feed-btn').addEventListener('click', toggleFeedType);
-  document.getElementById('multi-feed-btn').addEventListener('click', toggleFeedType);
+  document.getElementById('single-frame-btn').addEventListener('click', toggleFrameType);
+  document.getElementById('multi-frame-btn').addEventListener('click', toggleFrameType);
   document.getElementById('colorwidth').addEventListener('change', updateDimFields);
   document.getElementById('colorheight').addEventListener('change', updateDimFields);
   document.getElementById('depthwidth').addEventListener('change', updateDimFields);
@@ -114,24 +114,24 @@ function init() {
 
 }
 
-function toggleFeedType(evt) {
+function toggleFrameType(evt) {
   evt.preventDefault();
   var button = evt.srcElement;
   var state = button.id;
 
-  if (state == "single-feed-btn") {
+  if (state == "single-frame-btn") {
     button.style.background = "#1daad8";
-    document.getElementById('multi-feed-btn').style.background = "#fff";
+    document.getElementById('multi-frame-btn').style.background = "#fff";
 
-    document.getElementById('single-feed').style.display = 'block';
-    document.getElementById('multi-feed').style.display = 'none';
+    document.getElementById('single-frame').style.display = 'block';
+    document.getElementById('multi-frame').style.display = 'none';
 
-  } else if (state == "multi-feed-btn") {
+  } else if (state == "multi-frame-btn") {
     button.style.background = "#1daad8";
-    document.getElementById('single-feed-btn').style.background = "#fff";
+    document.getElementById('single-frame-btn').style.background = "#fff";
 
-    document.getElementById('single-feed').style.display = 'none';
-    document.getElementById('multi-feed').style.display = 'block';
+    document.getElementById('single-frame').style.display = 'none';
+    document.getElementById('multi-frame').style.display = 'block';
 
   }
 }
@@ -375,10 +375,8 @@ function toggleButtonState(camera, state) {
   var button = document.getElementById(camera);
 
   if (state == "active") {
-    console.log("active");
     button.style.background = "#1daad8";
   } else if (state == "inactive") {
-    console.log("inactive");
     button.style.background = "#fff";
   }
 }
@@ -467,7 +465,7 @@ function chooseMulti(evt, incomingFrames) {
   } 
 
   if (frames.length === 0) {
-    console.warn("Select at least on feed.");
+    console.warn("Select at least one frame.");
     return;
   }
 
@@ -524,7 +522,7 @@ function chooseMulti(evt, incomingFrames) {
 
 
 ////////////////////////////////////////////////////////////////////////
-//////////////////////////// Kinect2 Feeds ////////////////////////////
+//////////////////////////// Kinect2 Frames ////////////////////////////
 
 function startRGB() {
   console.log('starting color camera');
@@ -746,11 +744,11 @@ function toggleImagePreviewWarning(style) {
   } 
 }
 
-function displayCurrentFeeds() {
-  var allFeedDisplay = document.getElementsByClassName('current-feeds');
+function displayCurrentFrames() {
+  var allFrameDisplay = document.getElementsByClassName('current-frames');
   
-  for (var i = 0; i < allFeedDisplay.length; i++) {
-    allFeedDisplay[i].innerHTML = currentFrames;
+  for (var i = 0; i < allFrameDisplay.length; i++) {
+    allFrameDisplay[i].innerHTML = currentFrames;
   }
 }
 
@@ -765,10 +763,9 @@ function startMulti(multiFrames) {
     toggleImagePreviewWarning("block");
   }
 
-  displayCurrentFeeds();
+  displayCurrentFrames();
 
   multiFrame = true;
-
   if(kinect.open()) {
     kinect.on('multiSourceFrame', function(frame) {
       if(busy) {
