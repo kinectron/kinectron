@@ -52,6 +52,7 @@ var currentCamera = null;
 var sendAllBodies = false;
 
 var multiFrame = false;
+var currentFrames = null;
 var sentTime = Date.now();
 
 // Key Tracking needs cleanup
@@ -470,6 +471,9 @@ function chooseMulti(evt, incomingFrames) {
     return;
   }
 
+  // Set global frames variable for use in preview message
+  currentFrames = frames;
+
   // TO DO Simplify the case and result per Shawn 
   for (var i = 0; i < frames.length; i++) {
     var frameName;
@@ -742,6 +746,14 @@ function toggleImagePreviewWarning(style) {
   } 
 }
 
+function displayCurrentFeeds() {
+  var allFeedDisplay = document.getElementsByClassName('current-feeds');
+  
+  for (var i = 0; i < allFeedDisplay.length; i++) {
+    allFeedDisplay[i].innerHTML = currentFrames;
+  }
+}
+
 function startMulti(multiFrames) {
   console.log('starting multi');
 
@@ -752,6 +764,8 @@ function startMulti(multiFrames) {
   if (multiFrame === false) {
     toggleImagePreviewWarning("block");
   }
+
+  displayCurrentFeeds();
 
   multiFrame = true;
 
