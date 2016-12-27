@@ -1,6 +1,7 @@
 var myCanvas = null;
 var context = null;
 var kinectron = null;
+var frames = [];
 
 function setup() {
 	myCanvas = createCanvas(1000,1000);
@@ -16,6 +17,9 @@ function setup() {
 	kinectron.setRGBCallback(rgbCallback);
 	kinectron.setDepthCallback(depthCallback);
 	kinectron.setBodiesCallback(bodyCallback);
+
+	// Set frames wanted from Kinectron 
+	frames = ["color", "depth", "body"];
 }
 
 function draw() {
@@ -24,11 +28,11 @@ function draw() {
 
 function keyPressed() {
 	if (keyCode === ENTER) {
-	 	kinectron.startMultiFrame(["color", "depth", "body"], multiFrameCallback);
+	 	kinectron.startMultiFrame(frames, multiFrameCallback);
 	} 
 
 	if (keyCode === UP_ARROW) {
-	 	kinectron.startMultiFrame(["color", "depth", "body"]);
+	 	kinectron.startMultiFrame(frames);
 	} 
  }
 
@@ -61,19 +65,14 @@ function bodyCallback(body) {
 
 function bodyTracked(body) {
 
-	//draw joints in tracked bodies 
-  context.fillStyle = '#000000';
+	context.fillStyle = '#000000';
   context.fillRect(0, 0, 330, 273.2);
 
-  // kinectron.getJoints(drawJoint); 
-  // kinectron.getHands(drawHands);
-
+	//draw joints in tracked bodies 
   for(var jointType in body.joints) {
 	  var joint = body.joints[jointType];
 	  context.fillStyle = '#ff0000';
-	  //context.fillRect(joint.depthX * canvas.width, joint.depthY * canvas.height, 10, 10);
-	  context.fillRect(joint.depthX * 330, joint.depthY * 273.2, 10, 10);
-	  
+	  context.fillRect(joint.depthX * 330, joint.depthY * 273.2, 10, 10);  
 	}
 }
 
