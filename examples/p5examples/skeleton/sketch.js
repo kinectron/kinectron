@@ -19,7 +19,8 @@ function setup() {
   noStroke();
 
   // Define and create an instance of kinectron
-  kinectron = new Kinectron("192.168.1.7");
+  var yourKinectronIpAdress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  kinectron = new Kinectron(yourKinectronIpAdress);
 
   // CONNECT TO MIRCROSTUDIO
   //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");

@@ -10,10 +10,17 @@ function setup() {
 	//console.log(myCanvas.drawingContext);
 	background(255);
 
-	// Enter peer credentials provided by Kinectron 
-	kinectron = new Kinectron();
-	kinectron.makeConnection();
+  // Define and create an instance of kinectron
+  var yourKinectronIpAdress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  kinectron = new Kinectron(yourKinectronIpAdress);
 
+  // CONNECT TO MIRCROSTUDIO
+  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
+
+  // Connect with application over peer
+  kinectron.makeConnection();
+
+  // Set individual frame callbacks
 	kinectron.setRGBCallback(rgbCallback);
 	kinectron.setDepthCallback(depthCallback);
 	kinectron.setBodiesCallback(bodyCallback);
@@ -28,10 +35,12 @@ function draw() {
 
 function keyPressed() {
 	if (keyCode === ENTER) {
+		// Start multiframe with a dedicated multiframe callback
 	 	kinectron.startMultiFrame(frames, multiFrameCallback);
 	} 
 
 	if (keyCode === UP_ARROW) {
+		// Start multiframe using individual frame callbacks
 	 	kinectron.startMultiFrame(frames);
 	} 
  }
