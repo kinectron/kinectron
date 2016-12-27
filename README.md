@@ -28,12 +28,39 @@ Navigate to Settings > Network & Internet > Windows Firewall > Allow an app or f
 
 ### Using the Application Interface
 
-#### The Peer Server
+#### Choosing A Frame
+Kinectron supports broadcasting one frame or multiple frames at the same time. 
+
+##### Single Frame
+Kinectron starts by default in single frame mode. 
+
+To start a frame, click the corresponding button. The frame will start automatically. If you click a different button, Kinectron will automatically stop the current frame and begin the new frame. 
+
+-"Color" returns a jpeg of the color camera.  
+-"Depth" returns a jpeg of the depth camera.  
+-"Skeleton (Tracked Bodies)" returns all tracked bodies one at a time. It does not differentiate between tracked bodies. For troubleshooting, Kinectron by default will draw the tracked bodies on the application interface, however, only the body data is sent over the peer connection.  
+-"All Bodies" returns an array of all six bodies, tracked or not tracked. For troubleshooting, Kinectron by default will draw the tracked bodies on the application interface, however, only the data is sent over the peer connection. 
+-"Infrared" returns a jpeg of the infrared camera.  
+-"Long Exposure Infrared" returns a longer exposure jpeg of the infrared camera.
+-"Key" returns a png of the image of the tracked bodies on a transparent background. It has the effect of a green screen.  
+-"Stop All" stops the current frame.
+
+##### Multiframe
+Multiframe broadcasts several frames simultaneously in a single feed. Click the "Multiframe" button to start multiframe mode. 
+
+Select the checkboxes for the desired frames, then click "Start Multiframe." Click "Stop Multiframe" to end multiframe broadcast.  
+
+Available frames correspond to the frames listed under Single Frame. Only color, depth and body are currently available under multiframe. 
+
+Running multiple frames at once may impact the speed of your broadcast, depending on the system you are running on and the speed of your network.  
+
+#### Advanced Options
+##### Peer Server
 Kinectron uses a peer server to transfer Kinect2 data to the browser. The peer server can be accessed in three ways: 
 
 1. Connect on localhost. By default the application creates a peer connection using peer.js on localhost at port 9001 with "kinectron" as username. This is used to connect on the same computer.
 
-2. Connect on local network. Kinectron displays the local IP address, along with peer ID and port number. These can be used in the client-side API to connect over your local wifi network. See "Creating an Instance of Kinectron." 
+2. Connect on local network. Kinectron displays the local IP address at the top of the application. This can be used in the client-side API to connect over your local wifi network. See "Creating an Instance of Kinectron" below. 
 
 3. Connect on personal peer network. Use your own peer server by entering and submitting your ID and server details as follows: 
 
@@ -43,7 +70,7 @@ Kinectron uses a peer server to transfer Kinect2 data to the browser. The peer s
 
 	**Important!** In order to parse correctly, server details must be enclosed within curly brackets and properties must be in double quotes.   
 
-#### Set Image Size
+##### Set Image Size
 The Kinectron application displays two images: the feed from the Kinect2 and the image for output over the peer connection. 
 
 The native dimensions of the Kinect2 feeds are: 
@@ -55,20 +82,6 @@ Kinectron outputs them at the following dimensions by default:
 	Depth: 512 x 424
 
 Change the Kinectron output dimensions by entering the desired width or height and clicking "Submit." 
-
-#### Choose a Feed
-Kinectron currently supports sending only one feed. (Multifeed support coming very soon!)
-
-To start a feed, click the corresponding button. The feed will start automatically. If you click a different button, Kinectron will automatically stop the current feed and begin the new feed. Clicking the same button twice starts, then stops, that feed.
-
--"Color" returns a jpeg of the color camera.  
--"Depth" returns a jpeg of the depth camera.  
--"Skeleton (Tracked Bodies)" returns all tracked bodies one at a time. It does not differentiate between tracked bodies. For troubleshooting, Kinectron by default will draw the tracked bodies on the application interface, however, only the data is sent over the peer connection.  
--"All Bodies" returns an array of all six bodies, tracked or not tracked. For troubleshooting, Kinectron by default will draw the tracked bodies on the application interface, however, only the data is sent over the peer connection. 
--"Infrared" returns a jpeg of the infrared camera.  
--"Long Exposure Infrared" returns a longer exposure png of the infrared camera.  
--"Key" returns a png of the image of the tracked bodies on a transparent background.  
--"Stop All" stops all feeds. 
 
 ## Using the Client-side API
 Include the library in the head of your document. 
@@ -87,20 +100,20 @@ Kinectron uses a peer server to transfer Kinect data to the browser. The peer se
 	```
 2. Connect to local network. To work with the Kinect2 data on a different computer that is on the same local network as the computer running the Kinectron application, enter the IP address displayed by the application on start.
 	
-		```
-		var kinectron = new Kinectron("172.16.242.138");
-		```
+	```
+	var kinectron = new Kinectron("172.16.242.138");
+	```
 
 3. Connect to personal peer network. Use your own peer server by entering your ID and server details as follows: 
 
-		```
-		var kinectron = new Kinectron("myusername", {  // enter the username to connect to
-			"host": "myserver.com", // your personal peer server
-			"port": "9001", // your portnumber
-			"path": "/", // your path
-			"secure": "true" // include parameters per peer.js documentation 
-		});
-		```
+	```
+	var kinectron = new Kinectron("myusername", {  // enter the username to connect to
+		"host": "myserver.com", // your personal peer server
+		"port": "9001", // your portnumber
+		"path": "/", // your path
+		"secure": "true" // include parameters per peer.js documentation 
+	});
+	```
 
 	**Important!** In order to parse correctly, server details must be enclosed within curly brackets and properties must be within double quotes.   
 
@@ -111,9 +124,9 @@ Connect over the peer network.
 kinectron.makeConnection();
 ```
 
-### Request A Feed
+### Request A Frame
 
-Request a feed from the application using the start function for the desired feed. Each start function optionally takes a callback. See descriptions of the return of each feed under "Choosing a Feed."
+Request a frame from the application using the start function for the desired frame. Each start function optionally takes a callback. See descriptions of the return of each frame under "Choosing A Frame."
 
 ```
 kinectron.startRGB(myCallback);
@@ -128,7 +141,7 @@ kinectron.startKey(myCallback);
 
 ### Set Callbacks 
 
-Callbacks on the feeds can be set either as an argument on the start function (see "Request A Feed") or with the set callback function. Kinectron will use the most recently declared callback. 
+Callbacks on the frames can be set either as an argument on the start function (see "Request A Frame") or with the set callback function. Kinectron will use the most recently declared callback. 
 
 ```
 kinectron.setRGBCallback(myCallback);
@@ -139,6 +152,53 @@ kinectron.setInfraredCallback(myCallback);
 kinectron.setLeInfraredCallback(myCallback);
 kinectron.setKeyCallback(myCallback);
 ```
+
+### Requesting Multiple Frames
+
+Use the start multiframe function to request multiple frames in the same broadcast feed. The function takes two arguments. 
+
+The first argument is an array with the names of the desired frames. Frame names are case sensitive, must be spelled correctly, and must be contained in quotes. The following frames are currently available: 'color', 'depth', and 'body'.
+
+The second argument is an optional callback. If the callback is included, it will be executed on all the data that is being broadcast. If the callback is not set, the callback set for each frame will be called. 
+
+Example with multiframe callback set. 
+```
+ 	kinectron.startMultiFrame(["color", "depth", "body"], multiFrameCallback);
+ 
+ 	// Frames are delivered together in one object to the multiFrame callback
+ 	function multiFrameCallback(data) {
+		drawKinectronImage(data.color);
+		drawKinectronImage(data.depth);
+		drawKinectronSkeleton(data.body);
+	}
+
+``` 
+
+Example with individual callbacks set. 
+
+```
+	kinectron.setRGBCallback(colorCallback);
+	kinectron.setDepthCallback(depthCallback);
+	kinectron.setBodiesCallback(bodyCallback);
+
+	kinectron.startMultiFrame(["color", "depth", "body"]);
+
+	// Frames are delivered individually to their respective callbacks
+
+	colorCallback(colorImg) {
+		//process color frame here
+	}
+
+	depthCallback(depthImg) {
+		//process depth frame here
+	}
+
+	bodyCallback(body) {
+		//process body object here
+	}
+
+```
+
 
 ### Accessing Individual Joints
 
@@ -194,8 +254,8 @@ function bodyTracked(body) {
 }
 ```
 
-### Stop Feeds 
-Stop all feeds with the stop all function. 
+### Stop Feed 
+Stop the feed with the stop all function. 
 
 ```
 kinectron.stopAll();

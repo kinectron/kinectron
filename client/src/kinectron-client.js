@@ -11,7 +11,7 @@ Kinectron = function(arg1, arg2) {
 
   this.rgbCallback = null;
   this.depthCallback = null;
-  //this.rawDepthCallback = null;
+  this.rawDepthCallback = null;
   this.infraredCallback = null;
   this.leInfraredCallback = null; 
   this.bodiesCallback = null;
@@ -19,6 +19,7 @@ Kinectron = function(arg1, arg2) {
   this.trackedJointCallback = null;
   this.keyCallback = null;
   this.fhCallback = null;
+  this.multiFrameCallBack = null;
 
   // Joint Name Constants
   this.SPINEBASE = 0;
@@ -153,7 +154,7 @@ Kinectron = function(arg1, arg2) {
           this.body = data;
 
           // Check that joint exists
-          // TODO Why does joint come in as 0 when undefined
+          // TO DO Why does joint come in as 0 when undefined
           if (this.jointName && this.trackedJointCallback && this.body.joints[this.jointName] !== 0) {
             var joint = this.body.joints[this.jointName]; 
 
@@ -177,26 +178,36 @@ Kinectron = function(arg1, arg2) {
         //   rawDepthCallback(processedData);
         // break;
 
-        // case 'multiFrame':
-        //   if (data.color) {
-        //     this.img.src = data.color;
-        //     this.rgbCallback(this.img);
-        //   }
+        case 'multiFrame':
+          if (this.multiFrameCallBack) {
+            this.multiFrameCallBack(data);
+          } else {
+            if (data.color) {
+              this.img.src = data.color;
+              this.rgbCallback(this.img);
+            }
 
-        //   if (data.depth) {
-        //     this.img.src = data.depth;
-        //     this.depthCallback(this.img);
-        //   }
+            if (data.depth) {
+              this.img.src = data.depth;
+              this.depthCallback(this.img);
+            }
 
-        //   if (data.body) {
-        //     this.bodyCallback(data.body);
-        //   }
+            if (data.body) {
+              this.bodiesCallback(data.body);
+            }
 
-        //   if (data.rawDepth) {
-        //     processedData = this._processRawDepth(data.rawDepth);
-        //     rawDepthCallback(processedData);
-        //   }
-        // break;
+            // TO DO Rawdepth currently returns image, should return number
+            if (data.rawDepth) {
+              this.img.src = data.rawDepth;
+              this.rawDepthCallback(this.img);
+            }
+
+            // if (data.rawDepth) {
+            //   processedData = this._processRawDepth(data.rawDepth);
+            //   rawDepthCallback(processedData);
+            // }
+          }
+        break;
       }
     }.bind(this));
   };
@@ -216,6 +227,15 @@ Kinectron = function(arg1, arg2) {
 
     this._setFeed('depth');
   };
+
+  this.startRawDepth = function(callback) {
+    if (callback) {
+      this.rawDepthCallback = callback;  
+    } 
+
+    this._setFeed('raw-depth');
+  };
+
 
   this.startInfrared = function(callback) {
     if (callback) {
@@ -263,10 +283,15 @@ Kinectron = function(arg1, arg2) {
     this._setFeed('skeleton');
   };
 
-  // this.startMultiFrame = function(frames) {
-      //if (callback) { this._sendToPeer('multi', frames); }
-  //   
-  // };
+  this.startMultiFrame = function(frames, callback) {
+    if (typeof callback !== "undefined") {
+      this.multiFrameCallBack = callback;
+    } else if (typeof callback == "undefined") {
+      this.multiFrameCallBack = null;
+    }
+
+    this._sendToPeer('multi', frames);     
+  };
 
   this.startKey = function(callback) {
     if (callback) {
@@ -303,9 +328,9 @@ Kinectron = function(arg1, arg2) {
     this.depthCallback = callback;
   };
 
-  // this.setRawDepthCallback = function(callback) {
-  //   this.rawDepthCallback = callback;
-  // };
+  this.setRawDepthCallback = function(callback) {
+    this.rawDepthCallback = callback;
+  };
 
   this.setInfraredCallback = function(callback) {
     this.infraredCallback = callback;  
@@ -384,7 +409,7 @@ Kinectron = function(arg1, arg2) {
     connection.send(dataToSend);
   };
 
-  // Choose callbak for image-based frames
+  // Choose callback for image-based frames
   this._chooseCallback = function(frame) {
     switch (frame) {
       case 'color':
@@ -405,6 +430,10 @@ Kinectron = function(arg1, arg2) {
 
       case 'key':
         this.keyCallback(this.img);
+      break;
+
+      case 'rawDepth':
+        this.rawDepthCallback(this.img);
       break;
     }
   };

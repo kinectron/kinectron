@@ -52,6 +52,7 @@ var currentCamera = null;
 var sendAllBodies = false;
 
 var multiFrame = false;
+var currentFrames = null;
 var sentTime = Date.now();
 
 // Key Tracking needs cleanup
@@ -88,6 +89,8 @@ function init() {
 
   document.getElementById('peersubmit').addEventListener('click', newPeerServer);
   //document.getElementById('loadfile').addEventListener('change', loadFile);
+  document.getElementById('single-frame-btn').addEventListener('click', toggleFrameType);
+  document.getElementById('multi-frame-btn').addEventListener('click', toggleFrameType);
   document.getElementById('colorwidth').addEventListener('change', updateDimFields);
   document.getElementById('colorheight').addEventListener('change', updateDimFields);
   document.getElementById('depthwidth').addEventListener('change', updateDimFields);
@@ -96,7 +99,7 @@ function init() {
   document.getElementById('depthsubmit').addEventListener('click', setOutputDimensions);
   document.getElementById('rgb').addEventListener('click', chooseCamera);
   document.getElementById('depth').addEventListener('click', chooseCamera);
-  //document.getElementById('raw-depth').addEventListener('click', chooseCamera);
+  // document.getElementById('raw-depth').addEventListener('click', chooseCamera);
   document.getElementById('infrared').addEventListener('click', chooseCamera);
   document.getElementById('le-infrared').addEventListener('click', chooseCamera);
   document.getElementById('key').addEventListener('click', chooseCamera);
@@ -105,8 +108,45 @@ function init() {
   document.getElementById('body').addEventListener('click', chooseCamera);  
   document.getElementById('skeleton').addEventListener('click', chooseCamera);
   document.getElementById('stop-all').addEventListener('click', chooseCamera);
-  //document.getElementById('multi').addEventListener('click', chooseMulti);
-  //document.getElementById('stop-multi').addEventListener('click', stopMulti);
+  document.getElementById('multi').addEventListener('click', chooseMulti);
+  document.getElementById('stop-multi').addEventListener('click', stopMulti);
+  document.getElementById('advanced-link').addEventListener('click', toggleAdvancedOptions);
+
+}
+
+function toggleFrameType(evt) {
+  evt.preventDefault();
+  var button = evt.srcElement;
+  var state = button.id;
+
+  if (state == "single-frame-btn") {
+    button.style.background = "#1daad8";
+    document.getElementById('multi-frame-btn').style.background = "#fff";
+
+    document.getElementById('single-frame').style.display = 'block';
+    document.getElementById('multi-frame').style.display = 'none';
+
+  } else if (state == "multi-frame-btn") {
+    button.style.background = "#1daad8";
+    document.getElementById('single-frame-btn').style.background = "#fff";
+
+    document.getElementById('single-frame').style.display = 'none';
+    document.getElementById('multi-frame').style.display = 'block';
+
+  }
+}
+
+function toggleAdvancedOptions(evt) {
+  evt.preventDefault();
+
+  var advOptions = document.getElementById('advanced-options');
+  advOptions.style.display = advOptions.style.display == "block" ? "none" : "block";
+
+  var advLink = document.getElementById('advanced-link');
+  var hide = "<a id=\"advanced-link\" href=\"#\">Hide Advanced Options</a>";
+  var show = "<a id=\"advanced-link\" href=\"#\">Show Advanced Options</a>";
+  advLink.innerHTML = advLink.innerHTML == hide ? show : hide;
+
 }
 
 function getIpAddress() {
@@ -299,18 +339,45 @@ function chooseCamera(evt, feed) {
     camera = feed;
   }
 
+  if (currentCamera === null) {
+    console.log("its null");
+    toggleImagePreviewWarning("none");
+  }
+
+  // Turn off multiframe if it is running
+  if (multiFrame) {
+    stopMulti();
+  }
+
   if (currentCamera == camera) {
     return;
   } else if (camera == 'stop-all') {
-    changeCameraState(currentCamera, 'stop');
-    currentCamera = null;
-    return;
+    if (currentCamera) {
+      changeCameraState(currentCamera, 'stop');
+      toggleButtonState(currentCamera, 'inactive');
+      currentCamera = null;
+      return;
+    } else {
+      return;
+    }
   } else {
     if (currentCamera) {
       changeCameraState(currentCamera, 'stop');
+      toggleButtonState(currentCamera, 'inactive');
     } 
     changeCameraState(camera, 'start');
+    toggleButtonState(camera, 'active');
     currentCamera = camera;
+  }
+}
+
+function toggleButtonState(camera, state) {
+  var button = document.getElementById(camera);
+
+  if (state == "active") {
+    button.style.background = "#1daad8";
+  } else if (state == "inactive") {
+    button.style.background = "#fff";
   }
 }
 
@@ -374,6 +441,11 @@ function chooseMulti(evt, incomingFrames) {
   if (evt) {
     evt.preventDefault();
   }
+
+  // if single feed running, stop the feed
+  if (currentCamera) { 
+    chooseCamera(null, 'stop-all');
+  }
   
   var temp;
   var frames = [];
@@ -383,11 +455,24 @@ function chooseMulti(evt, incomingFrames) {
   if (incomingFrames) {
     frames = incomingFrames;
   } else {
-    temp = document.getElementById('multi-options').value;
-    frames = temp.split(', ');
+    //find which feeds are checked
+    var allCheckBoxes = document.getElementsByClassName('cb-multi');
+    for(var i=0; i < allCheckBoxes.length; i++){
+      if(allCheckBoxes[i].checked){
+        frames.push(allCheckBoxes[i].value);
+      }
+    }
   } 
 
-  // TO DO Simplifyy the case and result per Shawn 
+  if (frames.length === 0) {
+    console.warn("Select at least one frame.");
+    return;
+  }
+
+  // Set global frames variable for use in preview message
+  currentFrames = frames;
+
+  // TO DO Simplify the case and result per Shawn 
   for (var i = 0; i < frames.length; i++) {
     var frameName;
     var tempName;
@@ -419,7 +504,7 @@ function chooseMulti(evt, incomingFrames) {
         multiFrames.push(Kinect2.FrameType.depthColor);
       break;
 
-      //infrared doesn't appear to be implemented yet
+      //infrared is not implemented for multiframe yet
       // case 'infrared': 
       //    multiFrames.push(Kinect2.FrameType.infrared);
       // break;
@@ -437,7 +522,7 @@ function chooseMulti(evt, incomingFrames) {
 
 
 ////////////////////////////////////////////////////////////////////////
-//////////////////////////// Kinect2 Feeds ////////////////////////////
+//////////////////////////// Kinect2 Frames ////////////////////////////
 
 function startRGB() {
   console.log('starting color camera');
@@ -503,35 +588,34 @@ function stopDepth() {
   busy = false;
 }
 
-// TO DO Does this work? 
-// function startRawDepth() {
-//   console.log("start Raw Depth Camera");
+function startRawDepth() {
+  console.log("start Raw Depth Camera");
 
-//   resetCanvas('raw');
-//   canvasState = 'raw';
-//   setImageData();
+  resetCanvas('raw');
+  canvasState = 'raw';
+  setImageData();
 
-//   if(kinect.open()) {
-//     kinect.on('rawDepth', function(newPixelData){
-//       if(busy) {
-//         return;
-//       }
-//       busy = true;
+  if(kinect.open()) {
+    kinect.on('rawDepthFrame', function(newPixelData){
+      if(busy) {
+        return;
+      }
+      busy = true;
 
-//       processRawDepthBuffer(newPixelData);
-//       drawImageToCanvas('rawDepth', 'png');
-//       busy = false;
-//     });
-//   }
-//   kinect.openRawDepthReader();
-// }
+      processRawDepthBuffer(newPixelData);
+      drawImageToCanvas('rawDepth', 'png');
+      busy = false;
+    });
+  }
+  kinect.openRawDepthReader();
+}
 
-// function stopRawDepth() {
-//   kinect.closeRawDepthReader();
-//   kinect.removeAllListeners();
-//   canvasState = null;
-//   busy = false;
-// }
+function stopRawDepth() {
+  kinect.closeRawDepthReader();
+  kinect.removeAllListeners();
+  canvasState = null;
+  busy = false;
+}
 
 function startInfrared() {
   console.log('starting infrared camera');
@@ -652,14 +736,36 @@ function stopSkeletonTracking() {
 
 }
 
+function toggleImagePreviewWarning(style) {
+  var allWarningDivs = document.getElementsByClassName('multi-warning');
+
+  for (var i = 0; i < allWarningDivs.length; i++) {
+    allWarningDivs[i].style.display = style;
+  } 
+}
+
+function displayCurrentFrames() {
+  var allFrameDisplay = document.getElementsByClassName('current-frames');
+  
+  for (var i = 0; i < allFrameDisplay.length; i++) {
+    allFrameDisplay[i].innerHTML = currentFrames;
+  }
+}
+
 function startMulti(multiFrames) {
   console.log('starting multi');
 
   var options = {frameTypes: multiFrames};
   var multiToSend = {};
 
-  multiFrame = true;
+  // show image preview warning 
+  if (multiFrame === false) {
+    toggleImagePreviewWarning("block");
+  }
 
+  displayCurrentFrames();
+
+  multiFrame = true;
   if(kinect.open()) {
     kinect.on('multiSourceFrame', function(frame) {
       if(busy) {
@@ -733,11 +839,13 @@ function startMulti(multiFrames) {
 }
 
 function stopMulti() {
-  kinect.closeMultiSourceReader();
-  kinect.removeAllListeners();
-  canvasState = null;
-  busy = false;
-  multiFrame = false;
+  if (multiFrame) {
+    kinect.closeMultiSourceReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+    busy = false;
+    multiFrame = false;
+  }
 }
 
 function startKey() {
