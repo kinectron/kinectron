@@ -11,8 +11,8 @@ function setup() {
 	background(255);
 
   // Define and create an instance of kinectron
-  var yourKinectronIpAdress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
-  kinectron = new Kinectron(yourKinectronIpAdress);
+  //var yourKinectronIpAdress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  kinectron = new Kinectron();
 
   // CONNECT TO MIRCROSTUDIO
   //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
@@ -30,7 +30,7 @@ function setup() {
 }
 
 function draw() {
-
+	console.log(frameRate);
 }
 
 function keyPressed() {

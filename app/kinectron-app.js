@@ -599,17 +599,15 @@ function startRawDepth() {
       if(busy) {
         return;
       }
-      var testArray = [];
       busy = true;
+      // var testArray = [];
       // for(var i = 0; i < newPixelData.length; i+=2) {
       //     var depthTest = (newPixelData[i+1] << 8) + newPixelData[i]; //get uint16 data from buffer
       //     testArray.push(depthTest);
       //   }
-      //   console.log(testArray);
-      //   debugger;
-
+      // sendToPeer("rawDepth", testArray);  
       processRawDepthBuffer(newPixelData);
-      drawImageToCanvas('rawDepth', 'png');
+      drawImageToCanvas('rawDepth', 'webp');
       busy = false;
     });
   }
@@ -1159,7 +1157,7 @@ function drawImageToCanvas(frameType, imageType) {
   context.putImageData(imageData, 0, 0);
   outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
   outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
-  outputCanvasData = outputCanvas.toDataURL("image/" + imageType, 0.5);
+  outputCanvasData = outputCanvas.toDataURL("image/" + imageType, .98);
 
   if (multiFrame) {
     return outputCanvasData;

@@ -220,8 +220,10 @@
 	        break;
 
 	        case 'rawDepth':
-	          processedData = this._processRawDepth(data);
-	          rawDepthCallback(processedData);
+	          console.log('got it', data);
+
+	          // processedData = this._processRawDepth(data);
+	          // rawDepthCallback(processedData);
 	        break;
 
 	        case 'multiFrame':

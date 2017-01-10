@@ -22,10 +22,10 @@ app.on('ready', function() {
   // Get width and height of primary display 
   const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
-  mainWindow = new BrowserWindow({width, height});
+  //mainWindow = new BrowserWindow({width, height});
 
   //Use for testing
-  //mainWindow = new BrowserWindow({width:1200, height:800});
+  mainWindow = new BrowserWindow({width:1200, height:800});
 
   // and load the index.html of the app.
   mainWindow.loadURL('file://' + __dirname + '/app/index.html');

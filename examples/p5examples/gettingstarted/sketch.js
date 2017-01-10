@@ -3,13 +3,17 @@ var myCanvas = null;
 // Declare kinectron 
 var kinectron = null;
 
+var frameP;
+
 function setup() {
   myCanvas = createCanvas(500, 500);
   background(0);
 
+  frameP = createP('this is some text');
+
   // Define and create an instance of kinectron
   var yourKinectronIpAdress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
-  kinectron = new Kinectron(yourKinectronIpAdress);
+  kinectron = new Kinectron();
 
   // CONNECT TO MIRCROSTUDIO
   //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
@@ -26,6 +30,11 @@ function setup() {
 
 function draw() {
 
+  var fps = frameRate();
+  fill(0);
+  stroke(0);
+  //text("FPS: " + fps.toFixed(0), 10, height);
+  frameP.html(fps.toFixed(0));
 }
 
 // Choose camera to start based on key pressed
