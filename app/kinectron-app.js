@@ -204,6 +204,7 @@ function initpeer() {
     });
 
     connection.on('data', function(dataReceived) {
+      console.log("receivingsomething", dataReceived);
 
       switch (dataReceived.event) {
         case 'initfeed':
@@ -217,6 +218,7 @@ function initpeer() {
         break;
 
         case 'multi': 
+          console.log("received from peer");
           chooseMulti(null, dataReceived.data);
         break;
       }
@@ -448,6 +450,7 @@ function chooseMulti(evt, incomingFrames) {
     chooseCamera(null, 'stop-all');
   }
   
+  console.log("choose multi");
   var temp;
   var frames = [];
   var multiFrames =[];
@@ -819,7 +822,7 @@ function startMulti(multiFrames) {
   
         newPixelData = frame.rawDepth.buffer;
         processRawDepthBuffer(newPixelData);
-        temp = drawImageToCanvas(null, 'png');
+        temp = drawImageToCanvas(null, 'webp');
         multiToSend.rawDepth = temp;
       }
 

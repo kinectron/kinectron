@@ -30,6 +30,8 @@ var webGLCanvas = null;
 
 
 function mfCallback(dataReceived) {
+  console.log("si", dataReceived);
+  debugger;
   depthColorBuffer = drawBuffer(dataReceived.depthColor, image, colorContext);
   depthBuffer = drawBuffer(dataReceived.rawDepth, image2, depthContext);
 
@@ -67,9 +69,8 @@ window.addEventListener('load', function() {
 
   kinectron = new Kinectron();
   kinectron.makeConnection();
-
-  kinectron.setMultiFrameCallback(mfCallback);
-
+  console.log("hello there");
+  kinectron.startMultiFrame(["rawDepth", "depthColor"], mfCallback);
 
 });
 

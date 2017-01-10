@@ -51,6 +51,10 @@ Kinectron = function(arg1, arg2) {
   // Processing raw depth indicator
   var busy = false;
 
+  // Only send data when connection ready
+  var ready = false;
+  var holdInitFeed = null;
+
   // Peer variables and defaults 
   var peer = null;
   var connection = null;
@@ -135,9 +139,18 @@ Kinectron = function(arg1, arg2) {
       switch (dataReceived.event) {
         // Wait for ready from Kinectron to initialize
         case 'ready':
-          var dataToSend = null;
-          dataToSend = {feed: this.feed};
-          this._sendToPeer('initfeed', dataToSend);         
+          console.log("ready");
+          ready = true;
+
+          if (holdInitFeed) {
+            console.log('sending held data');
+            connection.send(holdInitFeed);
+            holdInitFeed = null;
+          }
+          
+        // var dataToSend = null;
+        // dataToSend = {feed: this.feed};
+        // this._sendToPeer('initfeed', dataToSend);         
         break;
 
         // If image data draw image
@@ -282,8 +295,10 @@ Kinectron = function(arg1, arg2) {
   };
 
   this.startMultiFrame = function(frames, callback) {
+    console.log("client multi started");
     if (typeof callback !== "undefined") {
       this.multiFrameCallBack = callback;
+      console.log("setting mf callback");
     } else if (typeof callback == "undefined") {
       this.multiFrameCallBack = null;
     }
@@ -408,6 +423,15 @@ Kinectron = function(arg1, arg2) {
       event: evt, 
       data: data
     };
+
+    // If connection not ready, wait for connection
+    if (!ready) { 
+      console.log('not ready holding data');
+      holdInitFeed = dataToSend;
+      return;
+    }
+
+    console.log("sending by peer");
     connection.send(dataToSend);
   };
 
