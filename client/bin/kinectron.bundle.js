@@ -94,6 +94,9 @@
 	  this.HANDTIPRIGHT = 23;
 	  this.THUMBRIGHT = 24;
 	  
+	  // Processing raw depth indicator
+	  var busy = false;
+
 	  // Peer variables and defaults 
 	  var peer = null;
 	  var connection = null;
@@ -174,7 +177,6 @@
 	    // Route incoming traffic from Kinectron
 	    connection.on('data', function(dataReceived) {
 	      var data = dataReceived.data;
-	      var processedData;
 	      
 	      switch (dataReceived.event) {
 	        // Wait for ready from Kinectron to initialize
@@ -220,10 +222,8 @@
 	        break;
 
 	        case 'rawDepth':
-	          console.log('got it', data);
-
-	          // processedData = this._processRawDepth(data);
-	          // rawDepthCallback(processedData);
+	          var processedData = this._processRawDepth(data);
+	          this.rawDepthCallback(processedData);
 	        break;
 
 	        case 'multiFrame':
@@ -244,16 +244,10 @@
 	              this.bodiesCallback(data.body);
 	            }
 
-	            // TO DO Rawdepth currently returns image, should return number
 	            if (data.rawDepth) {
-	              this.img.src = data.rawDepth;
-	              this.rawDepthCallback(this.img);
+	              var processedDataMulti = this._processRawDepth(data.rawDepth);
+	              this.rawDepthCallback(processedDataMulti);
 	            }
-
-	            // if (data.rawDepth) {
-	            //   processedData = this._processRawDepth(data.rawDepth);
-	            //   rawDepthCallback(processedData);
-	            // }
 	          }
 	        break;
 
@@ -487,6 +481,7 @@
 	      break;
 
 	      case 'rawDepth':
+
 	        this.rawDepthCallback(this.img);
 	      break;
 	    }
@@ -520,6 +515,8 @@
 
 	  // TO DO -- Confirm output from rawDepth is correct
 	  this._processRawDepth = function(data) {
+	    if (busy) return;
+	    busy = true;
 	    console.log('k');
 	    var imageData;
 	    var depthBuffer;
@@ -531,11 +528,12 @@
 	    imageData = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
 	    depthBuffer = imageData.data;
 
-	    for(var i = 0; i < depthBuffer.length; i+=2) {
+	    for(var i = 0; i < depthBuffer.length; i+=4) {
 	      var depth = (depthBuffer[i+1] << 8) + depthBuffer[i]; //get uint16 data from buffer
 	      processedData.push(depth);
 	    }
 
+	    busy = false;
 	    return processedData;
 	  };
 

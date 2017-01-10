@@ -55,6 +55,8 @@ var multiFrame = false;
 var currentFrames = null;
 var sentTime = Date.now();
 
+var rawDepth = false;
+
 // Key Tracking needs cleanup
 var trackedBodyIndex = -1;
 
@@ -594,6 +596,7 @@ function startRawDepth() {
   canvasState = 'raw';
   setImageData();
 
+  rawDepth = true;
   if(kinect.open()) {
     kinect.on('rawDepthFrame', function(newPixelData){
       if(busy) {
@@ -607,7 +610,9 @@ function startRawDepth() {
       //   }
       // sendToPeer("rawDepth", testArray);  
       processRawDepthBuffer(newPixelData);
-      drawImageToCanvas('rawDepth', 'webp');
+      var rawDepthImg = drawImageToCanvas('rawDepth', 'webp');
+      sendToPeer('rawDepth', rawDepthImg);
+
       busy = false;
     });
   }
@@ -618,6 +623,7 @@ function stopRawDepth() {
   kinect.closeRawDepthReader();
   kinect.removeAllListeners();
   canvasState = null;
+  rawDepth = false;
   busy = false;
 }
 
@@ -1160,6 +1166,8 @@ function drawImageToCanvas(frameType, imageType) {
   outputCanvasData = outputCanvas.toDataURL("image/" + imageType, .98);
 
   if (multiFrame) {
+    return outputCanvasData;
+  } else if (rawDepth) {
     return outputCanvasData;
   } else {
     packageData(frameType, outputCanvasData);

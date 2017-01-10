@@ -24,7 +24,7 @@ function setup() {
   // Set callbacks
   kinectron.setRGBCallback(drawFeed);
   kinectron.setDepthCallback(drawFeed);
-  kinectron.setRawDepthCallback(drawRawDepthFeed);
+  kinectron.setRawDepthCallback(rawDepthCB);
   kinectron.setInfraredCallback(drawFeed);
 }
 
@@ -59,11 +59,6 @@ function drawFeed(img) {
   });
 }
 
-function drawRawDepthFeed(img) {
-  // Draws feed using p5 load and display image functions  
-  loadImage(img.src, function(loadedImage) {
-    //clear background for png tranparency
-    background(255);
-    image(loadedImage, 0, 0);
-  });
+function rawDepthCB(data) {
+  console.log("yes", data);
 }
