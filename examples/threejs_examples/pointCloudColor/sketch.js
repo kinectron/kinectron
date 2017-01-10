@@ -169,16 +169,21 @@ function pointCloud(depthBuffer, depthColorBuffer) {
     var nDepthMaxDistance = 4500;
     var mapDepthToByte = nDepthMaxDistance / 256;
     var j = 0, k = 0;
+    var arrayTest = [];
 
-    for(var i = 0; i < depthBuffer.length; i+=2) {
+    for(var i = 0; i < depthBuffer.length; i+=4) {
 
-     var depth = (depthBuffer[i+1] << 8) + depthBuffer[i]; //get uint16 data from buffer
-     if(depth <= nDepthMinReliableDistance || depth >= nDepthMaxDistance) depth = Number.MAX_VALUE; //push them far far away so we don't see them
+      var depth = (depthBuffer[i+1] << 8) + depthBuffer[i]; //get uint16 data from buffer
+      arrayTest.push(depth);
+      if(depth <= nDepthMinReliableDistance || depth >= nDepthMaxDistance) depth = Number.MAX_VALUE; //push them far far away so we don't see them
       particles.vertices[j].z = (nDepthMaxDistance - depth) - 2000;
+      //console.log("z", particles.vertices[j].z);
       particles.colors[j].setRGB(depthColorBuffer[k] / 255, depthColorBuffer[k+1] / 255, depthColorBuffer[k+2] / 255);
       j++;
       k+=4;
     }
+    //console.log(arrayTest);
+    //debugger;
     particles.verticesNeedUpdate = true;
     particles.colorsNeedUpdate = true;
     busy = false;

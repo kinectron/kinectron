@@ -31,7 +31,7 @@ var DEPTHWIDTH = 512;
 var DEPTHHEIGHT = 424; 
 
 var RAWWIDTH = 512;
-var RAWHEIGHT = 212;
+var RAWHEIGHT = 424;
 
 var outputColorW = 960;
 var outputColorH = 540;
@@ -40,7 +40,7 @@ var outputDepthW = 512;
 var outputDepthH = 424; 
 
 var OUTPUTRAWW = 512;
-var OUTPUTRAWH = 212; 
+var OUTPUTRAWH = 424; 
 
 var imageData = null;
 var imageDataSize = null;
@@ -596,11 +596,17 @@ function startRawDepth() {
 
   if(kinect.open()) {
     kinect.on('rawDepthFrame', function(newPixelData){
-
       if(busy) {
         return;
       }
+      var testArray = [];
       busy = true;
+      // for(var i = 0; i < newPixelData.length; i+=2) {
+      //     var depthTest = (newPixelData[i+1] << 8) + newPixelData[i]; //get uint16 data from buffer
+      //     testArray.push(depthTest);
+      //   }
+      //   console.log(testArray);
+      //   debugger;
 
       processRawDepthBuffer(newPixelData);
       drawImageToCanvas('rawDepth', 'png');
@@ -849,7 +855,7 @@ function startMulti(multiFrames) {
       // }
 
       //Frame rate limiting
-      if (Date.now() > sentTime + 1000) {
+      if (Date.now() > sentTime + 40) {
         sendToPeer('multiFrame', multiToSend);
         sentTime = Date.now();
       }
@@ -1187,11 +1193,22 @@ function processDepthBuffer(newPixelData){
 
 function processRawDepthBuffer(newPixelData) {
   var j = 0;
-
-  for (var i = 0; i < imageDataSize; i+=1) {
+  for (var i = 0; i < imageDataSize; i+=4) {
     imageDataArray[i] = newPixelData[j];
-    j+=1;
+    imageDataArray[i+1] = newPixelData[j+1];
+    imageDataArray[i+2] = 0;
+    imageDataArray[i+3] = 0xff;
+    j+=2;
   }
+
+
+
+  // var j = 0;
+
+  // for (var i = 0; i < imageDataSize; i+=1) {
+  //   imageDataArray[i] = newPixelData[j];
+  //   j+=1;
+  // }
 
   // outputContext.putImageData(imageData, 0, 0);
   // return outputCanvas.toDataURL();
