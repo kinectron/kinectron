@@ -20,7 +20,7 @@ var renderer, camera, scene, controls;
 
 var particles = new THREE.Geometry();
 var colors = [];
-var numParticles = depthWidth * depthHeight * 2;
+var numParticles = depthWidth * depthHeight;
 
 var busy = false;
 
@@ -39,9 +39,8 @@ var webGLCanvas = null;
 // }
 
 function rdCallback(dataReceived) {
-  //console.log(dataReceived);
-  //debugger;
-  depthBuffer = drawBuffer(dataReceived.src, image2, depthContext);
+  //depthBuffer = drawBuffer(dataReceived.src, image2, depthContext);
+  depthBuffer = dataReceived;
   pointCloud(depthBuffer);
 
 }
@@ -179,9 +178,11 @@ function pointCloud(depthBuffer) {
     var nDepthMaxDistance = 4500;
     var mapDepthToByte = nDepthMaxDistance / 256;
     var j = 0;
+    //console.log(depthBuffer.length, numParticles);
+    //debugger;
 
-    for(var i = 0; i < depthBuffer.length; i+=2) {
-      var depth = (depthBuffer[i+1] << 8) + depthBuffer[i]; //get uint16 data from buffer
+    for(var i = 0; i < depthBuffer.length; i++) {
+      var depth = depthBuffer[i]; //get uint16 data from buffer
       if(depth <= nDepthMinReliableDistance || depth >= nDepthMaxDistance) depth = Number.MAX_VALUE; //push them far far away so we don't see them
       particles.vertices[j].z = (nDepthMaxDistance - depth) - 2000;
       j++;

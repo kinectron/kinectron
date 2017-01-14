@@ -152,7 +152,7 @@
 
 	  hiddenCanvas = document.createElement("canvas");
 	  hiddenCanvas.width = 512;
-	  hiddenCanvas.height = 212;
+	  hiddenCanvas.height = 424;
 	  hiddenContext = hiddenCanvas.getContext("2d");
 	  hiddenImage = document.createElement("img");
 
@@ -238,12 +238,12 @@
 	          // for image 
 	          // console.log(data);
 	          // debugger;
-	          this.img.src = data;
-	          this.rawDepthCallback(this.img);
+	          //this.img.src = data;
+	          //this.rawDepthCallback(this.img);
 	          
 	          // for array
-	          //var processedData = this._processRawDepth(data);
-	          //this.rawDepthCallback(processedData);
+	          var processedData = this._processRawDepth(data);
+	          this.rawDepthCallback(processedData);
 	        break;
 
 	        case 'multiFrame':
@@ -558,7 +558,6 @@
 	  this._processRawDepth = function(data) {
 	    if (busy) return;
 	    busy = true;
-	    console.log('k');
 	    var imageData;
 	    var depthBuffer;
 	    var processedData = [];
