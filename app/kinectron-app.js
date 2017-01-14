@@ -606,15 +606,22 @@ function startRawDepth() {
         return;
       }
       busy = true;
-      // var testArray = [];
+      // var rawDepthArray = [];
       // for(var i = 0; i < newPixelData.length; i+=2) {
-      //     var depthTest = (newPixelData[i+1] << 8) + newPixelData[i]; //get uint16 data from buffer
-      //     testArray.push(depthTest);
+      //     var depth = (newPixelData[i+1] << 8) + newPixelData[i]; //get uint16 data from buffer
+      //     rawDepthArray.push(depth);
       //   }
-      // sendToPeer("rawDepth", testArray);  
+      // sendToPeer("rawDepth", rawDepthArray);  
       processRawDepthBuffer(newPixelData);
       var rawDepthImg = drawImageToCanvas('rawDepth', 'webp');
-      sendToPeer('rawDepth', rawDepthImg);
+      
+      //sendToPeer('rawDepth', rawDepthImg);
+
+      if (Date.now() > sentTime + 40) {
+        sendToPeer('rawDepth', rawDepthImg);
+      sentTime = Date.now();
+      }
+      
 
       busy = false;
     });
@@ -862,7 +869,7 @@ function startMulti(multiFrames) {
       // }
 
       //Frame rate limiting
-      if (Date.now() > sentTime + 40) {
+      if (Date.now() > sentTime + 5000) {
         sendToPeer('multiFrame', multiToSend);
         sentTime = Date.now();
       }
@@ -1166,7 +1173,7 @@ function drawImageToCanvas(frameType, imageType) {
   context.putImageData(imageData, 0, 0);
   outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
   outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
-  outputCanvasData = outputCanvas.toDataURL("image/" + imageType, .98);
+  outputCanvasData = outputCanvas.toDataURL("image/" + imageType, 1);
 
   if (multiFrame) {
     return outputCanvasData;

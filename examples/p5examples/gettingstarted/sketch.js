@@ -24,7 +24,7 @@ function setup() {
   // Set callbacks
   kinectron.setRGBCallback(drawFeed);
   kinectron.setDepthCallback(drawFeed);
-  kinectron.setRawDepthCallback(rawDepthCB);
+  kinectron.setRawDepthCallback(drawFeed);
   kinectron.setInfraredCallback(drawFeed);
 }
 

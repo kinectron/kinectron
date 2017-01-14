@@ -235,13 +235,28 @@
 	        break;
 
 	        case 'rawDepth':
-	          var processedData = this._processRawDepth(data);
-	          this.rawDepthCallback(processedData);
+	          // for image 
+	          // console.log(data);
+	          // debugger;
+	          this.img.src = data;
+	          this.rawDepthCallback(this.img);
+	          
+	          // for array
+	          //var processedData = this._processRawDepth(data);
+	          //this.rawDepthCallback(processedData);
 	        break;
 
 	        case 'multiFrame':
+	          // if (data.rawDepth) {
+	          //   var processedRawDepthData = this._processRawDepth(data.rawDepth);
+	          //   data.rawDepth = processedRawDepthData;
+	          //  }
+
 	          if (this.multiFrameCallBack) {
+	            //console.log(data);
+	            //debugger;
 	            this.multiFrameCallBack(data);
+
 	          } else {
 	            if (data.color) {
 	              this.img.src = data.color;
@@ -258,8 +273,11 @@
 	            }
 
 	            if (data.rawDepth) {
-	              var processedDataMulti = this._processRawDepth(data.rawDepth);
-	              this.rawDepthCallback(processedDataMulti);
+	              //var processedDataMulti = this._processRawDepth(data.rawDepth);
+	              //this.rawDepthCallback(data.rawDepth);
+	             this.img.src = data;
+	             this.rawDepthCallback(this.img);
+	          
 	            }
 	          }
 	        break;
@@ -505,7 +523,6 @@
 	      break;
 
 	      case 'rawDepth':
-
 	        this.rawDepthCallback(this.img);
 	      break;
 	    }

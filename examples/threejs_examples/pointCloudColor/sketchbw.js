@@ -29,12 +29,20 @@ var colorRenderer = null;
 var webGLCanvas = null;
 
 
-function mfCallback(dataReceived) {
-  depthColorBuffer = drawBuffer(dataReceived.depthColor, image, colorContext);
-  depthBuffer = drawBuffer(dataReceived.rawDepth, image2, depthContext);
-  //depthBuffer = dataReceived.rawDepth;
+// function mfCallback(dataReceived) {
+//   depthColorBuffer = drawBuffer(dataReceived.depthColor, image, colorContext);
+//   depthBuffer = drawBuffer(dataReceived.rawDepth, image2, depthContext);
+//   //depthBuffer = dataReceived.rawDepth;
 
-  pointCloud(depthBuffer, depthColorBuffer);
+//   pointCloud(depthBuffer, depthColorBuffer);
+
+// }
+
+function rdCallback(dataReceived) {
+  //console.log(dataReceived);
+  //debugger;
+  depthBuffer = drawBuffer(dataReceived.src, image2, depthContext);
+  pointCloud(depthBuffer);
 
 }
 
@@ -68,8 +76,9 @@ window.addEventListener('load', function() {
 
   kinectron = new Kinectron();
   kinectron.makeConnection();
-  console.log("hello there");
-  kinectron.startMultiFrame(["rawDepth", "depthColor"], mfCallback);
+  //console.log("hello there");
+  //kinectron.startMultiFrame(["rawDepth", "depthColor"], mfCallback);
+  kinectron.startRawDepth(rdCallback);
 
 });
 
@@ -113,7 +122,7 @@ function createParticles() {
     var y = depthHeight - Math.floor(i / depthWidth);
     var vertex = new THREE.Vector3(x, y, Math.random());
     particles.vertices.push(vertex);
-    colors[i] = new THREE.Color(0xffffff);
+    colors[i] = new THREE.Color(0x000000);
   }
   particles.colors = colors;
   var material = new THREE.PointCloudMaterial( { size: 3, vertexColors: THREE.VertexColors, transparent: true } );
@@ -160,7 +169,7 @@ function initPointCloud(){
   //busy = false;
 }
 
-function pointCloud(depthBuffer, depthColorBuffer) {
+function pointCloud(depthBuffer) {
     if(busy) {
       return;
     }
@@ -169,25 +178,15 @@ function pointCloud(depthBuffer, depthColorBuffer) {
     var nDepthMinReliableDistance = 500;
     var nDepthMaxDistance = 4500;
     var mapDepthToByte = nDepthMaxDistance / 256;
-    var j = 0, k = 0;
-    //var arrayTest = [];
-    //console.log(depthBuffer.length, particles.vertices.length);
-    //debugger;
+    var j = 0;
 
-    for(var i = 0; i < depthBuffer.length; i+=4) {
-
+    for(var i = 0; i < depthBuffer.length; i+=2) {
       var depth = (depthBuffer[i+1] << 8) + depthBuffer[i]; //get uint16 data from buffer
-      //arrayTest.push(depth);
       if(depth <= nDepthMinReliableDistance || depth >= nDepthMaxDistance) depth = Number.MAX_VALUE; //push them far far away so we don't see them
       particles.vertices[j].z = (nDepthMaxDistance - depth) - 2000;
-      //console.log("z", particles.vertices[j].z);
-      particles.colors[j].setRGB(depthColorBuffer[k] / 255, depthColorBuffer[k+1] / 255, depthColorBuffer[k+2] / 255);
       j++;
-      k+=4;
     }
-    //console.log(arrayTest);
-    //debugger;
     particles.verticesNeedUpdate = true;
-    particles.colorsNeedUpdate = true;
+    //particles.colorsNeedUpdate = true;
     busy = false;
 }
