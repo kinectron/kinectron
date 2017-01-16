@@ -49,7 +49,6 @@ function rgbCallback(img) {
 	loadImage(img.src, function(loadedImage) {
     image(loadedImage, 0, 273.2, 660, 370);
   });
-
 }
 
 function depthCallback(img) {
@@ -58,12 +57,7 @@ function depthCallback(img) {
   });
 }
 
-// function rawDepthCallback(data) {
-// 	//console.log('raw', data);
-// }
-
 function bodyCallback(body) {
-
 	//find tracked bodies
 	for (var i = 0; i < body.length; i++) {
 		if (body[i].tracked === true) {
