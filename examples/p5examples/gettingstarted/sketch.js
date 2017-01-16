@@ -44,8 +44,6 @@ function keyPressed() {
     kinectron.startDepth();
   } else if (keyCode === DOWN_ARROW) {
     kinectron.startInfrared();
-  } else if (keyCode === LEFT_ARROW) {
-    kinectron.startRawDepth();
   } else if (keyCode === RIGHT_ARROW) {
     kinectron.stopAll();
   }
@@ -56,8 +54,4 @@ function drawFeed(img) {
   loadImage(img.src, function(loadedImage) {
     image(loadedImage, 0, 0);
   });
-}
-
-function rawDepthCB(data) {
-  console.log("yes", data);
 }
