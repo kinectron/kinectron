@@ -124,7 +124,7 @@ Kinectron = function(arg1, arg2) {
             connection.send(holdInitFeed);
             holdInitFeed = null;
           }
-
+          
         break;
 
         // If image data draw image

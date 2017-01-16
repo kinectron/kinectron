@@ -82,8 +82,8 @@ function createParticles() {
 
   // Add point cloud to scene
   particles.colors = colors;
-  var material = new THREE.PointCloudMaterial( { size: 1, vertexColors: THREE.VertexColors, transparent: true } );
-  mesh = new THREE.PointCloud(particles, material);
+  var material = new THREE.PointsMaterial( { size: 1, vertexColors: THREE.VertexColors, transparent: true } );
+  mesh = new THREE.Points(particles, material);
   scene.add(mesh);
 }
 

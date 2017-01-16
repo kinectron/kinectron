@@ -170,7 +170,7 @@
 	            connection.send(holdInitFeed);
 	            holdInitFeed = null;
 	          }
-
+	          
 	        break;
 
 	        // If image data draw image
