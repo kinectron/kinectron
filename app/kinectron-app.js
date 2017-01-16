@@ -602,7 +602,7 @@ function startRawDepth() {
       busy = true;
      
       processRawDepthBuffer(newPixelData);
-      var rawDepthImg = drawImageToCanvas('rawDepth', 'webp');
+      var rawDepthImg = drawImageToCanvas('rawDepth', 'webp', 1);
 
       // limit raw depth to 25 fps  
       if (Date.now() > sentTime + 40) {
@@ -817,7 +817,7 @@ function startMulti(multiFrames) {
   
         newPixelData = frame.rawDepth.buffer;
         processRawDepthBuffer(newPixelData);
-        temp = drawImageToCanvas(null, 'webp');
+        temp = drawImageToCanvas(null, 'webp', 1);
         multiToSend.rawDepth = temp;
       }
 
@@ -1151,17 +1151,19 @@ function resetCanvas(size) {
       outputCanvas.height = OUTPUTRAWH;
     break;
   }
-  
 }
     
-function drawImageToCanvas(frameType, imageType) {
+function drawImageToCanvas(frameType, imageType, quality) {
   var outputCanvasData;
+  var imageQuality = 0.5;
   var dataToSend;
+
+  if (typeof quality !=="undefined") imageQuality = quality;
 
   context.putImageData(imageData, 0, 0);
   outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
   outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
-  outputCanvasData = outputCanvas.toDataURL("image/" + imageType, 1);
+  outputCanvasData = outputCanvas.toDataURL("image/" + imageType, imageQuality);
 
   if (multiFrame) {
     return outputCanvasData;
