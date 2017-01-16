@@ -97,7 +97,7 @@
 	  // Processing raw depth indicator
 	  var busy = false;
 
-	  // Only send data when connection ready
+	  // Used to hold initital frame request when peer connection ready
 	  var ready = false;
 	  var holdInitFeed = null;
 
@@ -141,15 +141,6 @@
 	  this.img = document.createElement("img");
 	  myDiv.appendChild(this.img);
 
-	  // // Create hidden canvas to draw and process rawDepth
-	  // var hiddenDiv;
-	  // var hiddenCanvas;
-	  // var hiddenContext;
-	  // var hiddenImage;
-	  
-	  //hiddenDiv = document.createElement("div");
-	  //hiddenDiv.style.visibility = "hidden";
-
 	  hiddenCanvas = document.createElement("canvas");
 	  hiddenCanvas.width = 512;
 	  hiddenCanvas.height = 424;
@@ -158,18 +149,6 @@
 
 	  myDiv.appendChild(hiddenCanvas);
 	  myDiv.appendChild(hiddenImage);
-	  // hiddenDiv.appendChild(hiddenCanvas);
-	  // hiddenDiv.appendChild(hiddenImage);
-
-	  // FOR TESTING RAW DEPTH ONLY
-	  // var testCanvas = document.createElement("canvas");
-	  // testCanvas.width = 512;
-	  // testCanvas.height = 424;
-	  // var testContext = testCanvas.getContext("2d");
-	  // var imageData = testContext.createImageData(testCanvas.width, testCanvas.height);
-	  // var imageDataSize = imageData.data.length;
-	  // var imageDataArray = imageData.data;
-
 
 	  // Make peer connection
 	  this.makeConnection = function() {
@@ -185,18 +164,13 @@
 	      switch (dataReceived.event) {
 	        // Wait for ready from Kinectron to initialize
 	        case 'ready':
-	          console.log("ready");
 	          ready = true;
 
 	          if (holdInitFeed) {
-	            console.log('sending held data');
 	            connection.send(holdInitFeed);
 	            holdInitFeed = null;
 	          }
-	          
-	        // var dataToSend = null;
-	        // dataToSend = {feed: this.feed};
-	        // this._sendToPeer('initfeed', dataToSend);         
+
 	        break;
 
 	        // If image data draw image
@@ -235,26 +209,17 @@
 	        break;
 
 	        case 'rawDepth':
-	          // for image 
-	          // console.log(data);
-	          // debugger;
-	          //this.img.src = data;
-	          //this.rawDepthCallback(this.img);
-	          
-	          // for array
 	          var processedData = this._processRawDepth(data);
 	          this.rawDepthCallback(processedData);
 	        break;
 
 	        case 'multiFrame':
-	          // if (data.rawDepth) {
-	          //   var processedRawDepthData = this._processRawDepth(data.rawDepth);
-	          //   data.rawDepth = processedRawDepthData;
-	          //  }
+	          if (data.rawDepth) {
+	            var processedRawDepthData = this._processRawDepth(data.rawDepth);
+	            data.rawDepth = processedRawDepthData;
+	           }
 
 	          if (this.multiFrameCallBack) {
-	            //console.log(data);
-	            //debugger;
 	            this.multiFrameCallBack(data);
 
 	          } else {
@@ -273,12 +238,9 @@
 	            }
 
 	            if (data.rawDepth) {
-	              //var processedDataMulti = this._processRawDepth(data.rawDepth);
-	              //this.rawDepthCallback(data.rawDepth);
-	             this.img.src = data;
-	             this.rawDepthCallback(this.img);
-	          
+	             this.rawDepthCallback(data.rawDepth);
 	            }
+
 	          }
 	        break;
 
@@ -359,10 +321,8 @@
 	  };
 
 	  this.startMultiFrame = function(frames, callback) {
-	    console.log("client multi started");
 	    if (typeof callback !== "undefined") {
 	      this.multiFrameCallBack = callback;
-	      console.log("setting mf callback");
 	    } else if (typeof callback == "undefined") {
 	      this.multiFrameCallBack = null;
 	    }
@@ -446,10 +406,6 @@
 	      jointCallback(joint);
 	    }
 	  };
-
-	  // this.drawFeed = function() {
-	  //   image(this.img, 0, 0);
-	  // };
 	  
 	  this.getHands = function(callback) {
 	    var handCallback = callback;
@@ -490,12 +446,9 @@
 
 	    // If connection not ready, wait for connection
 	    if (!ready) { 
-	      console.log('not ready holding data');
 	      holdInitFeed = dataToSend;
 	      return;
 	    }
-
-	    console.log("sending by peer");
 	    connection.send(dataToSend);
 	  };
 
@@ -521,10 +474,6 @@
 	      case 'key':
 	        this.keyCallback(this.img);
 	      break;
-
-	      case 'rawDepth':
-	        this.rawDepthCallback(this.img);
-	      break;
 	    }
 	  };
 
@@ -533,23 +482,18 @@
 	    switch (handState) {
 	      case 0:
 	        return 'unknown';
-	      break;
 
 	      case 1:
 	        return 'notTracked';
-	      break;
 
 	      case 2:
 	        return 'open';
-	      break;
 
 	      case 3:
 	        return 'closed';
-	      break;
 
 	      case 4:
 	        return 'lasso';
-	      break;
 	    }
 	  };
 
@@ -576,35 +520,6 @@
 	    busy = false;
 	    return processedData;
 	  };
-
-	  // FOR TESTING -- use this to show raw depth image on canvas
-	  // this._rawDepthTest = function(data) {
-	  //   var imageDataTemp;
-	  //   var depthBuffer;
-	  //   var newPixelData;
-	  //   var j = 0;
-
-	  //   hiddenImage.src = data;
-	  //   hiddenContext.clearRect(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
-	  //   hiddenContext.drawImage(hiddenImage, 0, 0);
-	  //   imageDataTemp = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
-	  //   newPixelData = imageDataTemp.data;
-	    
-	  //   for (var k = 0; k < imageDataSize; k+=4) {
-	  //     imageDataArray[k] = newPixelData[j];
-	  //     imageDataArray[k+1] = newPixelData[j+1];
-	  //     imageDataArray[k+2] = 0;
-	  //     imageDataArray[k+3] = 0xff; // set alpha cahannel at full opacity
-	  //     j+=2;
-	  //   }
-
-	  //   testContext.putImageData(imageData, 0, 0);
-	  //   var testCanvasData = testCanvas.toDataURL("image/png", 0.5);
-	  //   this.img.elt.src = testCanvasData;
-	  //   //this.callback(this.img);
-	  // };
-
-
 	};
 
 	})(window);

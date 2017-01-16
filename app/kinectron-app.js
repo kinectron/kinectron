@@ -158,7 +158,6 @@ function getIpAddress() {
     var alias = 0;
 
     ifaces[ifname].forEach(function (iface) {
-     // console.log('iface', iface);
       if ('IPv4' !== iface.family || iface.internal !== false) {
         // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
         return;
@@ -204,8 +203,6 @@ function initpeer() {
     });
 
     connection.on('data', function(dataReceived) {
-      console.log("receivingsomething", dataReceived);
-
       switch (dataReceived.event) {
         case 'initfeed':
           if (dataReceived.data.feed) {
@@ -218,7 +215,6 @@ function initpeer() {
         break;
 
         case 'multi': 
-          console.log("received from peer");
           chooseMulti(null, dataReceived.data);
         break;
       }
@@ -343,7 +339,6 @@ function chooseCamera(evt, feed) {
   }
 
   if (currentCamera === null) {
-    console.log("its null");
     toggleImagePreviewWarning("none");
   }
 
@@ -450,7 +445,6 @@ function chooseMulti(evt, incomingFrames) {
     chooseCamera(null, 'stop-all');
   }
   
-  console.log("choose multi");
   var temp;
   var frames = [];
   var multiFrames =[];
@@ -500,13 +494,13 @@ function chooseMulti(evt, incomingFrames) {
         multiFrames.push(Kinect2.FrameType.rawDepth);
       break;
 
-      case 'bodyIndexColor':
-        multiFrames.push(Kinect2.FrameType.bodyIndexColor);
-      break;
+      // case 'bodyIndexColor':
+      //   multiFrames.push(Kinect2.FrameType.bodyIndexColor);
+      // break;
 
-      case 'depthColor':
-        multiFrames.push(Kinect2.FrameType.depthColor);
-      break;
+      // case 'depthColor':
+      //   multiFrames.push(Kinect2.FrameType.depthColor);
+      // break;
 
       //infrared is not implemented for multiframe yet
       // case 'infrared': 
@@ -606,23 +600,16 @@ function startRawDepth() {
         return;
       }
       busy = true;
-      // var rawDepthArray = [];
-      // for(var i = 0; i < newPixelData.length; i+=2) {
-      //     var depth = (newPixelData[i+1] << 8) + newPixelData[i]; //get uint16 data from buffer
-      //     rawDepthArray.push(depth);
-      //   }
-      // sendToPeer("rawDepth", rawDepthArray);  
+     
       processRawDepthBuffer(newPixelData);
       var rawDepthImg = drawImageToCanvas('rawDepth', 'webp');
-      
-      //sendToPeer('rawDepth', rawDepthImg);
 
+      // limit raw depth to 25 fps  
       if (Date.now() > sentTime + 40) {
         sendToPeer('rawDepth', rawDepthImg);
       sentTime = Date.now();
       }
       
-
       busy = false;
     });
   }
@@ -630,6 +617,7 @@ function startRawDepth() {
 }
 
 function stopRawDepth() {
+  console.log("stopping raw depth camera");
   kinect.closeRawDepthReader();
   kinect.removeAllListeners();
   canvasState = null;
@@ -833,17 +821,18 @@ function startMulti(multiFrames) {
         multiToSend.rawDepth = temp;
       }
 
-      if (frame.depthColor) {
-        resetCanvas('depth');
-        canvasState = 'depth';
-        setImageData();
+      // TO DO Integrate into interface  
+      // if (frame.depthColor) {
+      //   resetCanvas('depth');
+      //   canvasState = 'depth';
+      //   setImageData();
 
-        newPixelData = frame.depthColor.buffer;
-        processColorBuffer(newPixelData);
-        temp = drawImageToCanvas(null, 'jpeg');
-        multiToSend.depthColor = temp;
+      //   newPixelData = frame.depthColor.buffer;
+      //   processColorBuffer(newPixelData);
+      //   temp = drawImageToCanvas(null, 'jpeg');
+      //   multiToSend.depthColor = temp;
 
-      }
+      // }
 
       // function drawColorBuffer(imageBuffer) {
       //   if(busy) {
@@ -862,20 +851,19 @@ function startMulti(multiFrames) {
 
 
       // TO DO Implement depthColor and bodyIndexColor -- RGBD?
-      
 
       // Used in greenkey  
       // if (frame.bodyIndexColor) { 
       // }
 
       //Frame rate limiting
-      if (Date.now() > sentTime + 5000) {
-        sendToPeer('multiFrame', multiToSend);
-        sentTime = Date.now();
-      }
+      // if (Date.now() > sentTime + 40) {
+      //   sendToPeer('multiFrame', multiToSend);
+      //   sentTime = Date.now();
+      // }
       
       // No Framerate limiting
-      //sendToPeer('multiFrame', multiToSend);
+      sendToPeer('multiFrame', multiToSend);
 
       busy = false;
 
@@ -1216,18 +1204,6 @@ function processRawDepthBuffer(newPixelData) {
     imageDataArray[i+3] = 0xff;
     j+=2;
   }
-
-
-
-  // var j = 0;
-
-  // for (var i = 0; i < imageDataSize; i+=1) {
-  //   imageDataArray[i] = newPixelData[j];
-  //   j+=1;
-  // }
-
-  // outputContext.putImageData(imageData, 0, 0);
-  // return outputCanvas.toDataURL();
 }
 
 function getClosestBodyIndex(bodies) {
