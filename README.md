@@ -38,6 +38,7 @@ To start a frame, click the corresponding button. The frame will start automatic
 
 -"Color" returns a jpeg of the color camera.  
 -"Depth" returns a jpeg of the depth camera.  
+-"Raw Depth" returns an array of values ranging from 0 - 8191. It displays a lossless webp image in the application for testing and feedback.    
 -"Skeleton (Tracked Bodies)" returns all tracked bodies one at a time. It does not differentiate between tracked bodies. For troubleshooting, Kinectron by default will draw the tracked bodies on the application interface, however, only the body data is sent over the peer connection.  
 -"All Bodies" returns an array of all six bodies, tracked or not tracked. For troubleshooting, Kinectron by default will draw the tracked bodies on the application interface, however, only the data is sent over the peer connection. 
 -"Infrared" returns a jpeg of the infrared camera.  
@@ -50,9 +51,9 @@ Multiframe broadcasts several frames simultaneously in a single feed. Click the 
 
 Select the checkboxes for the desired frames, then click "Start Multiframe." Click "Stop Multiframe" to end multiframe broadcast.  
 
-Available frames correspond to the frames listed under Single Frame. Only color, depth and body are currently available under multiframe. 
+Available frames correspond to the frames listed under Single Frame. Color, depth, raw depth and body are currently available under multiframe. 
 
-Running multiple frames at once may impact the speed of your broadcast, depending on the system you are running on and the speed of your network.  
+Running multiple frames at once may impact the speed of your broadcast depending on the system you are running and the speed of your network.  
 
 #### Advanced Options
 ##### Peer Server
@@ -131,6 +132,7 @@ Request a frame from the application using the start function for the desired fr
 ```
 kinectron.startRGB(myCallback);
 kinectron.startDepth(myCallback);
+kinectron.startRawDepth(myCallback);
 kinectron.startTrackedBodies(myCallback);
 kinectron.startTrackedJoint(kinectron.HANDRIGHT, myCallback); // See "Accessing Joints" below
 kinectron.startBodies(myCallback);
@@ -146,6 +148,7 @@ Callbacks on the frames can be set either as an argument on the start function (
 ```
 kinectron.setRGBCallback(myCallback);
 kinectron.setDepthCallback(myCallback);
+kinectron.setRawDepthCallback(myCallback);
 kinectron.setTrackedBodiesCallback(myCallback);
 kinectron.setBodiesCallback(myCallback);
 kinectron.setInfraredCallback(myCallback);
@@ -157,7 +160,7 @@ kinectron.setKeyCallback(myCallback);
 
 Use the start multiframe function to request multiple frames in the same broadcast feed. The function takes two arguments. 
 
-The first argument is an array with the names of the desired frames. Frame names are case sensitive, must be spelled correctly, and must be contained in quotes. The following frames are currently available: 'color', 'depth', and 'body'.
+The first argument is an array with the names of the desired frames. Frame names are case sensitive, must be spelled correctly, and must be contained in quotes. The following frames are currently available: 'color', 'depth', 'raw-depth', and 'body'.
 
 The second argument is an optional callback. If the callback is included, it will be executed on all the data that is being broadcast. If the callback is not set, the callback set for each frame will be called. 
 
