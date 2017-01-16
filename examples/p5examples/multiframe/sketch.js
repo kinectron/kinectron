@@ -29,10 +29,6 @@ function setup() {
 	frames = ["color", "depth", "body"];
 }
 
-function draw() {
-	console.log(frameRate);
-}
-
 function keyPressed() {
 	if (keyCode === ENTER) {
 		// Start multiframe with a dedicated multiframe callback
@@ -81,5 +77,6 @@ function bodyTracked(body) {
 
 function multiFrameCallback(data) {
 	console.log(data);
+	debugger;
 }
 

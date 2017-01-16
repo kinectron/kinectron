@@ -462,6 +462,8 @@ function chooseMulti(evt, incomingFrames) {
     }
   } 
 
+  console.log(frames);
+
   if (frames.length === 0) {
     console.warn("Select at least one frame.");
     return;
@@ -471,11 +473,11 @@ function chooseMulti(evt, incomingFrames) {
   currentFrames = frames;
 
   // TO DO Simplify the case and result per Shawn 
-  for (var i = 0; i < frames.length; i++) {
+  for (var j = 0; j < frames.length; j++) {
     var frameName;
     var tempName;
 
-    frameName = frames[i];
+    frameName = frames[j];
 
     switch (frameName) {
       case 'color':
@@ -490,7 +492,7 @@ function chooseMulti(evt, incomingFrames) {
         multiFrames.push(Kinect2.FrameType.body);
       break;
       
-      case 'rawDepth':
+      case 'raw-depth':
         multiFrames.push(Kinect2.FrameType.rawDepth);
       break;
 
