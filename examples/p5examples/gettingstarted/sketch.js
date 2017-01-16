@@ -9,13 +9,13 @@ function setup() {
   myCanvas = createCanvas(500, 500);
   background(0);
 
-  frameP = createP('this is some text');
+  frameP = createP('');
 
   // Define and create an instance of kinectron
-  var yourKinectronIpAdress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
-  kinectron = new Kinectron();
+  var kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  kinectron = new Kinectron(kinectronIpAddress);
 
-  // CONNECT TO MIRCROSTUDIO
+  // Connect to the microstudio
   //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
 
   // Connect with application over peer
@@ -24,7 +24,6 @@ function setup() {
   // Set callbacks
   kinectron.setRGBCallback(drawFeed);
   kinectron.setDepthCallback(drawFeed);
-  kinectron.setRawDepthCallback(drawFeed);
   kinectron.setInfraredCallback(drawFeed);
 }
 
@@ -33,7 +32,7 @@ function draw() {
   var fps = frameRate();
   fill(0);
   stroke(0);
-  //text("FPS: " + fps.toFixed(0), 10, height);
+  text("FPS: " + fps.toFixed(0), 10, height);
   frameP.html(fps.toFixed(0));
 }
 

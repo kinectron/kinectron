@@ -26,8 +26,14 @@ window.addEventListener('load', function() {
   // Create point cloud
   initPointCloud();
 
-  // Open Kinectron connection and initiate feed
-  kinectron = new Kinectron();
+  // Define and create an instance of kinectron
+  var kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  kinectron = new Kinectron(kinectronIpAddress);
+
+  // Connect to the microstudio
+  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
+
+  // Connect remote to application
   kinectron.makeConnection();
   kinectron.startRawDepth(rdCallback);
 });
