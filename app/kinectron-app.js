@@ -113,8 +113,95 @@ function init() {
   document.getElementById('multi').addEventListener('click', chooseMulti);
   document.getElementById('stop-multi').addEventListener('click', stopMulti);
   document.getElementById('advanced-link').addEventListener('click', toggleAdvancedOptions);
+  document.getElementById('record').addEventListener('click', record);
+
 
 }
+
+//// SHAWN START
+/* To Do:  Need different canvas for depth frames to record them
+          Need to timestamp body frames?
+          Need to do write out periodically so memory doesn't become issue
+*/
+
+const recordingLocation = os.homedir() + "/kinectron-recordings/";
+
+var doRecord = false;
+var recordStartTime = 0;
+
+var rgbChunks = [];
+//var depthChunks = [];
+var bodyChunks = [];
+var rgbMediaRecorder = null;
+
+// Toggle Recording
+function record() {
+  if (!doRecord) {
+    rgbMediaRecorder = new MediaRecorder(document.getElementById("outputCanvas").captureStream());
+    rgbMediaRecorder.onstop = function (e) {
+
+      // The video as a blob
+      var blob = new Blob(rgbChunks, { 'type' : 'video/webm' });
+
+      // Reset Chunks
+      rgbChunks.length = 0;
+
+      // display the video on the page
+      var video = document.createElement('video');
+      video.controls = true;
+      var videoURL = window.URL.createObjectURL(blob);
+      console.log(videoURL);
+      video.src = videoURL;
+      document.body.appendChild(video)
+
+      var fs = require('fs');
+      try {
+          fs.mkdirSync(recordingLocation);
+      } catch (e) {
+          if (e.code != 'EEXIST') throw e
+      }
+
+      // Write out the body frames JSON
+      var bodyJSON = JSON.stringify(bodyChunks);
+      fs.writeFile(recordingLocation + recordStartTime + ".json", bodyJSON, "utf8", function() {
+        console.log("Wrote body file");
+      });
+      bodyChunks.length = 0;
+
+      // Read the blob as a file
+      var reader = new FileReader();
+      reader.addEventListener('loadend', function(e) {
+        // Create the videoBuffer and write to file
+        var videoBuffer = new Buffer(reader.result);
+
+        // Write it out
+        fs.writeFile(recordingLocation + recordStartTime + ".webm", videoBuffer,  function(err){
+          if (err) console.log(err);
+          console.log("It's saved!")
+        });
+      }, false);
+      reader.readAsArrayBuffer(blob);
+
+    };
+
+    // When video data is available
+    rgbMediaRecorder.ondataavailable = function(e) {
+      rgbChunks.push(e.data);
+    };
+
+    // Start recording
+    rgbMediaRecorder.start();
+    recordStartTime = Date.now();
+    doRecord = true;
+  } else {
+    doRecord = false;
+    rgbMediaRecorder.stop();
+  }
+}
+////  SHAWN END
+
+
+
 
 function toggleFrameType(evt) {
   evt.preventDefault();
@@ -798,6 +885,13 @@ function startMulti(multiFrames) {
       }
 
       if (frame.body) {
+        // SHAWN START
+        if (doRecord) {
+          frame.body.record_startime = recordStartTime;
+          frame.body.record_timestamp = Date.now() - recordStartTime;
+          bodyChunks.push(frame.body);
+        }
+        // SHAWN END
         multiToSend.body = frame.body.bodies;
       }
 
