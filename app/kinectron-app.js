@@ -114,8 +114,6 @@ function init() {
   document.getElementById('stop-multi').addEventListener('click', stopMulti);
   document.getElementById('advanced-link').addEventListener('click', toggleAdvancedOptions);
   document.getElementById('record').addEventListener('click', record);
-
-
 }
 
 //// SHAWN START
@@ -135,8 +133,14 @@ var bodyChunks = [];
 var rgbMediaRecorder = null;
 
 // Toggle Recording
-function record() {
+function record(evt) {
   if (!doRecord) {
+    // If no frame selected, send alert
+    if (currentCamera == null) {
+      alert("Begin broadcast, then begin recording");
+      return;
+    }
+
     rgbMediaRecorder = new MediaRecorder(document.getElementById("outputCanvas").captureStream());
     rgbMediaRecorder.onstop = function (e) {
 
@@ -152,22 +156,24 @@ function record() {
       var videoURL = window.URL.createObjectURL(blob);
       console.log(videoURL);
       video.src = videoURL;
-      document.body.appendChild(video)
+      document.body.appendChild(video);
 
       var fs = require('fs');
       try {
           fs.mkdirSync(recordingLocation);
       } catch (e) {
-          if (e.code != 'EEXIST') throw e
+          if (e.code != 'EEXIST') throw e;
       }
 
-      // Write out the body frames JSON
-      var bodyJSON = JSON.stringify(bodyChunks);
-      fs.writeFile(recordingLocation + recordStartTime + ".json", bodyJSON, "utf8", function() {
-        console.log("Wrote body file");
-      });
-      bodyChunks.length = 0;
-
+      // If skeleton data is being tracked, write out the body frames JSON
+      if (currentCamera == "skeleton" || currentCamera == "body") {
+        var bodyJSON = JSON.stringify(bodyChunks);
+        fs.writeFile(recordingLocation + "TEST"  + recordStartTime + ".json", bodyJSON, "utf8", function() {
+          console.log("Wrote body file");
+        });
+        bodyChunks.length = 0;        
+      }
+      
       // Read the blob as a file
       var reader = new FileReader();
       reader.addEventListener('loadend', function(e) {
@@ -175,9 +181,9 @@ function record() {
         var videoBuffer = new Buffer(reader.result);
 
         // Write it out
-        fs.writeFile(recordingLocation + recordStartTime + ".webm", videoBuffer,  function(err){
+        fs.writeFile(recordingLocation + "TEST" + recordStartTime + ".webm", videoBuffer,  function(err){
           if (err) console.log(err);
-          console.log("It's saved!")
+          console.log("It's saved!");
         });
       }, false);
       reader.readAsArrayBuffer(blob);
@@ -193,8 +199,16 @@ function record() {
     rgbMediaRecorder.start();
     recordStartTime = Date.now();
     doRecord = true;
+
+    // Toggle record button color and text
+    toggleButtonState('record', 'active');
+    evt.srcElement.value = "Stop Record";
   } else {
     doRecord = false;
+
+    // Toggle record button color and text
+    toggleButtonState('record', 'inactive');
+    evt.srcElement.value = "Start Record";
     rgbMediaRecorder.stop();
   }
 }
@@ -417,6 +431,7 @@ function setOutputDimensions(evt) {
 
 function chooseCamera(evt, feed) {
   var camera;
+  console.log(currentCamera);
 
   if (evt) {
     evt.preventDefault();
@@ -456,8 +471,8 @@ function chooseCamera(evt, feed) {
   }
 }
 
-function toggleButtonState(camera, state) {
-  var button = document.getElementById(camera);
+function toggleButtonState(buttonId, state) {
+  var button = document.getElementById(buttonId);
 
   if (state == "active") {
     button.style.background = "#1daad8";
@@ -788,10 +803,20 @@ function startSkeletonTracking() {
   resetCanvas('depth');
   canvasState = 'depth';
 
+
+
   if(kinect.open()) {
     kinect.on('bodyFrame', function(bodyFrame){
+      //console.log(bodyFrame);
       if(sendAllBodies) {
         sendToPeer('bodyFrame', bodyFrame);
+        // SHAWN START
+        if (doRecord) {
+          bodyFrame.record_startime = recordStartTime;
+          bodyFrame.record_timestamp = Date.now() - recordStartTime;
+          bodyChunks.push(bodyFrame);
+        }
+        // SHAWN END
       }
 
       context.clearRect(0, 0, canvas.width, canvas.height);
@@ -801,6 +826,13 @@ function startSkeletonTracking() {
         if(body.tracked) {
           if (!sendAllBodies) {
             sendToPeer('trackedBodyFrame', body);
+            // SHAWN START
+            if (doRecord) {
+              body.record_startime = recordStartTime;
+              body.record_timestamp = Date.now() - recordStartTime;
+              bodyChunks.push(body);
+            }
+            // SHAWN END
           }
           for(var jointType in body.joints) {
             var joint = body.joints[jointType];
