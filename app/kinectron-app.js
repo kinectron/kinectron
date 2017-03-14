@@ -395,32 +395,36 @@ function updateDimFields(evt) {
 }
 
 function setOutputDimensions(evt) {
+  evt.preventDefault();
+
+  if (!currentCanvasId) {
+    alert("Start a feed to resize");
+    return;
+  } 
+
   var element = evt.srcElement;
   var elementId = element.id;
-  
-  evt.preventDefault();
+
+  var currentCanvas = document.getElementById(currentCanvasId);
+  var currentCanvasResolution = (currentCanvas.width / currentCanvas.height).toFixed(1);
 
   switch (elementId) {
     case 'colorsubmit':
-      outputColorW = document.getElementById('colorwidth').value;
-      outputColorH = document.getElementById('colorheight').value;
-
-      if (canvasState == 'color' || canvasState === null) {
-        resetCanvas('color');
+      if (currentCanvasResolution == 1.8) {
+        currentCanvas.width = document.getElementById('colorwidth').value;
+        currentCanvas.height = document.getElementById('colorheight').value;
+      } else {
+        alert("Your feed uses the depth camera. Resize depth instead.");
       }
     break;
 
     case 'depthsubmit':
-      outputDepthW = document.getElementById('depthwidth').value;
-      outputDepthH = document.getElementById('depthheight').value;
-      if (canvasState == 'depth' || canvasState === null) {
-        resetCanvas('depth');
-      }
-    break;
-
-    // Needed?
-    case 'raw':
-      return;
+      if (currentCanvasResolution == 1.2) {
+        currentCanvas.width = document.getElementById('depthwidth').value;
+        currentCanvas.height = document.getElementById('depthheight').value;
+      } else {
+        alert("Your feed uses the color camera. Resize color instead.");
+      } 
     break;
   }
 }
