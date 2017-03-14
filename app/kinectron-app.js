@@ -21,9 +21,6 @@ var canvas = null;
 var context = null;
 var canvasState = null;
 
-// var outputCanvas = null;
-// var outputContext = null;
-
 var COLORWIDTH = 1920;
 var COLORHEIGHT = 1080;
 
@@ -32,15 +29,6 @@ var DEPTHHEIGHT = 424;
 
 var RAWWIDTH = 512;
 var RAWHEIGHT = 424;
-
-// var outputColorW = 960;
-// var outputColorH = 540;
-
-// var outputDepthW = 512;
-// var outputDepthH = 424; 
-
-// var OUTPUTRAWW = 512;
-// var OUTPUTRAWH = 424; 
 
 var imageData = null;
 var imageDataSize = null;
@@ -85,9 +73,6 @@ function init() {
   canvas = document.getElementById('inputCanvas');
   context = canvas.getContext('2d');
 
-  //outputCanvas = document.getElementById('outputCanvas');
-  //outputContext = outputCanvas.getContext('2d');
-
   setImageData();
 
   document.getElementById('peersubmit').addEventListener('click', newPeerServer);
@@ -128,76 +113,36 @@ const recordingLocation = os.homedir() + "/kinectron-recordings/";
 var doRecord = false;
 var recordStartTime = 0;
 
-var rgbChunks = [];
-//var depthChunks = [];
 var bodyChunks = [];
-var rgbMediaRecorder = null;
+
+var mediaRecorders = [];
 
 // Toggle Recording
 function record(evt) {
   if (!doRecord) {
     // If no frame selected, send alert
-    if (currentCamera === null) {
+    if (multiFrame === false && currentCamera === null) {
       alert("Begin broadcast, then begin recording");
       return;
     }
 
-    rgbMediaRecorder = new MediaRecorder(document.getElementById(currentCanvasId).captureStream());
-    rgbMediaRecorder.onstop = function (e) {
+    var framesToRecord = [];
 
-      // The video as a blob
-      var blob = new Blob(rgbChunks, { 'type' : 'video/webm' });
-
-      // Reset Chunks
-      rgbChunks.length = 0;
-
-      // display the video on the page
-      var video = document.createElement('video');
-      video.controls = true;
-      var videoURL = window.URL.createObjectURL(blob);
-      console.log(videoURL);
-      video.src = videoURL;
-      document.body.appendChild(video);
-
-      var fs = require('fs');
-      try {
-          fs.mkdirSync(recordingLocation);
-      } catch (e) {
-          if (e.code != 'EEXIST') throw e;
+    if (multiFrame) {
+      for (var i = 0; i < currentFrames.length; i++) {
+        if (currentFrames[i] == 'body') framesToRecord.push('skeleton');
+        else framesToRecord.push(currentFrames[i]);
       }
+    } else if (currentCamera == 'body') { 
+      framesToRecord.push('skeleton');
+    } else {
+      framesToRecord.push(currentCamera);
+    }
 
-      // If skeleton data is being tracked, write out the body frames JSON
-      if (currentCamera == "skeleton" || currentCamera == "body") {
-        var bodyJSON = JSON.stringify(bodyChunks);
-        fs.writeFile(recordingLocation + "TEST"  + recordStartTime + ".json", bodyJSON, "utf8", function() {
-          console.log("Wrote body file");
-        });
-        bodyChunks.length = 0;        
-      }
-      
-      // Read the blob as a file
-      var reader = new FileReader();
-      reader.addEventListener('loadend', function(e) {
-        // Create the videoBuffer and write to file
-        var videoBuffer = new Buffer(reader.result);
-
-        // Write it out
-        fs.writeFile(recordingLocation + "TEST" + recordStartTime + ".webm", videoBuffer,  function(err){
-          if (err) console.log(err);
-          console.log("It's saved!");
-        });
-      }, false);
-      reader.readAsArrayBuffer(blob);
-
-    };
-
-    // When video data is available
-    rgbMediaRecorder.ondataavailable = function(e) {
-      rgbChunks.push(e.data);
-    };
-
-    // Start recording
-    rgbMediaRecorder.start();
+    for (var j = 0; j < framesToRecord.length; j++) {
+      mediaRecorders.push(createMediaRecorder(framesToRecord[j]));
+    }
+    
     recordStartTime = Date.now();
     doRecord = true;
 
@@ -208,12 +153,77 @@ function record(evt) {
     doRecord = false;
     toggleButtonState('record', 'inactive');
     evt.srcElement.value = "Start Record";
-    rgbMediaRecorder.stop();
+
+    for (var k = mediaRecorders.length - 1; k >= 0; k--) {
+      mediaRecorders[k].stop();  
+      mediaRecorders.splice(k, 1);
+    } 
   }
 }
-////  SHAWN END
 
+function createMediaRecorder(id) {
+  var idToRecord = id + "-canvas";
+  console.log(document.getElementById(idToRecord));
+  var newMediaRecorder = new MediaRecorder(document.getElementById(idToRecord).captureStream());
+  var mediaChunks = [];
 
+  newMediaRecorder.onstop = function (e) {
+
+    // The video as a blob
+    var blob = new Blob(mediaChunks, { 'type' : 'video/webm' });
+
+    // Reset Chunks
+    mediaChunks.length = 0;
+
+    //display the video on the page
+    var video = document.createElement('video'+ Date.now());
+    video.controls = true;
+    var videoURL = window.URL.createObjectURL(blob);
+    console.log(videoURL);
+    video.src = videoURL;
+    document.body.appendChild(video);
+
+    var fs = require('fs');
+    try {
+        fs.mkdirSync(recordingLocation);
+    } catch (e) {
+        if (e.code != 'EEXIST') throw e;
+    }
+
+    // If skeleton data is being tracked, write out the body frames JSON
+    if (id == "skeleton") {
+      var bodyJSON = JSON.stringify(bodyChunks);
+      fs.writeFile(recordingLocation + "TEST"  + "skeleton" + recordStartTime + ".json", bodyJSON, "utf8", function() {
+        console.log("Wrote body file");
+      });
+      bodyChunks.length = 0;        
+    }
+    
+    // Read the blob as a file
+    var reader = new FileReader();
+    reader.addEventListener('loadend', function(e) {
+      // Create the videoBuffer and write to file
+      var videoBuffer = new Buffer(reader.result);
+
+      // Write it out
+      fs.writeFile(recordingLocation + "TEST" + id + recordStartTime + ".webm", videoBuffer,  function(err){
+        if (err) console.log(err);
+        console.log("It's saved!");
+      });
+    }, false);
+    reader.readAsArrayBuffer(blob);
+
+  };
+
+      // When video data is available
+  newMediaRecorder.ondataavailable = function(e) {
+    mediaChunks.push(e.data);
+  };
+
+  // Start recording
+  newMediaRecorder.start();
+  return newMediaRecorder;
+}
 
 
 function toggleFrameType(evt) {
@@ -442,10 +452,6 @@ function chooseCamera(evt, feed) {
     camera = feed;
   }
 
-  // if (currentCamera === null) {
-  //   toggleImagePreviewWarning("none");
-  // }
-
   // Turn off multiframe if it is running
   if (multiFrame) {
     stopMulti();
@@ -509,8 +515,6 @@ function toggleFeedDiv(camera, state) {
     feedDiv.style.display = state;
   }
 
-
-  //currentCanvasId = camera + "-canvas";
 }
 
 function changeCameraState(camera, state) {
@@ -793,7 +797,6 @@ function startInfrared() {
       busy = false;
     });
   }
-
   kinect.openInfraredReader();
 
 }
@@ -854,32 +857,26 @@ function startSkeletonTracking() {
 
   if(kinect.open()) {
     kinect.on('bodyFrame', function(bodyFrame){
-      //console.log(bodyFrame);
       if(sendAllBodies) {
         sendToPeer('bodyFrame', bodyFrame);
-        // SHAWN START
         if (doRecord) {
           bodyFrame.record_startime = recordStartTime;
           bodyFrame.record_timestamp = Date.now() - recordStartTime;
           bodyChunks.push(bodyFrame);
         }
-        // SHAWN END
       }
 
-      //context.clearRect(0, 0, canvas.width, canvas.height);
       skeletonContext.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
       var index = 0;
       bodyFrame.bodies.forEach(function(body){
         if(body.tracked) {
           if (!sendAllBodies) {
             sendToPeer('trackedBodyFrame', body);
-            // SHAWN START
             if (doRecord) {
               body.record_startime = recordStartTime;
               body.record_timestamp = Date.now() - recordStartTime;
               bodyChunks.push(body);
             }
-            // SHAWN END
           }
 
           drawSkeleton(skeletonCanvas, skeletonContext, body, index);
@@ -914,14 +911,6 @@ function stopSkeletonTracking() {
 
 }
 
-// function toggleImagePreviewWarning(style) {
-//   var allWarningDivs = document.getElementsByClassName('multi-warning');
-
-//   for (var i = 0; i < allWarningDivs.length; i++) {
-//     allWarningDivs[i].style.display = style;
-//   } 
-// }
-
 function displayCurrentFrames() {
   var allFrameDisplay = document.getElementsByClassName('current-frames');
   
@@ -935,11 +924,6 @@ function startMulti(multiFrames) {
 
   var options = {frameTypes: multiFrames};
   var multiToSend = {};
-
-  // show image preview warning 
-  // if (multiFrame === false) {
-  //   toggleImagePreviewWarning("block");
-  // }
 
   displayCurrentFrames();
 
@@ -972,16 +956,17 @@ function startMulti(multiFrames) {
       if (frame.body) {
         var skeletonCanvas = document.getElementById('skeleton-canvas');
         var skeletonContext = skeletonCanvas.getContext('2d');
-        // SHAWN START
-        // if (doRecord) {
-        //   frame.body.record_startime = recordStartTime;
-        //   frame.body.record_timestamp = Date.now() - recordStartTime;
-        //   bodyChunks.push(frame.body);
-        // }
+
+        if (doRecord) {
+          frame.body.record_startime = recordStartTime;
+          frame.body.record_timestamp = Date.now() - recordStartTime;
+          bodyChunks.push(frame.body);
+        }
+
         // index used to change colors on draw
         var index = 0;
-        // draw tracked bodies
 
+        // draw tracked bodies
         skeletonContext.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
         frame.body.bodies.forEach(function(body){
           if(body.tracked) {
@@ -990,13 +975,6 @@ function startMulti(multiFrames) {
           }
         });
 
-        // console.log(frame.body);
-        // debugger;
-        //if (frame.body)
-        // SHAWN END
-
-
-        //drawSkeleton(skeletonCanvas, skeletonContext, body, index);
         multiToSend.body = frame.body.bodies;
       }
 
@@ -1084,7 +1062,7 @@ function stopMulti() {
   if (multiFrame) {
     kinect.closeMultiSourceReader();
     kinect.removeAllListeners();
-    toggleFeedDiv('multi', "none");
+    toggleFeedDiv('multi', 'none');
     canvasState = null;
     busy = false;
     multiFrame = false;
@@ -1490,11 +1468,3 @@ function drawHand(context, jointPoint, handColor) {
   context.closePath();
   context.globalAlpha = 1;
 }
-
-
-
-
-
-
-
-
