@@ -100,7 +100,7 @@ function init() {
   document.getElementById('depthheight').addEventListener('change', updateDimFields);
   document.getElementById('colorsubmit').addEventListener('click', setOutputDimensions);
   document.getElementById('depthsubmit').addEventListener('click', setOutputDimensions);
-  document.getElementById('rgb').addEventListener('click', chooseCamera);
+  document.getElementById('color').addEventListener('click', chooseCamera);
   document.getElementById('depth').addEventListener('click', chooseCamera);
   document.getElementById('raw-depth').addEventListener('click', chooseCamera);
   document.getElementById('infrared').addEventListener('click', chooseCamera);
@@ -442,9 +442,9 @@ function chooseCamera(evt, feed) {
     camera = feed;
   }
 
-  if (currentCamera === null) {
-    toggleImagePreviewWarning("none");
-  }
+  // if (currentCamera === null) {
+  //   toggleImagePreviewWarning("none");
+  // }
 
   // Turn off multiframe if it is running
   if (multiFrame) {
@@ -490,14 +490,27 @@ function toggleButtonState(buttonId, state) {
 }
 
 function toggleFeedDiv(camera, state) {
-  if (camera == 'body') camera = 'skeleton';
+  var divsToShow = [];
+  if (camera == 'multi') {
+    for (var i = 0; i < currentFrames.length; i++) {
+      if (currentFrames[i] == 'body') divsToShow.push('skeleton');
+      else divsToShow.push(currentFrames[i]);
+    }
+  } else if (camera == 'body') { 
+    divsToShow.push('skeleton');
+  } else {
+    divsToShow.push(camera);
+  }
 
-  var divId = camera + "-div";
-  var feedDiv = document.getElementById(divId);
-  
-  feedDiv.style.display = state;
+  for (var j = 0; j < divsToShow.length; j ++) {
+    var divId = divsToShow[j] + "-div";
+    var feedDiv = document.getElementById(divId);
 
-  currentCanvasId = camera + "-canvas";
+    feedDiv.style.display = state;
+  }
+
+
+  //currentCanvasId = camera + "-canvas";
 }
 
 function changeCameraState(camera, state) {
@@ -505,8 +518,8 @@ function changeCameraState(camera, state) {
   var changeStateFunction;
 
   switch (camera) {
-    case 'rgb':
-      cameraCode = 'RGB';  
+    case 'color':
+      cameraCode = 'Color';  
     break;
 
     case 'depth':
@@ -583,8 +596,9 @@ function chooseMulti(evt, incomingFrames) {
     }
   } 
 
+  // if no frames selected, return
   if (frames.length === 0) {
-    console.warn("Select at least one frame.");
+    alert("Select at least one frame.");
     return;
   }
 
@@ -635,7 +649,7 @@ function chooseMulti(evt, incomingFrames) {
   }
  
   result = multiFrames.reduce(function (a, b) { return a | b; });
-
+  toggleFeedDiv('multi', 'block');
   startMulti(result);
 }
 
@@ -643,11 +657,11 @@ function chooseMulti(evt, incomingFrames) {
 ////////////////////////////////////////////////////////////////////////
 //////////////////////////// Kinect2 Frames ////////////////////////////
 
-function startRGB() {
+function startColor() {
   console.log('starting color camera');
 
-  var rgbCanvas = document.getElementById('rgb-canvas');
-  var rgbContext = rgbCanvas.getContext('2d');
+  var colorCanvas = document.getElementById('color-canvas');
+  var colorContext = colorCanvas.getContext('2d');
 
   resetCanvas('color');
   canvasState = 'color';
@@ -663,7 +677,7 @@ function startRGB() {
 
       processColorBuffer(newPixelData);
 
-      drawImageToCanvas(rgbCanvas, rgbContext, 'color', 'jpeg');
+      drawImageToCanvas(colorCanvas, colorContext, 'color', 'jpeg');
       busy = false;
 
     });
@@ -672,7 +686,7 @@ function startRGB() {
 
 }
 
-function stopRGB() {
+function stopColor() {
   console.log('stopping color camera');
   kinect.closeColorReader();
   kinect.removeAllListeners();
@@ -852,7 +866,7 @@ function startSkeletonTracking() {
         // SHAWN END
       }
 
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      //context.clearRect(0, 0, canvas.width, canvas.height);
       skeletonContext.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
       var index = 0;
       bodyFrame.bodies.forEach(function(body){
@@ -867,19 +881,8 @@ function startSkeletonTracking() {
             }
             // SHAWN END
           }
-          for(var jointType in body.joints) {
-            var joint = body.joints[jointType];
-            context.fillStyle = colors[index];
-            context.fillRect(joint.depthX * canvas.width, joint.depthY * canvas.height, 10, 10);
-            skeletonContext.fillStyle = colors[index];
-            skeletonContext.fillRect(joint.depthX * skeletonCanvas.width, joint.depthY * skeletonCanvas.height, 10, 10);
-          }
-          //draw hand states
-          updateHandState(context, body.leftHandState, body.joints[Kinect2.JointType.handLeft]);
-          updateHandState(skeletonContext, body.leftHandState, body.joints[Kinect2.JointType.handLeft]);
-          updateHandState(context, body.rightHandState, body.joints[Kinect2.JointType.handRight]);
-          updateHandState(skeletonContext, body.rightHandState, body.joints[Kinect2.JointType.handRight]);
 
+          drawSkeleton(skeletonCanvas, skeletonContext, body, index);
           index++;
 
         }
@@ -890,6 +893,19 @@ function startSkeletonTracking() {
 
 }
 
+function drawSkeleton(inCanvas, inContext, body, index) {
+  //draw joints
+  for(var jointType in body.joints) {
+    var joint = body.joints[jointType];
+    inContext.fillStyle = colors[index];
+    inContext.fillRect(joint.depthX * inCanvas.width, joint.depthY * inCanvas.height, 10, 10);
+  }
+  
+  //draw hand states
+  updateHandState(inContext, body.leftHandState, body.joints[Kinect2.JointType.handLeft]);
+  updateHandState(inContext, body.rightHandState, body.joints[Kinect2.JointType.handRight]);
+}
+
 function stopSkeletonTracking() {
   console.log('stopping skeleton');
   kinect.closeBodyReader();
@@ -898,13 +914,13 @@ function stopSkeletonTracking() {
 
 }
 
-function toggleImagePreviewWarning(style) {
-  var allWarningDivs = document.getElementsByClassName('multi-warning');
+// function toggleImagePreviewWarning(style) {
+//   var allWarningDivs = document.getElementsByClassName('multi-warning');
 
-  for (var i = 0; i < allWarningDivs.length; i++) {
-    allWarningDivs[i].style.display = style;
-  } 
-}
+//   for (var i = 0; i < allWarningDivs.length; i++) {
+//     allWarningDivs[i].style.display = style;
+//   } 
+// }
 
 function displayCurrentFrames() {
   var allFrameDisplay = document.getElementsByClassName('current-frames');
@@ -921,9 +937,9 @@ function startMulti(multiFrames) {
   var multiToSend = {};
 
   // show image preview warning 
-  if (multiFrame === false) {
-    toggleImagePreviewWarning("block");
-  }
+  // if (multiFrame === false) {
+  //   toggleImagePreviewWarning("block");
+  // }
 
   displayCurrentFrames();
 
@@ -939,46 +955,76 @@ function startMulti(multiFrames) {
       var temp;
 
       if (frame.color) {
+
+        var colorCanvas = document.getElementById('color-canvas');
+        var colorContext = colorCanvas.getContext('2d');
+        
         resetCanvas('color');
         canvasState = 'color';
         setImageData();
 
         newPixelData = frame.color.buffer;
         processColorBuffer(newPixelData);
-        temp = drawImageToCanvas(null, 'jpeg');
+        temp = drawImageToCanvas(colorCanvas, colorContext, null, 'jpeg');
         multiToSend.color = temp;
       }
 
       if (frame.body) {
+        var skeletonCanvas = document.getElementById('skeleton-canvas');
+        var skeletonContext = skeletonCanvas.getContext('2d');
         // SHAWN START
-        if (doRecord) {
-          frame.body.record_startime = recordStartTime;
-          frame.body.record_timestamp = Date.now() - recordStartTime;
-          bodyChunks.push(frame.body);
-        }
+        // if (doRecord) {
+        //   frame.body.record_startime = recordStartTime;
+        //   frame.body.record_timestamp = Date.now() - recordStartTime;
+        //   bodyChunks.push(frame.body);
+        // }
+        // index used to change colors on draw
+        var index = 0;
+        // draw tracked bodies
+
+        skeletonContext.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
+        frame.body.bodies.forEach(function(body){
+          if(body.tracked) {
+            drawSkeleton(skeletonCanvas, skeletonContext, body, index);
+            index++;
+          }
+        });
+
+        // console.log(frame.body);
+        // debugger;
+        //if (frame.body)
         // SHAWN END
+
+
+        //drawSkeleton(skeletonCanvas, skeletonContext, body, index);
         multiToSend.body = frame.body.bodies;
       }
 
       if (frame.depth) {
+        var depthCanvas = document.getElementById('depth-canvas');
+        var depthContext = depthCanvas.getContext('2d');
+        
         resetCanvas('depth');
         canvasState = 'depth';
         setImageData();
 
         newPixelData = frame.depth.buffer;
         processDepthBuffer(newPixelData);
-        temp = drawImageToCanvas(null, 'jpeg');
+        temp = drawImageToCanvas(depthCanvas, depthContext, null, 'jpeg');
         multiToSend.depth = temp;
       }
 
       if (frame.rawDepth) {
+        var rawDepthCanvas = document.getElementById('raw-depth-canvas');
+        var rawDepthContext = rawDepthCanvas.getContext('2d');
+
         resetCanvas('raw');
         canvasState = 'raw';
         setImageData();
   
         newPixelData = frame.rawDepth.buffer;
         processRawDepthBuffer(newPixelData);
-        temp = drawImageToCanvas(null, 'webp', 1);
+        temp = drawImageToCanvas(rawDepthCanvas, rawDepthContext, null, 'webp', 1);
         multiToSend.rawDepth = temp;
       }
 
@@ -1038,6 +1084,7 @@ function stopMulti() {
   if (multiFrame) {
     kinect.closeMultiSourceReader();
     kinect.removeAllListeners();
+    toggleFeedDiv('multi', "none");
     canvasState = null;
     busy = false;
     multiFrame = false;
