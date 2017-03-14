@@ -96,16 +96,50 @@
       </div>   
       </div>
     <div id="feed-images">
-      <h4>Feed from Kinect</h4>
-      <div class="multi-warning">
+      <!-- <h4 >Feed from Kinect</h4> -->
+      <!-- <div class="multi-warning">
         <p>Image preview does not reflect multiple frames. Currently broadcasting: <span class="current-frames"></span> </p>
-      </div>
+      </div> -->
       <canvas id="inputCanvas" width="1920" height="1080"></canvas>
       <h4>Feed output to peer</h4>
       <div class="multi-warning">
         <p>Image preview does not reflect multiple frames. Currently broadcasting: <span class="current-frames"></span></p>
       </div>
-      <canvas id="outputCanvas" width="960" height="540"></canvas>
+      <div id="feed-canvases">
+        <div id="rgb-div">
+          <h5 id="rgb-canvas-label">RGB Feed</h5>
+          <canvas id="rgb-canvas" width="960" height="540"></canvas>
+        </div>
+        <div id="depth-div" >
+          <h5 id="depth-canvas-label">Depth Feed</h5>
+          <canvas id="depth-canvas" width="512" height="424"></canvas>
+        </div>
+        <div id="raw-depth-div" >
+          <h5 id="raw-depth-canvas-label">Raw Deth Feed</h5>
+          <canvas id="raw-depth-canvas" width="512" height="424"></canvas>
+        </div>
+        <!-- skeleton used for all bodies and tracked bodies -->
+        <div id="skeleton-div" >
+          <h5 id="skeleton-canvas-label">Skeleton/Bodies Feed</h5>
+          <canvas id="skeleton-canvas" width="512" height="424"></canvas>
+        </div>
+<!--         <div id="body-div" >
+          <h5 id="body-canvas-label">Body Feed</h5>
+          <canvas id="body-canvas" width="512" height="424"></canvas>
+        </div> -->
+        <div id="infrared-div" >
+          <h5 id="infrared-canvas-label">Infrared Feed</h5>
+          <canvas id="infrared-canvas" width="512" height="424"></canvas>
+        </div>
+        <div id="le-infrared-div" >
+          <h5 id="le-infrared-canvas-label">Long Exposure Infrared Feed</h5>
+          <canvas id="le-infrared-canvas" width="512" height="424"></canvas>
+        </div>
+        <div id="key-div" >
+          <h5 id="key-canvas-label">Key Feed</h5>
+          <canvas id="key-canvas" width="960" height="540"></canvas>  
+        </div>
+      </div>
     </div>
   </body>
 </html>
