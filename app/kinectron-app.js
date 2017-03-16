@@ -49,12 +49,12 @@ var rawDepth = false;
 // Key Tracking needs cleanup
 var trackedBodyIndex = -1;
 
-// Skeleton variables
-var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
-var HANDSIZE = 20;
-var HANDCLOSEDCOLOR = 'red';
-var HANDOPENCOLOR = 'green';
-var HANDLASSOCOLOR = 'blue';
+// Record variables
+const recordingLocation = os.homedir() + "/kinectron-recordings/";
+var doRecord = false;
+var recordStartTime = 0;
+var bodyChunks = [];
+var mediaRecorders = [];
 
 window.addEventListener('load', initpeer);
 window.addEventListener('load', init);
@@ -101,21 +101,6 @@ function init() {
   document.getElementById('advanced-link').addEventListener('click', toggleAdvancedOptions);
   document.getElementById('record').addEventListener('click', record);
 }
-
-//// SHAWN START
-/* To Do:  Need different canvas for depth frames to record them
-          Need to timestamp body frames?
-          Need to do write out periodically so memory doesn't become issue
-*/
-
-const recordingLocation = os.homedir() + "/kinectron-recordings/";
-
-var doRecord = false;
-var recordStartTime = 0;
-
-var bodyChunks = [];
-
-var mediaRecorders = [];
 
 // Toggle Recording
 function record(evt) {
@@ -890,19 +875,6 @@ function startSkeletonTracking() {
 
 }
 
-function drawSkeleton(inCanvas, inContext, body, index) {
-  //draw joints
-  for(var jointType in body.joints) {
-    var joint = body.joints[jointType];
-    inContext.fillStyle = colors[index];
-    inContext.fillRect(joint.depthX * inCanvas.width, joint.depthY * inCanvas.height, 10, 10);
-  }
-  
-  //draw hand states
-  updateHandState(inContext, body.leftHandState, body.joints[Kinect2.JointType.handLeft]);
-  updateHandState(inContext, body.rightHandState, body.joints[Kinect2.JointType.handRight]);
-}
-
 function stopSkeletonTracking() {
   console.log('stopping skeleton');
   kinect.closeBodyReader();
@@ -1440,7 +1412,26 @@ function calculatePixelWidth(horizontalFieldOfView, depth) {
 //   context.fillText(jointDistance.toFixed(2) + 'm', 20 + joint.colorX * context.canvas.width, joint.colorY * context.canvas.height);
 // }
 
+function drawSkeleton(inCanvas, inContext, body, index) {
+  // Skeleton variables
+  var colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff'];
+  //draw joints
+  for(var jointType in body.joints) {
+    var joint = body.joints[jointType];
+    inContext.fillStyle = colors[index];
+    inContext.fillRect(joint.depthX * inCanvas.width, joint.depthY * inCanvas.height, 10, 10);
+  }
+  
+  //draw hand states
+  updateHandState(inContext, body.leftHandState, body.joints[Kinect2.JointType.handLeft]);
+  updateHandState(inContext, body.rightHandState, body.joints[Kinect2.JointType.handRight]);
+}
+
 function updateHandState(context, handState, jointPoint) {
+  var HANDCLOSEDCOLOR = 'red';
+  var HANDOPENCOLOR = 'green';
+  var HANDLASSOCOLOR = 'blue';
+  
   switch (handState) {
     case Kinect2.HandState.closed:
       drawHand(context, jointPoint, HANDCLOSEDCOLOR);
@@ -1457,6 +1448,7 @@ function updateHandState(context, handState, jointPoint) {
 }
 
 function drawHand(context, jointPoint, handColor) {
+  var HANDSIZE = 20;
   // draw semi transparent hand cicles
   var handData = {depthX: jointPoint.depthX, depthY: jointPoint.depthY, handColor: handColor, handSize: HANDSIZE};
   //sendToPeer('drawHand', handData);
