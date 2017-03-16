@@ -28,6 +28,7 @@ function setup() {
   kinectron.setKeyCallback(drawFeed);
   kinectron.setBodiesCallback(callback);
   kinectron.setTrackedBodiesCallback(callback);
+  kinectron.setRawDepthCallback(callback);
 }
 
 function draw() {
@@ -60,8 +61,12 @@ function keyPressed() {
     kinectron.startTrackedBodies();
   } else if (key === '6') {
     kinectron.startTrackedJoint(kinectron.HANDRIGHT, callback); 
-  } else if ( key === '7') {
+  } else if (key === '7') {
     kinectron.startInfrared();
+  } else if (key === '8') {
+    kinectron.startMultiFrame(["color", "body"]);
+  } else if (key === '9') {
+    kinectron.startRawDepth();
   }
 }
 
