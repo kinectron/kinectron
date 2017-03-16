@@ -55,7 +55,8 @@
 	  this.body = null;
 	  this.jointName = null;
 
-	  this.rgbCallback = null;
+	  this.rgbCallback = null; // rgb depricated 3/16/17 use color instead
+	  this.colorCallback = null;
 	  this.depthCallback = null;
 	  this.rawDepthCallback = null;
 	  this.infraredCallback = null;
@@ -170,7 +171,7 @@
 	            connection.send(holdInitFeed);
 	            holdInitFeed = null;
 	          }
-	          
+
 	        break;
 
 	        // If image data draw image
@@ -225,7 +226,7 @@
 	          } else {
 	            if (data.color) {
 	              this.img.src = data.color;
-	              this.rgbCallback(this.img);
+	              this.colorCallback(this.img);
 	            }
 
 	            if (data.depth) {
@@ -248,12 +249,21 @@
 	    }.bind(this));
 	  };
 
+	  // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
 	  this.startRGB = function(callback) {
+	    console.warn('startRGB() no longer in use. Use startColor() instead');
 	    if (callback) { 
-	      this.rgbCallback = callback;
+	      this.colorCallback = callback;
 	    }
 	    
-	    this._setFeed('rgb');
+	    this._setFeed('color');
+	  };
+
+	  this.startColor = function(callback) {
+	    if (callback) {
+	      this.colorCallback = callback;
+	    }
+	    this._setFeed('color');
 	  };
 
 	  this.startDepth = function(callback) {
@@ -357,8 +367,15 @@
 	  };
 
 	  // Set Callbacks 
+
+	  // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
 	  this.setRGBCallback = function(callback) {
-	    this.rgbCallback = callback;
+	    console.warn('setRGBCallback() no longer in use. Use setColorCallback() instead');
+	    this.colorCallback = callback;
+	  };
+
+	  this.setColorCallback = function(callback) {
+	    this.colorCallback = callback;
 	  };
 
 	  this.setDepthCallback = function(callback) {
@@ -456,7 +473,7 @@
 	  this._chooseCallback = function(frame) {
 	    switch (frame) {
 	      case 'color':
-	        this.rgbCallback(this.img);
+	        this.colorCallback(this.img);
 	      break;
 
 	      case 'depth':

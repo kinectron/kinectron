@@ -13,7 +13,7 @@ function setup() {
 
   // Define and create an instance of kinectron
   var kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
-  kinectron = new Kinectron(kinectronIpAddress);
+  kinectron = new Kinectron();
 
   // Connect to the microstudio
   //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
