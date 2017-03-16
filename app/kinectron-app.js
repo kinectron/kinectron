@@ -160,19 +160,19 @@ function createMediaRecorder(id) {
     // Reset Chunks
     mediaChunks.length = 0;
 
-    //display the video on the page
-    var video = document.createElement('video'+ Date.now());
-    video.controls = true;
-    var videoURL = window.URL.createObjectURL(blob);
-    console.log(videoURL);
-    video.src = videoURL;
-    document.body.appendChild(video);
+    // Display the video on the page
+    var videoElement = document.createElement('video');
+    videoElement.setAttribute("id", Date.now());
+    videoElement.controls = true;
+    document.body.appendChild(videoElement);
+    videoElement.src = window.URL.createObjectURL(blob);
+
 
     var fs = require('fs');
     try {
         fs.mkdirSync(recordingLocation);
-    } catch (e) {
-        if (e.code != 'EEXIST') throw e;
+    } catch (evt) {
+        if (evt.code != 'EEXIST') throw e;
     }
 
     // If skeleton data is being tracked, write out the body frames JSON

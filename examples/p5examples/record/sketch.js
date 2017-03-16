@@ -22,9 +22,12 @@ function setup() {
   kinectron.makeConnection();
 
   // Set callbacks
-  kinectron.setRGBCallback(drawFeed);
+  kinectron.setColorCallback(drawFeed);
   kinectron.setDepthCallback(drawFeed);
   kinectron.setInfraredCallback(drawFeed);
+  kinectron.setKeyCallback(drawFeed);
+  kinectron.setBodiesCallback(callback);
+  kinectron.setTrackedBodiesCallback(callback);
 }
 
 function draw() {
@@ -38,13 +41,27 @@ function draw() {
 // Choose camera to start based on key pressed
 function keyPressed() {
   if (keyCode === ENTER) {
-    kinectron.startRGB();
+    kinectron.stopAll();
   } else if (keyCode === UP_ARROW) {
-    kinectron.startDepth();
+    kinectron.startRecord();
   } else if (keyCode === DOWN_ARROW) {
-    kinectron.startInfrared();
+    kinectron.stopRecord();
   } else if (keyCode === RIGHT_ARROW) {
     kinectron.stopAll();
+  } else if (key === '1') {
+    kinectron.startColor();
+  } else if (key === '2') {
+    kinectron.startDepth();
+  } else if (key === '3') {
+    kinectron.startKey();
+  } else if (key === '4') {
+    kinectron.startBodies();
+  } else if (key === '5') {
+    kinectron.startTrackedBodies();
+  } else if (key === '6') {
+    kinectron.startTrackedJoint(kinectron.HANDRIGHT, callback); 
+  } else if ( key === '7') {
+    kinectron.startInfrared();
   }
 }
 
@@ -53,4 +70,8 @@ function drawFeed(img) {
   loadImage(img.src, function(loadedImage) {
     image(loadedImage, 0, 0);
   });
+}
+
+function callback(data) {
+  //console.log(data);
 }

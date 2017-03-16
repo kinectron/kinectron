@@ -49,6 +49,14 @@
 	// Import Peer.js 
 	var Peer = __webpack_require__(1);
 
+	// define(function(require) {
+	//     var os = require('os');
+	//     //$('body').text('hello world');
+	// });
+	// var os = require('os');
+	// debugger;
+	//var fs = require('fs');
+
 	Kinectron = function(arg1, arg2) {  
 	  this.img = null;
 	  this.feed = null;
@@ -111,6 +119,15 @@
 	  // Hidden div variables
 	  var myDiv = null;
 
+	  // Record variables
+	  //var recordingLocation = os.homedir() + "/kinectron-recordings/";
+	  var doRecord = false;
+	  var recordStartTime = 0;
+	  var bodyChunks = [];
+	  var mediaRecorders = [];
+
+	  //var frameNames = ['color', 'depth', 'raw-depth', 'skeleton', 'infrared', 'le-infrared', 'key'];
+
 	  // Check for ip address in "quickstart" method  
 	  if (typeof arg1 !=="undefined" && typeof arg2 == "undefined") {
 	    var host = arg1;
@@ -137,8 +154,11 @@
 	  });
 	  
 	  // Create hidden image to draw to
+	  console.log("creating div");
 	  myDiv = document.createElement("div");
 	  myDiv.style.visibility = "hidden";
+	  document.body.appendChild(myDiv);
+
 	  this.img = document.createElement("img");
 	  myDiv.appendChild(this.img);
 
@@ -146,10 +166,13 @@
 	  hiddenCanvas.width = 512;
 	  hiddenCanvas.height = 424;
 	  hiddenContext = hiddenCanvas.getContext("2d");
+	  hiddenContext.fillStyle = 'green';
+	  hiddenContext.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
 	  hiddenImage = document.createElement("img");
 
 	  myDiv.appendChild(hiddenCanvas);
 	  myDiv.appendChild(hiddenImage);
+
 
 	  // Make peer connection
 	  this.makeConnection = function() {
@@ -178,29 +201,46 @@
 	        case 'frame':
 	          this.img.src = data.imagedata;
 	          this._chooseCallback(data.name);
+	          if (doRecord) this._drawImageToCanvas();
 	        break;
 	        
-	        // If skeleton data, send skeleton
+	        // If receive all bodies, send all bodies
 	        case 'bodyFrame':
 	          this.bodiesCallback(data);
+	          if (doRecord) {
+	            console.log('recording all bodies');      
+	            data.record_startime = recordStartTime;
+	            data.record_timestamp = Date.now() - recordStartTime;
+	            bodyChunks.push(data);  
+	          }
 	        break;
 	 
-	        // If tracked skeleton data, send skeleton
+	        // If receive tracked skeleton data, send skeleton
 	        case 'trackedBodyFrame':
 	          this.body = data;
 
-	          // Check that joint exists
-	          // TO DO Why does joint come in as 0 when undefined
+	          // If joint specified send joint and call joint callback
 	          if (this.jointName && this.trackedJointCallback && this.body.joints[this.jointName] !== 0) {
 	            var joint = this.body.joints[this.jointName]; 
-
 	            joint.trackingId  = this.body.trackingId;
 	            this.trackedJointCallback(joint);
 	            
-	          }
-
-	          if (this.trackedBodiesCallback) {
+	            if (doRecord) {
+	              console.log('recording single joint');
+	              joint.record_startime = recordStartTime;
+	              joint.record_timestamp = Date.now() - recordStartTime;
+	              bodyChunks.push(joint);
+	            }
+	          // Or call tracked bodies callback on invidual tracked body
+	          } else if (this.trackedBodiesCallback) {
 	            this.trackedBodiesCallback(data);
+
+	            if (doRecord) {
+	              console.log('recording single body');
+	              data.record_startime = recordStartTime;
+	              data.record_timestamp = Date.now() - recordStartTime;
+	              bodyChunks.push(data);
+	            }
 	          }
 	        break;
 
@@ -311,6 +351,10 @@
 	    if (callback) {
 	      this.trackedBodiesCallback = callback;  
 	    }
+	    
+	    // Reset tracked joint variables
+	    this.jointName = null;
+	    this.trackedJointCallback = null;
 	    
 	    this._setFeed('skeleton');
 	  };
@@ -440,14 +484,138 @@
 	    handCallback(hands);
 	  };
 
+	  this.startRecord = function() {
+	    console.log('starting record');
+	    //doRecord = true;
+	    this._record();
+	  };
+
+	  this.stopRecord = function() {
+	    console.log('ending record');
+	    //doRecord = false;
+	    this._record();
+	  };
+
+	  // Toggle Recording
+	  this._record = function() {
+	    if (!doRecord) {
+	      // If no frame selected, send alert
+	      // if (multiFrame === false && currentCamera === null) {
+	      //   alert("Begin broadcast, then begin recording");
+	      //   return;
+	      // }
+
+	      var framesToRecord = [];
+	      framesToRecord.push(this.feed);
+	      // if (multiFrame) {
+	      //   for (var i = 0; i < currentFrames.length; i++) {
+	      //     if (currentFrames[i] == 'body') framesToRecord.push('skeleton');
+	      //     else framesToRecord.push(currentFrames[i]);
+	      //   }
+	      // } else if (currentCamera == 'body') { 
+	      //   framesToRecord.push('skeleton');
+	      // } else {
+	      //   framesToRecord.push(currentCamera);
+	      // }
+
+	      mediaRecorders.push(this._createMediaRecorder(framesToRecord[0]));  
+
+	      // for (var j = 0; j < framesToRecord.length; j++) {
+	      //   mediaRecorders.push(createMediaRecorder(framesToRecord[j]));
+	      // }
+	      
+	      recordStartTime = Date.now();
+	      doRecord = true;
+
+	    } else {
+	      doRecord = false;
+	      for (var k = mediaRecorders.length - 1; k >= 0; k--) {
+	        mediaRecorders[k].stop();  
+	        mediaRecorders.splice(k, 1);
+	      } 
+
+	    }
+	  };
+
+	  this._drawImageToCanvas = function() {
+	    hiddenContext.drawImage(this.img, 0, 0);
+	  };
+
+	  this._createMediaRecorder = function() {
+	    //var idToRecord = id + "-canvas";
+	    //console.log(document.getElementById(idToRecord));
+
+	    var newMediaRecorder = new MediaRecorder(hiddenCanvas.captureStream());
+	    var mediaChunks = [];
+
+	    newMediaRecorder.onstop = function (e) {
+
+	      // If skeleton data is being tracked, write out the body frames to JSON
+	      if (this.feed == 'body' || this.feed == 'skeleton') {
+	        //var bodyJSON = JSON.stringify(bodyChunks);
+	        var blobJson = new Blob([JSON.stringify(bodyChunks)], {type : 'application/json'});
+	        var jsonUrl = URL.createObjectURL(blobJson);
+	        var a2 = document.createElement('a');
+	        document.body.appendChild(a2);
+	        a2.style = 'display: none';
+	        a2.href = jsonUrl;
+	        a2.download = this.feed + Date.now() + '.json';
+	        a2.click();
+	        window.URL.revokeObjectURL(jsonUrl);
+
+	        // Reset body chunks
+	        bodyChunks.length = 0;        
+	      } else {
+	        // If video display the video on the page
+
+	        // The video as a blob
+	        var blobVideo = new Blob(mediaChunks, { 'type' : 'video/webm' });
+
+	        var videoElement = document.createElement('video');
+	        videoElement.setAttribute("id", Date.now());
+	        videoElement.controls = true;
+	        document.body.appendChild(videoElement);
+	        videoElement.src = window.URL.createObjectURL(blobVideo);
+
+	        // Download the video 
+	        var url = URL.createObjectURL(blobVideo);
+	        var a = document.createElement('a');
+	        document.body.appendChild(a);
+	        a.style = 'display: none';
+	        a.href = url;
+	        a.download = this.feed + Date.now() + '.webm';
+	        a.click();
+	        window.URL.revokeObjectURL(url);
+
+	        // Reset media chunks
+	        mediaChunks.length = 0;    
+	      }
+
+
+	    }.bind(this);
+
+	    // When video data is available
+	    newMediaRecorder.ondataavailable = function(e) {
+	      console.log('data avail');
+	      mediaChunks.push(e.data);
+	      console.log(mediaChunks);
+	    };
+
+	    // Start recording
+	    newMediaRecorder.start();
+	    return newMediaRecorder;
+	  };
+
+
 
 	  // Private functions //
 
 	  // Change feed on user input
 	  this._setFeed = function(feed) {
 	    var dataToSend = null;
-	   
+	    console.log('before', this.feed);
 	    this.feed = feed;
+	    console.log('after', this.feed);
 	    dataToSend = {
 	      feed: this.feed
 	    };
