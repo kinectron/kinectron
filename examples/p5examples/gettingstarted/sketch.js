@@ -28,7 +28,6 @@ function setup() {
 }
 
 function draw() {
-
   var fps = frameRate();
   fill(0);
   stroke(0);

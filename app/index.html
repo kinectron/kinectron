@@ -30,7 +30,7 @@
           <div id="single-frame">
             <p>Choose a single frame to begin broadcast. Click stop all to end broadcast.</p>  
             <div id="options">
-              <input type="button" class="frame-option" id="rgb" value="Color">
+              <input type="button" class="frame-option" id="color" value="Color">
               <input type="button" class="frame-option" id="depth" value="Depth">
               <input type="button" class="frame-option" id="raw-depth" value="Raw Depth">
               <input type="button" class="frame-option" id="skeleton" value="Skeleton (Tracked Bodies)">
@@ -63,7 +63,13 @@
               <input type="button" class="frame-option" id="stop-multi" value="Stop Multiframe">
           </div>  
           <div class="clear-class" style="clear:both"></div>
+          <div id="record-control">
+            <p>Record stream</p>
+            <input type="button" class="frame-option" id="record" value="Start Record">
+            <div class="clear-class" style="clear:both"></div>
           </div>
+        </div>
+
       <div id="advanced-options">
         <div id="new-peer">
           <p>Have your own peer server? Enter id and server details here:</p> 
@@ -90,16 +96,47 @@
       </div>   
       </div>
     <div id="feed-images">
-      <h4>Feed from Kinect</h4>
-      <div class="multi-warning">
+      <!-- <h4 >Feed from Kinect</h4> -->
+      <!-- <div class="multi-warning">
         <p>Image preview does not reflect multiple frames. Currently broadcasting: <span class="current-frames"></span> </p>
-      </div>
+      </div> -->
       <canvas id="inputCanvas" width="1920" height="1080"></canvas>
       <h4>Feed output to peer</h4>
-      <div class="multi-warning">
+<!--       <div class="multi-warning">
         <p>Image preview does not reflect multiple frames. Currently broadcasting: <span class="current-frames"></span></p>
+      </div> -->
+      <div id="feed-canvases">
+        <div id="color-div">
+          <h5 id="color-canvas-label">Color Feed</h5>
+          <canvas id="color-canvas" width="960" height="540"></canvas>
+        </div>
+        <div id="depth-div" >
+          <h5 id="depth-canvas-label">Depth Feed</h5>
+          <canvas id="depth-canvas" width="512" height="424"></canvas>
+        </div>
+        <div id="raw-depth-div" >
+          <h5 id="raw-depth-canvas-label">Raw Deth Feed</h5>
+          <canvas id="raw-depth-canvas" width="512" height="424"></canvas>
+        </div>
+        <!-- skeleton used for all bodies and tracked bodies -->
+        <div id="skeleton-div" >
+          <h5 id="skeleton-canvas-label">Skeleton/Bodies Feed</h5>
+          <canvas id="skeleton-canvas" width="512" height="424"></canvas>
+        </div>
+        <div id="infrared-div" >
+          <h5 id="infrared-canvas-label">Infrared Feed</h5>
+          <canvas id="infrared-canvas" width="512" height="424"></canvas>
+        </div>
+        <div id="le-infrared-div" >
+          <h5 id="le-infrared-canvas-label">Long Exposure Infrared Feed</h5>
+          <canvas id="le-infrared-canvas" width="512" height="424"></canvas>
+        </div>
+        <div id="key-div" >
+          <h5 id="key-canvas-label">Key Feed</h5>
+          <canvas id="key-canvas" width="960" height="540"></canvas>  
+        </div>
+
       </div>
-      <canvas id="outputCanvas" width="960" height="540"></canvas>
     </div>
   </body>
 </html>

@@ -170,3 +170,11 @@ div.multi-warning {
 .multi-warning p {
 
 }
+
+#inputCanvas {
+  display: none;
+}
+
+#feed-canvases div {
+  display: none;
+}
