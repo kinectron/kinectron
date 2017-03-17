@@ -66,6 +66,7 @@ To record multiple frames, start the frames you wish to record, then click "Star
 ##### Recorded File Types
 The recorded frames result in the following file types. These vary slighty if recording with the API. See API documentation. 
 
+```
 Color: webm
 Depth: webm
 Raw Depth: webm
@@ -76,6 +77,9 @@ Long Exposure Infrared: webm
 Key: webm
 
 *JSON files with joint data include a timestamp.
+
+```
+
 
 #### Advanced Options
 ##### Peer Server
@@ -308,13 +312,14 @@ Use the startRecord and stopRecord functions to begin and end recording. Recordi
 <html>
 	<body>
 		<button onclick="startRecord()">Start Record</button>
-		<button onclick="startRecord()">Stop Record</button>
+		<button onclick="stopRecord()">Stop Record</button>
 	</body>
 </html>
 ```
 #### Recorded File Types
 The recorded frames result in the following file types. These vary slighty if recording with the application. See application documentation for differences. 
 
+```
 Color: webm
 Depth: webm
 Raw Depth: JSON (array data)*
@@ -325,5 +330,6 @@ Long Exposure Infrared: webm
 Key: webm
 
 *JSON files include a timestamp on each frame.
+```
 
 Raw depth data will record, but the data is so heavy, it is not recommended to use the record function for this frame type. 
