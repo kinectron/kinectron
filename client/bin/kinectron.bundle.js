@@ -108,7 +108,7 @@
 	  var multiFrame = false;
 	  var currentFrames = [];
 
-	  // Used to hold initital frame request when peer connection ready
+	  // Hold initital frame request until peer connection ready
 	  var ready = false;
 	  var holdInitFeed = null;
 
@@ -132,6 +132,7 @@
 	  if (typeof arg1 !=="undefined" && typeof arg2 == "undefined") {
 	    var host = arg1;
 	    peerNet.host = host;
+
 	    // Check for new network provided by user
 	  } else if (typeof arg1 !== "undefined" && typeof arg2 !== "undefined") {
 	    var peerid = arg1;
@@ -154,7 +155,6 @@
 	  });
 	  
 	  // Create hidden image to draw to
-	  console.log("creating div");
 	  myDiv = document.createElement("div");
 	  myDiv.style.visibility = "hidden";
 	  document.body.appendChild(myDiv);
@@ -162,6 +162,8 @@
 	  this.img = document.createElement("img");
 	  myDiv.appendChild(this.img);
 
+	  // Used for raw depth processing. 
+	  // TO DO refactor: create dynamically in process raw depth
 	  hiddenCanvas = document.createElement("canvas");
 	  hiddenCanvas.width = 512;
 	  hiddenCanvas.height = 424;
@@ -172,7 +174,6 @@
 
 	  myDiv.appendChild(hiddenCanvas);
 	  myDiv.appendChild(hiddenImage);
-
 
 	  // Make peer connection
 	  this.makeConnection = function() {
@@ -201,12 +202,14 @@
 	        case 'frame':
 	          this.img.src = data.imagedata;
 	          this._chooseCallback(data.name);
+	          
 	          if (doRecord) this._drawImageToCanvas(data.name);
 	        break;
 	        
 	        // If receive all bodies, send all bodies
 	        case 'bodyFrame':
 	          this.bodiesCallback(data);
+
 	          if (doRecord) {
 	            data.record_startime = recordStartTime;
 	            data.record_timestamp = Date.now() - recordStartTime;
@@ -273,19 +276,21 @@
 	            if (data.color) {
 	              this.img.src = data.color;
 	              this.colorCallback(this.img);
+	              
 	              if (doRecord) this._drawImageToCanvas('color');
 	            }
 
 	            if (data.depth) {
 	              this.img.src = data.depth;
 	              this.depthCallback(this.img);
+	             
 	              if (doRecord) this._drawImageToCanvas('depth');
 	            }
 
 	            if (data.body) {
 	              this.bodiesCallback(data.body);
+	              
 	              if (doRecord) {
-	                console.log('recording all bodies');      
 	                data.body.record_startime = recordStartTime;
 	                data.body.record_timestamp = Date.now() - recordStartTime;
 	                bodyChunks.push(data.body);  
@@ -306,14 +311,13 @@
 
 	          }
 	        break;
-
 	      }
 	    }.bind(this));
 	  };
 
 	  // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
 	  this.startRGB = function(callback) {
-	    console.warn('startRGB() no longer in use. Use startColor() instead');
+	    console.warn('startRGB no longer in use. Use startColor instead');
 	    if (callback) { 
 	      this.colorCallback = callback;
 	    }
@@ -392,7 +396,6 @@
 	      this.trackedJointCallback = callback;
 	    }
 
-	    
 	    this._setFeed('skeleton');
 	  };
 
@@ -405,7 +408,7 @@
 
 	    multiFrame = true;
 	    currentFrames = frames;
-	    console.log(currentFrames);
+
 	    this._sendToPeer('multi', frames);     
 	  };
 
@@ -422,13 +425,13 @@
 	  //   this._setFeed('scale');
 	  // };
 
-	  this.startFloorHeight = function(callback) {
-	    if (callback) {
-	      this.fhCallback = callback;  
-	    }
+	  // this.startFloorHeight = function(callback) {
+	  //   if (callback) {
+	  //     this.fhCallback = callback;  
+	  //   }
 	    
-	    this._setFeed('fh-joint');
-	  };
+	  //   this._setFeed('fh-joint');
+	  // };
 
 	  // Stop all feeds
 	  this.stopAll = function() {
@@ -439,7 +442,7 @@
 
 	  // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
 	  this.setRGBCallback = function(callback) {
-	    console.warn('setRGBCallback() no longer in use. Use setColorCallback() instead');
+	    console.warn('setRGBCallback no longer in use. Use setColorCallback instead');
 	    this.colorCallback = callback;
 	  };
 
@@ -510,160 +513,15 @@
 	  };
 
 	  this.startRecord = function() {
-	    console.log('starting record');
+	    console.log('Starting record');
 	    this._record();
 	  };
 
 	  this.stopRecord = function() {
-	    console.log('ending record');
+	    console.log('Ending record');
 	    this._record();
 	  };
 
-	  // Toggle Recording
-	  this._record = function() {
-	    if (!doRecord) {
-	      //If no feed started, send warning and return
-	      if (multiFrame === false && this.feed === null) {
-	        console.warn("Record does not work until a feed is started");
-	        return;
-	      }
-
-	      var framesToRecord = [];
-
-	      // how many recorders needed
-	      if (multiFrame) {
-	        for (var i = 0; i < currentFrames.length; i++) {
-	          framesToRecord.push(currentFrames[i]);
-	        }
-	      } else {
-	        framesToRecord.push(this.feed);
-	      }
-
-	      // create one media recorder for each feed
-	      for (var j = 0; j < framesToRecord.length; j++) {
-	        mediaRecorders.push(this._createMediaRecorder(framesToRecord[j]));
-	      }
-	      
-	      recordStartTime = Date.now();
-	      doRecord = true;
-
-	    } else {
-	      doRecord = false;
-	      for (var k = mediaRecorders.length - 1; k >= 0; k--) {
-	        mediaRecorders[k].stop();  
-	        mediaRecorders.splice(k, 1);
-	      } 
-
-	    }
-	  };
-
-	  this._drawImageToCanvas = function(frame) {
-	    var tempContext;
-
-	    // Look through media recorders for the correct canvas to draw to
-	    for (var k = 0; k < mediaRecorders.length; k++) {
-	      var id = mediaRecorders[k].canvas.id;
-	      if (id.indexOf(frame) >= 0) {
-	       tempContext = mediaRecorders[k].canvas.getContext("2d"); 
-	      }
-	    }
-	    
-	    // Draw to the appropriate canvas
-	    tempContext.drawImage(this.img, 0, 0);
-	  };
-
-	  this._createMediaRecorder = function(frame) {
-	    var newMediaRecorder;
-
-	    newHiddenCanvas = document.createElement("canvas");
-	    newHiddenCanvas.setAttribute('id', frame + Date.now());
-
-	    if (frame == 'color' || frame == 'key') {
-	      newHiddenCanvas.width = COLORWIDTH;
-	      newHiddenCanvas.height = COLORHEIGHT;
-	    } else {
-	      newHiddenCanvas.width = DEPTHWIDTH;
-	      newHiddenCanvas.height = DEPTHHEIGHT;
-	    }
-
-	    newHiddenContext = hiddenCanvas.getContext("2d");
-	    newHiddenContext.fillRect(0, 0, newHiddenCanvas.width, newHiddenCanvas.height);
-	    
-	    myDiv.appendChild(newHiddenCanvas);
-
-	    newMediaRecorder = new MediaRecorder(newHiddenCanvas.captureStream());
-	    newMediaRecorder.canvas = newHiddenCanvas;
-	    
-	    var mediaChunks = [];
-
-	    newMediaRecorder.onstop = function (e) {
-	      console.log('frame', frame);
-
-	      // If skeleton data is being tracked, write out the body frames to JSON
-	      if (frame == 'body' || frame == 'skeleton') {
-	        var blobJson = new Blob([JSON.stringify(bodyChunks)], {type : 'application/json'});
-	        var jsonUrl = URL.createObjectURL(blobJson);
-	        var a2 = document.createElement('a');
-	        document.body.appendChild(a2);
-	        a2.style = 'display: none';
-	        a2.href = jsonUrl;
-	        a2.download = frame + Date.now() + '.json';
-	        a2.click();
-	        window.URL.revokeObjectURL(jsonUrl);
-
-	        // Reset body chunks
-	        bodyChunks.length = 0;        
-	      } else if (frame == 'raw-depth') {
-	        var blobJsonRd = new Blob([JSON.stringify(rawDepthChunks)], {type : 'application/json'});
-	        var jsonRdUrl = URL.createObjectURL(blobJsonRd);
-	        var a3 = document.createElement('a');
-	        document.body.appendChild(a3);
-	        a3.style = 'display: none';
-	        a3.href = jsonRdUrl;
-	        a3.download = frame + Date.now() + '.json';
-	        a3.click();
-	        window.URL.revokeObjectURL(jsonRdUrl);
-
-	        // Reset body chunks
-	        rawDepthChunks.length = 0;  
-	      } else {
-	        // If video display the video on the page
-
-	        // The video as a blob
-	        var blobVideo = new Blob(mediaChunks, { 'type' : 'video/webm' });
-
-	        var videoElement = document.createElement('video');
-	        videoElement.setAttribute("id", Date.now());
-	        videoElement.controls = true;
-	        document.body.appendChild(videoElement);
-	        videoElement.src = window.URL.createObjectURL(blobVideo);
-
-	        // Download the video 
-	        var url = URL.createObjectURL(blobVideo);
-	        var a = document.createElement('a');
-	        document.body.appendChild(a);
-	        a.style = 'display: none';
-	        a.href = url;
-	        a.download = frame + Date.now() + '.webm';
-	        a.click();
-	        window.URL.revokeObjectURL(url);
-
-	        // Reset media chunks
-	        mediaChunks.length = 0;    
-	      }
-
-
-	    }.bind(this);
-
-	    // When video data is available
-	    newMediaRecorder.ondataavailable = function(e) {
-	      mediaChunks.push(e.data);
-	    };
-
-	    // Start recording
-	    newMediaRecorder.start();
-	    return newMediaRecorder;
-	  };
 
 
 
@@ -743,8 +601,6 @@
 	    }
 	  };
 
-
-	  // TO DO -- Confirm output from rawDepth is correct
 	  this._processRawDepth = function(data) {
 	    if (busy) return;
 	    busy = true;
@@ -766,6 +622,164 @@
 	    busy = false;
 	    return processedData;
 	  };
+
+	    // Toggle Recording
+	  this._record = function() {
+	    if (!doRecord) {
+
+	      // If no feed started, send warning and return
+	      if ((multiFrame === false && this.feed === null) || this.feed === 'stop-all') {
+	        console.warn("Record does not work until a feed is started");
+	        return;
+	      }
+
+	      var framesToRecord = [];
+
+	      // How many recorders needed
+	      if (multiFrame) {
+	        for (var i = 0; i < currentFrames.length; i++) {
+	          framesToRecord.push(currentFrames[i]);
+	        }
+	      } else {
+	        framesToRecord.push(this.feed);
+	      }
+
+	      // Create one media recorder for each feed
+	      for (var j = 0; j < framesToRecord.length; j++) {
+	        mediaRecorders.push(this._createMediaRecorder(framesToRecord[j]));
+	      }
+	      
+	      recordStartTime = Date.now();
+	      doRecord = true;
+
+	    } else {
+	      doRecord = false;
+	      
+	      // Stop all mediarecorders and remove them from array
+	      for (var k = mediaRecorders.length - 1; k >= 0; k--) {
+	        mediaRecorders[k].stop();  
+	        mediaRecorders.splice(k, 1);
+	      } 
+
+	    }
+	  };
+
+	  this._drawImageToCanvas = function(frame) {
+	    var tempContext;
+
+	    // Look through media recorders for the correct canvas to draw to
+	    for (var k = 0; k < mediaRecorders.length; k++) {
+	      var id = mediaRecorders[k].canvas.id;
+	      if (id.indexOf(frame) >= 0) {
+	       tempContext = mediaRecorders[k].canvas.getContext("2d"); 
+	      }
+	    }
+	    
+	    // Draw to the appropriate canvas
+	    tempContext.drawImage(this.img, 0, 0);
+	  };
+
+	  this._createMediaRecorder = function(frame) {
+	    var newMediaRecorder;
+
+	    // Create hidden canvas to draw to
+	    newHiddenCanvas = document.createElement("canvas");
+	    newHiddenCanvas.setAttribute('id', frame + Date.now());
+
+	    if (frame == 'color' || frame == 'key') {
+	      newHiddenCanvas.width = COLORWIDTH;
+	      newHiddenCanvas.height = COLORHEIGHT;
+	    } else {
+	      newHiddenCanvas.width = DEPTHWIDTH;
+	      newHiddenCanvas.height = DEPTHHEIGHT;
+	    }
+
+	    newHiddenContext = hiddenCanvas.getContext("2d");
+	    newHiddenContext.fillRect(0, 0, newHiddenCanvas.width, newHiddenCanvas.height);
+	    
+	    // Add canvas to hidden div
+	    myDiv.appendChild(newHiddenCanvas);
+
+	    // Create media recorder, add canvas to recorder
+	    newMediaRecorder = new MediaRecorder(newHiddenCanvas.captureStream());
+	    newMediaRecorder.canvas = newHiddenCanvas;
+	    
+	    var mediaChunks = [];
+
+	    newMediaRecorder.onstop = function (e) {
+
+	      // If skeleton data is being tracked, write out the body frames to JSON
+	      if (frame == 'body' || frame == 'skeleton') {
+	        var blobJson = new Blob([JSON.stringify(bodyChunks)], {type : 'application/json'});
+	        var jsonUrl = URL.createObjectURL(blobJson);
+	        var a2 = document.createElement('a');
+	        document.body.appendChild(a2);
+	        a2.style = 'display: none';
+	        a2.href = jsonUrl;
+	        a2.download = frame + Date.now() + '.json';
+	        a2.click();
+	        window.URL.revokeObjectURL(jsonUrl);
+
+	        // Reset body chunks
+	        bodyChunks.length = 0;   
+	      
+	      // If raw depth data tracked, write out to JSON       
+	      } else if (frame == 'raw-depth') {
+	        var blobJsonRd = new Blob([JSON.stringify(rawDepthChunks)], {type : 'application/json'});
+	        var jsonRdUrl = URL.createObjectURL(blobJsonRd);
+	        var a3 = document.createElement('a');
+	        document.body.appendChild(a3);
+	        a3.style = 'display: none';
+	        a3.href = jsonRdUrl;
+	        a3.download = frame + Date.now() + '.json';
+	        a3.click();
+	        window.URL.revokeObjectURL(jsonRdUrl);
+
+	        // Reset body chunks
+	        rawDepthChunks.length = 0;  
+
+	      // If video display the video on the page
+	      } else {
+	        
+	        // The video as a blob
+	        var blobVideo = new Blob(mediaChunks, { 'type' : 'video/webm' });
+
+	        // Draw video to screen
+	        // var videoElement = document.createElement('video');
+	        // videoElement.setAttribute("id", Date.now());
+	        // videoElement.controls = true;
+	        // document.body.appendChild(videoElement);
+	        // videoElement.src = window.URL.createObjectURL(blobVideo);
+
+	        // Download the video 
+	        var url = URL.createObjectURL(blobVideo);
+	        var a = document.createElement('a');
+	        document.body.appendChild(a);
+	        a.style = 'display: none';
+	        a.href = url;
+	        a.download = frame + Date.now() + '.webm';
+	        a.click();
+	        window.URL.revokeObjectURL(url);
+
+	        // Reset media chunks
+	        mediaChunks.length = 0;    
+	      }
+
+
+	    }.bind(this);
+
+	    // When video data is available
+	    newMediaRecorder.ondataavailable = function(e) {
+	      mediaChunks.push(e.data);
+	    };
+
+	    // Start recording
+	    newMediaRecorder.start();
+	    return newMediaRecorder;
+	  };
+
+
+	  
 	};
 
 	})(window);

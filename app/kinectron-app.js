@@ -177,7 +177,7 @@ function createMediaRecorder(id) {
     // If skeleton data is being tracked, write out the body frames JSON
     if (id == "skeleton") {
       var bodyJSON = JSON.stringify(bodyChunks);
-      var filename = recordingLocation + "skeleton" + recordStartTime + ".json"
+      var filename = recordingLocation + "skeleton" + recordStartTime + ".json";
       fs.writeFile(filename, bodyJSON, "utf8", function() {
         alert("Your file has been saved to " + filename);
       });
@@ -191,7 +191,7 @@ function createMediaRecorder(id) {
       var videoBuffer = new Buffer(reader.result);
 
       // Write it out
-      var filename = recordingLocation + id + recordStartTime + ".webm" ;
+      var filename = recordingLocation + id + recordStartTime + ".webm";
       fs.writeFile(filename, videoBuffer,  function(err){
         if (err) console.log(err);
         alert("Your file has been saved to " + filename);

@@ -47,8 +47,6 @@ function keyPressed() {
     kinectron.startRecord();
   } else if (keyCode === DOWN_ARROW) {
     kinectron.stopRecord();
-  } else if (keyCode === RIGHT_ARROW) {
-    kinectron.stopAll();
   } else if (key === '1') {
     kinectron.startColor();
   } else if (key === '2') {
