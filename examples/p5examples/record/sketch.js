@@ -1,15 +1,14 @@
 var myCanvas = null;
-
-// Declare kinectron 
+var context = null;
 var kinectron = null;
-
-var frameP;
+var frames = [];
 
 function setup() {
-  myCanvas = createCanvas(500, 500);
-  background(0);
+  myCanvas = createCanvas(1000,1000);
+  context = myCanvas.drawingContext;
 
-  frameP = createP('');
+  //console.log(myCanvas.drawingContext);
+  background(255);
 
   // Define and create an instance of kinectron
   var kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
@@ -21,25 +20,15 @@ function setup() {
   // Connect with application over peer
   kinectron.makeConnection();
 
-  // Set callbacks
-  kinectron.setColorCallback(drawFeed);
-  kinectron.setDepthCallback(drawFeed);
-  kinectron.setInfraredCallback(drawFeed);
-  kinectron.setKeyCallback(drawFeed);
-  kinectron.setBodiesCallback(callback);
-  kinectron.setTrackedBodiesCallback(callback);
-  kinectron.setRawDepthCallback(callback);
+  // Set individual frame callbacks
+  kinectron.setColorCallback(colorCallback);
+  kinectron.setDepthCallback(depthCallback);
+  kinectron.setBodiesCallback(bodyCallback);
+
+  // Set frames wanted from Kinectron 
+  frames = ["color", "depth", "body"];
 }
 
-function draw() {
-  var fps = frameRate();
-  fill(0);
-  stroke(0);
-  text("FPS: " + fps.toFixed(0), 10, height);
-  frameP.html(fps.toFixed(0));
-}
-
-// Choose camera to start based on key pressed
 function keyPressed() {
   if (keyCode === ENTER) {
     kinectron.stopAll();
@@ -47,42 +36,42 @@ function keyPressed() {
     kinectron.startRecord();
   } else if (keyCode === DOWN_ARROW) {
     kinectron.stopRecord();
-  } else if (key === '1') {
-    kinectron.startColor();
-  } else if (key === '2') {
-    kinectron.startDepth();
-  } else if (key === '3') {
-    kinectron.startKey();
-  } else if (key === '4') {
-    kinectron.startBodies();
-  } else if (key === '5') {
-    kinectron.startTrackedBodies();
-  } else if (key === '6') {
-    kinectron.startTrackedJoint(kinectron.HANDRIGHT, callback); 
-  } else if (key === '7') {
-    kinectron.startInfrared();
   } else if (key === '8') {
-    kinectron.startMultiFrame(["color", "body"]);
-  } else if (key === '9') {
-    kinectron.startRawDepth();
-  } else if (key === '0') {
-    kinectron.startMultiFrame(["color", "depth", "body"], mfCallback);
-
+    kinectron.startMultiFrame(['color', 'depth', 'body']);
   }
 }
 
-function drawFeed(img) {
-  // Draws feed using p5 load and display image functions  
+function colorCallback(img) {
   loadImage(img.src, function(loadedImage) {
-    image(loadedImage, 0, 0);
+    image(loadedImage, 0, 273.2, 660, 370);
   });
 }
 
-function callback(data) {
-  //console.log(data);
+function depthCallback(img) {
+  loadImage(img.src, function(loadedImage) {
+    image(loadedImage, 330, 0, 330, 273.2);
+  });
 }
 
-function mfCallback(data) {
-  // console.log(data);
-  // debugger;
+function bodyCallback(body) {
+  //find tracked bodies
+  for (var i = 0; i < body.length; i++) {
+    if (body[i].tracked === true) {
+      bodyTracked(body[i]);
+    }
+  }
 }
+
+function bodyTracked(body) {
+
+  context.fillStyle = '#000000';
+  context.fillRect(0, 0, 330, 273.2);
+
+  //draw joints in tracked bodies 
+  for(var jointType in body.joints) {
+    var joint = body.joints[jointType];
+    context.fillStyle = '#ff0000';
+    context.fillRect(joint.depthX * 330, joint.depthY * 273.2, 10, 10);  
+  }
+}
+
