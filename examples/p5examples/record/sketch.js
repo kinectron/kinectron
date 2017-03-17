@@ -66,7 +66,8 @@ function keyPressed() {
   } else if (key === '9') {
     kinectron.startRawDepth();
   } else if (key === '0') {
-    
+    kinectron.startMultiFrame(["color", "depth", "body"], mfCallback);
+
   }
 }
 
@@ -79,4 +80,9 @@ function drawFeed(img) {
 
 function callback(data) {
   //console.log(data);
+}
+
+function mfCallback(data) {
+  // console.log(data);
+  // debugger;
 }

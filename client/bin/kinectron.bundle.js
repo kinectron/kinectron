@@ -272,6 +272,31 @@
 	          if (this.multiFrameCallback) {
 	            this.multiFrameCallback(data);
 
+	            if (doRecord) {
+	              if (data.color) {
+	                this.img.src = data.color;
+	                this._drawImageToCanvas('color');
+	              } 
+	              
+	              if (data.depth) {
+	                this.img.src = data.depth;
+	                this._drawImageToCanvas('depth');
+	              } 
+
+	              if (data.body) {
+	                data.body.record_startime = recordStartTime;
+	                data.body.record_timestamp = Date.now() - recordStartTime;
+	                bodyChunks.push(data.body);  
+	              } 
+
+	              if (data.rawDepth) {
+	                var recordedData2 = {};
+	                recordedData2.data = data.rawDepth;
+	                recordedData2.record_startime = recordStartTime;
+	                recordedData2.record_timestamp = Date.now() - recordStartTime;
+	                rawDepthChunks.push(recordedData2);
+	              }
+	            }
 	          } else {
 	            if (data.color) {
 	              this.img.src = data.color;
@@ -301,11 +326,11 @@
 	             this.rawDepthCallback(data.rawDepth);
 
 	              if (doRecord) {
-	                var recordedData2 = {};
-	                recordedData2.data = data.rawDepth;
-	                recordedData2.record_startime = recordStartTime;
-	                recordedData2.record_timestamp = Date.now() - recordStartTime;
-	                rawDepthChunks.push(recordedData2);
+	                var recordedData3 = {};
+	                recordedData3.data = data.rawDepth;
+	                recordedData3.record_startime = recordStartTime;
+	                recordedData3.record_timestamp = Date.now() - recordStartTime;
+	                rawDepthChunks.push(recordedData3);
 	              }
 	            }
 
