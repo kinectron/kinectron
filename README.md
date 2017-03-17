@@ -55,6 +55,28 @@ Available frames correspond to the frames listed under Single Frame. Color, dept
 
 Running multiple frames at once may impact the speed of your broadcast depending on the system you are running and the speed of your network.  
 
+#### Recording
+
+##### Recording Single Frames
+To record a single frame, click the button corresponding to the frame that you want to record. Once the broadcast has started, click "Start Record" to begin recording. Click the button a second time "Stop Record" to end recording. The file will be saved automatically to your home folder in "Kinectron Recordings."
+
+##### Recording Multiple Frames 
+To record multiple frames, start the frames you wish to record, then click "Start Record" to begin recording. Click the button a second time "Stop Record" to end recording. The files will be saved automatically to your home folder in "Kinectron Recordings."
+
+##### Recorded File Types
+The recorded frames result in the following file types. These vary slighty if recording with the API. See API documentation. 
+
+Color: webm
+Depth: webm
+Raw Depth: webm
+Skeleton: webm (joints drawn to canvas) and JSON (joint data)*
+All Bodies: webm (joints drawn to canvas) and JSON (joint data)*
+Infrared: webm
+Long Exposure Infrared: webm
+Key: webm
+
+*JSON files with joint data include a timestamp.
+
 #### Advanced Options
 ##### Peer Server
 Kinectron uses a peer server to transfer Kinect2 data to the browser. The peer server can be accessed in three ways: 
@@ -130,7 +152,7 @@ kinectron.makeConnection();
 Request a frame from the application using the start function for the desired frame. Each start function optionally takes a callback. See descriptions of the return of each frame under "Choosing A Frame."
 
 ```
-kinectron.startRGB(myCallback);
+kinectron.startColor(myCallback);
 kinectron.startDepth(myCallback);
 kinectron.startRawDepth(myCallback);
 kinectron.startTrackedBodies(myCallback);
@@ -146,7 +168,7 @@ kinectron.startKey(myCallback);
 Callbacks on the frames can be set either as an argument on the start function (see "Request A Frame") or with the set callback function. Kinectron will use the most recently declared callback. 
 
 ```
-kinectron.setRGBCallback(myCallback);
+kinectron.setColorCallback(myCallback);
 kinectron.setDepthCallback(myCallback);
 kinectron.setRawDepthCallback(myCallback);
 kinectron.setTrackedBodiesCallback(myCallback);
@@ -180,7 +202,7 @@ Example with multiframe callback set.
 Example with individual callbacks set. 
 
 ```
-	kinectron.setRGBCallback(colorCallback);
+	kinectron.setColorCallback(colorCallback);
 	kinectron.setDepthCallback(depthCallback);
 	kinectron.setBodiesCallback(bodyCallback);
 
@@ -279,3 +301,29 @@ Get hands returns an object containing the left and right hand joints, and the l
 kinectron.getHands(myDrawHandsFunction);
 ```
 
+### Recording
+Use the startRecord and stopRecord functions to begin and end recording. Recording will not begin unless a feed is running. It's a good idea to attach startRecord and stopRecord to key presses or buttons. 
+
+```
+<html>
+	<body>
+		<button onclick="startRecord()">Start Record</button>
+		<button onclick="startRecord()">Stop Record</button>
+	</body>
+</html>
+```
+#### Recorded File Types
+The recorded frames result in the following file types. These vary slighty if recording with the application. See application documentation for differences. 
+
+Color: webm
+Depth: webm
+Raw Depth: JSON (array data)*
+Skeleton: JSON (joint data)*
+All Bodies: JSON (joint data)*
+Infrared: webm
+Long Exposure Infrared: webm
+Key: webm
+
+*JSON files include a timestamp on each frame.
+
+Raw depth data will record, but the data is so heavy, it is not recommended to use the record function for this frame type. 
