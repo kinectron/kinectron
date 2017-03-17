@@ -36,7 +36,6 @@ var imageDataArray = null;
 
 var busy = false;
 var currentCamera = null;
-var currentCanvasId = null;
 
 var sendAllBodies = false;
 
@@ -393,36 +392,31 @@ function updateDimFields(evt) {
 function setOutputDimensions(evt) {
   evt.preventDefault();
 
-  if (!currentCanvasId) {
-    alert("Start a feed to resize");
-    return;
-  } 
+  var allCanvases = ['color', 'depth', 'raw-depth', 'skeleton', 'infrared', 'le-infrared', 'key'];
 
   var element = evt.srcElement;
   var elementId = element.id;
 
-  var currentCanvas = document.getElementById(currentCanvasId);
-  var currentCanvasResolution = (currentCanvas.width / currentCanvas.height).toFixed(1);
+  for (var i = 0; i < allCanvases.length; i++) {
+    var currentCanvas = document.getElementById(allCanvases[i] + '-canvas');
+    var currentCanvasResolution = (currentCanvas.width / currentCanvas.height).toFixed(1);
 
-  switch (elementId) {
-    case 'colorsubmit':
-      if (currentCanvasResolution == 1.8) {
-        currentCanvas.width = document.getElementById('colorwidth').value;
-        currentCanvas.height = document.getElementById('colorheight').value;
-      } else {
-        alert("Your feed uses the depth camera. Resize depth instead.");
-      }
-    break;
+    switch (elementId) {
+      case 'colorsubmit':
+        if (currentCanvasResolution == 1.8) {
+          currentCanvas.width = document.getElementById('colorwidth').value;
+          currentCanvas.height = document.getElementById('colorheight').value;
+        }
+      break;
 
-    case 'depthsubmit':
-      if (currentCanvasResolution == 1.2) {
-        currentCanvas.width = document.getElementById('depthwidth').value;
-        currentCanvas.height = document.getElementById('depthheight').value;
-      } else {
-        alert("Your feed uses the color camera. Resize color instead.");
-      } 
-    break;
-  }
+      case 'depthsubmit':
+        if (currentCanvasResolution == 1.2) {
+          currentCanvas.width = document.getElementById('depthwidth').value;
+          currentCanvas.height = document.getElementById('depthheight').value;
+        }
+      break;
+    }
+  } 
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -500,7 +494,6 @@ function toggleFeedDiv(camera, state) {
 
     feedDiv.style.display = state;
   }
-
 }
 
 function changeCameraState(camera, state) {
