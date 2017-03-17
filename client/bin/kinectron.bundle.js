@@ -66,7 +66,7 @@
 	  this.trackedJointCallback = null;
 	  this.keyCallback = null;
 	  this.fhCallback = null;
-	  this.multiFrameCallBack = null;
+	  this.multiFrameCallback = null;
 
 	  // Joint Name Constants
 	  this.SPINEBASE = 0;
@@ -269,8 +269,8 @@
 	            data.rawDepth = processedRawDepthData;
 	           }
 
-	          if (this.multiFrameCallBack) {
-	            this.multiFrameCallBack(data);
+	          if (this.multiFrameCallback) {
+	            this.multiFrameCallback(data);
 
 	          } else {
 	            if (data.color) {
@@ -401,9 +401,9 @@
 
 	  this.startMultiFrame = function(frames, callback) {
 	    if (typeof callback !== "undefined") {
-	      this.multiFrameCallBack = callback;
+	      this.multiFrameCallback = callback;
 	    } else if (typeof callback == "undefined") {
-	      this.multiFrameCallBack = null;
+	      this.multiFrameCallback = null;
 	    }
 
 	    multiFrame = true;

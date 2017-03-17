@@ -65,6 +65,8 @@ function keyPressed() {
     kinectron.startMultiFrame(["color", "body"]);
   } else if (key === '9') {
     kinectron.startRawDepth();
+  } else if (key === '0') {
+    
   }
 }
 
