@@ -148,7 +148,6 @@ function record(evt) {
 
 function createMediaRecorder(id) {
   var idToRecord = id + "-canvas";
-  console.log(document.getElementById(idToRecord));
   var newMediaRecorder = new MediaRecorder(document.getElementById(idToRecord).captureStream());
   var mediaChunks = [];
 
@@ -161,11 +160,11 @@ function createMediaRecorder(id) {
     mediaChunks.length = 0;
 
     // Display the video on the page
-    var videoElement = document.createElement('video');
-    videoElement.setAttribute("id", Date.now());
-    videoElement.controls = true;
-    document.body.appendChild(videoElement);
-    videoElement.src = window.URL.createObjectURL(blob);
+    // var videoElement = document.createElement('video');
+    // videoElement.setAttribute("id", Date.now());
+    // videoElement.controls = true;
+    // document.body.appendChild(videoElement);
+    // videoElement.src = window.URL.createObjectURL(blob);
 
 
     var fs = require('fs');
@@ -178,8 +177,9 @@ function createMediaRecorder(id) {
     // If skeleton data is being tracked, write out the body frames JSON
     if (id == "skeleton") {
       var bodyJSON = JSON.stringify(bodyChunks);
-      fs.writeFile(recordingLocation + "TEST"  + "skeleton" + recordStartTime + ".json", bodyJSON, "utf8", function() {
-        console.log("Wrote body file");
+      var filename = recordingLocation + "skeleton" + recordStartTime + ".json"
+      fs.writeFile(filename, bodyJSON, "utf8", function() {
+        alert("Your file has been saved to " + filename);
       });
       bodyChunks.length = 0;        
     }
@@ -191,9 +191,10 @@ function createMediaRecorder(id) {
       var videoBuffer = new Buffer(reader.result);
 
       // Write it out
-      fs.writeFile(recordingLocation + "TEST" + id + recordStartTime + ".webm", videoBuffer,  function(err){
+      var filename = recordingLocation + id + recordStartTime + ".webm" ;
+      fs.writeFile(filename, videoBuffer,  function(err){
         if (err) console.log(err);
-        console.log("It's saved!");
+        alert("Your file has been saved to " + filename);
       });
     }, false);
     reader.readAsArrayBuffer(blob);
