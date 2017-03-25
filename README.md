@@ -308,7 +308,7 @@ kinectron.getHands(myDrawHandsFunction);
 ### Recording
 It is possible to record from the API on both the client side and the server side.
 
-####Server-side Recording
+#### Server-side Recording
 Use startServerRecord and stopServerRecord to begin and end recording on the Kinectron server. Recording will not begin unless a feed is running. It's a good idea to attach the start and stop functions to key presses or buttons.
 
 ```
@@ -322,9 +322,9 @@ Use startServerRecord and stopServerRecord to begin and end recording on the Kin
 
 Files recorded with the server-side recording from the API will be saved automatically to the home folder of the computer running the server in the "Kinectron Recordings" folder.
 
-The recorded file types will match those listed in [Application Recording][#recorded-file-types].
+The recorded file types will match those listed in [Application Recording](#recorded-file-types).
 
-####Client-side Recording
+#### Client-side Recording
 Use the startRecord and stopRecord functions to begin and end recording on the client side. Recording will not begin unless a feed is running. It's a good idea to attach startRecord and stopRecord to key presses or buttons. 
 
 ```
