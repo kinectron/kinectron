@@ -306,7 +306,26 @@ kinectron.getHands(myDrawHandsFunction);
 ```
 
 ### Recording
-Use the startRecord and stopRecord functions to begin and end recording. Recording will not begin unless a feed is running. It's a good idea to attach startRecord and stopRecord to key presses or buttons. 
+It is possible to record from the API on both the client side and the server side.
+
+####Server-side Recording
+Use startServerRecord and stopServerRecord to begin and end recording on the Kinectron server. Recording will not begin unless a feed is running. It's a good idea to attach the start and stop functions to key presses or buttons.
+
+```
+<html>
+	<body>
+		<button onclick="startServerRecord()">Start Record</button>
+		<button onclick="stopServerRecord()">Stop Record</button>
+	</body>
+</html>
+``` 
+
+Files recorded with the server-side recording from the API will be saved automatically to the home folder of the computer running the server in the "Kinectron Recordings" folder.
+
+The recorded file types will match those listed in [Application Recording][#recorded-file-types].
+
+####Client-side Recording
+Use the startRecord and stopRecord functions to begin and end recording on the client side. Recording will not begin unless a feed is running. It's a good idea to attach startRecord and stopRecord to key presses or buttons. 
 
 ```
 <html>
@@ -316,7 +335,10 @@ Use the startRecord and stopRecord functions to begin and end recording. Recordi
 	</body>
 </html>
 ```
-#### Recorded File Types
+
+**Important!** You will be prompted to download multiple files if recording more than one stream in the browser. You may have to allow multiple downloads on the site. If you continue to have trouble, make sure that the option for "Ask where to save each file before downloading" in Chrome Advanced Settings is **unchecked.** This will by default block multiple downloads. 
+
+#### Client-side Recorded File Types
 The recorded frames result in the following file types. These vary slighty if recording with the application. See application documentation for differences. 
 
 ```
@@ -334,4 +356,3 @@ Key: webm
 
 Raw depth data will record, but the data is so heavy, it is not recommended to use the record function for this frame type. 
 
-**Important!** You will be prompted to download multiple files if recording more than one stream in the browser. You may have to allow multiple downloads on the site. If you continue to have trouble, make sure that the option for "Ask where to save each file before downloading" in Chrome Advanced Settings is **unchecked.** This will by default block multiple downloads. 
