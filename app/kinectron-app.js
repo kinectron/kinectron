@@ -103,6 +103,16 @@ function init() {
 
 // Toggle Recording
 function record(evt) {
+  var recordButton = document.getElementById('record');
+  var serverSide = false;
+
+  if (evt) {
+    evt.preventDefault();
+    serverSide = true;
+  } 
+
+  console.log(serverSide);
+
   if (!doRecord) {
     // If no frame selected, send alert
     if (multiFrame === false && currentCamera === null) {
@@ -124,7 +134,7 @@ function record(evt) {
     }
 
     for (var j = 0; j < framesToRecord.length; j++) {
-      mediaRecorders.push(createMediaRecorder(framesToRecord[j]));
+      mediaRecorders.push(createMediaRecorder(framesToRecord[j], serverSide));
     }
     
     recordStartTime = Date.now();
@@ -132,12 +142,15 @@ function record(evt) {
 
     // Toggle record button color and text
     toggleButtonState('record', 'active');
-    evt.srcElement.value = "Stop Record";
-  } else {
+    recordButton.value = "Stop Record";
+  } 
+
+  else {
     doRecord = false;
     toggleButtonState('record', 'inactive');
-    evt.srcElement.value = "Start Record";
+    recordButton.value = "Start Record";
 
+    // Stop media recorders
     for (var k = mediaRecorders.length - 1; k >= 0; k--) {
       mediaRecorders[k].stop();  
       mediaRecorders.splice(k, 1);
@@ -145,7 +158,7 @@ function record(evt) {
   }
 }
 
-function createMediaRecorder(id) {
+function createMediaRecorder(id, serverSide) {
   var idToRecord = id + "-canvas";
   var newMediaRecorder = new MediaRecorder(document.getElementById(idToRecord).captureStream());
   var mediaChunks = [];
@@ -178,7 +191,7 @@ function createMediaRecorder(id) {
       var bodyJSON = JSON.stringify(bodyChunks);
       var filename = recordingLocation + "skeleton" + recordStartTime + ".json";
       fs.writeFile(filename, bodyJSON, "utf8", function() {
-        alert("Your file has been saved to " + filename);
+        if (serverSide === true) alert("Your file has been saved to " + filename);
       });
       bodyChunks.length = 0;        
     }
@@ -193,7 +206,7 @@ function createMediaRecorder(id) {
       var filename = recordingLocation + id + recordStartTime + ".webm";
       fs.writeFile(filename, videoBuffer,  function(err){
         if (err) console.log(err);
-        alert("Your file has been saved to " + filename);
+        if (serverSide === true) alert("Your file has been saved to " + filename);
       });
     }, false);
     reader.readAsArrayBuffer(blob);
@@ -312,6 +325,10 @@ function initpeer() {
         case 'multi': 
           chooseMulti(null, dataReceived.data);
         break;
+
+        case 'record':
+          record();
+        break;  
       }
     
     });

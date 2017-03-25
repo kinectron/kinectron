@@ -501,7 +501,15 @@ Kinectron = function(arg1, arg2) {
     this._record();
   };
 
+  this.startServerRecord = function() {
+    console.log('Starting recording on your server');
+    this._sendToPeer('record', 'start');
+  };
 
+  this.stopServerRecord = function() {
+    console.log('Ending recording on your server');
+    this._sendToPeer('record', 'stop');
+  };
 
 
   // Private functions //
