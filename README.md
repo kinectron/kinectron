@@ -7,7 +7,7 @@ Kinectron has two components--an electron application to broadcast Kinect2 data 
 ## Kinectron Application Installation 
 You will need to be running Windows 8 or Windows 10 for the app to run correctly. If you are running Windows 8, you will also need to download and install the [Official Kinect2 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=44561) before running Kinectron.
 
-Download and unzip [preview release 0.0.4.7](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4.7).
+Download and unzip [preview release 0.0.4.8](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4.8).
 
 We recommend unzipping the folder directly at the C:\ drive level to avoid an error with Windows filename size limitations.
 
