@@ -98,7 +98,39 @@ function init() {
   document.getElementById('multi').addEventListener('click', chooseMulti);
   document.getElementById('stop-multi').addEventListener('click', stopMulti);
   document.getElementById('advanced-link').addEventListener('click', toggleAdvancedOptions);
-  document.getElementById('record').addEventListener('click', record);
+  document.getElementById('record').addEventListener('click', toggleRecord);
+}
+
+// Only used for server-side record
+function toggleRecord(evt) {
+  if (!doRecord) {
+    doRecord = true;
+  } else {
+    doRecord = false;
+  }
+  record(evt);
+}
+
+// Only used for client-iniated record
+function startRecord() {
+  // if record already running, do nothing
+  if (doRecord) return;
+
+  // if not, set do record and run 
+  if (!doRecord) {
+    doRecord = true;
+    record();
+  }
+}
+
+function stopRecord() {
+  // if record already stopped, do nothing 
+  if (!doRecord) return;
+  // if running, turn record off
+  if (doRecord) {
+    doRecord = false;
+    record();
+  }
 }
 
 // Toggle Recording
@@ -113,7 +145,7 @@ function record(evt) {
 
   console.log(serverSide);
 
-  if (!doRecord) {
+  if (doRecord) {
     // If no frame selected, send alert
     if (multiFrame === false && currentCamera === null) {
       alert("Begin broadcast, then begin recording");
@@ -138,7 +170,7 @@ function record(evt) {
     }
     
     recordStartTime = Date.now();
-    doRecord = true;
+    //doRecord = true;
 
     // Toggle record button color and text
     toggleButtonState('record', 'active');
@@ -146,7 +178,7 @@ function record(evt) {
   } 
 
   else {
-    doRecord = false;
+    //doRecord = false;
     toggleButtonState('record', 'inactive');
     recordButton.value = "Start Record";
 
@@ -327,7 +359,8 @@ function initpeer() {
         break;
 
         case 'record':
-          record();
+          if (dataReceived.data == 'start') startRecord();
+          if (dataReceived.data == 'stop') stopRecord(); 
         break;  
       }
     
