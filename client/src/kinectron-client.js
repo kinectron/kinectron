@@ -595,14 +595,18 @@ Kinectron = function(arg1, arg2) {
     var depthBuffer;
     var processedData = [];
 
-    hiddenImage.src = data;
-    hiddenContext.clearRect(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
-    hiddenContext.drawImage(hiddenImage, 0, 0);
-    imageData = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
-    depthBuffer = imageData.data;
+    var newImg = new Image();
+    newImg.src = data;
 
-    for(var i = 0; i < depthBuffer.length; i+=4) {
-      var depth = (depthBuffer[i+1] << 8) + depthBuffer[i]; //get uint16 data from buffer
+    newImg.onload = function () {
+      hiddenContext.clearRect(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
+      hiddenContext.drawImage(newImg, 0, 0);
+    }.bind(this);
+
+    imageData = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
+    
+    for(var i = 0; i < imageData.data.length; i+=4) {
+      var depth = (imageData.data[i+1] << 8) + imageData.data[i]; //get uint16 data from buffer
       processedData.push(depth);
     }
 
