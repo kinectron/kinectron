@@ -7,6 +7,9 @@ var line, line1, line2, line3;
 // do you want to see the skeleton? 
 var skeletonVisible = true;
 
+// attach camera to hear? 
+var headCam = true;
+
 // how much to scale down skeleton by
 var scaleDiv = 200;
 
@@ -107,8 +110,10 @@ function drawJoints(data) {
 
 	// set main camera at head 
 	
-	camera.position.set(data.joints[kinectron.HEAD].cameraX, data.joints[kinectron.HEAD].cameraY, data.joints[kinectron.HEAD].cameraZ);
-
+	if (headCam) {
+		camera.position.set(data.joints[kinectron.HEAD].cameraX, data.joints[kinectron.HEAD].cameraY, data.joints[kinectron.HEAD].cameraZ);	
+	}
+	
 	// update point light positions based on hand position 
 	
 	pointLight.position.x = data.joints[kinectron.HANDRIGHT].cameraX;
@@ -279,6 +284,7 @@ function checkHead(data) {
 	dist2.z = Math.abs(data.joints[kinectron.HANDLEFT].cameraZ - data.joints[kinectron.HANDRIGHT].cameraZ);
 	
 	// calibrate the distance between joints if needed
+	
 	var d = 0.3; 
 
 	// if touching, animate the spline camera 

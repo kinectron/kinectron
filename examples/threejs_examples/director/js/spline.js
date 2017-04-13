@@ -13,6 +13,9 @@ var closed2 = true;
 var parent;
 var tube, tubeMesh;
 
+// can we see spline
+var tubeVisibility = true;
+
 // create spline
 var spline = new THREE.Curves.GrannyKnot();
 
@@ -127,6 +130,7 @@ function addTube() {
 	// set scale of spline
 
 	tubeMesh.scale.set( scale, scale, scale );
+	tubeMesh.visible = tubeVisibility;
 
 }
 
