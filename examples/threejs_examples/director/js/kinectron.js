@@ -284,7 +284,6 @@ function checkHead(data) {
 	// if touching, animate the spline camera 
 
 	if ( ( dist2.x < d && dist2.y < d && dist2.z < d) && ( dist.x < d && dist.y < d && dist.z < d) ) {
-		console.log('tac');
 		animation = true;
 	} else {
 		animation = false;
