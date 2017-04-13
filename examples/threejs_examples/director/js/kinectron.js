@@ -7,10 +7,10 @@ var line, line1, line2, line3;
 // do you want to see the skeleton? 
 var skeletonVisible = true;
 
-// attach camera to hear? 
+// attach camera to head? 
 var headCam = true;
 
-// how much to scale down skeleton by
+// how much to scale skeleton by
 var scaleDiv = 200;
 
 
