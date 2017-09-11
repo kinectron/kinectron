@@ -3249,6 +3249,7 @@
 
 	    chunkInfo.data[data.n] = data.data;
 	    chunkInfo.count += 1;
+	    this._chunkedData[id] = chunkInfo;
 
 	    if (chunkInfo.total === chunkInfo.count) {
 	      // Clean up before making the recursive call to `_handleDataMessage`.
@@ -3259,7 +3260,7 @@
 	      this._handleDataMessage({data: data});
 	    }
 
-	    this._chunkedData[id] = chunkInfo;
+	    
 	    return;
 	  }
 

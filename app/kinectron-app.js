@@ -1122,7 +1122,7 @@ function startKey() {
                 imageDataArray[i] = newPixelData[i];
               }
 
-              drawImageToCanvas(keyCanvas, keyContext, 'key', 'png');
+              drawImageToCanvas(keyCanvas, keyContext, 'key', 'webp');
             }
           }
         }
