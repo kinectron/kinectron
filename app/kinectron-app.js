@@ -44,6 +44,7 @@ var currentFrames = null;
 var sentTime = Date.now();
 
 var rawDepth = false;
+var blockAPI = false;
 
 // Key Tracking needs cleanup
 var trackedBodyIndex = -1;
@@ -99,6 +100,22 @@ function init() {
   document.getElementById('stop-multi').addEventListener('click', stopMulti);
   document.getElementById('advanced-link').addEventListener('click', toggleAdvancedOptions);
   document.getElementById('record').addEventListener('click', toggleRecord);
+  document.getElementById('api-blocker').addEventListener('click', toggleAPIBlocker);
+}
+
+function toggleAPIBlocker(evt) {
+  var apiButton = document.getElementById('api-blocker');
+  var apiText = document.getElementById('api-blocker-intro');
+
+  if (!blockAPI) {
+    apiButton.value = "Allow API Calls";
+    apiText.innerHTML = "API Calls Are Blocked";
+  } else {
+    apiButton.value = "Block API Calls";
+    apiText.innerHTML = "API Calls Are Allowed";
+  }
+
+  blockAPI = !blockAPI;
 }
 
 // Only used for server-side record
@@ -343,6 +360,8 @@ function initpeer() {
     });
 
     connection.on('data', function(dataReceived) {
+      if (blockAPI == true) return;
+        
       switch (dataReceived.event) {
         case 'initfeed':
           if (dataReceived.data.feed) {

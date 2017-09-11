@@ -110,6 +110,11 @@ Kinectron outputs them at the following dimensions by default:
 
 Change the Kinectron output dimensions by entering the desired width or height and clicking "Submit." 
 
+##### Allow/Block API Calls
+By default the Kinectron application listens for calls from the client-side API. Block API calls by clicking the "Block API Calls" button under Advanced Options. Blocking API calls will allow you to continue to broadcast to clients, but clients will not be able to make changes to the application settings through the API. 
+
+To allow API calls, click "Allow API Calls." This immediately allows API calls again. 
+
 ## Using the Client-side API
 Include the library in the head of your document. 
 
