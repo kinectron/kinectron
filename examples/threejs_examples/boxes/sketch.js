@@ -22,11 +22,18 @@ function changeCanvas(data) {
   // Image data needs to be draw to img element before canvas
   var img1 = new Image;
   img1.src = data.color; // get color image from kinectron data
-  ctx.drawImage(img1,0,0, CANVW, CANVH);
+
+  img1.onload = function () {
+    ctx.drawImage(img1,0,0, CANVW, CANVH);  
+  };
   
   var img2 = new Image;
   img2.src = data.depth; // get depth image from kinectron data
-  ctx2.drawImage(img2,0,0, CANVW, CANVH);
+  
+  img2.onload = function () {
+    ctx2.drawImage(img2,0,0, CANVW, CANVH);  
+  }
+  
 }
 
 function init() {
