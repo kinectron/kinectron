@@ -157,6 +157,8 @@
 	  // Create hidden image to draw to
 	  myDiv = document.createElement("div");
 	  myDiv.style.visibility = "hidden";
+	  myDiv.style.position = "fixed";
+	  myDiv.style.bottom = "0";
 	  document.body.appendChild(myDiv);
 
 	  this.img = document.createElement("img");
