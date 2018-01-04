@@ -49,21 +49,21 @@
 
 		<script id="vs" type="x-shader/x-vertex">
 
-			uniform sampler2D map1, map2;
+			uniform sampler2D map1;
 
 			uniform float width;
 			uniform float height;
-			uniform float nearClipping, farClipping, dClipping1, dClipping2;
-			uniform float flrClipping1, flrClipping2;
+			uniform float nearClipping, farClipping, dClipping1;
+			uniform float flrClipping1;
 
 			uniform float pointSize;
 			uniform float zOffset;
-			uniform float xLeftClip1, xLeftClip2;
-			uniform float xRightClip1, xRightClip2;
+			uniform float xLeftClip1;
+			uniform float xRightClip1;
 
 			varying vec2 vUv;
 			varying float depth;
-			varying vec4 color1, color2;
+			varying vec4 color1;
 
 			const float XtoZ = 1.11146; // tan( 1.0144686 / 2.0 ) * 2.0;
 			const float YtoZ = 0.83359; // tan( 0.7898090 / 2.0 ) * 2.0;
@@ -73,9 +73,8 @@
 				// create the vector positions
 				vUv = vec2( position.x / width, position.y / height );
 
-				// load the color data from images
+				// load the color data from image
 				color1 = texture2D( map1, vUv );
-				color2 = texture2D( map2, vUv );
 
 				// clip from the left and right side of images 
 				if ( vUv.x < xLeftClip1 ) {
@@ -99,48 +98,7 @@
 					color1.w = 0.0;
 				}
 
-				if ( vUv.x < xLeftClip2 ) {
-					color2.r = 0.0;
-					color2.g = 0.0;
-					color2.b = 0.0;
-					color2.w = 0.0;
-				} 
-
-				if ( vUv.x > xRightClip2 ) {
-					color2.r = 0.0;
-					color2.g = 0.0;
-					color2.b = 0.0;
-					color2.w = 0.0;
-				} 
-
-				if ( vUv.y < flrClipping2 ) {
-					color2.r = 0.0;
-					color2.g = 0.0;
-					color2.b = 0.0;
-					color2.w = 0.0;
-				} 
-
-				float div = 2.0;
-				// // use this to just turn it white, no distortion
-				//if (color1.w > 0.0 && color2.w > 0.0) div = 2.0;
-
-				// depth = (color1.w + color2.w) / div;
-
-
-
-				//if (color1.w > 0.0 && color2.w > 0.0) div = 1.0;
-
-				depth = (color1.w + color2.w)/div;
-
-				if ( color1.r > 0.0 && color2.r > 0.0 ) {
-					color1.r = 1.0;
-					color1.g = 1.0;
-					color1.b = 1.0;
-
-					color2.r = 1.0;
-					color2.g = 1.0;
-					color2.b = 1.0;
-				}
+				depth = color1.w;
 
 				// Projection code by @kcmic
 				float z = ( 1.0 - depth ) * (farClipping - nearClipping) + nearClipping;
@@ -160,21 +118,19 @@
 
 		<script id="fs" type="x-shader/x-fragment">
 
-			uniform sampler2D map1, map2;
-			uniform float xLeftClip1, xLeftClip2;
-			uniform float xRightClip1, xRightClip2;
+			uniform sampler2D map1;
+			uniform float xLeftClip1;
+			uniform float xRightClip1;
 
 			varying vec2 vUv;
-			varying vec4 color1, color2;
+			varying vec4 color1;
 
 			void main() {
 
 				float alpha = 1.0;
 				float clrDiv = 1.0;
 
-				vec4 outputColor = vec4((color1.r + color2.r) / clrDiv, (color1.g + color2.g) / clrDiv, (color1.b + color2.b) / clrDiv, alpha);
-
-				// if (color.r < 0.5 ) color.r += 0.25;
+				vec4 outputColor = vec4(color1.r, color1.g, color1.b, alpha);
 
 				if (color1.r > 0.9 && color1.g > 0.9 && color1.b > 0.9) alpha = 0.0;
 
