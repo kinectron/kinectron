@@ -21,7 +21,7 @@ function init() {
 	container.appendChild( stats.dom );
 
 	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.set( 30, 13, 765 );
+	camera.position.set( 30, 13, 2000 );
 
 	scene = new THREE.Scene();
 

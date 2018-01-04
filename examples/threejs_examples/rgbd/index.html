@@ -169,12 +169,16 @@
 
 			void main() {
 
-				vec4 outputColor = vec4((color1.r + color2.r) / 2.0, (color1.g + color2.g) / 2.0, (color1.b + color2.b) / 2.0, 1.0);
+				float alpha = 1.0;
+				float clrDiv = 1.0;
+
+				vec4 outputColor = vec4((color1.r + color2.r) / clrDiv, (color1.g + color2.g) / clrDiv, (color1.b + color2.b) / clrDiv, alpha);
 
 				// if (color.r < 0.5 ) color.r += 0.25;
 
-				//gl_FragColor = vec4( color1.r, color1.g, color1.b, 1.0 );
-				gl_FragColor = vec4( outputColor.r, outputColor.g, outputColor.b, 1.0 );
+				if (color1.r > 0.9 && color1.g > 0.9 && color1.b > 0.9) alpha = 0.0;
+
+				gl_FragColor = vec4( outputColor.r, outputColor.g, outputColor.b, alpha);
 
 			}
 		</script>

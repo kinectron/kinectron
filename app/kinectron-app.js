@@ -927,9 +927,19 @@ function startRGBD() {
             j++;
           }
           
-          drawImageToCanvas(rgbdCanvas, rgbdContext, 'rgbd', 'webp', 0.7);
+          var rgbdImg = drawImageToCanvas(rgbdCanvas, rgbdContext, 'rgbd', 'webp', 0.1);
 
-        busy = false;
+          //busy = false;
+
+          // limit raw depth to 25 fps  
+          if (Date.now() > sentTime + 40) {
+            packageData('rgbd', rgbdImg);
+          sentTime = Date.now();
+          }
+          
+          setTimeout(function() {
+            busy = false;
+          });
 
       }); // kinect.on
     } // open
@@ -1446,6 +1456,8 @@ function drawImageToCanvas(inCanvas, inContext, frameType, imageType, quality) {
   if (multiFrame) {
     return outputCanvasData;
   } else if (rawDepth) {
+    return outputCanvasData;
+  } else if (frameType == 'rgbd') {
     return outputCanvasData;
   } else {
     packageData(frameType, outputCanvasData);

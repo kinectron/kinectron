@@ -18,10 +18,10 @@ var busy = false;
 function initKinectron() {
 
 	// Define and create an instance of kinectron
-  //var kinectronIpAddress1 = (); // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  var kinectronIpAddress = "10.0.1.5"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   //var kinectronIpAddress2 = "10.0.1.14";
 
-  kinectron1 = new Kinectron();
+  kinectron1 = new Kinectron(kinectronIpAddress);
   kinectron1.makeConnection();
   kinectron1.startRGBD(changeCanvas1);
   //kinectron1.startMultiFrame(["depth", "depth-color"], changeCanvas1);
