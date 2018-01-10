@@ -10,6 +10,7 @@ var KIMGW = 512;
 var CANVH = 424;
 var canv1XStart = 30;
 var busy = false;
+var photo = false;
 
 function initKinectron() {
 
@@ -30,6 +31,10 @@ window.addEventListener('keydown', function(event){
 		  kinectron.stopAll();
 	}
 
+  if (event.keyCode === 56) {
+      photo = true;
+  }
+
 });
 
 
@@ -45,6 +50,11 @@ function changeCanvas(data) {
     var img1 = new Image();
 
     img1.src = data.src; // get color and depth image from kinectron data
+
+    if (photo) {
+      console.log(img1);
+      debugger;
+    }
 
     // when image loads clear the canvas and draw the new image
     img1.onload = function() {
