@@ -54,14 +54,8 @@ function createKinectImg() {
 	var width = 768, height = 424;
 	var nearClipping = 850, farClipping = 4000;
 
-	// Setup canvas and context for kinect
-	canvas = document.getElementById('canvas1');    
-	canvas.width = CANVW;
-	canvas.height = CANVH;
-	ctx = canvas.getContext('2d');
-
 	// texture for kinect
-	texture = new THREE.Texture(canvas);
+	texture = new THREE.Texture(img1);
 	texture.minFilter = THREE.NearestFilter;
 
 	// geo for both kinects

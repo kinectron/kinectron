@@ -1,8 +1,7 @@
 var kinectron;
 
-// Use canvas to draw incoming feed
-var canvas; 
-var ctx; 
+// Use image to draw incoming feed
+var img1 = new Image();
 
 // set a fixed 2:1 for the image
 var CANVW = 768;
@@ -11,20 +10,22 @@ var CANVH = 424;
 var canv1XStart = 30;
 var busy = false;
 var photo = false;
+var feedStarted = false;
 
 function initKinectron() {
 
 	// Define and create an instance of kinectron
-  var kinectronIpAddress = "10.0.1.5"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  var kinectronIpAddress = "172.16.218.87"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
 
   kinectron = new Kinectron(kinectronIpAddress);
   kinectron.makeConnection();
 
   // start the rgbd feed and send the data to change canvas callback
-  kinectron.startRGBD(changeCanvas);
+  kinectron.startRGBD(drawKinectImg);
 }
 
 // Use '9' key to stop kinect from running 
+// 8 key for snapshot and debugger
 window.addEventListener('keydown', function(event){
 	
 	if (event.keyCode === 57) {
@@ -38,7 +39,8 @@ window.addEventListener('keydown', function(event){
 });
 
 
-function changeCanvas(data) {
+function drawKinectImg(data) {
+
 	if (busy) {
     return;
   }
@@ -47,7 +49,6 @@ function changeCanvas(data) {
   // Only draw if there is an image from kinectron
   if (data.src) {
     busy = true; 
-    var img1 = new Image();
 
     img1.src = data.src; // get color and depth image from kinectron data
 
@@ -58,8 +59,8 @@ function changeCanvas(data) {
 
     // when image loads clear the canvas and draw the new image
     img1.onload = function() {
-       ctx.clearRect(0, 0, CANVW, CANVH);
-       ctx.drawImage(img1,canv1XStart,0, KIMGW, CANVH);  
+      material.needsUpdate = true;
+      texture.needsUpdate = true;
     };
     
     // clear the callstack to avoid stack overflow 

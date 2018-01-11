@@ -11,6 +11,8 @@ var geometry, mesh, material, texture;
 // for cllipping kinectron image
 var dClipping1, flrClipping1, xLeftClip1, xRightClip1;  
 
+
+
 window.addEventListener('load', init);
 
 function init() {
@@ -61,7 +63,7 @@ function createKinectImg() {
 	ctx = canvas.getContext('2d');
 
 	// texture for kinect
-	texture = new THREE.Texture(canvas);
+	texture = new THREE.Texture(img1);
 	texture.minFilter = THREE.NearestFilter;
 
 	// geo for both kinects
@@ -83,7 +85,7 @@ function createKinectImg() {
 
 	// create shader material
 
-	updateMaterial();
+	//updateMaterial();
 	
 	material = new THREE.ShaderMaterial( {
 
@@ -124,18 +126,13 @@ function onWindowResize() {
 }
 
 function animate() {
-	material.needsUpdate = true;
- 
-  texture.needsUpdate = true;
-  
   requestAnimationFrame( animate );
-
 	render();
-	stats.update();
+	
 }
 
 function render() {
-
+	stats.update();
 	controls.update();
 	renderer.render( scene, camera );
 
