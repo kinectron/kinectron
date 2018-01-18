@@ -1,30 +1,23 @@
 var params = {
-	canv1Start: 30,
 	dClipping1: 0.45,
 	flrClipping1: 0.33,
-	xLeftClip1: 0.2,
-	xRightClip1: 0.55,
+	xLeftClip1: 0.1,
+	xRightClip1: 1.0
 };
 
 
 function initGui() {
-	// dat.GUI
 
+	// dat.GUI
 	var gui = new dat.GUI( { width: 300 } );
 
 	var folderCanv1 = gui.addFolder( 'Canvas1' );
-	folderCanv1.add( params, 'canv1Start', 0, 256 ).step( 1 ).onChange( function( value ) { setCanvasPosition(); } );
 	folderCanv1.add( params, 'dClipping1', 0.0, 1.0 ).step( 0.01 ).onChange( function( value ) { updateMaterial(); } );
 	folderCanv1.add( params, 'flrClipping1', 0.0, 1.0 ).step( 0.01 ).onChange( function( value ) { updateMaterial(); } );
 	folderCanv1.add( params, 'xLeftClip1', 0.0, 1.0 ).step( 0.01 ).onChange( function( value ) { updateMaterial(); } );
 	folderCanv1.add( params, 'xRightClip1', 0.0, 1.0 ).step( 0.01 ).onChange( function( value ) { updateMaterial(); } );
 	folderCanv1.open();
 }
-
-
-function setCanvasPosition() {
-	canv1XStart = params.canv1Start;
-} 
 
 
 function updateMaterial() {
