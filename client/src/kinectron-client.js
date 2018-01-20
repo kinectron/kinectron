@@ -330,7 +330,6 @@ Kinectron = function(arg1, arg2) {
     this._setFeed('raw-depth');
   };
 
-
   this.startInfrared = function(callback) {
     if (callback) {
       this.infraredCallback = callback;
@@ -468,8 +467,8 @@ Kinectron = function(arg1, arg2) {
     this.keyCallback = callback;
   };
 
-  this.setRGBCallback = function(callback) {
-    this.rgbCallback = callback;
+  this.setRGBDCallback = function(callback) {
+    this.rgbdCallback = callback;
   };
 
   this.setFhCallback = function(callback) {
