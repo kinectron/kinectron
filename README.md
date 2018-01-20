@@ -7,7 +7,7 @@ Kinectron has two components--an electron application to broadcast Kinect2 data 
 ## Kinectron Application Installation
 You will need to be running Windows 8 or Windows 10 for the app to run correctly. If you are running Windows 8, you will also need to download and install the [Official Kinect2 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=44561) before running Kinectron.
 
-Download and unzip [preview release 0.0.4.9](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.4.9).
+Download and unzip [preview release 0.0.5.0](https://github.com/lisajamhoury/kinectron/releases/tag/0.0.5.0).
 
 We recommend unzipping the folder directly at the C:\ drive level to avoid an error with Windows filename size limitations.
 
@@ -44,6 +44,7 @@ To start a frame, click the corresponding button. The frame will start automatic
 -"Infrared" returns a jpeg of the infrared camera.  
 -"Long Exposure Infrared" returns a longer exposure jpeg of the infrared camera.
 -"Key" returns a png of the image of the tracked bodies on a transparent background. It has the effect of a green screen.  
+-"RGBD" returns a webp with the color image registered to the depth feed and the depth feed stored in the alpha channel. 
 -"Stop All" stops the current frame.
 
 ##### Multiframe
@@ -75,6 +76,7 @@ All Bodies: webm (joints drawn to canvas) and JSON (joint data)*
 Infrared: webm
 Long Exposure Infrared: webm
 Key: webm
+RGBD: webm
 
 *JSON files with joint data include a timestamp.
 
@@ -170,6 +172,7 @@ kinectron.startBodies(myCallback);
 kinectron.startInfrared(myCallback);
 kinectron.startLEInfrared(myCallback);
 kinectron.startKey(myCallback);
+kinectron.startRGBD(myCallback);
 ```
 
 ### Set Callbacks
@@ -185,6 +188,7 @@ kinectron.setBodiesCallback(myCallback);
 kinectron.setInfraredCallback(myCallback);
 kinectron.setLeInfraredCallback(myCallback);
 kinectron.setKeyCallback(myCallback);
+kinectron.setRGBDCallback(myCallback);
 ```
 
 ### Requesting Multiple Frames
@@ -355,6 +359,7 @@ All Bodies: JSON (joint data)*
 Infrared: webm
 Long Exposure Infrared: webm
 Key: webm
+RGBD: webm
 
 *JSON files include a timestamp on each frame.
 ```
