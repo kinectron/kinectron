@@ -34,6 +34,7 @@ Here is a [working example](LINK) of a Kinect live streaming.
 
 ## Contribute
 
+This project is developed using GitHub and lives in [this repository](https://github.com/kinectron/kinectron)
 
 ## Available feeds:
 
