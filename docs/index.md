@@ -22,6 +22,10 @@ To use Kinectron as a client, you need to include the library on your project.
 
 Here is a [working example](LINK) of a Kinect live streaming.
 
+## Current state
+
+## Coming up
+
 ## Documentation
 
 ## Examples
