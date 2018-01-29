@@ -91,6 +91,7 @@ function init() {
   document.getElementById('infrared').addEventListener('click', chooseCamera);
   document.getElementById('le-infrared').addEventListener('click', chooseCamera);
   document.getElementById('key').addEventListener('click', chooseCamera);
+  document.getElementById('rgbd').addEventListener('click', chooseCamera);
   //document.getElementById('fh-joint').addEventListener('click', chooseCamera);
   //document.getElementById('scale').addEventListener('click', chooseCamera);
   document.getElementById('body').addEventListener('click', chooseCamera);  
@@ -612,6 +613,10 @@ function changeCameraState(camera, state) {
       cameraCode = 'SkeletonTracking';
     break;
 
+    case 'rgbd':
+      cameraCode = 'RGBD';
+    break;
+
     case 'multi':
       cameraCode = 'Multi';
     break;
@@ -889,6 +894,64 @@ function startLEInfrared() {
 function stopLEInfrared() {
   console.log('stopping le-infrared');
   kinect.closeLongExposureInfraredReader();
+  kinect.removeAllListeners();
+  canvasState = null;
+  busy = false;
+}
+
+function startRGBD() {
+  console.log("starting rgbd");
+
+  var rgbdCanvas = document.getElementById('rgbd-canvas');
+  var rgbdContext = rgbdCanvas.getContext('2d');
+
+  resetCanvas('depth');
+  canvasState = 'depth';
+  setImageData();
+
+  if(kinect.open()) {
+      kinect.on('multiSourceFrame', function(frame) {
+
+        if(busy) {
+          return;
+        }
+
+        busy = true;
+
+        var j = 0;
+          for (var i = 0; i < imageDataSize; i+=4) {
+            imageDataArray[i] = frame.depthColor.buffer[i];
+            imageDataArray[i+1] = frame.depthColor.buffer[i+1];
+            imageDataArray[i+2] = frame.depthColor.buffer[i+2];
+            imageDataArray[i+3] = frame.depth.buffer[j]; // set alpha channel as depth
+            j++;
+          }
+          
+          var rgbdImg = drawImageToCanvas(rgbdCanvas, rgbdContext, 'rgbd', 'webp', 0.1);
+
+          //busy = false;
+
+          // limit raw depth to 25 fps  
+          if (Date.now() > sentTime + 40) {
+            packageData('rgbd', rgbdImg);
+          sentTime = Date.now();
+          }
+          
+          setTimeout(function() {
+            busy = false;
+          });
+
+      }); // kinect.on
+    } // open
+      kinect.openMultiSourceReader({
+        frameTypes: Kinect2.FrameType.depth | Kinect2.FrameType.depthColor
+      });
+
+}
+
+function stopRGBD() {
+  console.log("stopping rgbd");
+  kinect.closeMultiSourceReader();
   kinect.removeAllListeners();
   canvasState = null;
   busy = false;
@@ -1393,6 +1456,8 @@ function drawImageToCanvas(inCanvas, inContext, frameType, imageType, quality) {
   if (multiFrame) {
     return outputCanvasData;
   } else if (rawDepth) {
+    return outputCanvasData;
+  } else if (frameType == 'rgbd') {
     return outputCanvasData;
   } else {
     packageData(frameType, outputCanvasData);

@@ -19,6 +19,7 @@ Kinectron = function(arg1, arg2) {
   this.trackedBodiesCallback = null;
   this.trackedJointCallback = null;
   this.keyCallback = null;
+  this.rgbdCallback = null;
   this.fhCallback = null;
   this.multiFrameCallback = null;
 
@@ -329,7 +330,6 @@ Kinectron = function(arg1, arg2) {
     this._setFeed('raw-depth');
   };
 
-
   this.startInfrared = function(callback) {
     if (callback) {
       this.infraredCallback = callback;
@@ -401,6 +401,14 @@ Kinectron = function(arg1, arg2) {
     this._setFeed('key');
   };
 
+  this.startRGBD = function(callback) {
+    if (callback) {
+      this.rgbdCallback = callback;
+    }
+
+    this._setFeed('rgbd');
+  };
+
   // this.startScale = function(callback) {
   //   this.callback = callback;
   //   this._setFeed('scale');
@@ -457,6 +465,10 @@ Kinectron = function(arg1, arg2) {
   
   this.setKeyCallback = function(callback) {
     this.keyCallback = callback;
+  };
+
+  this.setRGBDCallback = function(callback) {
+    this.rgbdCallback = callback;
   };
 
   this.setFhCallback = function(callback) {
@@ -566,6 +578,10 @@ Kinectron = function(arg1, arg2) {
 
       case 'key':
         this.keyCallback(this.img);
+      break;
+
+      case 'rgbd':
+        this.rgbdCallback(this.img);
       break;
     }
   };
