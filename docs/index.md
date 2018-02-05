@@ -22,9 +22,6 @@ To use Kinectron as a client, you need to include the library on your project.
 
 Here is a [working example](LINK) of a Kinect live streaming.
 
-## Current state
-
-## Coming up
 
 ## Documentation
 
@@ -36,12 +33,18 @@ Here is a [working example](LINK) of a Kinect live streaming.
 * Example 2
 * Example 3
 
-
 ### three.js examples
 
 * Example 1
 * Example 2
 * Example 3
+
+## Current state
+
+## Coming up
+
+## Gallery
+
 
 ## Contribute
 
