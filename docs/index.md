@@ -4,7 +4,7 @@
 
 Kinectron is a project by [Shawn van Every](https://github.com/vanevery) and [Lisa Jamhoury](https://github.com/lisajamhoury/).
 
-Additional collaborators include [Stephanie Koltun](https://github.com/stephkoltun), [Or Fleisher](https://github.com/juniorxsound) and [Aarón Montoya-Moraga](https://github.com/montoyamoraga).
+Additional collaborators include [Stephanie Koltun](https://github.com/stephkoltun), [Or Fleisher](https://github.com/juniorxsound), [Dror Ayalon](https://www.drorayalon.com/) and [Aarón Montoya-Moraga](https://github.com/montoyamoraga).
 
 This software library uses [Kinect One](https://en.wikipedia.org/wiki/Kinect) and allows to live-stream from a Kinect to multiple clients at the same time.
 
