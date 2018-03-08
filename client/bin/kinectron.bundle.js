@@ -376,7 +376,6 @@
 	    this._setFeed('raw-depth');
 	  };
 
-
 	  this.startInfrared = function(callback) {
 	    if (callback) {
 	      this.infraredCallback = callback;
@@ -514,8 +513,8 @@
 	    this.keyCallback = callback;
 	  };
 
-	  this.setRGBCallback = function(callback) {
-	    this.rgbCallback = callback;
+	  this.setRGBDCallback = function(callback) {
+	    this.rgbdCallback = callback;
 	  };
 
 	  this.setFhCallback = function(callback) {
