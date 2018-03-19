@@ -1,0 +1,30 @@
+{
+  "name": "kinectron-api",
+  "version": "1.0.0",
+  "description": "Client for Kinectron peer server",
+  "main": "kinectron-client.js",
+  "bin": {
+    "kinectron-api": "kinectron.bundle.js"
+  },
+  "dependencies": {
+    "browserify": "^16.1.1",
+    "peerjs": "git+https://github.com/lisajamhoury/peerjs.git",
+    "watchify": "^3.11.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "watchify src/kinectron-client.js -o bin/kinectron.bundle.js",
+    "build": "browserify src/kinectron-client.js -o bin/kinectron.bundle.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinectron/kinectron/tree/master/client"
+  },
+  "keywords": [
+    "kinect2",
+    "peerjs"
+  ],
+  "author": "Lisa Jamhoury and Shawn Van Every",
+  "license": "MIT"
+}
