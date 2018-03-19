@@ -11,9 +11,11 @@ If you want to help develop this library, here are the steps to get started with
 git clone https://github.com/YOURGITHUBHANDLE/kinectron.git
 ```
 
+2. Make sure you have [node](https://nodejs.org/) and [npm](https://www.npmjs.com/) installed. 
+
 From here, you can choose to develop independently on the client-side API or the server application. 
 
-### Contribute to API
+## Contribute to API
 
 You can develop on the client-side API from Mac or PC. 
 
@@ -47,7 +49,7 @@ npm start
 
 Use control + C to stop this process. 
 
-### Contribute to Server Application 
+## Contribute to Server Application 
 
 Coming soon....
 
