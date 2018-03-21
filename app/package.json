@@ -8,14 +8,6 @@
     "start": "electron .",
     "build": ".\\node_modules\\kinect2\\tools\\electronbuild.js --target=1.8.4 --arch=x64"
   },
-  "dependencies": {
-    "electron-prebuilt": "^0.37.8",
-    "kinect2": "^0.1.4",
-    "minimist": "^1.2.0",
-    "node-gyp": "^3.4.0",
-    "os": "^0.1.1",
-    "peerjs": "git+https://github.com/lisajamhoury/peerjs.git",
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/kinectron/kinectron/tree/master/app"
@@ -27,5 +19,14 @@
     "server"
   ],
   "author": "Lisa Jamhoury and Shawn Van Every",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "async": "^2.6.0",
+    "electron-prebuilt": "^1.4.13",
+    "kinect2": "^0.1.5",
+    "minimist": "^1.2.0",
+    "node-gyp": "^3.6.2",
+    "os": "^0.1.1",
+    "peer": "^0.2.8"
+  }
 }
