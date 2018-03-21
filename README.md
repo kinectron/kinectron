@@ -12,4 +12,5 @@ Kinectron has two components--an electron application to broadcast Kinect2 data 
 
 ## Contribute
 
-Coming soon... 
+* Track issues at [https://github.com/kinectron/kinectron/issues](https://github.com/kinectron/kinectron/issues) 
+* See CONTRIBUTE.md for how to contribute to development
