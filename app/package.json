@@ -4,9 +4,9 @@
   "description": "A realtime peer server for Kinect 2. ",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
-    "build": ".\\node_modules\\kinect2\\tools\\electronbuild.js --target=1.8.4 --arch=x64"
+    "build": ".\\node_modules\\kinect2\\tools\\electronbuild.js --target=1.4.13 --arch=x64",
+    "package": "electron-packager ."
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "async": "^2.6.0",
+    "electron-packager": "^11.1.0",
     "electron-prebuilt": "^1.4.13",
     "kinect2": "^0.1.5",
     "minimist": "^1.2.0",

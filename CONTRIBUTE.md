@@ -51,7 +51,48 @@ You can develop on the client-side API from Mac or PC.
 
 ## Contribute to Server Application 
 
-Coming soon....
+You can develop on the server application from Windows only. This has only been tested on Windows 10.
+
+1. Install dependencies.
+
+  After you've forked and cloned the repository, move into the ```app``` folder and install all dependencies.
+
+  ```bash
+  cd app
+  npm install
+  ```
+2. Build Kinect 2 for Electron 
+
+  You will need to have node-gyp & it's dependencies installed (https://github.com/nodejs/node-gyp) before you can continue. Node-gyp was installed with the previous ```npm install``` command. Follow the [installation instructions on the node-gyp github repo](https://github.com/nodejs/node-gyp#installation) to install the dependencies.
+
+  Now you are ready to build Kinect 2 for Electron. 
+
+  ```bash
+
+  // run this with target set to your electron version and arch set to your system architecture
+  // find electron version in your package.json file
+  // this is what I will run with electron version 1.4.13 and a 64-bit system  
+  
+  node .\node_modules\kinect2\tools\electronbuild.js --target=1.4.13 --arch=x64
+  ```
+  
+  This will say ```gyp info ok``` at the end if it has built correctly.
+
+3. Run the electron application with npm start.
+
+  ```bash
+  npm start
+  ```
+
+4. To create a new release / packaged application. Run electron-packager from inside the application folder
+
+  ```bash
+  cd app
+  npm run package
+  ```
+
+  This will make an application for the platform and architecture for the computer you are working on. To learn more about packaging options read the [Electron Packager documentation](https://github.com/electron-userland/electron-packager).
+
 
 ## Additional Resources
 
