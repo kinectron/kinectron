@@ -1,0 +1,29 @@
+{
+  "name": "kinectron-server",
+  "version": "0.0.5",
+  "description": "A realtime peer server for Kinect 2. ",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinectron/kinectron/tree/master/app"
+  },
+  "keywords": [
+    "kinect2",
+    "peer",
+    "peerjs",
+    "server"
+  ],
+  "author": "Lisa Jamhoury and Shawn Van Every",
+  "license": "MIT",
+  "dependencies": {
+    "electron-prebuilt": "^0.37.8",
+    "kinect2": "^0.1.4",
+    "minimist": "^1.2.0",
+    "node-gyp": "^3.4.0",
+    "os": "^0.1.1",
+    "peer": "^0.2.8"
+  },
+}
