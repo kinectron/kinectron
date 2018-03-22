@@ -51,7 +51,10 @@ You can develop on the client-side API from Mac or PC.
 
 ## Contribute to Server Application 
 
+--- 
+**Important**
 You can develop on the server application from Windows only. This has only been tested on Windows 10.
+---
 
 1. Install dependencies.
 
@@ -63,7 +66,10 @@ You can develop on the server application from Windows only. This has only been 
   ```
 2. Build Kinect 2 for Electron 
 
+---
+**Important**
   You will need to have node-gyp & it's dependencies installed (https://github.com/nodejs/node-gyp) before you can continue. Node-gyp was installed with the previous ```npm install``` command. Follow the [installation instructions on the node-gyp github repo](https://github.com/nodejs/node-gyp#installation) to install the dependencies.
+---
 
   Now you are ready to build Kinect 2 for Electron. 
 
