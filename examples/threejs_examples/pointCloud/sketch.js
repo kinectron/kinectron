@@ -14,20 +14,20 @@ var numParticles = DEPTHWIDTH * DEPTHHEIGHT;
 var animFrame = null;
 var busy = false;
 
-var colorRenderer = null; 
-var webGLCanvas = null;
+// var colorRenderer = null; 
+// var webGLCanvas = null;
 
 // Wait for page to load to create webgl canvas and Kinectron connection
 window.addEventListener('load', function() {
   // Create webgl canvas 
-  webGLCanvas = document.getElementById('webGLCanvas');
-  colorRenderer = new ImageBufferRendererWebgl(webGLCanvas);
+  // webGLCanvas = document.getElementById('webGLCanvas');
+  // colorRenderer = new ImageBufferRendererWebgl(webGLCanvas);
 
   // Create point cloud
   initPointCloud();
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  var kinectronIpAddress = "172.16.218.255"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Connect to the microstudio
@@ -60,6 +60,7 @@ function initPointCloud(){
 
   // Create three.js scene
   scene = new THREE.Scene();
+  scene.background = new THREE.Color( 0xE80C7A );
   
   createParticles();
   window.addEventListener( 'resize', onWindowResize, false );
@@ -76,13 +77,22 @@ function createParticles() {
     var vertex = new THREE.Vector3(x, y, Math.random());
     particles.vertices.push(vertex);
 
-    // Assign each particle a color
-    colors[i] = new THREE.Color(0xffffff);
+    // Assign each particle a color -- rainbow
+    // let color = i/numParticles * 360;
+    //colors[i] = new THREE.Color("hsl(" + color + ", 50%, 50%)");
+
+    // Assign each particle a color -- white
+    //colors[i] = new THREE.Color(0xffffff);
+
+    //let color = i/numParticles;
+    let color = Math.floor(i/numParticles*100);
+    let color2 = 100-color;
+    colors[i] = new THREE.Color("rgb(" + color2 + "%," + color2 + "%, " + color + "%)");
   }
 
   // Add point cloud to scene
   particles.colors = colors;
-  var material = new THREE.PointsMaterial( { size: 1, vertexColors: THREE.VertexColors, transparent: true } );
+  var material = new THREE.PointsMaterial( { size: 4, vertexColors: THREE.VertexColors, transparent: true } );
   mesh = new THREE.Points(particles, material);
   scene.add(mesh);
 }
@@ -96,7 +106,7 @@ function pointCloud(depthBuffer) {
 
   // Set desired depth resolution
   var nDepthMinReliableDistance = 500;
-  var nDepthMaxDistance = 4500;
+  var nDepthMaxDistance = 5000;
   var j = 0;
 
   // Match depth buffer info to each particle
