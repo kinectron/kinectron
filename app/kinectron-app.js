@@ -102,7 +102,23 @@ function init() {
   document.getElementById('advanced-link').addEventListener('click', toggleAdvancedOptions);
   document.getElementById('record').addEventListener('click', toggleRecord);
   document.getElementById('api-blocker').addEventListener('click', toggleAPIBlocker);
+  document.getElementById('myRange').addEventListener('input', updateImgQuality);
 }
+
+function updateImgQuality(evt) {
+    console.log(evt);
+  // var slider = document.getElementById("myRange");
+  // var output = document.getElementById("demo");
+  // output.innerHTML = slider.value; // Display the default slider value
+
+  // // Update the current slider value (each time you drag the slider handle)
+  // slider.oninput = function() {
+  //     output.innerHTML = this.value;
+  // }
+
+}
+
+
 
 function toggleAPIBlocker(evt) {
   var apiButton = document.getElementById('api-blocker');
