@@ -734,7 +734,7 @@ function startColor() {
 
       processColorBuffer(newPixelData);
 
-      drawImageToCanvas(colorCanvas, colorContext, 'color', 'jpeg');
+      drawImageToCanvas(colorCanvas, colorContext, 'color', 'webp');
       busy = false;
 
     });
@@ -769,7 +769,7 @@ function startDepth() {
       busy = true;
 
       processDepthBuffer(newPixelData);
-      drawImageToCanvas(depthCanvas, depthContext, 'depth', 'jpeg');
+      drawImageToCanvas(depthCanvas, depthContext, 'depth', 'webp');
       busy = false;
     });
   }
@@ -845,7 +845,7 @@ function startInfrared() {
       busy = true;
       
       processDepthBuffer(newPixelData);
-      drawImageToCanvas(infraredCanvas, infraredContext, 'infrared', 'jpeg');
+      drawImageToCanvas(infraredCanvas, infraredContext, 'infrared', 'webp');
       
       busy = false;
     });
@@ -881,7 +881,7 @@ function startLEInfrared() {
       busy = true;
       
       processDepthBuffer(newPixelData);
-      drawImageToCanvas(leInfraredCanvas, leInfraredContext, 'LEinfrared', 'jpeg');
+      drawImageToCanvas(leInfraredCanvas, leInfraredContext, 'LEinfrared', 'webp');
 
       busy = false;
     });
@@ -1047,7 +1047,7 @@ function startMulti(multiFrames) {
 
         newPixelData = frame.color.buffer;
         processColorBuffer(newPixelData);
-        temp = drawImageToCanvas(colorCanvas, colorContext, null, 'jpeg');
+        temp = drawImageToCanvas(colorCanvas, colorContext, null, 'webp');
         multiToSend.color = temp;
       }
 
@@ -1086,7 +1086,7 @@ function startMulti(multiFrames) {
 
         newPixelData = frame.depth.buffer;
         processDepthBuffer(newPixelData);
-        temp = drawImageToCanvas(depthCanvas, depthContext, null, 'jpeg');
+        temp = drawImageToCanvas(depthCanvas, depthContext, null, 'webp');
         multiToSend.depth = temp;
       }
 
