@@ -14,20 +14,16 @@ var numParticles = DEPTHWIDTH * DEPTHHEIGHT;
 var animFrame = null;
 var busy = false;
 
-// var colorRenderer = null; 
-// var webGLCanvas = null;
+
 
 // Wait for page to load to create webgl canvas and Kinectron connection
 window.addEventListener('load', function() {
-  // Create webgl canvas 
-  // webGLCanvas = document.getElementById('webGLCanvas');
-  // colorRenderer = new ImageBufferRendererWebgl(webGLCanvas);
 
   // Create point cloud
   initPointCloud();
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress = "172.16.218.255"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  var kinectronIpAddress = "172.16.223.38"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Connect to the microstudio
