@@ -56,6 +56,8 @@ var recordStartTime = 0;
 var bodyChunks = [];
 var mediaRecorders = [];
 
+var imgQuality = 0.5; // set default image quality
+
 window.addEventListener('load', initpeer);
 window.addEventListener('load', init);
 
@@ -102,20 +104,11 @@ function init() {
   document.getElementById('advanced-link').addEventListener('click', toggleAdvancedOptions);
   document.getElementById('record').addEventListener('click', toggleRecord);
   document.getElementById('api-blocker').addEventListener('click', toggleAPIBlocker);
-  document.getElementById('myRange').addEventListener('input', updateImgQuality);
+  document.getElementById('imgquality').addEventListener('input', updateImgQuality);
 }
 
 function updateImgQuality(evt) {
-    console.log(evt);
-  // var slider = document.getElementById("myRange");
-  // var output = document.getElementById("demo");
-  // output.innerHTML = slider.value; // Display the default slider value
-
-  // // Update the current slider value (each time you drag the slider handle)
-  // slider.oninput = function() {
-  //     output.innerHTML = this.value;
-  // }
-
+  imgQuality = evt.srcElement.value * 0.1;     
 }
 
 
@@ -1459,10 +1452,10 @@ function resetCanvas(size) {
     
 function drawImageToCanvas(inCanvas, inContext, frameType, imageType, quality) {
   var outputCanvasData;
-  var imageQuality = 0.5;
+  var imageQuality = imgQuality; //use globally stored image quality variable
   var dataToSend;
 
-  if (typeof quality !=="undefined") imageQuality = quality;
+  if (typeof quality !=="undefined") imageQuality = quality; // or replace image quality with stream default
 
   context.putImageData(imageData, 0, 0);
   inContext.clearRect(0, 0, inCanvas.width, inCanvas.height);
