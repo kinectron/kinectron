@@ -59,6 +59,9 @@
 
 			varying float visibility;
 
+			// set threshhold for depth visibility
+			const float depthLimit = 0.5;
+
 			const float XtoZ = 1.11146; // tan( 1.0144686 / 2.0 ) * 2.0;
 			const float YtoZ = 0.83359; // tan( 0.7898090 / 2.0 ) * 2.0;
 
@@ -69,7 +72,7 @@
 				vec4 color = texture2D( map, vUv );
 				float depth = ( color.r + color.g + color.b ) / 3.0;
 
-				if (depth > 0.5 ) {
+				if (depth > depthLimit ) {
 					visibility = 0.0;
 				} else {
 					visibility = 1.0;
