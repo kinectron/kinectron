@@ -158,9 +158,13 @@ Kinectron = function(arg1, arg2) {
         // If image data draw image
         case 'frame':
           this.img.src = data.imagedata;
-          this._chooseCallback(data.name);
+
+          this.img.onload = function() {
+            this._chooseCallback(data.name);
           
-          if (doRecord) this._drawImageToCanvas(data.name);
+            if (doRecord) this._drawImageToCanvas(data.name);  
+          }.bind(this);
+          
         break;
         
         // If receive all bodies, send all bodies
@@ -232,12 +236,19 @@ Kinectron = function(arg1, arg2) {
             if (doRecord) {
               if (data.color) {
                 this.img.src = data.color;
-                this._drawImageToCanvas('color');
+                
+                this.img.onload = function() {
+                  this._drawImageToCanvas('color');  
+                }.bind(this);
+                
               } 
               
               if (data.depth) {
                 this.img.src = data.depth;
-                this._drawImageToCanvas('depth');
+
+                this.img.onload = function() {  
+                  this._drawImageToCanvas('depth');
+                }.bind(this);
               } 
 
               if (data.body) {
@@ -257,16 +268,24 @@ Kinectron = function(arg1, arg2) {
           } else {
             if (data.color) {
               this.img.src = data.color;
-              this.colorCallback(this.img);
+
+              this.img.onload = function () {
+                this.colorCallback(this.img);
               
-              if (doRecord) this._drawImageToCanvas('color');
+                if (doRecord) this._drawImageToCanvas('color');  
+              }.bind(this);
+              
             }
 
             if (data.depth) {
               this.img.src = data.depth;
-              this.depthCallback(this.img);
-             
-              if (doRecord) this._drawImageToCanvas('depth');
+
+              this.img.onload = function() {
+                this.depthCallback(this.img);
+              
+                if (doRecord) this._drawImageToCanvas('depth');  
+              }.bind(this);
+              
             }
 
             if (data.body) {
