@@ -3083,7 +3083,6 @@ Kinectron = function(arg1, arg2) {
   hiddenCanvas.width = 512;
   hiddenCanvas.height = 424;
   hiddenContext = hiddenCanvas.getContext("2d");
-  hiddenContext.fillStyle = 'green';
   hiddenContext.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
   hiddenImage = document.createElement("img");
 
@@ -3662,6 +3661,7 @@ Kinectron = function(arg1, arg2) {
     }
     
     // Draw to the appropriate canvas
+    tempContext.clearRect(0,0, tempContext.canvas.width, tempContext.canvas.height);
     tempContext.drawImage(this.img, 0, 0);
   };
 
