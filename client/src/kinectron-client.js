@@ -138,6 +138,8 @@ Kinectron = function(arg1, arg2) {
       console.log("Open data connection with server");
     });
 
+    connection.serialization = "json";
+    
     // Route incoming traffic from Kinectron
     connection.on('data', function(dataReceived) {
       var data = dataReceived.data;
