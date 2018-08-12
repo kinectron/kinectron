@@ -24,7 +24,7 @@
     "async": "^2.6.0",
     "electron-packager": "^11.1.0",
     "electron-prebuilt": "^1.4.13",
-    "kinect2": "^0.1.5",
+    "kinect2": "^0.1.6",
     "minimist": "^1.2.0",
     "node-gyp": "^3.6.2",
     "os": "^0.1.1",
