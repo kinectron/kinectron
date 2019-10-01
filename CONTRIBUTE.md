@@ -63,26 +63,34 @@ You can develop on the server application from **Windows only**. This has only b
   ```
 2. Build Kinect 2 for Electron 
 
-  **You will need to have node-gyp & it's dependencies installed (https://github.com/nodejs/node-gyp) before you can continue.**
+  **You will need to have the official Kinect 2 SDK and node-gyp and it's dependencies installed before you can continue.**
 
-  Node-gyp was installed with the previous ```npm install``` command. Follow the [installation instructions on the node-gyp github repo](https://github.com/nodejs/node-gyp#installation) to install the dependencies.
+  Install the [official Kinect 2 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=44561).
+
+  Install node-gyp globally.
+
+   ```bash
+   npm install -g node-gyp
+   ```
+
+  Install node-gyp dependencies. Follow the [installation instructions for Windows on the node-gyp github repo](https://github.com/nodejs/node-gyp#on-windows) to install the dependencies.
+
+  As of 10/2019 the windows-build-tools installation from the command line (Option 1) is buggy. It's recommended to use Option 2 in the node-gyp dependency install instructions. For this option, make sure that you check the box next to "Desktop Development with C++ Workload" from the available Workloads during the Visual Studio 2017 Community install process. 
 
   Now you are ready to build Kinect 2 for Electron. 
 
   ```bash
-
-  // run this with target set to your electron version and arch set to your system architecture
-  // find electron version in your package.json file
-  // this is what I will run with electron version 1.4.13 and a 64-bit system  
+  // cd into kinect2 
+  cd app\node_modules\kinect2
   
-  node .\node_modules\kinect2\tools\electronbuild.js --target=1.4.13 --arch=x64
+  // run kinect2 build script to create a native binary for electron
+  npm run build:electron
   ```
   
-  This will say ```gyp info ok``` at the end if it has built correctly.
-
 3. Run the electron application with npm start.
 
   ```bash
+  cd app
   npm start
   ```
 

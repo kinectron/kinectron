@@ -26,7 +26,6 @@
     "electron-prebuilt": "^1.4.13",
     "kinect2": "^0.1.6",
     "minimist": "^1.2.0",
-    "node-gyp": "^3.6.2",
     "os": "^0.1.1",
     "peer": "^0.2.8"
   }
