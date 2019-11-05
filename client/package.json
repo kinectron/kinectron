@@ -11,7 +11,9 @@
     "peerjs": "1.1.0",
     "watchify": "^3.11.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "parcel": "^1.12.4"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "watchify src/kinectron-client.js -o bin/kinectron.bundle.js",
