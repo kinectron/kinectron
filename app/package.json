@@ -22,8 +22,8 @@
   "license": "MIT",
   "dependencies": {
     "async": "^3.1.0",
-    "electron-packager": "^14.1.0",
     "electron": "^6.0.1",
+    "electron-packager": "^14.1.0",
     "kinect2": "^0.1.7",
     "minimist": "^1.2.0",
     "os": "^0.1.1",
