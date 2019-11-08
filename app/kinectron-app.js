@@ -65,6 +65,8 @@ function init() {
   var ipAddresses;
   var allIpAddresses;
 
+  console.log("You are running Kinectron Version 0.2.0!");
+
   ipAddresses = getIpAddress();
   allIpAddresses = ipAddresses.join(", ");
   document.getElementById("ipaddress").innerHTML = allIpAddresses;
