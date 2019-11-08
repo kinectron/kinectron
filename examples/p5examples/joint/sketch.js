@@ -14,7 +14,7 @@ function setup() {
   noStroke();
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  var kinectronIpAddress = "10.0.1.8"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Connect to the microstudio
@@ -27,13 +27,10 @@ function setup() {
   kinectron.startTrackedJoint(kinectron.HANDRIGHT, drawRightHand);
 }
 
-function draw() {
-
-}
+function draw() {}
 
 function drawRightHand(hand) {
-
-  // Use handColors object to store unique colors for each hand  
+  // Use handColors object to store unique colors for each hand
 
   // If we already have a color for incoming hand
   if (hand.trackingId in handColors) {
@@ -57,10 +54,15 @@ function drawRightHand(hand) {
   // Clear background
   background(0);
 
-  // Draw an ellipse at each hand's location in its designated color 
+  // Draw an ellipse at each hand's location in its designated color
   for (var key in hands) {
     var trackedHand = hands[key];
     fill(trackedHand.color[0], trackedHand.color[1], trackedHand.color[2]);
-    ellipse(trackedHand.depthX * myCanvas.width, trackedHand.depthY * myCanvas.height, 50, 50);
+    ellipse(
+      trackedHand.depthX * myCanvas.width,
+      trackedHand.depthY * myCanvas.height,
+      50,
+      50
+    );
   }
 }
