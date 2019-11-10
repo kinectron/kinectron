@@ -584,9 +584,10 @@ parcelRequire = (function (modules, cache, entry, globalName) {
     } else if (num >= 0x0000000000000000 && num <= 0xFFFFFFFFFFFFFFFF) {
       this.bufferBuilder.append(0xcf);
       this.pack_uint64(num);
-    } else if(num===Number.NEGATIVE_INFINITY){
-        num=0;
+    } else if (num===Number.NEGATIVE_INFINITY){
+      num=0;
     } else {
+      console.log(num);
       throw new Error('Invalid integer');
     }
   };

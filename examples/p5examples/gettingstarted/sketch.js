@@ -12,7 +12,7 @@ function setup() {
   frameP = createP("");
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress = "10.0.1.8"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  var kinectronIpAddress =  ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Connect to the microstudio
