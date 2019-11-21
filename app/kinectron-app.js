@@ -14,14 +14,40 @@ function startAzureKinect(evt) {
 
   initControls(kinectType);
   toggleKinectType(evt);
+  toggleFrameType(evt); // ensure always starts on single frame
+  setCanvasDimensions(kinectType);
 }
 
-function startWindowsKinectV2(evt) {
+function startWindowsKinect(evt) {
   kinect = new Kinect2();
-  let kinectType = "windowsV2";
+  let kinectType = "windows";
 
   initControls(kinectType);
   toggleKinectType(evt);
+  toggleFrameType(evt); // ensure always starts on single frame
+  setCanvasDimensions(kinectType);
+}
+
+function setCanvasDimensions(kinectType) {
+  if (kinectType === "azure") {
+    colorwidth = AZURECOLORWIDTH;
+    colorheight = AZURECOLORHEIGHT;
+
+    depthwidth = AZUREDEPTHWIDTH;
+    depthheight = AZUREDEPTHHEIGHT;
+
+    rawdepthwidth = AZURERAWWIDTH;
+    rawdepthheight = AZURERAWHEIGHT;
+  } else if (kinectType === "windows") {
+    colorwidth = WINDOWSCOLORWIDTH;
+    colorheight = WINDOWSCOLORHEIGHT;
+
+    depthwidth = WINDOWSDEPTHWIDTH;
+    depthheight = WINDOWSDEPTHHEIGHT;
+
+    rawdepthwidth = WINDOWSRAWWIDTH;
+    rawdepthheight = WINDOWSRAWHEIGHT;
+  }
 }
 
 function initControls(kinectType) {
@@ -43,8 +69,8 @@ function initControls(kinectType) {
     for (let i = 0; i < azureButtons.length; i++) {
       azureButtons[i].style.display = "block";
     }
-  } else if (kinectType === "windowsV2") {
-    let windowsButtons = document.getElementsByClassName("windowsv2-option");
+  } else if (kinectType === "windows") {
+    let windowsButtons = document.getElementsByClassName("windows-option");
 
     for (let i = 0; i < windowsButtons.length; i++) {
       windowsButtons[i].style.display = "block";
@@ -60,9 +86,9 @@ function toggleKinectType(evt) {
   if (state === "start-kinect-azure") {
     button.style.background = BUTTONACTIVECLR;
     document.getElementById(
-      "start-kinect-windows-v2"
+      "start-kinect-windows"
     ).style.background = BUTTONINACTIVECLR;
-  } else if (state === "start-kinect-windows-v2") {
+  } else if (state === "start-kinect-windows") {
     button.style.background = BUTTONACTIVECLR;
     document.getElementById(
       "start-kinect-azure"
@@ -179,14 +205,32 @@ var canvas = null;
 var context = null;
 var canvasState = null;
 
-var COLORWIDTH = 1920;
-var COLORHEIGHT = 1080;
+const WINDOWSCOLORWIDTH = 1920;
+const WINDOWSCOLORHEIGHT = 1080;
 
-var DEPTHWIDTH = 512;
-var DEPTHHEIGHT = 424;
+const WINDOWSDEPTHWIDTH = 512;
+const WINDOWSDEPTHHEIGHT = 424;
 
-var RAWWIDTH = 512;
-var RAWHEIGHT = 424;
+const WINDOWSRAWWIDTH = 512;
+const WINDOWSRAWHEIGHT = 424;
+
+const AZURECOLORWIDTH = 3840; // check this!
+const AZURECOLORHEIGHT = 2160;
+
+const AZUREDEPTHWIDTH = 640;
+const AZUREDEPTHHEIGHT = 576;
+
+const AZURERAWWIDTH = 640;
+const AZURERAWHEIGHT = 576;
+
+let colorwidth;
+let colorheight;
+
+let depthwidth;
+let depthheight;
+
+let rawdepthwidth;
+let rawdepthheight;
 
 var imageData = null;
 var imageDataSize = null;
@@ -244,8 +288,8 @@ function init() {
     .getElementById("start-kinect-azure")
     .addEventListener("click", startAzureKinect);
   document
-    .getElementById("start-kinect-windows-v2")
-    .addEventListener("click", startWindowsKinectV2);
+    .getElementById("start-kinect-windows")
+    .addEventListener("click", startWindowsKinect);
   document
     .getElementById("peersubmit")
     .addEventListener("click", newPeerServer);
@@ -480,25 +524,30 @@ function createMediaRecorder(id, serverSide) {
 
 function toggleFrameType(evt) {
   evt.preventDefault();
-  var button = evt.srcElement;
-  var state = button.id;
+  let pressedButton = evt.srcElement;
+  let state = pressedButton.id;
 
-  if (state == "single-frame-btn") {
-    button.style.background = BUTTONACTIVECLR;
-    document.getElementById(
-      "multi-frame-btn"
-    ).style.background = BUTTONINACTIVECLR;
+  let singleFrameButton = document.getElementById("single-frame-btn");
+  let multiFrameButton = document.getElementById("multi-frame-btn");
+  let singleFrameOptions = document.getElementById("single-frame");
+  let multiFrameOptions = document.getElementById("multi-frame");
 
-    document.getElementById("single-frame").style.display = "block";
-    document.getElementById("multi-frame").style.display = "none";
+  if (
+    state === "single-frame-btn" ||
+    state === "start-kinect-azure" ||
+    state === "start-kinect-windows"
+  ) {
+    singleFrameButton.style.background = BUTTONACTIVECLR;
+    multiFrameButton.style.background = BUTTONINACTIVECLR;
+
+    singleFrameOptions.style.display = "block";
+    multiFrameOptions.style.display = "none";
   } else if (state == "multi-frame-btn") {
-    button.style.background = BUTTONACTIVECLR;
-    document.getElementById(
-      "single-frame-btn"
-    ).style.background = BUTTONINACTIVECLR;
+    multiFrameButton.style.background = BUTTONACTIVECLR;
+    singleFrameButton.style.background = BUTTONINACTIVECLR;
 
-    document.getElementById("single-frame").style.display = "none";
-    document.getElementById("multi-frame").style.display = "block";
+    singleFrameOptions.style.display = "none";
+    multiFrameOptions.style.display = "block";
   }
 }
 
@@ -964,6 +1013,8 @@ function startDepth() {
   console.log("start depth camera");
 
   var depthCanvas = document.getElementById("depth-canvas");
+  depthCanvas.width = DEPTHWIDTH;
+  depthCanvas.height = DEPTHHEIGHT;
   var depthContext = depthCanvas.getContext("2d");
 
   resetCanvas("depth");
