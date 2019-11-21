@@ -3,10 +3,6 @@
   <head>
     <meta charset="UTF-8">
     <title>Kinectron</title>
-
-    <!-- To do: replace this with import in app.js -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.0.4/peerjs.min.js"></script> -->
-    
     <script src="assets/js/peerjsv104.noerror.js"></script>
     <script src="kinectron-app.js" type="text/JavaScript"></script>
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
@@ -25,27 +21,33 @@
         </div>
         </div>
         <div id="controls">
-        <div id="choose-frame">
-          <input type="button" class="frame-type" id="start-azure" value="Start Azure Kinect">
-          <input type="button" class="frame-type" id="single-frame-btn" value="Single Frame"> 
-          <input type="button" class="frame-type" id="multi-frame-btn" value="Multiple Frames">
+          <div id="choose-kinect"> 
+            <input type="button" class="kinect-type windowsv2-option azure-option" id="start-kinect-azure" value="Azure Kinect">
+            <input type="button" class="kinect-type windowsv2-option azure-option" id="start-kinect-windows-v2" value="Kinect Windows V2">
+            <div class="clear-class" style="clear:both"></div>
 
+          </div>
+
+         <div id="additional-controls"> 
+        <div id="choose-frame">
+          <input type="button" class="option frame-type windowsv2-option azure-option" id="single-frame-btn" value="Single Frame"> 
+          <input type="button" class="option frame-type windowsv2-option" id="multi-frame-btn" value="Multiple Frames">
           <div class="clear-class" style="clear:both"></div>
           <div id="single-frame">
             <p>Choose a single frame to begin broadcast. Click stop all to end broadcast.</p>  
             <div id="options">
-              <input type="button" class="frame-option" id="color" value="Color">
-              <input type="button" class="frame-option" id="depth" value="Depth">
-              <input type="button" class="frame-option" id="raw-depth" value="Raw Depth">
-              <input type="button" class="frame-option" id="skeleton" value="Skeleton (Tracked Bodies)">
-              <input type="button" class="frame-option" id="body" value="All Bodies">
-              <input type="button" class="frame-option" id="infrared" value="Infrared">
-              <input type="button" class="frame-option" id="le-infrared" value="Long Exposure Infrared">
-              <input type="button" class="frame-option" id="key" value="Key">
-              <input type="button" class="frame-option" id="rgbd" value="RGBD">
-              <!-- <input type="button" class="frame-option" id="fh-joint" value="Floor Height Joint"> -->
-              <!-- <input type="button" class="frame-option" id="scale" value="Scale User"> -->
-              <input type="button" class="frame-option" id="stop-all" value="Stop All">
+              <input type="button" class="option frame-option windowsv2-option azure-option" id="color" value="Color">
+              <input type="button" class="option frame-option windowsv2-option azure-option" id="depth" value="Depth">
+              <input type="button" class="option frame-option windowsv2-option azure-option" id="raw-depth" value="Raw Depth">
+              <input type="button" class="option frame-option windowsv2-option azure-option" id="skeleton" value="Skeleton (Tracked Bodies)">
+              <input type="button" class="option frame-option windowsv2-option azure-option" id="body" value="All Bodies">
+              <input type="button" class="option frame-option windowsv2-option" id="infrared" value="Infrared">
+              <input type="button" class="option frame-option windowsv2-option" id="le-infrared" value="Long Exposure Infrared">
+              <input type="button" class="option frame-option windowsv2-option" id="key" value="Key">
+              <input type="button" class="option frame-option windowsv2-option" id="rgbd" value="RGBD">
+              <!-- <input type="button" class="option frame-option" id="fh-joint" value="Floor Height Joint"> -->
+              <!-- <input type="button" class="option frame-option" id="scale" value="Scale User"> -->
+              <input type="button" class="option frame-option windowsv2-option azure-option" id="stop-all" value="Stop All">
               <div class="clear-class" style="clear:both"></div>
             </div>
           </div>
@@ -68,7 +70,7 @@
               <input type="button" class="frame-option" id="stop-multi" value="Stop Multiframe">
           </div>  
           <div class="clear-class" style="clear:both"></div>
-          <div id="record-control">
+          <div class="option windowsv2-option" id="record-control">
             <p>Record stream</p>
             <input type="button" class="frame-option" id="record" value="Start Record">
             <div class="clear-class" style="clear:both"></div>
@@ -76,12 +78,12 @@
         </div>
 
       <div id="advanced-options">
-        <div id="new-peer">
+        <div class="option windowsv2-option azure-option" id="new-peer">
           <p>Have your own peer server? Enter id and server details here:</p> 
             <input type="text" placeholder="ie. myname" id="newpeerid"><input type="text" id="peernet" placeholder="ie. {&quot;host&quot;: &quot;myserver.com&quot;, &quot;port&quot;: &quot;9000&quot;, &quot;path&quot;: &quot;/myapp&quot;,}"><input type="submit" id="peersubmit" value="Submit">
           </div>
         <div class="clear-class" style="clear:both"></div>
-        <div id="imagesize" >
+        <div class="option windowsv2-option azure-option" id="imagesize" >
           <p>Image sizes are set by default. Change them (or don't) here. Dimensions are fixed.</p>
           <span>Color: </span>
           <input type="text" placeholder="960" class="dimensions" id="colorwidth">
@@ -96,7 +98,7 @@
           <input type="submit" id="depthsubmit" value="Submit">
         </div>
         <div class="clear-class" style="clear:both"></div>
-        <div id="img-quality">
+        <div class="option windowsv2-option azure-option" id="img-quality">
           <p>Set image quality 1-10. Default 5. (Does not work for raw depth or RGBD.)</p> 
           <div class="slidecontainer">
             <input type="range" min="1" max="10" value="5" class="slider" id="imgquality">
@@ -112,7 +114,8 @@
       </div>
       <div id="toggle-advanced"><a id="advanced-link" href="#">Show Advanced Options</a></div>  
       </div>   
-      </div>
+      </div><!-- additional-controls -->
+    </div>     
     <div id="feed-images">
       <!-- <h4 >Feed from Kinect</h4> -->
       <!-- <div class="multi-warning">

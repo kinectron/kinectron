@@ -1,17 +1,84 @@
-var os = require("os");
-
-var Kinect2 = require("kinect2");
-// var kinect = new Kinect2();
-
+const os = require("os");
+const Kinect2 = require("kinect2");
 const KinectAzure = require("kinect-azure");
-const kinect = new KinectAzure();
+
+const BUTTONINACTIVECLR = "#fff";
+const BUTTONACTIVECLR = "#1daad8";
+
+let kinect;
+// let kinectType;
+
+function startAzureKinect(evt) {
+  kinect = new KinectAzure();
+  let kinectType = "azure";
+
+  initControls(kinectType);
+  toggleKinectType(evt);
+}
+
+function startWindowsKinectV2(evt) {
+  kinect = new Kinect2();
+  let kinectType = "windowsV2";
+
+  initControls(kinectType);
+  toggleKinectType(evt);
+}
+
+function initControls(kinectType) {
+  let additionalControls = document.getElementById("additional-controls");
+  additionalControls.style.display = "block";
+
+  // let allFrameButtons = document.querySelectorAll("input[type=button]");
+
+  let allOptions = document.getElementsByClassName("option");
+  // let allFrameButtons = document.getElementsByType('button');
+
+  for (let i = 0; i < allOptions.length; i++) {
+    allOptions[i].style.display = "none";
+  }
+
+  if (kinectType === "azure") {
+    let azureButtons = document.getElementsByClassName("azure-option");
+
+    for (let i = 0; i < azureButtons.length; i++) {
+      azureButtons[i].style.display = "block";
+    }
+  } else if (kinectType === "windowsV2") {
+    let windowsButtons = document.getElementsByClassName("windowsv2-option");
+
+    for (let i = 0; i < windowsButtons.length; i++) {
+      windowsButtons[i].style.display = "block";
+    }
+  }
+}
+
+function toggleKinectType(evt) {
+  evt.preventDefault();
+  let button = evt.srcElement;
+  let state = button.id;
+
+  if (state === "start-kinect-azure") {
+    button.style.background = BUTTONACTIVECLR;
+    document.getElementById(
+      "start-kinect-windows-v2"
+    ).style.background = BUTTONINACTIVECLR;
+  } else if (state === "start-kinect-windows-v2") {
+    button.style.background = BUTTONACTIVECLR;
+    document.getElementById(
+      "start-kinect-azure"
+    ).style.background = BUTTONINACTIVECLR;
+  }
+}
+
 let azureImage, azureCanvas, azureCtx;
 let depthImageData, depthModeRange;
 
-function startAzureKinect() {
-  console.log('starting azure');
-  if(kinect.open()) {
-    console.log('azure open');
+function startAzureCaneras() {
+  kinect = new KinectAzure();
+
+  console.log("starting azure");
+  if (kinect.open()) {
+    console.log("azure open");
     const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
     kinect.startCameras({
       depth_mode: depthMode,
@@ -19,17 +86,19 @@ function startAzureKinect() {
       camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
     });
     depthModeRange = kinect.getDepthModeRange(depthMode);
+    console.log("range", depthModeRange);
     // let colorImageURL;
 
-    kinect.startListening((data) => {
-      console.log('got datat');
+    kinect.startListening(data => {
       // depth
       {
         if (!depthImageData && data.depthImageFrame.width > 0) {
-          console.log('setting this up');
           azureCanvas.width = data.depthImageFrame.width;
           azureCanvas.height = data.depthImageFrame.height;
-          depthImageData = azureCtx.createImageData(azureCanvas.width, azureCanvas.height);
+          depthImageData = azureCtx.createImageData(
+            azureCanvas.width,
+            azureCanvas.height
+          );
         }
         if (depthImageData) {
           renderDepthFrameAsGreyScale(data);
@@ -49,40 +118,48 @@ function startAzureKinect() {
       // azureImage.src = colorImageURL;
     });
   }
-};  
+}
 
-const renderDepthFrameAsGreyScale = (data) => {
-  console.log('rendering depth azure');
+const renderDepthFrameAsGreyScale = data => {
   const newPixelDataAzure = Buffer.from(data.depthImageFrame.imageData);
+
   const pixelArray = depthImageData.data;
-  // debugger;
   let depthPixelIndex = 0;
   let counter = 0;
-  console.log('counter starting', counter);
 
-  for (let i = 0; i < depthImageData.data.length; i+=4) {
+  for (let i = 0; i < depthImageData.data.length; i += 4) {
     // console.log('inside');
-    const depthValue = newPixelDataAzure[depthPixelIndex+1] << 8 | newPixelDataAzure[depthPixelIndex];
-    const normalizedValue = map(depthValue, depthModeRange.min, depthModeRange.max, 255, 0);
-    pixelArray[i] = normalizedValue;
-    pixelArray[i+1] = normalizedValue;
-    pixelArray[i+2] = normalizedValue;
-    pixelArray[i+3] = 0xff;
+    const depthValue =
+      (newPixelDataAzure[depthPixelIndex + 1] << 8) |
+      newPixelDataAzure[depthPixelIndex];
+    // if (depthValue > counter) counter = depthValue;
+    counter += depthValue;
 
-    counter += normalizedValue;
+    const normalizedValue = map(
+      depthValue,
+      depthModeRange.min,
+      depthModeRange.max,
+      255,
+      0
+    );
+    pixelArray[i] = normalizedValue;
+    pixelArray[i + 1] = normalizedValue;
+    pixelArray[i + 2] = normalizedValue;
+    pixelArray[i + 3] = 0xff;
+
     depthPixelIndex += 2;
   }
 
+  console.log("counter", counter / (newPixelDataAzure.length / 2));
   azureCtx.putImageData(depthImageData, 0, 0);
 };
 
-
 const map = (value, inputMin, inputMax, outputMin, outputMax) => {
-  return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
+  return (
+    ((value - inputMin) * (outputMax - outputMin)) / (inputMax - inputMin) +
+    outputMin
+  );
 };
-
- 
-
 
 //  Create local peer server
 var PeerServer = require("peer").PeerServer;
@@ -146,7 +223,7 @@ function init() {
   var ipAddresses;
   var allIpAddresses;
 
-  console.log("You are running Kinectron Version 0.2.0!");
+  console.log("You are running Kinectron Version 0.2.1!");
 
   ipAddresses = getIpAddress();
   allIpAddresses = ipAddresses.join(", ");
@@ -159,12 +236,16 @@ function init() {
 
   setImageData();
 
-
   // azureImage = document.getElementById('azure-image');
-  azureCanvas = document.getElementById('azure-canvas');
-  azureCtx = azureCanvas.getContext('2d');
-  
-  document.getElementById("start-azure").addEventListener("click", startAzureKinect);
+  azureCanvas = document.getElementById("azure-canvas");
+  azureCtx = azureCanvas.getContext("2d");
+
+  document
+    .getElementById("start-kinect-azure")
+    .addEventListener("click", startAzureKinect);
+  document
+    .getElementById("start-kinect-windows-v2")
+    .addEventListener("click", startWindowsKinectV2);
   document
     .getElementById("peersubmit")
     .addEventListener("click", newPeerServer);
@@ -403,14 +484,18 @@ function toggleFrameType(evt) {
   var state = button.id;
 
   if (state == "single-frame-btn") {
-    button.style.background = "#1daad8";
-    document.getElementById("multi-frame-btn").style.background = "#fff";
+    button.style.background = BUTTONACTIVECLR;
+    document.getElementById(
+      "multi-frame-btn"
+    ).style.background = BUTTONINACTIVECLR;
 
     document.getElementById("single-frame").style.display = "block";
     document.getElementById("multi-frame").style.display = "none";
   } else if (state == "multi-frame-btn") {
-    button.style.background = "#1daad8";
-    document.getElementById("single-frame-btn").style.background = "#fff";
+    button.style.background = BUTTONACTIVECLR;
+    document.getElementById(
+      "single-frame-btn"
+    ).style.background = BUTTONINACTIVECLR;
 
     document.getElementById("single-frame").style.display = "none";
     document.getElementById("multi-frame").style.display = "block";
@@ -665,9 +750,9 @@ function toggleButtonState(buttonId, state) {
   var button = document.getElementById(buttonId);
 
   if (state == "active") {
-    button.style.background = "#1daad8";
+    button.style.background = BUTTONACTIVECLR;
   } else if (state == "inactive") {
-    button.style.background = "#fff";
+    button.style.background = BUTTONINACTIVECLR;
   }
 }
 
