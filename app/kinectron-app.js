@@ -1,7 +1,88 @@
 var os = require("os");
 
 var Kinect2 = require("kinect2");
-var kinect = new Kinect2();
+// var kinect = new Kinect2();
+
+const KinectAzure = require("kinect-azure");
+const kinect = new KinectAzure();
+let azureImage, azureCanvas, azureCtx;
+let depthImageData, depthModeRange;
+
+function startAzureKinect() {
+  console.log('starting azure');
+  if(kinect.open()) {
+    console.log('azure open');
+    const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
+    kinect.startCameras({
+      depth_mode: depthMode,
+      color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
+      camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+    });
+    depthModeRange = kinect.getDepthModeRange(depthMode);
+    // let colorImageURL;
+
+    kinect.startListening((data) => {
+      console.log('got datat');
+      // depth
+      {
+        if (!depthImageData && data.depthImageFrame.width > 0) {
+          console.log('setting this up');
+          azureCanvas.width = data.depthImageFrame.width;
+          azureCanvas.height = data.depthImageFrame.height;
+          depthImageData = azureCtx.createImageData(azureCanvas.width, azureCanvas.height);
+        }
+        if (depthImageData) {
+          renderDepthFrameAsGreyScale(data);
+        }
+      }
+
+      // // color - default jpg stream
+      // const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
+      // debugger;
+      // // setting a data url leaks memory - Blobs seem to work fine
+      // // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
+      // const imageBlob = new Blob([bufferCopy], { type: 'image/jpeg'});
+      // if (colorImageURL) {
+      //   URL.revokeObjectURL(colorImageURL);
+      // }
+      // colorImageURL = URL.createObjectURL(imageBlob);
+      // azureImage.src = colorImageURL;
+    });
+  }
+};  
+
+const renderDepthFrameAsGreyScale = (data) => {
+  console.log('rendering depth azure');
+  const newPixelDataAzure = Buffer.from(data.depthImageFrame.imageData);
+  const pixelArray = depthImageData.data;
+  // debugger;
+  let depthPixelIndex = 0;
+  let counter = 0;
+  console.log('counter starting', counter);
+
+  for (let i = 0; i < depthImageData.data.length; i+=4) {
+    // console.log('inside');
+    const depthValue = newPixelDataAzure[depthPixelIndex+1] << 8 | newPixelDataAzure[depthPixelIndex];
+    const normalizedValue = map(depthValue, depthModeRange.min, depthModeRange.max, 255, 0);
+    pixelArray[i] = normalizedValue;
+    pixelArray[i+1] = normalizedValue;
+    pixelArray[i+2] = normalizedValue;
+    pixelArray[i+3] = 0xff;
+
+    counter += normalizedValue;
+    depthPixelIndex += 2;
+  }
+
+  azureCtx.putImageData(depthImageData, 0, 0);
+};
+
+
+const map = (value, inputMin, inputMax, outputMin, outputMax) => {
+  return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
+};
+
+ 
+
 
 //  Create local peer server
 var PeerServer = require("peer").PeerServer;
@@ -78,6 +159,12 @@ function init() {
 
   setImageData();
 
+
+  // azureImage = document.getElementById('azure-image');
+  azureCanvas = document.getElementById('azure-canvas');
+  azureCtx = azureCanvas.getContext('2d');
+  
+  document.getElementById("start-azure").addEventListener("click", startAzureKinect);
   document
     .getElementById("peersubmit")
     .addEventListener("click", newPeerServer);
