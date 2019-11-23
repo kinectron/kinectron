@@ -7,6 +7,7 @@ const BUTTONACTIVECLR = "#1daad8";
 
 let kinect;
 // let kinectType;
+let colorImage, colorCanvas, colorContext;
 
 function startAzureKinect(evt) {
   kinect = new KinectAzure();
@@ -17,6 +18,24 @@ function startAzureKinect(evt) {
   toggleKinectType(evt);
   toggleFrameType(evt); // ensure always starts on single frame
   setCanvasDimensions(kinectType);
+
+  // to do: refactor so this global image and canvas is not needed
+  initAzureColorImageAndCanvas();
+}
+
+function initAzureColorImageAndCanvas() {
+  colorImage = document.getElementById("color-img");
+  colorImage.style.display = "none";
+
+  colorCanvas = document.getElementById("color-canvas");
+  colorCanvas.width = colorwidth;
+  colorCanvas.height = colorheight;
+  colorContext = colorCanvas.getContext("2d");
+
+  colorImage.addEventListener("load", e => {
+    colorContext.drawImage(colorImage, 0, 0);
+    createDataUrl(colorCanvas, "color", "webp");
+  });
 }
 
 function startWindowsKinect(evt) {
@@ -211,8 +230,10 @@ const WINDOWSDEPTHHEIGHT = 424;
 const WINDOWSRAWWIDTH = 512;
 const WINDOWSRAWHEIGHT = 424;
 
-const AZURECOLORWIDTH = 3840; // check this!
-const AZURECOLORHEIGHT = 2160;
+// azure resolutions at
+// https://docs.microsoft.com/en-us/azure/kinect-dk/hardware-specification
+const AZURECOLORWIDTH = 1280;
+const AZURECOLORHEIGHT = 720;
 
 const AZUREDEPTHWIDTH = 640;
 const AZUREDEPTHHEIGHT = 576;
@@ -285,7 +306,6 @@ function init() {
   document
     .getElementById("peersubmit")
     .addEventListener("click", newPeerServer);
-  //document.getElementById('loadfile').addEventListener('change', loadFile);
   document
     .getElementById("single-frame-btn")
     .addEventListener("click", toggleFrameType);
@@ -746,7 +766,8 @@ function setOutputDimensions(evt) {
 //////////////////////////// Feed Choice //////////////////////////////
 
 function chooseCamera(evt, feed) {
-  var camera;
+  let camera;
+  let changingCameras = false;
 
   if (evt) {
     evt.preventDefault();
@@ -760,9 +781,9 @@ function chooseCamera(evt, feed) {
     stopMulti();
   }
 
-  if (currentCamera == camera) {
+  if (currentCamera === camera) {
     return;
-  } else if (camera == "stop-all") {
+  } else if (camera === "stop-all") {
     if (currentCamera) {
       changeCameraState(currentCamera, "stop");
       toggleButtonState(currentCamera, "inactive");
@@ -775,15 +796,32 @@ function chooseCamera(evt, feed) {
     }
   } else {
     if (currentCamera) {
+      changingCameras = true;
       changeCameraState(currentCamera, "stop");
       toggleButtonState(currentCamera, "inactive");
       toggleFeedDiv(currentCamera, "none");
-    }
-    changeCameraState(camera, "start");
-    toggleButtonState(camera, "active");
-    toggleFeedDiv(camera, "block");
 
-    currentCamera = camera;
+      // Using this to avoid fatal error from node-addon-api
+      // FATAL ERROR: ThreadSafeFunction::operator = You cannot assign a new TSFN because existing one is still alive.
+      // I think this is it. Need to revisit
+      // https://github.com/nodejs/node-addon-api/issues/524
+      setTimeout(function() {
+        console.log("hold");
+        changeCameraState(camera, "start");
+        toggleButtonState(camera, "active");
+        toggleFeedDiv(camera, "block");
+
+        currentCamera = camera;
+      }, 500);
+    }
+
+    if (!changingCameras) {
+      changeCameraState(camera, "start");
+      toggleButtonState(camera, "active");
+      toggleFeedDiv(camera, "block");
+
+      currentCamera = camera;
+    }
   }
 }
 
@@ -970,35 +1008,81 @@ function chooseMulti(evt, incomingFrames) {
 function startColor() {
   console.log("starting color camera");
 
-  var colorCanvas = document.getElementById("color-canvas");
-  var colorContext = colorCanvas.getContext("2d");
+  // to do: test this with kinect windows to see if color feed still works with globals
+  // to do: ideally refactor so globals not needed
+
+  // let colorCanvas = document.getElementById("color-canvas");
+  // colorCanvas.width = colorwidth;
+  // colorCanvas.height = colorheight;
+  // let colorContext = colorCanvas.getContext("2d");
 
   resetCanvas("color");
   canvasState = "color";
   setImageData();
 
-  if (kinect.open()) {
-    kinect.on("colorFrame", function(newPixelData) {
+  if (kinect.constructor.name === "KinectAzure") {
+    // KINECT AZURE CODE
+    if (kinect.open()) {
       if (busy) {
         return;
       }
       busy = true;
 
-      processColorBuffer(newPixelData);
+      kinect.startCameras({
+        color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+      });
 
-      drawImageToCanvas(colorCanvas, colorContext, "color", "webp");
+      let colorImageURL;
+
+      kinect.startListening(data => {
+        const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
+
+        // setting a data url leaks memory - Blobs seem to work fine
+        // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
+        const imageBlob = new Blob([bufferCopy], { type: "image/jpeg" });
+        if (colorImageURL) {
+          URL.revokeObjectURL(colorImageURL);
+        }
+        colorImageURL = URL.createObjectURL(imageBlob);
+        colorImage.src = colorImageURL;
+      });
       busy = false;
-    });
+    }
   }
-  kinect.openColorReader();
+
+  // Kinect Windows Code
+  // if (kinect.open()) {
+  //   kinect.on("colorFrame", function(newPixelData) {
+  //     if (busy) {
+  //       return;
+  //     }
+  //     busy = true;
+
+  //     processColorBuffer(newPixelData);
+
+  //     drawImageToCanvas(colorCanvas, colorContext, "color", "webp");
+  //     busy = false;
+  //   });
+  // }
+  // kinect.openColorReader();
 }
 
 function stopColor() {
-  console.log("stopping color camera");
-  kinect.closeColorReader();
-  kinect.removeAllListeners();
-  canvasState = null;
-  busy = false;
+  if (kinect.constructor.name === "KinectAzure") {
+    // Kinect Azure Code
+    console.log("stopping color camera");
+    kinect.stopCameras();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  } else {
+    console.log("stopping color camera");
+    kinect.closeColorReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+    busy = false;
+  }
 }
 
 function startDepth() {
@@ -1016,12 +1100,12 @@ function startDepth() {
   if (kinect.constructor.name === "KinectAzure") {
     // KINECT AZURE CODE
     if (kinect.open()) {
+      console.log("kinect open");
       if (busy) {
         return;
       }
       busy = true;
 
-      console.log("azure open");
       const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
       kinect.startCameras({
         depth_mode: depthMode,
@@ -1531,180 +1615,6 @@ function stopKey() {
   busy = false;
 }
 
-// function startFHJoint() {
-
-//   resetCanvas('color');
-//   canvasState = 'color';
-//   setImageData();
-
-//   trackedBodyIndex = -1;
-
-//   if(kinect.open()) {
-//     kinect.on('multiSourceFrame', function(frame){
-
-//       if(busy) {
-//         return;
-//       }
-//       busy = true;
-
-//       // draw color image to canvas
-//       var newPixelData = frame.color.buffer;
-//       for (var i = 0; i < imageDataSize; i++) {
-//         imageDataArray[i] = newPixelData[i];
-//       }
-
-//       //drawImageToCanvas('fhcolor', 'jpeg');
-
-//       // get closest body
-//       var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
-//       if(closestBodyIndex !== trackedBodyIndex) {
-//         if(closestBodyIndex > -1) {
-//           kinect.trackPixelsForBodyIndices([closestBodyIndex]);
-//         } else {
-//           kinect.trackPixelsForBodyIndices(false);
-//         }
-//       }
-//       else {
-//         if(closestBodyIndex > -1) {
-//           //measure distance from floor
-//           if(frame.body.floorClipPlane)
-//           {
-//             //get position of left hand
-//             var joint = frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.handLeft];
-
-//             //https://social.msdn.microsoft.com/Forums/en-US/594cf9ed-3fa6-4700-872c-68054cac5bf0/angle-of-kinect-device-and-effect-on-xyz-positional-data?forum=kinectv2sdk
-//             var cameraAngleRadians= Math.atan(frame.body.floorClipPlane.z / frame.body.floorClipPlane.y);
-//             var cosCameraAngle = Math.cos(cameraAngleRadians);
-//             var sinCameraAngle = Math.sin(cameraAngleRadians);
-//             var yprime = joint.cameraY * cosCameraAngle + joint.cameraZ * sinCameraAngle;
-//             var jointDistanceFromFloor = frame.body.floorClipPlane.w + yprime;
-
-//             //show height in canvas
-//             showHeight(context, joint, jointDistanceFromFloor);
-//             showHeight(outputContext, joint, jointDistanceFromFloor);
-
-//             //send height data to remote
-//             var jointDataToSend = {joint: joint, distance: jointDistanceFromFloor};
-
-//             sendToPeer('floorHeightTracker', jointDataToSend);
-//           }
-//         }
-//       }
-
-//       trackedBodyIndex = closestBodyIndex;
-//       busy = false;
-//     });
-
-//     kinect.openMultiSourceReader({
-//       frameTypes: Kinect2.FrameType.body | Kinect2.FrameType.color
-//     });
-//   }
-// }
-
-// function stopFHJoint() {
-//   console.log('stopping FHJoint');
-//   kinect.closeMultiSourceReader();
-//   kinect.removeAllListeners();
-//   canvasState = null;
-//   busy = false;
-// }
-
-// function startScaleUser() {
-//   console.log('start scale user');
-
-//   resetCanvas('color');
-//   canvasState = 'color';
-//   setImageData();
-
-//   trackedBodyIndex = -1;
-
-//   if(kinect.open()) {
-//   kinect.on('multiSourceFrame', function(frame){
-//     var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
-//     if(closestBodyIndex !== trackedBodyIndex) {
-//       if(closestBodyIndex > -1) {
-//         kinect.trackPixelsForBodyIndices([closestBodyIndex]);
-//       } else {
-//         kinect.trackPixelsForBodyIndices(false);
-//       }
-//     }
-//     else {
-//       if(closestBodyIndex > -1) {
-//         //get body ground position - when use jumps this point stays on the ground
-//         if(frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].floorColorY)
-//         {
-//           //calculate the source rectangle
-//           var leftJoint = frame.body.bodies[closestBodyIndex].joints[0],
-//               topJoint = frame.body.bodies[closestBodyIndex].joints[0],
-//               rightJoint = frame.body.bodies[closestBodyIndex].joints[0];
-//           for(var i = 1; i < frame.body.bodies[closestBodyIndex].joints.length; i++) {
-//             var joint = frame.body.bodies[closestBodyIndex].joints[i];
-//             if(joint.colorX < leftJoint.colorX) {
-//               leftJoint = joint;
-//             }
-//             if(joint.colorX > rightJoint.colorX) {
-//               rightJoint = joint;
-//             }
-//             if(joint.colorY < topJoint.colorY) {
-//               topJoint = joint;
-//             }
-//           }
-
-//           var pixelWidth = calculatePixelWidth(frame.bodyIndexColor.horizontalFieldOfView, frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].cameraZ * 1000);
-//           scale = 0.3 * pixelWidth;
-
-//           //head joint is in middle of head, add area (y-distance from neck to head joint) above
-//           topJoint = {
-//             colorX: topJoint.colorX,
-//             colorY: Math.min(topJoint.colorY, frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.head].colorY - (frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.neck].colorY - frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.head].colorY))
-//           };
-//           var srcRect = {
-//             x: leftJoint.colorX * canvas.width,
-//             y: topJoint.colorY * canvas.height,
-//             width: (rightJoint.colorX - leftJoint.colorX) * canvas.width,
-//             height: (frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].floorColorY - topJoint.colorY) * canvas.height
-//           };
-//           var dstRect = {
-//             x: outputCanvas.width * 0.5,
-//             y: outputCanvas.height - (srcRect.height * scale),
-//             width: srcRect.width * scale,
-//             height: srcRect.height * scale
-//           };
-//           //center the user horizontally - is not minus half width of image as user might reach to one side or the other
-//           //do minus the space on the left size of the spine
-//           var spaceLeft = frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].colorX - leftJoint.colorX;
-//           dstRect.x -= (spaceLeft * canvas.width * scale);
-
-//           newPixelData = frame.bodyIndexColor.bodies[closestBodyIndex].buffer;
-
-//           for (var i = 0; i < imageDataSize; i++) {
-//             imageDataArray[i] = newPixelData[i];
-//           }
-
-//           drawImageToCanvas('scaleuser', 'png');
-//           }
-//       }
-//     }
-
-//     trackedBodyIndex = closestBodyIndex;
-//   });
-
-//   //include the projected floor positions - we want to keep the floor on the bottom, not crop out the user in the middle of a jump
-//   kinect.openMultiSourceReader({
-//     frameTypes: Kinect2.FrameType.body | Kinect2.FrameType.bodyIndexColor,
-//     includeJointFloorData: true
-//   });
-// }
-// }
-
-// function stopScaleUser() {
-//   console.log('stop scale user');
-//   kinect.closeMultiSourceReader();
-//   kinect.removeAllListeners();
-//   canvasState = null;
-//   busy = false;
-// }
-
 function loadFile(e) {
   window.location.href = e.target.files[0].path;
 }
@@ -1737,15 +1647,20 @@ function resetCanvas(size) {
 }
 
 function drawImageToCanvas(inCanvas, inContext, frameType, imageType, quality) {
-  var outputCanvasData;
-  var imageQuality = imgQuality; //use globally stored image quality variable
-  var dataToSend;
-
-  if (typeof quality !== "undefined") imageQuality = quality; // or replace image quality with stream default
-
   context.putImageData(imageData, 0, 0);
   inContext.clearRect(0, 0, inCanvas.width, inCanvas.height);
   inContext.drawImage(canvas, 0, 0, inCanvas.width, inCanvas.height);
+
+  createDataUrl(inCanvas, frameType, imageType, quality);
+}
+
+// to do: test this new function with api
+function createDataUrl(inCanvas, frameType, imageType, quality) {
+  let outputCanvasData;
+  let imageQuality = imgQuality; //use globally stored image quality variable
+
+  if (typeof quality !== "undefined") imageQuality = quality; // or replace image quality with stream default
+
   outputCanvasData = inCanvas.toDataURL("image/" + imageType, imageQuality);
 
   if (multiFrame) {
