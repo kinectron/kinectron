@@ -1344,55 +1344,92 @@ function stopRGBD() {
 function startSkeletonTracking() {
   console.log("starting skeleton");
 
-  var skeletonCanvas = document.getElementById("skeleton-canvas");
-  var skeletonContext = skeletonCanvas.getContext("2d");
+  let skeletonCanvas = document.getElementById("skeleton-canvas");
+  skeletonCanvas.width = depthwidth;
+  skeletonCanvas.height = depthheight;
+  let skeletonContext = skeletonCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
 
+  console.log("hello");
   if (kinect.open()) {
-    kinect.on("bodyFrame", function(bodyFrame) {
-      if (sendAllBodies) {
-        sendToPeer("bodyFrame", bodyFrame);
-        if (doRecord) {
-          bodyFrame.record_startime = recordStartTime;
-          bodyFrame.record_timestamp = Date.now() - recordStartTime;
-          bodyChunks.push(bodyFrame);
-        }
+    console.log("Kinect Opened");
+
+    // to do: looks like the cameras need to be open for the tracker to work. true?
+    kinect.startCameras({
+      depth_mode: KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
+      color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P
+    });
+    kinect.createTracker();
+    kinect.startListening(data => {
+      console.log("listening");
+      if (data.bodyFrame.numBodies === 0) {
+        console.log("nothing");
+        return;
       }
 
-      skeletonContext.clearRect(
-        0,
-        0,
-        skeletonCanvas.width,
-        skeletonCanvas.height
-      );
-      var index = 0;
-      bodyFrame.bodies.forEach(function(body) {
-        if (body.tracked) {
-          if (!sendAllBodies) {
-            sendToPeer("trackedBodyFrame", body);
-            if (doRecord) {
-              body.record_startime = recordStartTime;
-              body.record_timestamp = Date.now() - recordStartTime;
-              bodyChunks.push(body);
-            }
-          }
-
-          drawSkeleton(skeletonCanvas, skeletonContext, body, index);
-          index++;
-        }
-      });
+      console.log("getting something");
+      let skeleton = data.bodyFrame.bodies[0].skeleton;
+      drawAzureSkeleton(skeletonCanvas, skeletonContext, skeleton, 0);
     });
-    kinect.openBodyReader();
   }
+
+  // for windows kinect
+  // if (kinect.open()) {
+  //   kinect.on("bodyFrame", function(bodyFrame) {
+  //     if (sendAllBodies) {
+  //       sendToPeer("bodyFrame", bodyFrame);
+  //       if (doRecord) {
+  //         bodyFrame.record_startime = recordStartTime;
+  //         bodyFrame.record_timestamp = Date.now() - recordStartTime;
+  //         bodyChunks.push(bodyFrame);
+  //       }
+  //     }
+
+  //     skeletonContext.clearRect(
+  //       0,
+  //       0,
+  //       skeletonCanvas.width,
+  //       skeletonCanvas.height
+  //     );
+  //     var index = 0;
+  //     bodyFrame.bodies.forEach(function(body) {
+  //       if (body.tracked) {
+  //         if (!sendAllBodies) {
+  //           sendToPeer("trackedBodyFrame", body);
+  //           if (doRecord) {
+  //             body.record_startime = recordStartTime;
+  //             body.record_timestamp = Date.now() - recordStartTime;
+  //             bodyChunks.push(body);
+  //           }
+  //         }
+
+  //         drawSkeleton(skeletonCanvas, skeletonContext, body, index);
+  //         index++;
+  //       }
+  //     });
+  //   });
+  //   kinect.openBodyReader();
+  // }
 }
 
 function stopSkeletonTracking() {
-  console.log("stopping skeleton");
-  kinect.closeBodyReader();
-  kinect.removeAllListeners();
-  canvasState = null;
+  if (kinect.constructor.name === "KinectAzure") {
+    // Kinect Azure Code
+    console.log("stopping skeleton");
+    kinect.stopCameras();
+    kinect.destroyTracker();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  } else {
+    // Kinect Windows Code
+    console.log("stopping skeleton");
+    kinect.closeBodyReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+  }
 }
 
 function displayCurrentFrames() {
@@ -1820,6 +1857,46 @@ function drawSkeleton(inCanvas, inContext, body, index) {
     body.rightHandState,
     body.joints[Kinect2.JointType.handRight]
   );
+}
+
+function drawAzureSkeleton(inCanvas, inContext, body, index) {
+  console.log("drawing");
+  // Skeleton variables
+  var colors = [
+    "#ff0000",
+    "#00ff00",
+    "#0000ff",
+    "#ffff00",
+    "#00ffff",
+    "#ff00ff"
+  ];
+  //draw joints
+
+  inContext.clearRect(0, 0, inCanvas.width, inCanvas.height);
+
+  // move to center to accomodate for negative and positive coords
+  inContext.translate(inCanvas.width / 2, inCanvas.height / 2);
+
+  for (let i = 0; i < body.joints.length; i++) {
+    let joint = body.joints[i];
+    inContext.fillStyle = colors[0];
+
+    inContext.fillRect(joint.cameraX / 3, joint.cameraY / 3, 10, 10);
+  }
+
+  inContext.setTransform(1, 0, 0, 1, 0, 0);
+
+  // //draw hand states
+  // updateHandState(
+  //   inContext,
+  //   body.leftHandState,
+  //   body.joints[Kinect2.JointType.handLeft]
+  // );
+  // updateHandState(
+  //   inContext,
+  //   body.rightHandState,
+  //   body.joints[Kinect2.JointType.handRight]
+  // );
 }
 
 function updateHandState(context, handState, jointPoint) {
