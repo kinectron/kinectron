@@ -806,7 +806,6 @@ function chooseCamera(evt, feed) {
       // I think this is it. Need to revisit
       // https://github.com/nodejs/node-addon-api/issues/524
       setTimeout(function() {
-        console.log("hold");
         changeCameraState(camera, "start");
         toggleButtonState(camera, "active");
         toggleFeedDiv(camera, "block");
@@ -1142,14 +1141,14 @@ function startDepth() {
 
 function stopDepth() {
   if (kinect.constructor.name === "KinectAzure") {
-    // Kinect Azure Code
+    // Kinect Azure
     console.log("stopping depth camera");
     kinect.stopCameras();
     kinect.stopListening();
     canvasState = null;
     busy = false;
   } else {
-    // Kinect Windows Code
+    // Kinect Windows
     console.log("stopping depth camera");
     kinect.closeDepthReader();
     kinect.removeAllListeners();
@@ -1161,56 +1160,113 @@ function stopDepth() {
 function startRawDepth() {
   console.log("start Raw Depth Camera");
 
-  var rawDepthCanvas = document.getElementById("raw-depth-canvas");
-  var rawDepthContext = rawDepthCanvas.getContext("2d");
+  let rawDepthCanvas = document.getElementById("raw-depth-canvas");
+  rawDepthCanvas.width = rawdepthwidth;
+  rawDepthCanvas.height = rawdepthheight;
+  let rawDepthContext = rawDepthCanvas.getContext("2d");
 
   resetCanvas("raw");
   canvasState = "raw";
   setImageData();
 
   rawDepth = true;
-  if (kinect.open()) {
-    kinect.on("rawDepthFrame", function(newPixelData) {
+
+  if (kinect.constructor.name === "KinectAzure") {
+    // KINECT AZURE CODE
+    if (kinect.open()) {
+      console.log("kinect open");
       if (busy) {
         return;
       }
       busy = true;
 
-      processRawDepthBuffer(newPixelData);
-      var rawDepthImg = drawImageToCanvas(
-        rawDepthCanvas,
-        rawDepthContext,
-        "rawDepth",
-        "webp",
-        1
-      );
+      const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
+      kinect.startCameras({
+        depth_mode: depthMode,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+      });
 
-      // limit raw depth to 25 fps
-      if (Date.now() > sentTime + 40) {
-        sendToPeer("rawDepth", rawDepthImg);
-        sentTime = Date.now();
-      }
+      // let depthModeRange = kinect.getDepthModeRange(depthMode);
+
+      kinect.startListening(data => {
+        const newPixelData = Buffer.from(data.depthImageFrame.imageData);
+
+        processRawDepthBuffer(newPixelData);
+        let rawDepthImg = drawImageToCanvas(
+          rawDepthCanvas,
+          rawDepthContext,
+          "rawDepth",
+          "webp",
+          1
+        );
+
+        // limit raw depth to 25 fps
+        if (Date.now() > sentTime + 40) {
+          sendToPeer("rawDepth", rawDepthImg);
+          sentTime = Date.now();
+        }
+      });
 
       busy = false;
-    });
+    }
+  } else {
+    // Windows Kinect
+    if (kinect.open()) {
+      kinect.on("rawDepthFrame", function(newPixelData) {
+        if (busy) {
+          return;
+        }
+        busy = true;
+
+        processRawDepthBuffer(newPixelData);
+        var rawDepthImg = drawImageToCanvas(
+          rawDepthCanvas,
+          rawDepthContext,
+          "rawDepth",
+          "webp",
+          1
+        );
+
+        // limit raw depth to 25 fps
+        if (Date.now() > sentTime + 40) {
+          sendToPeer("rawDepth", rawDepthImg);
+          sentTime = Date.now();
+        }
+
+        busy = false;
+      });
+    }
+    kinect.openRawDepthReader();
   }
-  kinect.openRawDepthReader();
 }
 
 function stopRawDepth() {
   console.log("stopping raw depth camera");
-  kinect.closeRawDepthReader();
-  kinect.removeAllListeners();
-  canvasState = null;
-  rawDepth = false;
-  busy = false;
+
+  if (kinect.constructor.name === "KinectAzure") {
+    // Kinect Azure
+    console.log("stopping depth camera");
+    kinect.stopCameras();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  } else {
+    // Kinect Windows
+    kinect.closeRawDepthReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+    rawDepth = false;
+    busy = false;
+  }
 }
 
 function startInfrared() {
   console.log("starting infrared camera");
 
-  var infraredCanvas = document.getElementById("infrared-canvas");
-  var infraredContext = infraredCanvas.getContext("2d");
+  let infraredCanvas = document.getElementById("infrared-canvas");
+  infraredCanvas.width = depthwidth;
+  infraredCanvas.height = depthheight;
+  let infraredContext = infraredCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -1352,7 +1408,6 @@ function startSkeletonTracking() {
   resetCanvas("depth");
   canvasState = "depth";
 
-  console.log("hello");
   if (kinect.open()) {
     console.log("Kinect Opened");
 
@@ -1363,55 +1418,90 @@ function startSkeletonTracking() {
     });
     kinect.createTracker();
     kinect.startListening(data => {
-      console.log("listening");
       if (data.bodyFrame.numBodies === 0) {
-        console.log("nothing");
         return;
       }
 
-      console.log("getting something");
-      let skeleton = data.bodyFrame.bodies[0].skeleton;
-      drawAzureSkeleton(skeletonCanvas, skeletonContext, skeleton, 0);
-    });
-  }
+      // normalizing 2d coordinates
+      let normalizedBodyFrame = normalizeSkeletonCoords(data.bodyFrame);
 
-  // for windows kinect
-  // if (kinect.open()) {
-  //   kinect.on("bodyFrame", function(bodyFrame) {
-  //     if (sendAllBodies) {
-  //       sendToPeer("bodyFrame", bodyFrame);
-  //       if (doRecord) {
-  //         bodyFrame.record_startime = recordStartTime;
-  //         bodyFrame.record_timestamp = Date.now() - recordStartTime;
-  //         bodyChunks.push(bodyFrame);
-  //       }
-  //     }
+      if (sendAllBodies) {
+        sendToPeer("bodyFrame", normalizedBodyFrame);
+      }
 
-  //     skeletonContext.clearRect(
-  //       0,
-  //       0,
-  //       skeletonCanvas.width,
-  //       skeletonCanvas.height
-  //     );
-  //     var index = 0;
-  //     bodyFrame.bodies.forEach(function(body) {
-  //       if (body.tracked) {
-  //         if (!sendAllBodies) {
-  //           sendToPeer("trackedBodyFrame", body);
-  //           if (doRecord) {
-  //             body.record_startime = recordStartTime;
-  //             body.record_timestamp = Date.now() - recordStartTime;
-  //             bodyChunks.push(body);
-  //           }
-  //         }
+      skeletonContext.clearRect(
+        0,
+        0,
+        skeletonCanvas.width,
+        skeletonCanvas.height
+      );
 
-  //         drawSkeleton(skeletonCanvas, skeletonContext, body, index);
-  //         index++;
-  //       }
-  //     });
-  //   });
-  //   kinect.openBodyReader();
-  // }
+      let index = 0;
+      normalizedBodyFrame.bodies.forEach(function(body) {
+        if (!sendAllBodies) {
+          sendToPeer("trackedBodyFrame", body);
+        }
+
+        drawSkeleton(skeletonCanvas, skeletonContext, body, index);
+        index++;
+      });
+
+      // console.log("number of bodies", data.bodyFrame.bodies.length);
+      // let skeleton = data.bodyFrame.bodies[0].skeleton;
+      // drawAzureSkeleton(skeletonCanvas, skeletonContext, skeleton, 0);
+    }); // listening
+  } // open
+} //tracking
+
+// for windows kinect
+// if (kinect.open()) {
+//   kinect.on("bodyFrame", function(bodyFrame) {
+//     if (sendAllBodies) {
+//       sendToPeer("bodyFrame", bodyFrame);
+//       if (doRecord) {
+//         bodyFrame.record_startime = recordStartTime;
+//         bodyFrame.record_timestamp = Date.now() - recordStartTime;
+//         bodyChunks.push(bodyFrame);
+//       }
+//     }
+
+//     skeletonContext.clearRect(
+//       0,
+//       0,
+//       skeletonCanvas.width,
+//       skeletonCanvas.height
+//     );
+//     var index = 0;
+//     bodyFrame.bodies.forEach(function(body) {
+//       if (body.tracked) {
+//         if (!sendAllBodies) {
+//           sendToPeer("trackedBodyFrame", body);
+//           if (doRecord) {
+//             body.record_startime = recordStartTime;
+//             body.record_timestamp = Date.now() - recordStartTime;
+//             bodyChunks.push(body);
+//           }
+//         }
+
+//         drawSkeleton(skeletonCanvas, skeletonContext, body, index);
+//         index++;
+//       }
+//     });
+//   });
+//   kinect.openBodyReader();
+// }
+
+function normalizeSkeletonCoords(bodyFrame) {
+  bodyFrame.bodies.forEach(function(body) {
+    for (let i = 0; i < body.skeleton.joints.length; i++) {
+      body.skeleton.joints[i].colorX /= 1280;
+      body.skeleton.joints[i].colorY /= 720;
+      body.skeleton.joints[i].depthX /= 640;
+      body.skeleton.joints[i].depthY /= 576;
+    }
+  });
+
+  return bodyFrame;
 }
 
 function stopSkeletonTracking() {
@@ -1812,21 +1902,9 @@ function calculatePixelWidth(horizontalFieldOfView, depth) {
   return pixelWidth / numPixels;
 }
 
-// function showHeight(context, joint, jointDistance) {
-//   context.clearRect(0, 0, canvas.width, canvas.height);
-//   outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-//   context.beginPath();
-//   context.fillStyle = 'red';
-//   context.arc(joint.colorX * context.canvas.width, joint.colorY * context.canvas.height, 10, 0, Math.PI * 2, true);
-//   context.fill();
-//   context.closePath();
-//   context.font = '48px sans';
-//   context.fillText(jointDistance.toFixed(2) + 'm', 20 + joint.colorX * context.canvas.width, joint.colorY * context.canvas.height);
-// }
-
 function drawSkeleton(inCanvas, inContext, body, index) {
   // Skeleton variables
-  var colors = [
+  let colors = [
     "#ff0000",
     "#00ff00",
     "#0000ff",
@@ -1835,68 +1913,46 @@ function drawSkeleton(inCanvas, inContext, body, index) {
     "#ff00ff"
   ];
   //draw joints
-  for (var jointType in body.joints) {
-    var joint = body.joints[jointType];
-    inContext.fillStyle = colors[index];
-    inContext.fillRect(
-      joint.depthX * inCanvas.width,
-      joint.depthY * inCanvas.height,
-      10,
-      10
+
+  // for azure kinect
+  if (kinect.constructor.name === "KinectAzure") {
+    for (let i = 0; i < body.skeleton.joints.length; i++) {
+      let joint = body.skeleton.joints[i];
+      inContext.fillStyle = colors[index];
+      inContext.fillRect(
+        joint.depthX * inCanvas.width,
+        joint.depthY * inCanvas.height,
+        10,
+        10
+      );
+    }
+
+    // for windows kinect
+    // to do: test that this still works with kinect 2
+  } else {
+    for (var jointType in body.joints) {
+      var joint = body.joints[jointType];
+      inContext.fillStyle = colors[index];
+      inContext.fillRect(
+        joint.depthX * inCanvas.width,
+        joint.depthY * inCanvas.height,
+        10,
+        10
+      );
+    }
+
+    //draw hand states
+    updateHandState(
+      inContext,
+      body.leftHandState,
+      body.joints[Kinect2.JointType.handLeft]
+    );
+    updateHandState(
+      inContext,
+      body.rightHandState,
+      body.joints[Kinect2.JointType.handRight]
     );
   }
-
-  //draw hand states
-  updateHandState(
-    inContext,
-    body.leftHandState,
-    body.joints[Kinect2.JointType.handLeft]
-  );
-  updateHandState(
-    inContext,
-    body.rightHandState,
-    body.joints[Kinect2.JointType.handRight]
-  );
-}
-
-function drawAzureSkeleton(inCanvas, inContext, body, index) {
-  console.log("drawing");
-  // Skeleton variables
-  var colors = [
-    "#ff0000",
-    "#00ff00",
-    "#0000ff",
-    "#ffff00",
-    "#00ffff",
-    "#ff00ff"
-  ];
-  //draw joints
-
-  inContext.clearRect(0, 0, inCanvas.width, inCanvas.height);
-
-  // move to center to accomodate for negative and positive coords
-  inContext.translate(inCanvas.width / 2, inCanvas.height / 2);
-
-  for (let i = 0; i < body.joints.length; i++) {
-    let joint = body.joints[i];
-    inContext.fillStyle = colors[0];
-
-    inContext.fillRect(joint.cameraX / 3, joint.cameraY / 3, 10, 10);
-  }
-
-  inContext.setTransform(1, 0, 0, 1, 0, 0);
-
-  // //draw hand states
-  // updateHandState(
-  //   inContext,
-  //   body.leftHandState,
-  //   body.joints[Kinect2.JointType.handLeft]
-  // );
-  // updateHandState(
-  //   inContext,
-  //   body.rightHandState,
-  //   body.joints[Kinect2.JointType.handRight]
-  // );
 }
 
 function updateHandState(context, handState, jointPoint) {
