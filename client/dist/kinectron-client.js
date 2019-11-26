@@ -197,6 +197,8 @@ var _peerjs = _interopRequireDefault(require("peerjs"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Import Peer.js
+console.log("You are running Kinectron API version 0.3.0");
+
 var Kinectron = function Kinectron(arg1, arg2) {
   this.img = null;
   this.feed = null;
@@ -241,11 +243,32 @@ var Kinectron = function Kinectron(arg1, arg2) {
   this.HANDTIPLEFT = 21;
   this.THUMBLEFT = 22;
   this.HANDTIPRIGHT = 23;
-  this.THUMBRIGHT = 24;
-  var COLORWIDTH = 960;
-  var COLORHEIGHT = 540;
-  var DEPTHWIDTH = 512;
-  var DEPTHHEIGHT = 424; // Processing raw depth indicator
+  this.THUMBRIGHT = 24; // var COLORWIDTH = 960;
+  // var COLORHEIGHT = 540;
+  // var DEPTHWIDTH = 512;
+  // var DEPTHHEIGHT = 424;
+
+  var WINDOWSCOLORWIDTH = 960;
+  var WINDOWSCOLORHEIGHT = 540;
+  var WINDOWSDEPTHWIDTH = 512;
+  var WINDOWSDEPTHHEIGHT = 424;
+  var WINDOWSRAWWIDTH = 512;
+  var WINDOWSRAWHEIGHT = 424; // azure resolutions at
+  // https://docs.microsoft.com/en-us/azure/kinect-dk/hardware-specification
+
+  var AZURECOLORWIDTH = 1280;
+  var AZURECOLORHEIGHT = 720;
+  var AZUREDEPTHWIDTH = 640;
+  var AZUREDEPTHHEIGHT = 576;
+  var AZURERAWWIDTH = 640;
+  var AZURERAWHEIGHT = 576;
+  var colorwidth;
+  var colorheight;
+  var depthwidth;
+  var depthheight;
+  var rawdepthwidth;
+  var rawdepthheight;
+  var whichKinect = null; // Processing raw depth indicator
 
   var busy = false; // Running multiframe indicator
 
@@ -326,11 +349,41 @@ var Kinectron = function Kinectron(arg1, arg2) {
       switch (dataReceived.event) {
         // Wait for ready from Kinectron to initialize
         case "ready":
-          ready = true;
+          // debugger;
+          // if kinect set by server and kinect set by API
+          // give precedence to the server
+          // let the user know
+          if (dataReceived.data.kinect && whichKinect !== null) {
+            if (whichKinect !== dataReceived.data.kinect) {
+              whichKinect = dataReceived.data.kinect;
+              console.warn("The Kinect server set the Kinect Type to ".concat(whichKinect));
+            }
+          } // if kinect set by api and blank on server
+          // set it on server
 
-          if (holdInitFeed) {
-            connection.send(holdInitFeed);
-            holdInitFeed = null;
+
+          if (Object.entries(dataReceived.data).length === 0 && dataReceived.data.constructor === Object && whichKinect) {
+            console.log("need to set on server");
+
+            this._setKinectOnServer(whichKinect);
+          } // if kinect set by server, set the same in api
+
+
+          if (dataReceived.data.kinect && whichKinect === null) {
+            whichKinect = dataReceived.data.kinect;
+
+            this._setKinect(whichKinect);
+          }
+
+          if (whichKinect) {
+            ready = true;
+
+            if (holdInitFeed) {
+              connection.send(holdInitFeed);
+              holdInitFeed = null;
+            }
+          } else {
+            console.error("Kinectron cannot start. Kinect type must be set to 'azure' or 'windows' on server or API.");
           }
 
           break;
@@ -492,6 +545,10 @@ var Kinectron = function Kinectron(arg1, arg2) {
           break;
       }
     }.bind(this));
+  };
+
+  this.setKinectType = function (kinectType) {
+    this._setKinect(kinectType);
   }; // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
 
 
@@ -725,7 +782,35 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
     this._sendToPeer("record", "stop");
   }; // Private functions //
-  // Change feed on user input
+
+
+  this._setKinect = function (kinectType) {
+    whichKinect = kinectType;
+
+    this._setCanvasDimensions(kinectType);
+  };
+
+  this._setKinectOnServer = function (kinectType) {
+    this._sendToPeer("setkinect", kinectType);
+  };
+
+  this._setCanvasDimensions = function (kinectType) {
+    if (kinectType === "azure") {
+      colorwidth = AZURECOLORWIDTH;
+      colorheight = AZURECOLORHEIGHT;
+      depthwidth = AZUREDEPTHWIDTH;
+      depthheight = AZUREDEPTHHEIGHT;
+      rawdepthwidth = AZURERAWWIDTH;
+      rawdepthheight = AZURERAWHEIGHT;
+    } else if (kinectType === "windows") {
+      colorwidth = WINDOWSCOLORWIDTH;
+      colorheight = WINDOWSCOLORHEIGHT;
+      depthwidth = WINDOWSDEPTHWIDTH;
+      depthheight = WINDOWSDEPTHHEIGHT;
+      rawdepthwidth = WINDOWSRAWWIDTH;
+      rawdepthheight = WINDOWSRAWHEIGHT;
+    }
+  }; // Change feed on user input
 
 
   this._setFeed = function (feed) {
@@ -889,11 +974,11 @@ var Kinectron = function Kinectron(arg1, arg2) {
     newHiddenCanvas.setAttribute("id", frame + Date.now());
 
     if (frame == "color" || frame == "key") {
-      newHiddenCanvas.width = COLORWIDTH;
-      newHiddenCanvas.height = COLORHEIGHT;
+      newHiddenCanvas.width = colorwidth;
+      newHiddenCanvas.height = colorheight;
     } else {
-      newHiddenCanvas.width = DEPTHWIDTH;
-      newHiddenCanvas.height = DEPTHHEIGHT;
+      newHiddenCanvas.width = depthwidth;
+      newHiddenCanvas.height = depthheight;
     }
 
     newHiddenContext = hiddenCanvas.getContext("2d");
@@ -1000,7 +1085,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56036" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56150" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
