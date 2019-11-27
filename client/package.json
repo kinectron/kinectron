@@ -7,15 +7,15 @@
     "kinectron-api": "kinectron.bundle.js"
   },
   "dependencies": {
-    "browserify": "^16.1.1",
-    "peerjs": "git+https://github.com/lisajamhoury/peerjs.git",
-    "watchify": "^3.11.0"
+    "peerjs": "1.1.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "parcel": "^1.12.4"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "watchify src/kinectron-client.js -o bin/kinectron.bundle.js",
-    "build": "browserify src/kinectron-client.js -o bin/kinectron.bundle.js"
+    "start": "parcel watch src/kinectron-client.js --out-file dist/kinectron-client.js --no-minify",
+    "build": "parcel build src/kinectron-client.js --out-file dist/kinectron-client.js --no-minify"
   },
   "repository": {
     "type": "git",

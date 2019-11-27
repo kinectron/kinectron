@@ -1,7 +1,7 @@
 // Declare canvas
 var myCanvas = null;
 
-// Declare kinectron 
+// Declare kinectron
 var kinectron1 = null;
 var kinectron2 = null;
 
@@ -14,7 +14,7 @@ function setup() {
   background(0);
 
   // Create paragraph element for framerate
-  frameP = createP('');
+  frameP = createP("");
 
   // Define and create first instance of kinectron
   var kinectronIpAddress1 = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
@@ -40,7 +40,7 @@ function setup() {
 }
 
 function draw() {
-  // Display framerate 
+  // Display framerate
   var fps = frameRate();
   fill(0);
   stroke(0);
@@ -50,23 +50,22 @@ function draw() {
 
 // Choose camera to start based on key pressed
 function keyTyped() {
-  // Controls for Kinect 1 
-  if (key === '1') kinectron1.startRGB();
-  if (key === '2') kinectron1.startDepth();
-  if (key === '3') kinectron1.startInfrared();
-  if (key === '4') kinectron1.stopAll();
+  // Controls for Kinect 1
+  if (key === "1") kinectron1.startRGB();
+  if (key === "2") kinectron1.startDepth();
+  if (key === "3") kinectron1.startInfrared();
+  if (key === "4") kinectron1.stopAll();
 
   // Controls for Kinect 2
-  if (key === '5') kinectron2.startRGB();
-  if (key === '6') kinectron2.startDepth();
-  if (key === '7') kinectron2.startInfrared();
-  if (key === '8') kinectron2.stopAll();
-
+  if (key === "5") kinectron2.startRGB();
+  if (key === "6") kinectron2.startDepth();
+  if (key === "7") kinectron2.startInfrared();
+  if (key === "8") kinectron2.stopAll();
 }
 
 // Callback for Kinect 1 Feed
 function drawFeed1(img) {
-  // Draws feed using p5 load and display image functions  
+  // Draws feed using p5 load and display image functions
   loadImage(img.src, function(loadedImage) {
     image(loadedImage, 0, 0, 300, 169);
   });
@@ -74,7 +73,7 @@ function drawFeed1(img) {
 
 // Callback for Kinect 2 Feed
 function drawFeed2(img) {
-  // Draws feed using p5 load and display image functions  
+  // Draws feed using p5 load and display image functions
   loadImage(img.src, function(loadedImage) {
     image(loadedImage, 300, 0, 300, 169);
   });

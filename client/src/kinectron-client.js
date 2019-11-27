@@ -1,9 +1,7 @@
-(function(window) {
+// Import Peer.js
+import Peer from "peerjs";
 
-// Import Peer.js 
-var Peer = require('peerjs');
-
-Kinectron = function(arg1, arg2) {  
+const Kinectron = function(arg1, arg2) {
   this.img = null;
   this.feed = null;
   this.body = null;
@@ -14,7 +12,7 @@ Kinectron = function(arg1, arg2) {
   this.depthCallback = null;
   this.rawDepthCallback = null;
   this.infraredCallback = null;
-  this.leInfraredCallback = null; 
+  this.leInfraredCallback = null;
   this.bodiesCallback = null;
   this.trackedBodiesCallback = null;
   this.trackedJointCallback = null;
@@ -45,7 +43,7 @@ Kinectron = function(arg1, arg2) {
   this.ANKLERIGHT = 18;
   this.FOOTRIGHT = 19;
   this.SPINESHOULDER = 20;
-  this.HANDTIPLEFT  = 21;
+  this.HANDTIPLEFT = 21;
   this.THUMBLEFT = 22;
   this.HANDTIPRIGHT = 23;
   this.THUMBRIGHT = 24;
@@ -54,8 +52,8 @@ Kinectron = function(arg1, arg2) {
   var COLORHEIGHT = 540;
 
   var DEPTHWIDTH = 512;
-  var DEPTHHEIGHT = 424; 
-  
+  var DEPTHHEIGHT = 424;
+
   // Processing raw depth indicator
   var busy = false;
 
@@ -67,11 +65,11 @@ Kinectron = function(arg1, arg2) {
   var ready = false;
   var holdInitFeed = null;
 
-  // Peer variables and defaults 
+  // Peer variables and defaults
   var peer = null;
   var connection = null;
-  var peerNet = {host: 'localhost', port: 9001, path: '/'}; // Connect to localhost by default
-  var peerId = 'kinectron'; // Connect to peer Id Kinectron by default 
+  var peerNet = { host: "localhost", port: 9001, path: "/" }; // Connect to localhost by default
+  var peerId = "kinectron"; // Connect to peer Id Kinectron by default
 
   // Hidden div variables
   var myDiv = null;
@@ -83,8 +81,8 @@ Kinectron = function(arg1, arg2) {
   var rawDepthChunks = [];
   var mediaRecorders = [];
 
-  // Check for ip address in "quickstart" method  
-  if (typeof arg1 !=="undefined" && typeof arg2 == "undefined") {
+  // Check for ip address in "quickstart" method
+  if (typeof arg1 !== "undefined" && typeof arg2 == "undefined") {
     var host = arg1;
     peerNet.host = host;
 
@@ -94,21 +92,21 @@ Kinectron = function(arg1, arg2) {
     var network = arg2;
     peerId = peerid;
     peerNet = network;
-  } 
+  }
 
   // Create new peer
   peer = new Peer(peerNet);
-  
-  peer.on('open', function(id) {
-    console.log('My peer ID is: ' + id);
+
+  peer.on("open", function(id) {
+    console.log("My peer ID is: " + id);
   });
 
-  peer.on('connection', function(connection) {
-    connection.on('open', function() {
+  peer.on("connection", function(connection) {
+    connection.on("open", function() {
       console.log("Peer js is connected");
     });
   });
-  
+
   // Create hidden image to draw to
   myDiv = document.createElement("div");
   myDiv.style.visibility = "hidden";
@@ -119,15 +117,14 @@ Kinectron = function(arg1, arg2) {
   this.img = document.createElement("img");
   myDiv.appendChild(this.img);
 
-  // Used for raw depth processing. 
+  // Used for raw depth processing.
   // TO DO refactor: create dynamically in process raw depth
-  hiddenCanvas = document.createElement("canvas");
+  const hiddenCanvas = document.createElement("canvas");
   hiddenCanvas.width = 512;
   hiddenCanvas.height = 424;
-  hiddenContext = hiddenCanvas.getContext("2d");
-  hiddenContext.fillStyle = 'green';
+  const hiddenContext = hiddenCanvas.getContext("2d");
   hiddenContext.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-  hiddenImage = document.createElement("img");
+  const hiddenImage = document.createElement("img");
 
   myDiv.appendChild(hiddenCanvas);
   myDiv.appendChild(hiddenImage);
@@ -135,241 +132,263 @@ Kinectron = function(arg1, arg2) {
   // Make peer connection
   this.makeConnection = function() {
     connection = peer.connect(peerId); // get a webrtc DataConnection
-    connection.on('open', function(data) {
+    connection.on("open", function(data) {
       console.log("Open data connection with server");
     });
 
     // Route incoming traffic from Kinectron
-    connection.on('data', function(dataReceived) {
-      var data = dataReceived.data;
-      
-      switch (dataReceived.event) {
-        // Wait for ready from Kinectron to initialize
-        case 'ready':
-          ready = true;
+    connection.on(
+      "data",
+      function(dataReceived) {
+        var data = dataReceived.data;
 
-          if (holdInitFeed) {
-            connection.send(holdInitFeed);
-            holdInitFeed = null;
-          }
+        switch (dataReceived.event) {
+          // Wait for ready from Kinectron to initialize
+          case "ready":
+            ready = true;
 
-        break;
-
-        // If image data draw image
-        case 'frame':
-          this.img.src = data.imagedata;
-          this._chooseCallback(data.name);
-          
-          if (doRecord) this._drawImageToCanvas(data.name);
-        break;
-        
-        // If receive all bodies, send all bodies
-        case 'bodyFrame':
-          this.bodiesCallback(data);
-
-          if (doRecord) {
-            data.record_startime = recordStartTime;
-            data.record_timestamp = Date.now() - recordStartTime;
-            bodyChunks.push(data);  
-          }
-        break;
- 
-        // If receive tracked skeleton data, send skeleton
-        case 'trackedBodyFrame':
-          this.body = data;
-
-          // If joint specified send joint and call joint callback
-          if (this.jointName && this.trackedJointCallback && this.body.joints[this.jointName] !== 0) {
-            var joint = this.body.joints[this.jointName]; 
-            joint.trackingId  = this.body.trackingId;
-            this.trackedJointCallback(joint);
-            
-            if (doRecord) {
-              joint.record_startime = recordStartTime;
-              joint.record_timestamp = Date.now() - recordStartTime;
-              bodyChunks.push(joint);
+            if (holdInitFeed) {
+              connection.send(holdInitFeed);
+              holdInitFeed = null;
             }
-          // Or call tracked bodies callback on invidual tracked body
-          } else if (this.trackedBodiesCallback) {
-            this.trackedBodiesCallback(data);
+
+            break;
+
+          // If image data draw image
+          case "frame":
+            this.img.src = data.imagedata;
+
+            this.img.onload = function() {
+              this._chooseCallback(data.name);
+
+              if (doRecord) this._drawImageToCanvas(data.name);
+            }.bind(this);
+
+            break;
+
+          // If receive all bodies, send all bodies
+          case "bodyFrame":
+            this.bodiesCallback(data);
 
             if (doRecord) {
               data.record_startime = recordStartTime;
               data.record_timestamp = Date.now() - recordStartTime;
               bodyChunks.push(data);
             }
-          }
-        break;
+            break;
 
-        // If floor height, draw left hand and height
-        case 'floorHeightTracker':
-          this.fhCallback(data);
-        break;
+          // If receive tracked skeleton data, send skeleton
+          case "trackedBodyFrame":
+            this.body = data;
 
-        case 'rawDepth':
-          var processedData = this._processRawDepth(data);
-          this.rawDepthCallback(processedData);
+            // If joint specified send joint and call joint callback
+            if (
+              this.jointName &&
+              this.trackedJointCallback &&
+              this.body.joints[this.jointName] !== 0
+            ) {
+              var joint = this.body.joints[this.jointName];
+              joint.trackingId = this.body.trackingId;
+              this.trackedJointCallback(joint);
 
-          if (doRecord) {
-            var recordedData = {};
-            recordedData.data = processedData;
-            recordedData.record_startime = recordStartTime;
-            recordedData.record_timestamp = Date.now() - recordStartTime;
-            rawDepthChunks.push(recordedData);
-          }
+              if (doRecord) {
+                joint.record_startime = recordStartTime;
+                joint.record_timestamp = Date.now() - recordStartTime;
+                bodyChunks.push(joint);
+              }
+              // Or call tracked bodies callback on invidual tracked body
+            } else if (this.trackedBodiesCallback) {
+              this.trackedBodiesCallback(data);
 
-        break;
+              if (doRecord) {
+                data.record_startime = recordStartTime;
+                data.record_timestamp = Date.now() - recordStartTime;
+                bodyChunks.push(data);
+              }
+            }
+            break;
 
-        case 'multiFrame':
-          if (data.rawDepth) {
-            var processedRawDepthData = this._processRawDepth(data.rawDepth);
-            data.rawDepth = processedRawDepthData;
-           }
+          // If floor height, draw left hand and height
+          case "floorHeightTracker":
+            this.fhCallback(data);
+            break;
 
-          if (this.multiFrameCallback) {
-            this.multiFrameCallback(data);
+          case "rawDepth":
+            var processedData = this._processRawDepth(data);
+            this.rawDepthCallback(processedData);
 
             if (doRecord) {
+              var recordedData = {};
+              recordedData.data = processedData;
+              recordedData.record_startime = recordStartTime;
+              recordedData.record_timestamp = Date.now() - recordStartTime;
+              rawDepthChunks.push(recordedData);
+            }
+
+            break;
+
+          case "multiFrame":
+            if (data.rawDepth) {
+              var processedRawDepthData = this._processRawDepth(data.rawDepth);
+              data.rawDepth = processedRawDepthData;
+            }
+
+            if (this.multiFrameCallback) {
+              this.multiFrameCallback(data);
+
+              if (doRecord) {
+                if (data.color) {
+                  this.img.src = data.color;
+
+                  this.img.onload = function() {
+                    this._drawImageToCanvas("color");
+                  }.bind(this);
+                }
+
+                if (data.depth) {
+                  this.img.src = data.depth;
+
+                  this.img.onload = function() {
+                    this._drawImageToCanvas("depth");
+                  }.bind(this);
+                }
+
+                if (data.body) {
+                  data.body.record_startime = recordStartTime;
+                  data.body.record_timestamp = Date.now() - recordStartTime;
+                  bodyChunks.push(data.body);
+                }
+
+                if (data.rawDepth) {
+                  var recordedData2 = {};
+                  recordedData2.data = data.rawDepth;
+                  recordedData2.record_startime = recordStartTime;
+                  recordedData2.record_timestamp = Date.now() - recordStartTime;
+                  rawDepthChunks.push(recordedData2);
+                }
+              }
+            } else {
               if (data.color) {
                 this.img.src = data.color;
-                this._drawImageToCanvas('color');
-              } 
-              
+
+                this.img.onload = function() {
+                  this.colorCallback(this.img);
+
+                  if (doRecord) this._drawImageToCanvas("color");
+                }.bind(this);
+              }
+
               if (data.depth) {
                 this.img.src = data.depth;
-                this._drawImageToCanvas('depth');
-              } 
+
+                this.img.onload = function() {
+                  this.depthCallback(this.img);
+
+                  if (doRecord) this._drawImageToCanvas("depth");
+                }.bind(this);
+              }
 
               if (data.body) {
-                data.body.record_startime = recordStartTime;
-                data.body.record_timestamp = Date.now() - recordStartTime;
-                bodyChunks.push(data.body);  
-              } 
+                this.bodiesCallback(data.body);
+
+                if (doRecord) {
+                  data.body.record_startime = recordStartTime;
+                  data.body.record_timestamp = Date.now() - recordStartTime;
+                  bodyChunks.push(data.body);
+                }
+              }
 
               if (data.rawDepth) {
-                var recordedData2 = {};
-                recordedData2.data = data.rawDepth;
-                recordedData2.record_startime = recordStartTime;
-                recordedData2.record_timestamp = Date.now() - recordStartTime;
-                rawDepthChunks.push(recordedData2);
+                this.rawDepthCallback(data.rawDepth);
+
+                if (doRecord) {
+                  var recordedData3 = {};
+                  recordedData3.data = data.rawDepth;
+                  recordedData3.record_startime = recordStartTime;
+                  recordedData3.record_timestamp = Date.now() - recordStartTime;
+                  rawDepthChunks.push(recordedData3);
+                }
               }
             }
-          } else {
-            if (data.color) {
-              this.img.src = data.color;
-              this.colorCallback(this.img);
-              
-              if (doRecord) this._drawImageToCanvas('color');
-            }
-
-            if (data.depth) {
-              this.img.src = data.depth;
-              this.depthCallback(this.img);
-             
-              if (doRecord) this._drawImageToCanvas('depth');
-            }
-
-            if (data.body) {
-              this.bodiesCallback(data.body);
-              
-              if (doRecord) {
-                data.body.record_startime = recordStartTime;
-                data.body.record_timestamp = Date.now() - recordStartTime;
-                bodyChunks.push(data.body);  
-              }
-            }
-
-            if (data.rawDepth) {
-             this.rawDepthCallback(data.rawDepth);
-
-              if (doRecord) {
-                var recordedData3 = {};
-                recordedData3.data = data.rawDepth;
-                recordedData3.record_startime = recordStartTime;
-                recordedData3.record_timestamp = Date.now() - recordStartTime;
-                rawDepthChunks.push(recordedData3);
-              }
-            }
-
-          }
-        break;
-      }
-    }.bind(this));
+            break;
+        }
+      }.bind(this)
+    );
   };
 
   // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
   this.startRGB = function(callback) {
-    console.warn('startRGB no longer in use. Use startColor instead');
-    if (callback) { 
+    console.warn("startRGB no longer in use. Use startColor instead");
+    if (callback) {
       this.colorCallback = callback;
     }
-    
-    this._setFeed('color');
+
+    this._setFeed("color");
   };
 
   this.startColor = function(callback) {
     if (callback) {
       this.colorCallback = callback;
     }
-    this._setFeed('color');
+    this._setFeed("color");
   };
 
   this.startDepth = function(callback) {
     if (callback) {
-      this.depthCallback = callback;  
-    } 
+      this.depthCallback = callback;
+    }
 
-    this._setFeed('depth');
+    this._setFeed("depth");
   };
 
   this.startRawDepth = function(callback) {
     if (callback) {
-      this.rawDepthCallback = callback;  
-    } 
+      this.rawDepthCallback = callback;
+    }
 
-    this._setFeed('raw-depth');
+    this._setFeed("raw-depth");
   };
 
   this.startInfrared = function(callback) {
     if (callback) {
       this.infraredCallback = callback;
     }
-    
-    this._setFeed('infrared');
+
+    this._setFeed("infrared");
   };
 
   this.startLEInfrared = function(callback) {
     if (callback) {
-      this.leInfraredCallback = callback;  
+      this.leInfraredCallback = callback;
     }
-    
-    this._setFeed('le-infrared');
+
+    this._setFeed("le-infrared");
   };
 
   this.startBodies = function(callback) {
     if (callback) {
-      this.bodiesCallback = callback;  
+      this.bodiesCallback = callback;
     }
-    
-    this._setFeed('body');
+
+    this._setFeed("body");
   };
 
   this.startTrackedBodies = function(callback) {
     if (callback) {
-      this.trackedBodiesCallback = callback;  
+      this.trackedBodiesCallback = callback;
     }
-    
+
     // Reset tracked joint variables
     this.jointName = null;
     this.trackedJointCallback = null;
 
-    this._setFeed('skeleton');
+    this._setFeed("skeleton");
   };
-  
+
   this.startTrackedJoint = function(jointName, callback) {
-    if (typeof jointName == 'undefined') {
-       console.warn("Joint name does not exist.");
-       return;
+    if (typeof jointName == "undefined") {
+      console.warn("Joint name does not exist.");
+      return;
     }
 
     if (jointName && callback) {
@@ -377,7 +396,7 @@ Kinectron = function(arg1, arg2) {
       this.trackedJointCallback = callback;
     }
 
-    this._setFeed('skeleton');
+    this._setFeed("skeleton");
   };
 
   this.startMultiFrame = function(frames, callback) {
@@ -390,15 +409,15 @@ Kinectron = function(arg1, arg2) {
     multiFrame = true;
     currentFrames = frames;
 
-    this._sendToPeer('multi', frames);     
+    this._sendToPeer("multi", frames);
   };
 
   this.startKey = function(callback) {
     if (callback) {
-      this.keyCallback = callback;  
+      this.keyCallback = callback;
     }
-    
-    this._setFeed('key');
+
+    this._setFeed("key");
   };
 
   this.startRGBD = function(callback) {
@@ -406,7 +425,7 @@ Kinectron = function(arg1, arg2) {
       this.rgbdCallback = callback;
     }
 
-    this._setFeed('rgbd');
+    this._setFeed("rgbd");
   };
 
   // this.startScale = function(callback) {
@@ -416,22 +435,24 @@ Kinectron = function(arg1, arg2) {
 
   // this.startFloorHeight = function(callback) {
   //   if (callback) {
-  //     this.fhCallback = callback;  
+  //     this.fhCallback = callback;
   //   }
-    
+
   //   this._setFeed('fh-joint');
   // };
 
   // Stop all feeds
   this.stopAll = function() {
-    this._setFeed('stop-all');
+    this._setFeed("stop-all");
   };
 
-  // Set Callbacks 
+  // Set Callbacks
 
   // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
   this.setRGBCallback = function(callback) {
-    console.warn('setRGBCallback no longer in use. Use setColorCallback instead');
+    console.warn(
+      "setRGBCallback no longer in use. Use setColorCallback instead"
+    );
     this.colorCallback = callback;
   };
 
@@ -448,21 +469,21 @@ Kinectron = function(arg1, arg2) {
   };
 
   this.setInfraredCallback = function(callback) {
-    this.infraredCallback = callback;  
+    this.infraredCallback = callback;
   };
-  
+
   this.setLeInfraredCallback = function(callback) {
-    this.leInfraredCallback = callback; 
+    this.leInfraredCallback = callback;
   };
 
   this.setBodiesCallback = function(callback) {
-    this.bodiesCallback = callback;  
+    this.bodiesCallback = callback;
   };
-  
+
   this.setTrackedBodiesCallback = function(callback) {
-    this.trackedBodiesCallback = callback;  
+    this.trackedBodiesCallback = callback;
   };
-  
+
   this.setKeyCallback = function(callback) {
     this.keyCallback = callback;
   };
@@ -472,30 +493,30 @@ Kinectron = function(arg1, arg2) {
   };
 
   this.setFhCallback = function(callback) {
-    this.fhCallback = callback;  
+    this.fhCallback = callback;
   };
 
   this.setMultiFrameCallback = function(callback) {
     this.multiFrameCallback = callback;
   };
-  
+
   this.getJoints = function(callback) {
     var jointCallback = callback;
     var joint = null;
 
-    for(var jointType in this.body.joints) {
+    for (var jointType in this.body.joints) {
       joint = this.body.joints[jointType];
       jointCallback(joint);
     }
   };
-  
+
   this.getHands = function(callback) {
     var handCallback = callback;
     var leftHand = this.body.joints[7];
     var rightHand = this.body.joints[11];
     var leftHandState = this._getHandState(this.body.leftHandState);
     var rightHandState = this._getHandState(this.body.rightHandState);
-    var hands = { 
+    var hands = {
       leftHand: leftHand,
       rightHand: rightHand,
       leftHandState: leftHandState,
@@ -506,25 +527,24 @@ Kinectron = function(arg1, arg2) {
   };
 
   this.startRecord = function() {
-    console.log('Starting record');
+    console.log("Starting record");
     this._record();
   };
 
   this.stopRecord = function() {
-    console.log('Ending record');
+    console.log("Ending record");
     this._record();
   };
 
   this.startServerRecord = function() {
-    console.log('Starting recording on your server');
-    this._sendToPeer('record', 'start');
+    console.log("Starting recording on your server");
+    this._sendToPeer("record", "start");
   };
 
   this.stopServerRecord = function() {
-    console.log('Ending recording on your server');
-    this._sendToPeer('record', 'stop');
+    console.log("Ending recording on your server");
+    this._sendToPeer("record", "stop");
   };
-
 
   // Private functions //
 
@@ -539,18 +559,18 @@ Kinectron = function(arg1, arg2) {
     // Reset multiframe
     multiFrame = false;
 
-    this._sendToPeer('feed', dataToSend);
+    this._sendToPeer("feed", dataToSend);
   };
 
   // Send data to peer
   this._sendToPeer = function(evt, data) {
     var dataToSend = {
-      event: evt, 
+      event: evt,
       data: data
     };
 
     // If connection not ready, wait for connection
-    if (!ready) { 
+    if (!ready) {
       holdInitFeed = dataToSend;
       return;
     }
@@ -560,29 +580,29 @@ Kinectron = function(arg1, arg2) {
   // Choose callback for image-based frames
   this._chooseCallback = function(frame) {
     switch (frame) {
-      case 'color':
+      case "color":
         this.colorCallback(this.img);
-      break;
+        break;
 
-      case 'depth':
+      case "depth":
         this.depthCallback(this.img);
-      break;
+        break;
 
-      case 'infrared':
+      case "infrared":
         this.infraredCallback(this.img);
-      break;
+        break;
 
-      case 'LEinfrared':
+      case "LEinfrared":
         this.leInfraredCallback(this.img);
-      break;
+        break;
 
-      case 'key':
+      case "key":
         this.keyCallback(this.img);
-      break;
+        break;
 
-      case 'rgbd':
+      case "rgbd":
         this.rgbdCallback(this.img);
-      break;
+        break;
     }
   };
 
@@ -590,19 +610,19 @@ Kinectron = function(arg1, arg2) {
   this._getHandState = function(handState) {
     switch (handState) {
       case 0:
-        return 'unknown';
+        return "unknown";
 
       case 1:
-        return 'notTracked';
+        return "notTracked";
 
       case 2:
-        return 'open';
+        return "open";
 
       case 3:
-        return 'closed';
+        return "closed";
 
       case 4:
-        return 'lasso';
+        return "lasso";
     }
   };
 
@@ -616,15 +636,25 @@ Kinectron = function(arg1, arg2) {
     var newImg = new Image();
     newImg.src = data;
 
-    newImg.onload = function () {
-      hiddenContext.clearRect(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
+    newImg.onload = function() {
+      hiddenContext.clearRect(
+        0,
+        0,
+        hiddenContext.canvas.width,
+        hiddenContext.canvas.height
+      );
       hiddenContext.drawImage(newImg, 0, 0);
     }.bind(this);
 
-    imageData = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
-    
-    for(var i = 0; i < imageData.data.length; i+=4) {
-      var depth = (imageData.data[i+1] << 8) + imageData.data[i]; //get uint16 data from buffer
+    imageData = hiddenContext.getImageData(
+      0,
+      0,
+      hiddenContext.canvas.width,
+      hiddenContext.canvas.height
+    );
+
+    for (var i = 0; i < imageData.data.length; i += 4) {
+      var depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
       processedData.push(depth);
     }
 
@@ -632,12 +662,14 @@ Kinectron = function(arg1, arg2) {
     return processedData;
   };
 
-    // Toggle Recording
+  // Toggle Recording
   this._record = function() {
     if (!doRecord) {
-
       // If no feed started, send warning and return
-      if ((multiFrame === false && this.feed === null) || this.feed === 'stop-all') {
+      if (
+        (multiFrame === false && this.feed === null) ||
+        this.feed === "stop-all"
+      ) {
         console.warn("Record does not work until a feed is started");
         return;
       }
@@ -657,19 +689,17 @@ Kinectron = function(arg1, arg2) {
       for (var j = 0; j < framesToRecord.length; j++) {
         mediaRecorders.push(this._createMediaRecorder(framesToRecord[j]));
       }
-      
+
       recordStartTime = Date.now();
       doRecord = true;
-
     } else {
       doRecord = false;
-      
+
       // Stop all mediarecorders and remove them from array
       for (var k = mediaRecorders.length - 1; k >= 0; k--) {
-        mediaRecorders[k].stop();  
+        mediaRecorders[k].stop();
         mediaRecorders.splice(k, 1);
-      } 
-
+      }
     }
   };
 
@@ -680,11 +710,17 @@ Kinectron = function(arg1, arg2) {
     for (var k = 0; k < mediaRecorders.length; k++) {
       var id = mediaRecorders[k].canvas.id;
       if (id.indexOf(frame) >= 0) {
-       tempContext = mediaRecorders[k].canvas.getContext("2d"); 
+        tempContext = mediaRecorders[k].canvas.getContext("2d");
       }
     }
-    
+
     // Draw to the appropriate canvas
+    tempContext.clearRect(
+      0,
+      0,
+      tempContext.canvas.width,
+      tempContext.canvas.height
+    );
     tempContext.drawImage(this.img, 0, 0);
   };
 
@@ -693,9 +729,9 @@ Kinectron = function(arg1, arg2) {
 
     // Create hidden canvas to draw to
     newHiddenCanvas = document.createElement("canvas");
-    newHiddenCanvas.setAttribute('id', frame + Date.now());
+    newHiddenCanvas.setAttribute("id", frame + Date.now());
 
-    if (frame == 'color' || frame == 'key') {
+    if (frame == "color" || frame == "key") {
       newHiddenCanvas.width = COLORWIDTH;
       newHiddenCanvas.height = COLORHEIGHT;
     } else {
@@ -704,54 +740,61 @@ Kinectron = function(arg1, arg2) {
     }
 
     newHiddenContext = hiddenCanvas.getContext("2d");
-    newHiddenContext.fillRect(0, 0, newHiddenCanvas.width, newHiddenCanvas.height);
-    
+    newHiddenContext.fillRect(
+      0,
+      0,
+      newHiddenCanvas.width,
+      newHiddenCanvas.height
+    );
+
     // Add canvas to hidden div
     myDiv.appendChild(newHiddenCanvas);
 
     // Create media recorder, add canvas to recorder
     newMediaRecorder = new MediaRecorder(newHiddenCanvas.captureStream());
     newMediaRecorder.canvas = newHiddenCanvas;
-    
+
     var mediaChunks = [];
 
-    newMediaRecorder.onstop = function (e) {
-
+    newMediaRecorder.onstop = function(e) {
       // If skeleton data is being tracked, write out the body frames to JSON
-      if (frame == 'body' || frame == 'skeleton') {
-        var blobJson = new Blob([JSON.stringify(bodyChunks)], {type : 'application/json'});
+      if (frame == "body" || frame == "skeleton") {
+        var blobJson = new Blob([JSON.stringify(bodyChunks)], {
+          type: "application/json"
+        });
         var jsonUrl = URL.createObjectURL(blobJson);
-        var a2 = document.createElement('a');
+        var a2 = document.createElement("a");
         document.body.appendChild(a2);
-        a2.style = 'display: none';
+        a2.style = "display: none";
         a2.href = jsonUrl;
-        a2.download = frame + Date.now() + '.json';
+        a2.download = frame + Date.now() + ".json";
         a2.click();
         window.URL.revokeObjectURL(jsonUrl);
 
         // Reset body chunks
-        bodyChunks.length = 0;   
-      
-      // If raw depth data tracked, write out to JSON       
-      } else if (frame == 'raw-depth') {
-        var blobJsonRd = new Blob([JSON.stringify(rawDepthChunks)], {type : 'application/json'});
+        bodyChunks.length = 0;
+
+        // If raw depth data tracked, write out to JSON
+      } else if (frame == "raw-depth") {
+        var blobJsonRd = new Blob([JSON.stringify(rawDepthChunks)], {
+          type: "application/json"
+        });
         var jsonRdUrl = URL.createObjectURL(blobJsonRd);
-        var a3 = document.createElement('a');
+        var a3 = document.createElement("a");
         document.body.appendChild(a3);
-        a3.style = 'display: none';
+        a3.style = "display: none";
         a3.href = jsonRdUrl;
-        a3.download = frame + Date.now() + '.json';
+        a3.download = frame + Date.now() + ".json";
         a3.click();
         window.URL.revokeObjectURL(jsonRdUrl);
 
         // Reset body chunks
-        rawDepthChunks.length = 0;  
+        rawDepthChunks.length = 0;
 
-      // If video display the video on the page
+        // If video display the video on the page
       } else {
-        
         // The video as a blob
-        var blobVideo = new Blob(mediaChunks, { 'type' : 'video/webm' });
+        var blobVideo = new Blob(mediaChunks, { type: "video/webm" });
 
         // Draw video to screen
         // var videoElement = document.createElement('video');
@@ -760,21 +803,19 @@ Kinectron = function(arg1, arg2) {
         // document.body.appendChild(videoElement);
         // videoElement.src = window.URL.createObjectURL(blobVideo);
 
-        // Download the video 
+        // Download the video
         var url = URL.createObjectURL(blobVideo);
-        var a = document.createElement('a');
+        var a = document.createElement("a");
         document.body.appendChild(a);
-        a.style = 'display: none';
+        a.style = "display: none";
         a.href = url;
-        a.download = frame + Date.now() + '.webm';
+        a.download = frame + Date.now() + ".webm";
         a.click();
         window.URL.revokeObjectURL(url);
 
         // Reset media chunks
-        mediaChunks.length = 0;    
+        mediaChunks.length = 0;
       }
-
-
     }.bind(this);
 
     // When video data is available
@@ -786,9 +827,6 @@ Kinectron = function(arg1, arg2) {
     newMediaRecorder.start();
     return newMediaRecorder;
   };
-
-
-  
 };
 
-})(window);
+window.Kinectron = Kinectron;

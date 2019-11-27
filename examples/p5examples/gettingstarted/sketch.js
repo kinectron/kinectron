@@ -1,6 +1,6 @@
 var myCanvas = null;
 
-// Declare kinectron 
+// Declare kinectron
 var kinectron = null;
 
 var frameP;
@@ -9,10 +9,10 @@ function setup() {
   myCanvas = createCanvas(500, 500);
   background(0);
 
-  frameP = createP('');
+  frameP = createP("");
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  var kinectronIpAddress =  ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Connect to the microstudio
@@ -49,7 +49,7 @@ function keyPressed() {
 }
 
 function drawFeed(img) {
-  // Draws feed using p5 load and display image functions  
+  // Draws feed using p5 load and display image functions
   loadImage(img.src, function(loadedImage) {
     image(loadedImage, 0, 0);
   });

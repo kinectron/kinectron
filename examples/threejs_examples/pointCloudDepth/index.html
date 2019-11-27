@@ -2,116 +2,118 @@
 
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>three.js - kinect</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				font-family: Monospace;
-				background-color: #000000;
-				margin: 0px;
-				overflow: hidden;
-			}
+  <head>
+    <title>three.js - kinect</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <style>
+      body {
+        font-family: Monospace;
+        background-color: #000000;
+        margin: 0px;
+        overflow: hidden;
+      }
 
-			#info {
-				color: #ffffff;
+      #info {
+        color: #ffffff;
 
-				font-family: Monospace;
-				font-size: 13px;
-				text-align: center;
-				font-weight: bold;
+        font-family: Monospace;
+        font-size: 13px;
+        text-align: center;
+        font-weight: bold;
 
-				position: absolute;
-				top: 5px; width: 100%;
-			}
+        position: absolute;
+        top: 5px;
+        width: 100%;
+      }
 
-			a {
+      a {
+        color: #0040ff;
+      }
+    </style>
+  </head>
+  <body>
+    <script
+      src="../../../client/dist/kinectron-client.js"
+      type="text/javascript"
+    ></script>
 
-				color: #0040ff;
+    <script src="../shared/three.min.js"></script>
 
-			}
-		</style>
-	</head>
-	<body>
+    <script src="../shared/dat.gui.min.js"></script>
 
-		<script src="https://itp.nyu.edu/kinectron/kinectron.bundle.js" type="text/javascript"></script>
+    <script src="../shared/Detector.js"></script>
+    <script src="../shared/stats.min.js"></script>
 
-		<script src="../shared/three.min.js"></script>
+    <script id="vs" type="x-shader/x-vertex">
 
-		<script src='../shared/dat.gui.min.js'></script>
+      uniform sampler2D map;
 
-		<script src="../shared/Detector.js"></script>
-		<script src="../shared/stats.min.js"></script>
+      uniform float width;
+      uniform float height;
+      uniform float nearClipping, farClipping;
 
-		<script id="vs" type="x-shader/x-vertex">
+      uniform float pointSize;
+      uniform float zOffset;
 
-			uniform sampler2D map;
+      varying vec2 vUv;
 
-			uniform float width;
-			uniform float height;
-			uniform float nearClipping, farClipping;
+      varying float visibility;
 
-			uniform float pointSize;
-			uniform float zOffset;
+      // set threshhold for depth visibility
+      const float depthLimit = 0.5;
 
-			varying vec2 vUv;
+      const float XtoZ = 1.11146; // tan( 1.0144686 / 2.0 ) * 2.0;
+      const float YtoZ = 0.83359; // tan( 0.7898090 / 2.0 ) * 2.0;
 
-			varying float visibility;
+      void main() {
 
-			// set threshhold for depth visibility
-			const float depthLimit = 0.5;
+      	vUv = vec2( position.x / width, position.y / height );
 
-			const float XtoZ = 1.11146; // tan( 1.0144686 / 2.0 ) * 2.0;
-			const float YtoZ = 0.83359; // tan( 0.7898090 / 2.0 ) * 2.0;
+      	vec4 color = texture2D( map, vUv );
+      	float depth = ( color.r + color.g + color.b ) / 3.0;
 
-			void main() {
+      	if (depth > depthLimit ) {
+      		visibility = 0.0;
+      	} else {
+      		visibility = 1.0;
+      	}
+      	// Projection code by @kcmic
 
-				vUv = vec2( position.x / width, position.y / height );
+      	float z = ( 1.0 - depth ) * (farClipping - nearClipping) + nearClipping;
 
-				vec4 color = texture2D( map, vUv );
-				float depth = ( color.r + color.g + color.b ) / 3.0;
+      	vec4 pos = vec4(
+      		( position.x / width - 0.5 ) * z * XtoZ,
+      		( position.y / height - 0.5 ) * z * YtoZ,
+      		- z + zOffset,
+      		1.0);
 
-				if (depth > depthLimit ) {
-					visibility = 0.0;
-				} else {
-					visibility = 1.0;
-				}
-				// Projection code by @kcmic
+      	gl_PointSize = pointSize;
+      	gl_Position = projectionMatrix * modelViewMatrix * pos;
 
-				float z = ( 1.0 - depth ) * (farClipping - nearClipping) + nearClipping;
+      }
+    </script>
 
-				vec4 pos = vec4(
-					( position.x / width - 0.5 ) * z * XtoZ,
-					( position.y / height - 0.5 ) * z * YtoZ,
-					- z + zOffset,
-					1.0);
+    <script id="fs" type="x-shader/x-fragment">
 
-				gl_PointSize = pointSize;
-				gl_Position = projectionMatrix * modelViewMatrix * pos;
+      uniform sampler2D map;
 
-			}
+      varying vec2 vUv;
 
-		</script>
+      varying float visibility;
 
-		<script id="fs" type="x-shader/x-fragment">
+      void main() {
+      	 if (visibility == 0.0) discard;
 
-			uniform sampler2D map;
+      	vec4 color = texture2D( map, vUv );
+      	gl_FragColor = vec4( color.r, color.g, color.b, 0.2 );
 
-			varying vec2 vUv;
+      }
+    </script>
 
-			varying float visibility;
-
-			void main() {
-				 if (visibility == 0.0) discard;
-
-				vec4 color = texture2D( map, vUv );
-				gl_FragColor = vec4( color.r, color.g, color.b, 0.2 );
-
-			}
-
-		</script>
-
-		<script src="sketch.js"></script>
-	</body>
+    <script src="sketch.js"></script>
+  </body>
 </html>
