@@ -29,12 +29,13 @@ function initAzureColorImageAndCanvas() {
   colorImage.style.display = "none";
 
   colorCanvas = document.getElementById("color-canvas");
-  colorCanvas.width = colorwidth;
-  colorCanvas.height = colorheight;
+  // reduce color image size by 2 for more efficient sending
+  colorCanvas.width = colorwidth / 2;
+  colorCanvas.height = colorheight / 2;
   colorContext = colorCanvas.getContext("2d");
 
   colorImage.addEventListener("load", e => {
-    colorContext.drawImage(colorImage, 0, 0);
+    colorContext.drawImage(colorImage, 0, 0, colorwidth / 2, colorheight / 2);
     createDataUrl(colorCanvas, "color", "webp");
   });
 }
@@ -1081,18 +1082,30 @@ function startColor() {
       let colorImageURL;
 
       kinect.startListening(data => {
-        const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
+        if (Date.now() > sentTime + 1000 / 15) {
+          const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
 
-        // setting a data url leaks memory - Blobs seem to work fine
-        // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
-        const imageBlob = new Blob([bufferCopy], { type: "image/jpeg" });
-        if (colorImageURL) {
-          URL.revokeObjectURL(colorImageURL);
-        }
-        colorImageURL = URL.createObjectURL(imageBlob);
-        colorImage.src = colorImageURL;
+          // setting a data url leaks memory - Blobs seem to work fine
+          // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
+          const imageBlob = new Blob([bufferCopy], { type: "image/jpeg" });
+          if (colorImageURL) {
+            URL.revokeObjectURL(colorImageURL);
+          }
+
+          // color canvas processing and seinging managed in colorImage on load event
+          // see initAzureColorImageAndCanvas()
+          colorImageURL = URL.createObjectURL(imageBlob);
+          colorImage.src = colorImageURL;
+
+          sentTime = Date.now();
+        } // framerate limiting
+      }); // listening
+
+      // to do: is this still needed?
+      //clears the calls stack ?
+      setTimeout(function() {
+        busy = false;
       });
-      busy = false;
     }
   }
 
@@ -1246,8 +1259,9 @@ function startRawDepth() {
           1
         );
 
-        // limit raw depth to 25 fps
-        if (Date.now() > sentTime + 40) {
+        // limit raw depth to 25 fps // 40
+        // limit raw depth to 15fps
+        if (Date.now() > sentTime + 1000 / 15) {
           sendToPeer("rawDepth", rawDepthImg);
           sentTime = Date.now();
         }
@@ -1460,6 +1474,8 @@ function startSkeletonTracking() {
         return;
       }
       busy = true;
+      // let event;
+      // let message;
 
       // to do: looks like the cameras need to be open for the tracker to work. true?
       kinect.startCameras({
@@ -1475,28 +1491,39 @@ function startSkeletonTracking() {
         // normalizing 2d coordinates
         let normalizedBodyFrame = normalizeSkeletonCoords(data.bodyFrame);
 
-        if (sendAllBodies) {
-          sendToPeer("bodyFrame", normalizedBodyFrame);
-        }
-
-        skeletonContext.clearRect(
-          0,
-          0,
-          skeletonCanvas.width,
-          skeletonCanvas.height
-        );
-
-        let index = 0;
-        normalizedBodyFrame.bodies.forEach(function(body) {
-          if (!sendAllBodies) {
-            sendToPeer("trackedBodyFrame", body);
+        // limit sending to 15fps // 25 fps (40)
+        if (Date.now() > sentTime + 1000 / 15) {
+          if (sendAllBodies) {
+            sendToPeer("bodyFrame", normalizedBodyFrame);
+            // event = "bodyFrame";
+            // message = normalizedBodyFrame;
           }
 
-          drawSkeleton(skeletonCanvas, skeletonContext, body, index);
-          index++;
+          skeletonContext.clearRect(
+            0,
+            0,
+            skeletonCanvas.width,
+            skeletonCanvas.height
+          );
+
+          let index = 0;
+          normalizedBodyFrame.bodies.forEach(function(body) {
+            if (!sendAllBodies) {
+              sendToPeer("trackedBodyFrame", body);
+            }
+
+            drawSkeleton(skeletonCanvas, skeletonContext, body, index);
+            index++;
+          });
+
+          sentTime = Date.now();
+        } // fps limiting
+
+        setTimeout(function() {
+          busy = false;
         });
       }); // listening
-      busy = false;
+      // busy = false;
     } // open
   } else {
     // for windows kinect
@@ -1823,7 +1850,11 @@ function drawImageToCanvas(inCanvas, inContext, frameType, imageType, quality) {
   inContext.clearRect(0, 0, inCanvas.width, inCanvas.height);
   inContext.drawImage(canvas, 0, 0, inCanvas.width, inCanvas.height);
 
-  createDataUrl(inCanvas, frameType, imageType, quality);
+  if (rawDepth) {
+    return createDataUrl(inCanvas, frameType, imageType, quality);
+  } else {
+    createDataUrl(inCanvas, frameType, imageType, quality);
+  }
 }
 
 // to do: test this new function with api

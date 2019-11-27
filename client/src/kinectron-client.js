@@ -4,6 +4,7 @@ import Peer from "peerjs";
 
 const Kinectron = function(arg1, arg2) {
   this.img = null;
+  // this.rawDepthImg = null;
   this.feed = null;
   this.body = null;
   this.jointName = null;
@@ -48,12 +49,6 @@ const Kinectron = function(arg1, arg2) {
   this.THUMBLEFT = 22;
   this.HANDTIPRIGHT = 23;
   this.THUMBRIGHT = 24;
-
-  // var COLORWIDTH = 960;
-  // var COLORHEIGHT = 540;
-
-  // var DEPTHWIDTH = 512;
-  // var DEPTHHEIGHT = 424;
 
   const WINDOWSCOLORWIDTH = 960;
   const WINDOWSCOLORHEIGHT = 540;
@@ -152,14 +147,32 @@ const Kinectron = function(arg1, arg2) {
   // Used for raw depth processing.
   // TO DO refactor: create dynamically in process raw depth
   const hiddenCanvas = document.createElement("canvas");
-  hiddenCanvas.width = 512;
-  hiddenCanvas.height = 424;
   const hiddenContext = hiddenCanvas.getContext("2d");
-  hiddenContext.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
   const hiddenImage = document.createElement("img");
 
   myDiv.appendChild(hiddenCanvas);
   myDiv.appendChild(hiddenImage);
+
+  this._initHiddenCanvas = function() {
+    hiddenCanvas.width = rawdepthwidth;
+    hiddenCanvas.height = rawdepthheight;
+    hiddenContext.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+    hiddenImage.addEventListener("load", e => {
+      // hiddenContext.clearRect(
+      //   0,
+      //   0,
+      //   hiddenContext.canvas.width,
+      //   hiddenContext.canvas.height
+      // );
+      hiddenContext.drawImage(
+        hiddenImage,
+        0,
+        0,
+        hiddenCanvas.width, // can use hiddonCanvas.width directly?
+        hiddenCanvas.height
+      );
+    });
+  };
 
   // Make peer connection
   this.makeConnection = function() {
@@ -177,8 +190,6 @@ const Kinectron = function(arg1, arg2) {
         switch (dataReceived.event) {
           // Wait for ready from Kinectron to initialize
           case "ready":
-            // debugger;
-
             // if kinect set by server and kinect set by API
             // give precedence to the server
             // let the user know
@@ -198,7 +209,6 @@ const Kinectron = function(arg1, arg2) {
               dataReceived.data.constructor === Object &&
               whichKinect
             ) {
-              console.log("need to set on server");
               this._setKinectOnServer(whichKinect);
             }
 
@@ -211,6 +221,7 @@ const Kinectron = function(arg1, arg2) {
 
             if (whichKinect) {
               ready = true;
+              this._initHiddenCanvas(); // init hidden canvas after global img dimensions set
 
               if (holdInitFeed) {
                 connection.send(holdInitFeed);
@@ -284,7 +295,7 @@ const Kinectron = function(arg1, arg2) {
             break;
 
           case "rawDepth":
-            var processedData = this._processRawDepth(data);
+            let processedData = this._processRawDepth(data);
             this.rawDepthCallback(processedData);
 
             if (doRecord) {
@@ -575,22 +586,45 @@ const Kinectron = function(arg1, arg2) {
   };
 
   this.getJoints = function(callback) {
-    var jointCallback = callback;
-    var joint = null;
+    let jointCallback = callback;
 
-    for (var jointType in this.body.joints) {
-      joint = this.body.joints[jointType];
-      jointCallback(joint);
+    if (whichKinect === "azure") {
+      let joints = this.body.skeleton.joints;
+
+      for (let i = 0; i < joints.length; i++) {
+        let joint = joints[i];
+        jointCallback(joint);
+      }
+    } else {
+      // for kinect windows
+      for (let jointType in this.body.joints) {
+        let joint = this.body.joints[jointType];
+        jointCallback(joint);
+      }
     }
   };
 
   this.getHands = function(callback) {
-    var handCallback = callback;
-    var leftHand = this.body.joints[7];
-    var rightHand = this.body.joints[11];
-    var leftHandState = this._getHandState(this.body.leftHandState);
-    var rightHandState = this._getHandState(this.body.rightHandState);
-    var hands = {
+    let handCallback = callback;
+    let leftHand;
+    let rightHand;
+    let leftHandState;
+    let rightHandState;
+
+    if (whichKinect === "azure") {
+      leftHand = this.body.skeleton.joints[8];
+      rightHand = this.body.skeleton.joints[15];
+      leftHandState = null; // azure kinect doesn't track handstates
+      rightHandState = null; // azure kinect doesn't track handstates
+    } else {
+      // for kinect windows
+      leftHand = this.body.joints[7];
+      rightHand = this.body.joints[11];
+      leftHandState = this._getHandState(this.body.leftHandState);
+      rightHandState = this._getHandState(this.body.rightHandState);
+    }
+
+    let hands = {
       leftHand: leftHand,
       rightHand: rightHand,
       leftHandState: leftHandState,
@@ -730,36 +764,73 @@ const Kinectron = function(arg1, arg2) {
     }
   };
 
+  // this._initRawDepth = function() {
+  //   this.rawDepthImg = new Image();
+  //   this.rawDepthImg.addEventListener("load", e => {
+  //     // hiddenContext.clearRect(
+  //     //   0,
+  //     //   0,
+  //     //   hiddenContext.canvas.width,
+  //     //   hiddenContext.canvas.height
+  //     // );
+  //     hiddenContext.drawImage(
+  //       this.rawDepthImg,
+  //       0,
+  //       0,
+  //       hiddenContext.canvas.width,
+  //       hiddenContext.canvas.height
+  //     );
+  //   });
+  // };
+
   this._processRawDepth = function(data) {
     if (busy) return;
     busy = true;
-    var imageData;
-    var depthBuffer;
-    var processedData = [];
 
-    var newImg = new Image();
-    newImg.src = data;
+    let imageData;
+    let depthBuffer;
+    let processedData = [];
 
-    newImg.onload = function() {
-      hiddenContext.clearRect(
+    if (whichKinect === "azure") {
+      hiddenImage.src = data;
+
+      imageData = hiddenContext.getImageData(
         0,
         0,
         hiddenContext.canvas.width,
         hiddenContext.canvas.height
       );
-      hiddenContext.drawImage(newImg, 0, 0);
-    }.bind(this);
 
-    imageData = hiddenContext.getImageData(
-      0,
-      0,
-      hiddenContext.canvas.width,
-      hiddenContext.canvas.height
-    );
-
-    for (var i = 0; i < imageData.data.length; i += 4) {
-      var depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
-      processedData.push(depth);
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        let depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
+        processedData.push(depth);
+      }
+    } else {
+      // kinect windows
+      // var imageData;
+      // var depthBuffer;
+      // var processedData = [];
+      // var newImg = new Image();
+      // newImg.src = data;
+      // newImg.onload = function() {
+      //   hiddenContext.clearRect(
+      //     0,
+      //     0,
+      //     hiddenContext.canvas.width,
+      //     hiddenContext.canvas.height
+      //   );
+      //   hiddenContext.drawImage(newImg, 0, 0);
+      // }.bind(this);
+      // imageData = hiddenContext.getImageData(
+      //   0,
+      //   0,
+      //   hiddenContext.canvas.width,
+      //   hiddenContext.canvas.height
+      // );
+      // for (var i = 0; i < imageData.data.length; i += 4) {
+      //   var depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
+      //   processedData.push(depth);
+      // }
     }
 
     busy = false;
