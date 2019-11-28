@@ -189,6 +189,7 @@ const Kinectron = function(arg1, arg2) {
 
         switch (dataReceived.event) {
           // Wait for ready from Kinectron to initialize
+
           case "ready":
             // if kinect set by server and kinect set by API
             // give precedence to the server
@@ -197,7 +198,7 @@ const Kinectron = function(arg1, arg2) {
               if (whichKinect !== dataReceived.data.kinect) {
                 whichKinect = dataReceived.data.kinect;
                 console.warn(
-                  `The Kinect server set the Kinect Type to ${whichKinect}`
+                  `The Kinect server set the Kinect type to ${whichKinect}`
                 );
               }
             }
@@ -210,6 +211,7 @@ const Kinectron = function(arg1, arg2) {
               whichKinect
             ) {
               this._setKinectOnServer(whichKinect);
+              console.log(`The Kinect type is set to ${whichKinect}`);
             }
 
             // if kinect set by server, set the same in api
@@ -217,6 +219,7 @@ const Kinectron = function(arg1, arg2) {
               whichKinect = dataReceived.data.kinect;
 
               this._setKinect(whichKinect);
+              console.log(`The Kinect type is set to ${whichKinect}`);
             }
 
             if (whichKinect) {
@@ -708,7 +711,8 @@ const Kinectron = function(arg1, arg2) {
     };
 
     // If connection not ready, wait for connection
-    if (!ready) {
+    // but allow "setkinect message to pass"
+    if (!ready && dataToSend.event !== "setkinect") {
       holdInitFeed = dataToSend;
       return;
     }

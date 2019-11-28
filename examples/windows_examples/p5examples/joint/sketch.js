@@ -1,24 +1,34 @@
-// Declare Kinectron
-var kinectron = null;
+// Copyright (c) 2019 Kinectron
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-// Create P5 Canvas
-var myCanvas = null;
+/* ===
+Kinectron Example
+Kinect Windows multiplayer joint example using p5.js
+=== */
+//
+
+// Declare Kinectron
+let kinectron = null;
 
 // Create objects to store and access hands
-var handColors = {};
-var hands = {};
+let handColors = {};
+let hands = {};
+
+let ballWidth = 50;
 
 function setup() {
-  myCanvas = createCanvas(512, 424);
+  createCanvas(512, 424);
   background(0);
   noStroke();
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress =  ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress = "10.0.1.16"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
-  // Connect to the microstudio
-  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
+  // Set kinect type to windows
+  kinectron.setKinectType("windows");
 
   // Connect with application over peer
   kinectron.makeConnection();
@@ -39,7 +49,7 @@ function drawRightHand(hand) {
   } else {
     // If we don't have a color for the hand yet
     // Create a random RGB color
-    var randomColor = [random(255), random(255), random(255)];
+    let randomColor = [random(255), random(255), random(255)];
     // Create color property on the hand and assign it a random color
     hand.color = randomColor;
     // Add it to an array for easy look up
@@ -55,14 +65,26 @@ function drawRightHand(hand) {
   background(0);
 
   // Draw an ellipse at each hand's location in its designated color
-  for (var key in hands) {
-    var trackedHand = hands[key];
+  for (let key in hands) {
+    let trackedHand = hands[key];
     fill(trackedHand.color[0], trackedHand.color[1], trackedHand.color[2]);
+
+    // draw label with tracking id to player's hand location
+    text(
+      `
+        Right hand of player
+        with tracking Id:
+        ` + trackedHand.trackingId,
+      trackedHand.depthX * width - ballWidth * 3,
+      trackedHand.depthY * height
+    );
+
+    // draw ellipse at player's hand location
     ellipse(
-      trackedHand.depthX * myCanvas.width,
-      trackedHand.depthY * myCanvas.height,
-      50,
-      50
+      trackedHand.depthX * width,
+      trackedHand.depthY * height,
+      ballWidth,
+      ballWidth
     );
   }
 }

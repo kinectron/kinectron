@@ -1,29 +1,39 @@
+// Copyright (c) 2019 Kinectron
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
+/* ===
+Kinectron Example
+Kinect Windows key example using p5.js
+=== */
+//
+
 // Run with simplehttpserver for image to load properly. http://www.andyjamesdavies.com/blog/javascript/simple-http-server-on-mac-os-x-in-seconds
 
-var myCanvas = null;
-var beach;
-var img;
-var myDiv;
+let beach;
+let img;
+let myDiv;
 
-var processing = false;
+let processing = false;
 
 // Declare Kinectron
-var kinectron = null;
+let kinectron = null;
 
 function preload() {
   beach = loadImage("images/beach.png");
 }
 
 function setup() {
-  myCanvas = createCanvas(640, 426);
+  createCanvas(640, 426);
   background(255);
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress = "10.0.1.16"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
-  // Connect to the microstudio
-  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
+  // Set kinect type to windows
+  kinectron.setKinectType("windows");
 
   // Create connection between remote and application
   kinectron.makeConnection();
@@ -32,9 +42,7 @@ function setup() {
   kinectron.startKey(goToBeach);
 }
 
-function draw() {
-
-}
+function draw() {}
 
 function goToBeach(img) {
   loadImage(img.src, function(loadedImage) {

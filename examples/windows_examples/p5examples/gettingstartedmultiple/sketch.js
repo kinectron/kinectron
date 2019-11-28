@@ -1,12 +1,23 @@
+// Copyright (c) 2019 Kinectron
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
+/* ===
+Kinectron Example
+Kinect Windows connecting multiple Kinects examples using p5.js
+=== */
+//
+
 // Declare canvas
-var myCanvas = null;
+let myCanvas = null;
 
 // Declare kinectron
-var kinectron1 = null;
-var kinectron2 = null;
+let kinectron1 = null;
+let kinectron2 = null;
 
 // Declare element for framerate
-var frameP;
+let frameP;
 
 function setup() {
   // Create p5 canvas
@@ -17,12 +28,16 @@ function setup() {
   frameP = createP("");
 
   // Define and create first instance of kinectron
-  var kinectronIpAddress1 = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress1 = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron1 = new Kinectron(kinectronIpAddress1);
 
   // Define and create second instance of kinectron
-  var kinectronIpAddress2 = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress2 = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron2 = new Kinectron(kinectronIpAddress2);
+
+  // Set kinect type to windows
+  kinectron1.setKinectType("windows");
+  kinectron2.setKinectType("windows");
 
   // Connect with application over peer
   kinectron1.makeConnection();
@@ -41,7 +56,7 @@ function setup() {
 
 function draw() {
   // Display framerate
-  var fps = frameRate();
+  let fps = frameRate();
   fill(0);
   stroke(0);
   text("FPS: " + fps.toFixed(0), 10, height);

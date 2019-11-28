@@ -22,7 +22,7 @@ function setup() {
   frameRateP = createP("");
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = "172.22.151.47"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress = "10.0.1.16"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to azure
@@ -40,7 +40,7 @@ function draw() {
   let fps = frameRate();
   fill(0);
   stroke(0);
-  text("FPS: " + fps.toFixed(0), 10, height);
+  // text("FPS: " + fps.toFixed(0), 10, height);
   frameRateP.html(fps.toFixed(0));
 }
 

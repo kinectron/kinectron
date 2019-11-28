@@ -1,29 +1,38 @@
-var myCanvas = null;
+// Copyright (c) 2019 Kinectron
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
-// Declare kinectron 
-var kinectron = null;
+/* ===
+Kinectron Example
+Kinect Windows skeleton example using p5.js
+=== */
+//
+
+// Declare kinectron
+let kinectron = null;
 
 // drawHand variables
-var start = 30;
-var target = 100;
-var diameter = start;
-var light = 255;
-var dark = 100;
-var hueValue = light;
-var lerpAmt = 0.3;
-var state = 'ascending';
+let start = 30;
+let target = 100;
+let diameter = start;
+let light = 255;
+let dark = 100;
+let hueValue = light;
+let lerpAmt = 0.3;
+let state = "ascending";
 
 function setup() {
-  myCanvas = createCanvas(500, 500);
+  createCanvas(500, 500);
   background(0);
   noStroke();
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress = "10.0.1.16"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
-  // Connect to the microstudio
-  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
+  // Set kinect type to windows
+  kinectron.setKinectType("windows");
 
   // Connect with application over peer
   kinectron.makeConnection();
@@ -32,9 +41,7 @@ function setup() {
   kinectron.startTrackedBodies(bodyTracked);
 }
 
-function draw() {
-
-}
+function draw() {}
 
 function bodyTracked(body) {
   background(0, 20);
@@ -51,21 +58,23 @@ function drawJoint(joint) {
   fill(100);
 
   // Kinect location data needs to be normalized to canvas size
-  ellipse(joint.depthX * myCanvas.width, joint.depthY * myCanvas.height, 15, 15);
+  ellipse(joint.depthX * width, joint.depthY * height, 15, 15);
 
   fill(200);
 
   // Kinect location data needs to be normalized to canvas size
-  ellipse(joint.depthX * myCanvas.width, joint.depthY * myCanvas.height, 3, 3);
+  ellipse(joint.depthX * width, joint.depthY * height, 3, 3);
 }
 
 // Draw hands
 function drawHands(hands) {
-
-  //check if hands are touching 
-  if ((Math.abs(hands.leftHand.depthX - hands.rightHand.depthX) < 0.01) && (Math.abs(hands.leftHand.depthY - hands.rightHand.depthY) < 0.01)) {
-    hands.leftHandState = 'clapping';
-    hands.rightHandState = 'clapping';
+  //check if hands are touching
+  if (
+    Math.abs(hands.leftHand.depthX - hands.rightHand.depthX) < 0.01 &&
+    Math.abs(hands.leftHand.depthY - hands.rightHand.depthY) < 0.01
+  ) {
+    hands.leftHandState = "clapping";
+    hands.rightHandState = "clapping";
   }
 
   // draw hand states
@@ -76,41 +85,40 @@ function drawHands(hands) {
 // Find out state of hands
 function updateHandState(handState, hand) {
   switch (handState) {
-    case 'closed':
+    case "closed":
       drawHand(hand, 1, 255);
       break;
 
-    case 'open':
+    case "open":
       drawHand(hand, 0, 255);
       break;
 
-    case 'lasso':
+    case "lasso":
       drawHand(hand, 0, 255);
       break;
 
-      // Created new state for clapping
-    case 'clapping':
-      drawHand(hand, 1, 'red');
+    // Created new state for clapping
+    case "clapping":
+      drawHand(hand, 1, "red");
   }
 }
 
 // Draw the hands based on their state
 function drawHand(hand, handState, color) {
-
   if (handState === 1) {
-    state = 'ascending';
+    state = "ascending";
   }
 
   if (handState === 0) {
-    state = 'descending';
+    state = "descending";
   }
 
-  if (state == 'ascending') {
+  if (state == "ascending") {
     diameter = lerp(diameter, target, lerpAmt);
     hueValue = lerp(hueValue, dark, lerpAmt);
   }
 
-  if (state == 'descending') {
+  if (state == "descending") {
     diameter = lerp(diameter, start, lerpAmt);
     hueValue = lerp(hueValue, light, lerpAmt);
   }
@@ -118,5 +126,5 @@ function drawHand(hand, handState, color) {
   fill(color);
 
   // Kinect location needs to be normalized to canvas size
-  ellipse(hand.depthX * myCanvas.width, hand.depthY * myCanvas.height, diameter, diameter);
+  ellipse(hand.depthX * width, hand.depthY * height, diameter, diameter);
 }

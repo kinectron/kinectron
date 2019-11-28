@@ -1,44 +1,51 @@
-var myCanvas = null;
+// Copyright (c) 2019 Kinectron
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
+/* ===
+Kinectron Example
+Kinect Windows camera feeds example using p5.js
+=== */
+//
 
 // Declare kinectron
-var kinectron = null;
-
-var frameP;
+let kinectron = null;
+let frameP;
 
 function setup() {
-  myCanvas = createCanvas(500, 500);
+  createCanvas(500, 500);
   background(0);
 
   frameP = createP("");
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress =  ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress = "10.0.1.16"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
-  // Connect to the microstudio
-  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
+  // Set kinect type to windows
+  kinectron.setKinectType("windows");
 
   // Connect with application over peer
   kinectron.makeConnection();
 
   // Set callbacks
-  kinectron.setRGBCallback(drawFeed);
+  kinectron.setColorCallback(drawFeed);
   kinectron.setDepthCallback(drawFeed);
   kinectron.setInfraredCallback(drawFeed);
 }
 
 function draw() {
-  var fps = frameRate();
+  let fps = frameRate();
   fill(0);
   stroke(0);
-  text("FPS: " + fps.toFixed(0), 10, height);
   frameP.html(fps.toFixed(0));
 }
 
 // Choose camera to start based on key pressed
 function keyPressed() {
   if (keyCode === ENTER) {
-    kinectron.startRGB();
+    kinectron.startColor();
   } else if (keyCode === UP_ARROW) {
     kinectron.startDepth();
   } else if (keyCode === DOWN_ARROW) {
@@ -51,6 +58,7 @@ function keyPressed() {
 function drawFeed(img) {
   // Draws feed using p5 load and display image functions
   loadImage(img.src, function(loadedImage) {
+    background(255);
     image(loadedImage, 0, 0);
   });
 }

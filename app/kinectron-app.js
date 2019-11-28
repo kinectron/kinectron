@@ -236,8 +236,8 @@ var canvas = null;
 var context = null;
 var canvasState = null;
 
-const WINDOWSCOLORWIDTH = 960;
-const WINDOWSCOLORHEIGHT = 540;
+const WINDOWSCOLORWIDTH = 1920;
+const WINDOWSCOLORHEIGHT = 1080;
 
 const WINDOWSDEPTHWIDTH = 512;
 const WINDOWSDEPTHHEIGHT = 424;
@@ -728,11 +728,60 @@ function newPeerServer(evt) {
   document.getElementById("newpeercreated").style.display = "block";
 }
 
+let timer = false;
+let timeCounter = 0;
+let sendCounter = 0;
+let memCounter = 0;
 function sendToPeer(evt, data) {
+  // to do: create utility for counting sending fps and size of obj to send
+  // console.log(evt);
+  // if (evt === "trackedBodyFrame") {
+  // if (evt === "frame") {
+  //   if (timer === false) {
+  //     timer = true;
+  //     timeCounter = Date.now();
+  //   }
+
+  //   if (Date.now() > timeCounter + 5000) {
+  //     console.log("resetting. last count: ", sendCounter);
+  //     timer = false;
+  //     sendCounter = 0;
+  //   } else {
+  //     sendCounter++; // count how many times we send in 1 second
+  //   }
+  //   // console.log(roughSizeOfObject(data));
+  // }
+
   var dataToSend = { event: evt, data: data };
+
   peer_connections.forEach(function(connection) {
     connection.send(dataToSend);
   });
+}
+
+function roughSizeOfObject(object) {
+  var objectList = [];
+  var stack = [object];
+  var bytes = 0;
+
+  while (stack.length) {
+    var value = stack.pop();
+
+    if (typeof value === "boolean") {
+      bytes += 4;
+    } else if (typeof value === "string") {
+      bytes += value.length * 2;
+    } else if (typeof value === "number") {
+      bytes += 8;
+    } else if (typeof value === "object" && objectList.indexOf(value) === -1) {
+      objectList.push(value);
+
+      for (var i in value) {
+        stack.push(value[i]);
+      }
+    }
+  }
+  return bytes;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1054,26 +1103,15 @@ function chooseMulti(evt, incomingFrames) {
 function startColor() {
   console.log("starting color camera");
 
-  // to do: test this with kinect windows to see if color feed still works with globals
-  // to do: ideally refactor so globals not needed
-
-  // let colorCanvas = document.getElementById("color-canvas");
-  // colorCanvas.width = colorwidth;
-  // colorCanvas.height = colorheight;
-  // let colorContext = colorCanvas.getContext("2d");
+  // to do: ideally refactor so globals not needed for azure
 
   resetCanvas("color");
   canvasState = "color";
   setImageData();
 
   if (kinect.constructor.name === "KinectAzure") {
-    // KINECT AZURE CODE
+    // KINECT AZURE
     if (kinect.open()) {
-      if (busy) {
-        return;
-      }
-      busy = true;
-
       kinect.startCameras({
         color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
         camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
@@ -1082,48 +1120,48 @@ function startColor() {
       let colorImageURL;
 
       kinect.startListening(data => {
-        if (Date.now() > sentTime + 1000 / 15) {
-          const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
+        // to do: remove frame limiting here entirely? need to test
+        // if (Date.now() > sentTime + 1000 / 15) {
+        const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
 
-          // setting a data url leaks memory - Blobs seem to work fine
-          // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
-          const imageBlob = new Blob([bufferCopy], { type: "image/jpeg" });
-          if (colorImageURL) {
-            URL.revokeObjectURL(colorImageURL);
-          }
+        // setting a data url leaks memory - Blobs seem to work fine
+        // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
+        const imageBlob = new Blob([bufferCopy], { type: "image/jpeg" });
+        if (colorImageURL) {
+          URL.revokeObjectURL(colorImageURL);
+        }
 
-          // color canvas processing and seinging managed in colorImage on load event
-          // see initAzureColorImageAndCanvas()
-          colorImageURL = URL.createObjectURL(imageBlob);
-          colorImage.src = colorImageURL;
+        // color canvas processing and seinging managed in colorImage on load event
+        // see initAzureColorImageAndCanvas()
+        colorImageURL = URL.createObjectURL(imageBlob);
+        colorImage.src = colorImageURL;
 
-          sentTime = Date.now();
-        } // framerate limiting
+        //   sentTime = Date.now();
+        // } // framerate limiting
       }); // listening
+    }
+  } else {
+    let colorCanvas = document.getElementById("color-canvas");
+    colorCanvas.width = colorwidth / 2;
+    colorCanvas.height = colorheight / 2;
+    let colorContext = colorCanvas.getContext("2d");
 
-      // to do: is this still needed?
-      //clears the calls stack ?
-      setTimeout(function() {
+    // Kinect Windows
+    if (kinect.open()) {
+      kinect.on("colorFrame", function(newPixelData) {
+        if (busy) {
+          return;
+        }
+        busy = true;
+
+        processColorBuffer(newPixelData);
+
+        drawImageToCanvas(colorCanvas, colorContext, "color", "webp");
         busy = false;
       });
     }
+    kinect.openColorReader();
   }
-
-  // Kinect Windows Code
-  // if (kinect.open()) {
-  //   kinect.on("colorFrame", function(newPixelData) {
-  //     if (busy) {
-  //       return;
-  //     }
-  //     busy = true;
-
-  //     processColorBuffer(newPixelData);
-
-  //     drawImageToCanvas(colorCanvas, colorContext, "color", "webp");
-  //     busy = false;
-  //   });
-  // }
-  // kinect.openColorReader();
 }
 
 function stopColor() {
@@ -1158,12 +1196,6 @@ function startDepth() {
   if (kinect.constructor.name === "KinectAzure") {
     // KINECT AZURE CODE
     if (kinect.open()) {
-      console.log("kinect open");
-      if (busy) {
-        return;
-      }
-      busy = true;
-
       const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
       kinect.startCameras({
         depth_mode: depthMode,
@@ -1177,8 +1209,6 @@ function startDepth() {
         processAzureDepthBuffer(newPixelData, depthModeRange);
         drawImageToCanvas(depthCanvas, depthContext, "depth", "webp");
       });
-
-      busy = false;
     }
   } else {
     // KINECT WINDOWS CODE
@@ -1234,11 +1264,6 @@ function startRawDepth() {
     // KINECT AZURE CODE
     if (kinect.open()) {
       console.log("kinect open");
-      if (busy) {
-        return;
-      }
-      busy = true;
-
       const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
       kinect.startCameras({
         depth_mode: depthMode,
@@ -1266,8 +1291,6 @@ function startRawDepth() {
           sentTime = Date.now();
         }
       });
-
-      busy = false;
     }
   } else {
     // Windows Kinect
@@ -1359,8 +1382,10 @@ function stopInfrared() {
 function startLEInfrared() {
   console.log("starting le-infrared");
 
-  var leInfraredCanvas = document.getElementById("le-infrared-canvas");
-  var leInfraredContext = leInfraredCanvas.getContext("2d");
+  let leInfraredCanvas = document.getElementById("le-infrared-canvas");
+  leInfraredCanvas.width = depthwidth;
+  leInfraredCanvas.height = depthheight;
+  let leInfraredContext = leInfraredCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -1399,8 +1424,10 @@ function stopLEInfrared() {
 function startRGBD() {
   console.log("starting rgbd");
 
-  var rgbdCanvas = document.getElementById("rgbd-canvas");
-  var rgbdContext = rgbdCanvas.getContext("2d");
+  let rgbdCanvas = document.getElementById("rgbd-canvas");
+  rgbdCanvas.width = depthwidth;
+  rgbdCanvas.height = depthheight;
+  let rgbdContext = rgbdCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -1470,96 +1497,86 @@ function startSkeletonTracking() {
 
   if (kinect.constructor.name === "KinectAzure") {
     if (kinect.open()) {
-      if (busy) {
-        return;
-      }
-      busy = true;
-      // let event;
-      // let message;
-
       // to do: looks like the cameras need to be open for the tracker to work. true?
       kinect.startCameras({
         depth_mode: KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
-        color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P
+        color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
       });
       kinect.createTracker();
-      kinect.startListening(data => {
+      kinect.startListening(function handleData(data) {
         if (data.bodyFrame.numBodies === 0) {
           return;
         }
 
         // normalizing 2d coordinates
         let normalizedBodyFrame = normalizeSkeletonCoords(data.bodyFrame);
+        // let normalizedBodyFrame = data.bodyFrame;
 
+        // to do: completely remove frame limiting?
         // limit sending to 15fps // 25 fps (40)
-        if (Date.now() > sentTime + 1000 / 15) {
-          if (sendAllBodies) {
-            sendToPeer("bodyFrame", normalizedBodyFrame);
-            // event = "bodyFrame";
-            // message = normalizedBodyFrame;
+        // if (Date.now() > sentTime + 1000 / 15) {
+        if (sendAllBodies) {
+          sendToPeer("bodyFrame", normalizedBodyFrame);
+        }
+
+        skeletonContext.clearRect(
+          0,
+          0,
+          skeletonCanvas.width,
+          skeletonCanvas.height
+        );
+
+        let index = 0;
+        normalizedBodyFrame.bodies.forEach(function drawBody(body) {
+          if (!sendAllBodies) {
+            sendToPeer("trackedBodyFrame", body);
           }
 
-          skeletonContext.clearRect(
-            0,
-            0,
-            skeletonCanvas.width,
-            skeletonCanvas.height
-          );
-
-          let index = 0;
-          normalizedBodyFrame.bodies.forEach(function(body) {
-            if (!sendAllBodies) {
-              sendToPeer("trackedBodyFrame", body);
-            }
-
-            drawSkeleton(skeletonCanvas, skeletonContext, body, index);
-            index++;
-          });
-
-          sentTime = Date.now();
-        } // fps limiting
-
-        setTimeout(function() {
-          busy = false;
+          drawSkeleton(skeletonCanvas, skeletonContext, body, index);
+          index++;
         });
+
+        // sentTime = Date.now();
+        // } // fps limiting
       }); // listening
-      // busy = false;
     } // open
   } else {
     // for windows kinect
-    // if (kinect.open()) {
-    //   kinect.on("bodyFrame", function(bodyFrame) {
-    //     if (sendAllBodies) {
-    //       sendToPeer("bodyFrame", bodyFrame);
-    //       if (doRecord) {
-    //         bodyFrame.record_startime = recordStartTime;
-    //         bodyFrame.record_timestamp = Date.now() - recordStartTime;
-    //         bodyChunks.push(bodyFrame);
-    //       }
-    //     }
-    //     skeletonContext.clearRect(
-    //       0,
-    //       0,
-    //       skeletonCanvas.width,
-    //       skeletonCanvas.height
-    //     );
-    //     var index = 0;
-    //     bodyFrame.bodies.forEach(function(body) {
-    //       if (body.tracked) {
-    //         if (!sendAllBodies) {
-    //           sendToPeer("trackedBodyFrame", body);
-    //           if (doRecord) {
-    //             body.record_startime = recordStartTime;
-    //             body.record_timestamp = Date.now() - recordStartTime;
-    //             bodyChunks.push(body);
-    //           }
-    //         }
-    //         drawSkeleton(skeletonCanvas, skeletonContext, body, index);
-    //         index++;
-    //       }
-    //     });
-    //   });
-    //   kinect.openBodyReader();
+    if (kinect.open()) {
+      kinect.on("bodyFrame", function(bodyFrame) {
+        if (sendAllBodies) {
+          sendToPeer("bodyFrame", bodyFrame);
+          if (doRecord) {
+            bodyFrame.record_startime = recordStartTime;
+            bodyFrame.record_timestamp = Date.now() - recordStartTime;
+            bodyChunks.push(bodyFrame);
+          }
+        }
+        skeletonContext.clearRect(
+          0,
+          0,
+          skeletonCanvas.width,
+          skeletonCanvas.height
+        );
+        var index = 0;
+        bodyFrame.bodies.forEach(function(body) {
+          if (body.tracked) {
+            if (!sendAllBodies) {
+              sendToPeer("trackedBodyFrame", body);
+              if (doRecord) {
+                body.record_startime = recordStartTime;
+                body.record_timestamp = Date.now() - recordStartTime;
+                bodyChunks.push(body);
+              }
+            }
+            drawSkeleton(skeletonCanvas, skeletonContext, body, index);
+            index++;
+          }
+        });
+      });
+      kinect.openBodyReader();
+    }
   }
 } //tracking
 
@@ -1763,8 +1780,10 @@ function stopMulti() {
 function startKey() {
   console.log("starting key");
 
-  var keyCanvas = document.getElementById("key-canvas");
-  var keyContext = keyCanvas.getContext("2d");
+  let keyCanvas = document.getElementById("key-canvas");
+  keyCanvas.width = colorwidth / 2;
+  keyCanvas.height = colorheight / 2;
+  let keyContext = keyCanvas.getContext("2d");
 
   resetCanvas("color");
   canvasState = "color";
