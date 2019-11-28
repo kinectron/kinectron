@@ -1,69 +1,69 @@
-var os = require("os");
+let os = require("os");
 
-var Kinect2 = require("kinect2");
-var kinect = new Kinect2();
+let Kinect2 = require("kinect2");
+let kinect = new Kinect2();
 
 //  Create local peer server
-var PeerServer = require("peer").PeerServer;
-var server = PeerServer({ port: 9001, path: "/" });
+let PeerServer = require("peer").PeerServer;
+let server = PeerServer({ port: 9001, path: "/" });
 
 // Set peer credentials for localhost by default
-var peerNet = { host: "localhost", port: 9001, path: "/" };
-var myPeerId = "kinectron";
-var peer_ids = [];
-var peer_connections = [];
-var peer = null;
-var peerIdDisplay = null;
-var newPeerEntry = false;
-var newPeerInfo;
+let peerNet = { host: "localhost", port: 9001, path: "/" };
+let myPeerId = "kinectron";
+let peer_ids = [];
+let peer_connections = [];
+let peer = null;
+let peerIdDisplay = null;
+let newPeerEntry = false;
+let newPeerInfo;
 
-var canvas = null;
-var context = null;
-var canvasState = null;
+let canvas = null;
+let context = null;
+let canvasState = null;
 
-var COLORWIDTH = 1920;
-var COLORHEIGHT = 1080;
+let COLORWIDTH = 1920;
+let COLORHEIGHT = 1080;
 
-var DEPTHWIDTH = 512;
-var DEPTHHEIGHT = 424;
+let DEPTHWIDTH = 512;
+let DEPTHHEIGHT = 424;
 
-var RAWWIDTH = 512;
-var RAWHEIGHT = 424;
+let RAWWIDTH = 512;
+let RAWHEIGHT = 424;
 
-var imageData = null;
-var imageDataSize = null;
-var imageDataArray = null;
+let imageData = null;
+let imageDataSize = null;
+let imageDataArray = null;
 
-var busy = false;
-var currentCamera = null;
+let busy = false;
+let currentCamera = null;
 
-var sendAllBodies = false;
+let sendAllBodies = false;
 
-var multiFrame = false;
-var currentFrames = null;
-var sentTime = Date.now();
+let multiFrame = false;
+let currentFrames = null;
+let sentTime = Date.now();
 
-var rawDepth = false;
-var blockAPI = false;
+let rawDepth = false;
+let blockAPI = false;
 
 // Key Tracking needs cleanup
-var trackedBodyIndex = -1;
+let trackedBodyIndex = -1;
 
 // Record variables
 const recordingLocation = os.homedir() + "/kinectron-recordings/";
-var doRecord = false;
-var recordStartTime = 0;
-var bodyChunks = [];
-var mediaRecorders = [];
+let doRecord = false;
+let recordStartTime = 0;
+let bodyChunks = [];
+let mediaRecorders = [];
 
-var imgQuality = 0.5; // set default image quality
+let imgQuality = 0.5; // set default image quality
 
 window.addEventListener("load", initpeer);
 window.addEventListener("load", init);
 
 function init() {
-  var ipAddresses;
-  var allIpAddresses;
+  let ipAddresses;
+  let allIpAddresses;
 
   console.log("You are running Kinectron Version 0.2.0!");
 
@@ -139,8 +139,8 @@ function updateImgQuality(evt) {
 }
 
 function toggleAPIBlocker(evt) {
-  var apiButton = document.getElementById("api-blocker");
-  var apiText = document.getElementById("api-blocker-intro");
+  let apiButton = document.getElementById("api-blocker");
+  let apiText = document.getElementById("api-blocker-intro");
 
   if (!blockAPI) {
     apiButton.value = "Allow API Calls";
@@ -187,8 +187,8 @@ function stopRecord() {
 
 // Toggle Recording
 function record(evt) {
-  var recordButton = document.getElementById("record");
-  var serverSide = false;
+  let recordButton = document.getElementById("record");
+  let serverSide = false;
 
   if (evt) {
     evt.preventDefault();
@@ -204,10 +204,10 @@ function record(evt) {
       return;
     }
 
-    var framesToRecord = [];
+    let framesToRecord = [];
 
     if (multiFrame) {
-      for (var i = 0; i < currentFrames.length; i++) {
+      for (let i = 0; i < currentFrames.length; i++) {
         if (currentFrames[i] == "body") framesToRecord.push("skeleton");
         else framesToRecord.push(currentFrames[i]);
       }
@@ -217,7 +217,7 @@ function record(evt) {
       framesToRecord.push(currentCamera);
     }
 
-    for (var j = 0; j < framesToRecord.length; j++) {
+    for (let j = 0; j < framesToRecord.length; j++) {
       mediaRecorders.push(createMediaRecorder(framesToRecord[j], serverSide));
     }
 
@@ -233,7 +233,7 @@ function record(evt) {
     recordButton.value = "Start Record";
 
     // Stop media recorders
-    for (var k = mediaRecorders.length - 1; k >= 0; k--) {
+    for (let k = mediaRecorders.length - 1; k >= 0; k--) {
       mediaRecorders[k].stop();
       mediaRecorders.splice(k, 1);
     }
@@ -241,27 +241,27 @@ function record(evt) {
 }
 
 function createMediaRecorder(id, serverSide) {
-  var idToRecord = id + "-canvas";
-  var newMediaRecorder = new MediaRecorder(
+  let idToRecord = id + "-canvas";
+  let newMediaRecorder = new MediaRecorder(
     document.getElementById(idToRecord).captureStream()
   );
-  var mediaChunks = [];
+  let mediaChunks = [];
 
   newMediaRecorder.onstop = function(e) {
     // The video as a blob
-    var blob = new Blob(mediaChunks, { type: "video/webm" });
+    let blob = new Blob(mediaChunks, { type: "video/webm" });
 
     // Reset Chunks
     mediaChunks.length = 0;
 
     // Display the video on the page
-    // var videoElement = document.createElement('video');
+    // let videoElement = document.createElement('video');
     // videoElement.setAttribute("id", Date.now());
     // videoElement.controls = true;
     // document.body.appendChild(videoElement);
     // videoElement.src = window.URL.createObjectURL(blob);
 
-    var fs = require("fs");
+    let fs = require("fs");
     try {
       fs.mkdirSync(recordingLocation);
     } catch (evt) {
@@ -270,8 +270,8 @@ function createMediaRecorder(id, serverSide) {
 
     // If skeleton data is being tracked, write out the body frames JSON
     if (id == "skeleton") {
-      var bodyJSON = JSON.stringify(bodyChunks);
-      var filename = recordingLocation + "skeleton" + recordStartTime + ".json";
+      let bodyJSON = JSON.stringify(bodyChunks);
+      let filename = recordingLocation + "skeleton" + recordStartTime + ".json";
       fs.writeFile(filename, bodyJSON, "utf8", function() {
         if (serverSide === true)
           alert("Your file has been saved to " + filename);
@@ -280,15 +280,15 @@ function createMediaRecorder(id, serverSide) {
     }
 
     // Read the blob as a file
-    var reader = new FileReader();
+    let reader = new FileReader();
     reader.addEventListener(
       "loadend",
       function(e) {
         // Create the videoBuffer and write to file
-        var videoBuffer = new Buffer(reader.result);
+        let videoBuffer = new Buffer(reader.result);
 
         // Write it out
-        var filename = recordingLocation + id + recordStartTime + ".webm";
+        let filename = recordingLocation + id + recordStartTime + ".webm";
         fs.writeFile(filename, videoBuffer, function(err) {
           if (err) console.log(err);
           if (serverSide === true)
@@ -312,8 +312,8 @@ function createMediaRecorder(id, serverSide) {
 
 function toggleFrameType(evt) {
   evt.preventDefault();
-  var button = evt.srcElement;
-  var state = button.id;
+  let button = evt.srcElement;
+  let state = button.id;
 
   if (state == "single-frame-btn") {
     button.style.background = "#1daad8";
@@ -333,22 +333,22 @@ function toggleFrameType(evt) {
 function toggleAdvancedOptions(evt) {
   evt.preventDefault();
 
-  var advOptions = document.getElementById("advanced-options");
+  let advOptions = document.getElementById("advanced-options");
   advOptions.style.display =
     advOptions.style.display == "block" ? "none" : "block";
 
-  var advLink = document.getElementById("advanced-link");
-  var hide = '<a id="advanced-link" href="#">Hide Advanced Options</a>';
-  var show = '<a id="advanced-link" href="#">Show Advanced Options</a>';
+  let advLink = document.getElementById("advanced-link");
+  let hide = '<a id="advanced-link" href="#">Hide Advanced Options</a>';
+  let show = '<a id="advanced-link" href="#">Show Advanced Options</a>';
   advLink.innerHTML = advLink.innerHTML == hide ? show : hide;
 }
 
 function getIpAddress() {
-  var ifaces = os.networkInterfaces();
-  var ipAddresses = [];
+  let ifaces = os.networkInterfaces();
+  let ipAddresses = [];
 
   Object.keys(ifaces).forEach(function(ifname) {
-    var alias = 0;
+    let alias = 0;
 
     ifaces[ifname].forEach(function(iface) {
       if ("IPv4" !== iface.family || iface.internal !== false) {
@@ -436,7 +436,7 @@ function newPeerServer(evt) {
   newPeerEntry = true;
   evt.preventDefault();
   myPeerId = document.getElementById("newpeerid").value;
-  var peerNetTemp = document.getElementById("peernet").value;
+  let peerNetTemp = document.getElementById("peernet").value;
   peerNet = JSON.parse(peerNetTemp);
 
   // Distroy default peer before creating new one
@@ -449,7 +449,7 @@ function newPeerServer(evt) {
 }
 
 function sendToPeer(evt, data) {
-  var dataToSend = { event: evt, data: data };
+  let dataToSend = { event: evt, data: data };
   peer_connections.forEach(function(connection) {
     connection.send(dataToSend);
   });
@@ -459,10 +459,10 @@ function sendToPeer(evt, data) {
 //////////////////////////// Set Canvas Dimensions ////////////////////
 
 function updateDimFields(evt) {
-  var element = evt.srcElement;
-  var elementId = element.id;
-  var size = element.value;
-  var targetElement = null;
+  let element = evt.srcElement;
+  let elementId = element.id;
+  let size = element.value;
+  let targetElement = null;
 
   evt.preventDefault();
 
@@ -492,7 +492,7 @@ function updateDimFields(evt) {
 function setOutputDimensions(evt) {
   evt.preventDefault();
 
-  var allCanvases = [
+  let allCanvases = [
     "color",
     "depth",
     "raw-depth",
@@ -502,12 +502,12 @@ function setOutputDimensions(evt) {
     "key"
   ];
 
-  var element = evt.srcElement;
-  var elementId = element.id;
+  let element = evt.srcElement;
+  let elementId = element.id;
 
-  for (var i = 0; i < allCanvases.length; i++) {
-    var currentCanvas = document.getElementById(allCanvases[i] + "-canvas");
-    var currentCanvasResolution = (
+  for (let i = 0; i < allCanvases.length; i++) {
+    let currentCanvas = document.getElementById(allCanvases[i] + "-canvas");
+    let currentCanvasResolution = (
       currentCanvas.width / currentCanvas.height
     ).toFixed(1);
 
@@ -533,7 +533,7 @@ function setOutputDimensions(evt) {
 //////////////////////////// Feed Choice //////////////////////////////
 
 function chooseCamera(evt, feed) {
-  var camera;
+  let camera;
 
   if (evt) {
     evt.preventDefault();
@@ -575,7 +575,7 @@ function chooseCamera(evt, feed) {
 }
 
 function toggleButtonState(buttonId, state) {
-  var button = document.getElementById(buttonId);
+  let button = document.getElementById(buttonId);
 
   if (state == "active") {
     button.style.background = "#1daad8";
@@ -585,9 +585,9 @@ function toggleButtonState(buttonId, state) {
 }
 
 function toggleFeedDiv(camera, state) {
-  var divsToShow = [];
+  let divsToShow = [];
   if (camera == "multi") {
-    for (var i = 0; i < currentFrames.length; i++) {
+    for (let i = 0; i < currentFrames.length; i++) {
       if (currentFrames[i] == "body") divsToShow.push("skeleton");
       else divsToShow.push(currentFrames[i]);
     }
@@ -597,17 +597,17 @@ function toggleFeedDiv(camera, state) {
     divsToShow.push(camera);
   }
 
-  for (var j = 0; j < divsToShow.length; j++) {
-    var divId = divsToShow[j] + "-div";
-    var feedDiv = document.getElementById(divId);
+  for (let j = 0; j < divsToShow.length; j++) {
+    let divId = divsToShow[j] + "-div";
+    let feedDiv = document.getElementById(divId);
 
     feedDiv.style.display = state;
   }
 }
 
 function changeCameraState(camera, state) {
-  var cameraCode;
-  var changeStateFunction;
+  let cameraCode;
+  let changeStateFunction;
 
   switch (camera) {
     case "color":
@@ -675,17 +675,17 @@ function chooseMulti(evt, incomingFrames) {
     chooseCamera(null, "stop-all");
   }
 
-  var temp;
-  var frames = [];
-  var multiFrames = [];
-  var result;
+  let temp;
+  let frames = [];
+  let multiFrames = [];
+  let result;
 
   if (incomingFrames) {
     frames = incomingFrames;
   } else {
     //find which feeds are checked
-    var allCheckBoxes = document.getElementsByClassName("cb-multi");
-    for (var i = 0; i < allCheckBoxes.length; i++) {
+    let allCheckBoxes = document.getElementsByClassName("cb-multi");
+    for (let i = 0; i < allCheckBoxes.length; i++) {
       if (allCheckBoxes[i].checked) {
         frames.push(allCheckBoxes[i].value);
       }
@@ -702,9 +702,9 @@ function chooseMulti(evt, incomingFrames) {
   currentFrames = frames;
 
   // TO DO Simplify the case and result per Shawn
-  for (var j = 0; j < frames.length; j++) {
-    var frameName;
-    var tempName;
+  for (let j = 0; j < frames.length; j++) {
+    let frameName;
+    let tempName;
 
     frameName = frames[j];
 
@@ -757,8 +757,8 @@ function chooseMulti(evt, incomingFrames) {
 function startColor() {
   console.log("starting color camera");
 
-  var colorCanvas = document.getElementById("color-canvas");
-  var colorContext = colorCanvas.getContext("2d");
+  let colorCanvas = document.getElementById("color-canvas");
+  let colorContext = colorCanvas.getContext("2d");
 
   resetCanvas("color");
   canvasState = "color";
@@ -791,8 +791,8 @@ function stopColor() {
 function startDepth() {
   console.log("start depth camera");
 
-  var depthCanvas = document.getElementById("depth-canvas");
-  var depthContext = depthCanvas.getContext("2d");
+  let depthCanvas = document.getElementById("depth-canvas");
+  let depthContext = depthCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -824,8 +824,8 @@ function stopDepth() {
 function startRawDepth() {
   console.log("start Raw Depth Camera");
 
-  var rawDepthCanvas = document.getElementById("raw-depth-canvas");
-  var rawDepthContext = rawDepthCanvas.getContext("2d");
+  let rawDepthCanvas = document.getElementById("raw-depth-canvas");
+  let rawDepthContext = rawDepthCanvas.getContext("2d");
 
   resetCanvas("raw");
   canvasState = "raw";
@@ -840,7 +840,7 @@ function startRawDepth() {
       busy = true;
 
       processRawDepthBuffer(newPixelData);
-      var rawDepthImg = drawImageToCanvas(
+      let rawDepthImg = drawImageToCanvas(
         rawDepthCanvas,
         rawDepthContext,
         "rawDepth",
@@ -872,8 +872,8 @@ function stopRawDepth() {
 function startInfrared() {
   console.log("starting infrared camera");
 
-  var infraredCanvas = document.getElementById("infrared-canvas");
-  var infraredContext = infraredCanvas.getContext("2d");
+  let infraredCanvas = document.getElementById("infrared-canvas");
+  let infraredContext = infraredCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -906,8 +906,8 @@ function stopInfrared() {
 function startLEInfrared() {
   console.log("starting le-infrared");
 
-  var leInfraredCanvas = document.getElementById("le-infrared-canvas");
-  var leInfraredContext = leInfraredCanvas.getContext("2d");
+  let leInfraredCanvas = document.getElementById("le-infrared-canvas");
+  let leInfraredContext = leInfraredCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -946,8 +946,8 @@ function stopLEInfrared() {
 function startRGBD() {
   console.log("starting rgbd");
 
-  var rgbdCanvas = document.getElementById("rgbd-canvas");
-  var rgbdContext = rgbdCanvas.getContext("2d");
+  let rgbdCanvas = document.getElementById("rgbd-canvas");
+  let rgbdContext = rgbdCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -961,8 +961,8 @@ function startRGBD() {
 
       busy = true;
 
-      var j = 0;
-      for (var i = 0; i < imageDataSize; i += 4) {
+      let j = 0;
+      for (let i = 0; i < imageDataSize; i += 4) {
         imageDataArray[i] = frame.depthColor.buffer[i];
         imageDataArray[i + 1] = frame.depthColor.buffer[i + 1];
         imageDataArray[i + 2] = frame.depthColor.buffer[i + 2];
@@ -970,7 +970,7 @@ function startRGBD() {
         j++;
       }
 
-      var rgbdImg = drawImageToCanvas(
+      let rgbdImg = drawImageToCanvas(
         rgbdCanvas,
         rgbdContext,
         "rgbd",
@@ -1007,8 +1007,8 @@ function stopRGBD() {
 function startSkeletonTracking() {
   console.log("starting skeleton");
 
-  var skeletonCanvas = document.getElementById("skeleton-canvas");
-  var skeletonContext = skeletonCanvas.getContext("2d");
+  let skeletonCanvas = document.getElementById("skeleton-canvas");
+  let skeletonContext = skeletonCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -1030,7 +1030,7 @@ function startSkeletonTracking() {
         skeletonCanvas.width,
         skeletonCanvas.height
       );
-      var index = 0;
+      let index = 0;
       bodyFrame.bodies.forEach(function(body) {
         if (body.tracked) {
           if (!sendAllBodies) {
@@ -1059,9 +1059,9 @@ function stopSkeletonTracking() {
 }
 
 function displayCurrentFrames() {
-  var allFrameDisplay = document.getElementsByClassName("current-frames");
+  let allFrameDisplay = document.getElementsByClassName("current-frames");
 
-  for (var i = 0; i < allFrameDisplay.length; i++) {
+  for (let i = 0; i < allFrameDisplay.length; i++) {
     allFrameDisplay[i].innerHTML = currentFrames;
   }
 }
@@ -1069,8 +1069,8 @@ function displayCurrentFrames() {
 function startMulti(multiFrames) {
   console.log("starting multi");
 
-  var options = { frameTypes: multiFrames };
-  var multiToSend = {};
+  let options = { frameTypes: multiFrames };
+  let multiToSend = {};
 
   displayCurrentFrames();
 
@@ -1082,12 +1082,12 @@ function startMulti(multiFrames) {
       }
       busy = true;
 
-      var newPixelData;
-      var temp;
+      let newPixelData;
+      let temp;
 
       if (frame.color) {
-        var colorCanvas = document.getElementById("color-canvas");
-        var colorContext = colorCanvas.getContext("2d");
+        let colorCanvas = document.getElementById("color-canvas");
+        let colorContext = colorCanvas.getContext("2d");
 
         resetCanvas("color");
         canvasState = "color";
@@ -1100,8 +1100,8 @@ function startMulti(multiFrames) {
       }
 
       if (frame.body) {
-        var skeletonCanvas = document.getElementById("skeleton-canvas");
-        var skeletonContext = skeletonCanvas.getContext("2d");
+        let skeletonCanvas = document.getElementById("skeleton-canvas");
+        let skeletonContext = skeletonCanvas.getContext("2d");
 
         if (doRecord) {
           frame.body.record_startime = recordStartTime;
@@ -1110,7 +1110,7 @@ function startMulti(multiFrames) {
         }
 
         // index used to change colors on draw
-        var index = 0;
+        let index = 0;
 
         // draw tracked bodies
         skeletonContext.clearRect(
@@ -1130,8 +1130,8 @@ function startMulti(multiFrames) {
       }
 
       if (frame.depth) {
-        var depthCanvas = document.getElementById("depth-canvas");
-        var depthContext = depthCanvas.getContext("2d");
+        let depthCanvas = document.getElementById("depth-canvas");
+        let depthContext = depthCanvas.getContext("2d");
 
         resetCanvas("depth");
         canvasState = "depth";
@@ -1144,8 +1144,8 @@ function startMulti(multiFrames) {
       }
 
       if (frame.rawDepth) {
-        var rawDepthCanvas = document.getElementById("raw-depth-canvas");
-        var rawDepthContext = rawDepthCanvas.getContext("2d");
+        let rawDepthCanvas = document.getElementById("raw-depth-canvas");
+        let rawDepthContext = rawDepthCanvas.getContext("2d");
 
         resetCanvas("raw");
         canvasState = "raw";
@@ -1181,8 +1181,8 @@ function startMulti(multiFrames) {
       //     return;
       //   }
       //   busy = true;
-      //   var newPixelData = new Uint8Array(imageBuffer);
-      //   for (var i = 0; i < imageDataSize; i++) {
+      //   let newPixelData = new Uint8Array(imageBuffer);
+      //   for (let i = 0; i < imageDataSize; i++) {
       //     imageDataArray[i] = newPixelData[i];
       //   }
       //   context.putImageData(imageData, 0, 0);
@@ -1227,8 +1227,8 @@ function stopMulti() {
 function startKey() {
   console.log("starting key");
 
-  var keyCanvas = document.getElementById("key-canvas");
-  var keyContext = keyCanvas.getContext("2d");
+  let keyCanvas = document.getElementById("key-canvas");
+  let keyContext = keyCanvas.getContext("2d");
 
   resetCanvas("color");
   canvasState = "color";
@@ -1241,7 +1241,7 @@ function startKey() {
       }
       busy = true;
 
-      var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
+      let closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
       if (closestBodyIndex !== trackedBodyIndex) {
         if (closestBodyIndex > -1) {
           kinect.trackPixelsForBodyIndices([closestBodyIndex]);
@@ -1253,7 +1253,7 @@ function startKey() {
           if (frame.bodyIndexColor.bodies[closestBodyIndex].buffer) {
             newPixelData = frame.bodyIndexColor.bodies[closestBodyIndex].buffer;
 
-            for (var i = 0; i < imageDataSize; i++) {
+            for (let i = 0; i < imageDataSize; i++) {
               imageDataArray[i] = newPixelData[i];
             }
 
@@ -1295,15 +1295,15 @@ function stopKey() {
 //       busy = true;
 
 //       // draw color image to canvas
-//       var newPixelData = frame.color.buffer;
-//       for (var i = 0; i < imageDataSize; i++) {
+//       let newPixelData = frame.color.buffer;
+//       for (let i = 0; i < imageDataSize; i++) {
 //         imageDataArray[i] = newPixelData[i];
 //       }
 
 //       //drawImageToCanvas('fhcolor', 'jpeg');
 
 //       // get closest body
-//       var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
+//       let closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
 //       if(closestBodyIndex !== trackedBodyIndex) {
 //         if(closestBodyIndex > -1) {
 //           kinect.trackPixelsForBodyIndices([closestBodyIndex]);
@@ -1317,21 +1317,21 @@ function stopKey() {
 //           if(frame.body.floorClipPlane)
 //           {
 //             //get position of left hand
-//             var joint = frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.handLeft];
+//             let joint = frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.handLeft];
 
 //             //https://social.msdn.microsoft.com/Forums/en-US/594cf9ed-3fa6-4700-872c-68054cac5bf0/angle-of-kinect-device-and-effect-on-xyz-positional-data?forum=kinectv2sdk
-//             var cameraAngleRadians= Math.atan(frame.body.floorClipPlane.z / frame.body.floorClipPlane.y);
-//             var cosCameraAngle = Math.cos(cameraAngleRadians);
-//             var sinCameraAngle = Math.sin(cameraAngleRadians);
-//             var yprime = joint.cameraY * cosCameraAngle + joint.cameraZ * sinCameraAngle;
-//             var jointDistanceFromFloor = frame.body.floorClipPlane.w + yprime;
+//             let cameraAngleRadians= Math.atan(frame.body.floorClipPlane.z / frame.body.floorClipPlane.y);
+//             let cosCameraAngle = Math.cos(cameraAngleRadians);
+//             let sinCameraAngle = Math.sin(cameraAngleRadians);
+//             let yprime = joint.cameraY * cosCameraAngle + joint.cameraZ * sinCameraAngle;
+//             let jointDistanceFromFloor = frame.body.floorClipPlane.w + yprime;
 
 //             //show height in canvas
 //             showHeight(context, joint, jointDistanceFromFloor);
 //             showHeight(outputContext, joint, jointDistanceFromFloor);
 
 //             //send height data to remote
-//             var jointDataToSend = {joint: joint, distance: jointDistanceFromFloor};
+//             let jointDataToSend = {joint: joint, distance: jointDistanceFromFloor};
 
 //             sendToPeer('floorHeightTracker', jointDataToSend);
 //           }
@@ -1367,7 +1367,7 @@ function stopKey() {
 
 //   if(kinect.open()) {
 //   kinect.on('multiSourceFrame', function(frame){
-//     var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
+//     let closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
 //     if(closestBodyIndex !== trackedBodyIndex) {
 //       if(closestBodyIndex > -1) {
 //         kinect.trackPixelsForBodyIndices([closestBodyIndex]);
@@ -1381,11 +1381,11 @@ function stopKey() {
 //         if(frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].floorColorY)
 //         {
 //           //calculate the source rectangle
-//           var leftJoint = frame.body.bodies[closestBodyIndex].joints[0],
+//           let leftJoint = frame.body.bodies[closestBodyIndex].joints[0],
 //               topJoint = frame.body.bodies[closestBodyIndex].joints[0],
 //               rightJoint = frame.body.bodies[closestBodyIndex].joints[0];
-//           for(var i = 1; i < frame.body.bodies[closestBodyIndex].joints.length; i++) {
-//             var joint = frame.body.bodies[closestBodyIndex].joints[i];
+//           for(let i = 1; i < frame.body.bodies[closestBodyIndex].joints.length; i++) {
+//             let joint = frame.body.bodies[closestBodyIndex].joints[i];
 //             if(joint.colorX < leftJoint.colorX) {
 //               leftJoint = joint;
 //             }
@@ -1397,7 +1397,7 @@ function stopKey() {
 //             }
 //           }
 
-//           var pixelWidth = calculatePixelWidth(frame.bodyIndexColor.horizontalFieldOfView, frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].cameraZ * 1000);
+//           let pixelWidth = calculatePixelWidth(frame.bodyIndexColor.horizontalFieldOfView, frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].cameraZ * 1000);
 //           scale = 0.3 * pixelWidth;
 
 //           //head joint is in middle of head, add area (y-distance from neck to head joint) above
@@ -1405,13 +1405,13 @@ function stopKey() {
 //             colorX: topJoint.colorX,
 //             colorY: Math.min(topJoint.colorY, frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.head].colorY - (frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.neck].colorY - frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.head].colorY))
 //           };
-//           var srcRect = {
+//           let srcRect = {
 //             x: leftJoint.colorX * canvas.width,
 //             y: topJoint.colorY * canvas.height,
 //             width: (rightJoint.colorX - leftJoint.colorX) * canvas.width,
 //             height: (frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].floorColorY - topJoint.colorY) * canvas.height
 //           };
-//           var dstRect = {
+//           let dstRect = {
 //             x: outputCanvas.width * 0.5,
 //             y: outputCanvas.height - (srcRect.height * scale),
 //             width: srcRect.width * scale,
@@ -1419,12 +1419,12 @@ function stopKey() {
 //           };
 //           //center the user horizontally - is not minus half width of image as user might reach to one side or the other
 //           //do minus the space on the left size of the spine
-//           var spaceLeft = frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].colorX - leftJoint.colorX;
+//           let spaceLeft = frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].colorX - leftJoint.colorX;
 //           dstRect.x -= (spaceLeft * canvas.width * scale);
 
 //           newPixelData = frame.bodyIndexColor.bodies[closestBodyIndex].buffer;
 
-//           for (var i = 0; i < imageDataSize; i++) {
+//           for (let i = 0; i < imageDataSize; i++) {
 //             imageDataArray[i] = newPixelData[i];
 //           }
 
@@ -1491,9 +1491,9 @@ function resetCanvas(size) {
 }
 
 function drawImageToCanvas(inCanvas, inContext, frameType, imageType, quality) {
-  var outputCanvasData;
-  var imageQuality = imgQuality; //use globally stored image quality variable
-  var dataToSend;
+  let outputCanvasData;
+  let imageQuality = imgQuality; //use globally stored image quality variable
+  let dataToSend;
 
   if (typeof quality !== "undefined") imageQuality = quality; // or replace image quality with stream default
 
@@ -1519,15 +1519,15 @@ function packageData(frameType, outputCanvasData) {
 }
 
 function processColorBuffer(newPixelData) {
-  for (var i = 0; i < imageDataSize; i++) {
+  for (let i = 0; i < imageDataSize; i++) {
     imageDataArray[i] = newPixelData[i];
   }
 }
 
 function processDepthBuffer(newPixelData) {
-  var j = 0;
+  let j = 0;
 
-  for (var i = 0; i < imageDataSize; i += 4) {
+  for (let i = 0; i < imageDataSize; i += 4) {
     imageDataArray[i] = newPixelData[j];
     imageDataArray[i + 1] = newPixelData[j];
     imageDataArray[i + 2] = newPixelData[j];
@@ -1537,8 +1537,8 @@ function processDepthBuffer(newPixelData) {
 }
 
 function processRawDepthBuffer(newPixelData) {
-  var j = 0;
-  for (var i = 0; i < imageDataSize; i += 4) {
+  let j = 0;
+  for (let i = 0; i < imageDataSize; i += 4) {
     imageDataArray[i] = newPixelData[j];
     imageDataArray[i + 1] = newPixelData[j + 1];
     imageDataArray[i + 2] = 0;
@@ -1548,9 +1548,9 @@ function processRawDepthBuffer(newPixelData) {
 }
 
 function getClosestBodyIndex(bodies) {
-  var closestZ = Number.MAX_VALUE;
-  var closestBodyIndex = -1;
-  for (var i = 0; i < bodies.length; i++) {
+  let closestZ = Number.MAX_VALUE;
+  let closestBodyIndex = -1;
+  for (let i = 0; i < bodies.length; i++) {
     if (
       bodies[i].tracked &&
       bodies[i].joints[Kinect2.JointType.spineMid].cameraZ < closestZ
@@ -1563,9 +1563,9 @@ function getClosestBodyIndex(bodies) {
 }
 
 function calculateLength(joints) {
-  var length = 0;
-  var numJoints = joints.length;
-  for (var i = 1; i < numJoints; i++) {
+  let length = 0;
+  let numJoints = joints.length;
+  for (let i = 1; i < numJoints; i++) {
     length += Math.sqrt(
       Math.pow(joints[i].colorX - joints[i - 1].colorX, 2) +
         Math.pow(joints[i].colorY - joints[i - 1].colorY, 2)
@@ -1576,10 +1576,10 @@ function calculateLength(joints) {
 
 function calculatePixelWidth(horizontalFieldOfView, depth) {
   // measure the size of the pixel
-  var hFov = horizontalFieldOfView / 2;
-  var numPixels = canvas.width / 2;
-  var T = Math.tan((Math.PI * 180) / hFov);
-  var pixelWidth = T * depth;
+  let hFov = horizontalFieldOfView / 2;
+  let numPixels = canvas.width / 2;
+  let T = Math.tan((Math.PI * 180) / hFov);
+  let pixelWidth = T * depth;
   return pixelWidth / numPixels;
 }
 
@@ -1597,7 +1597,7 @@ function calculatePixelWidth(horizontalFieldOfView, depth) {
 
 function drawSkeleton(inCanvas, inContext, body, index) {
   // Skeleton variables
-  var colors = [
+  let colors = [
     "#ff0000",
     "#00ff00",
     "#0000ff",
@@ -1606,8 +1606,8 @@ function drawSkeleton(inCanvas, inContext, body, index) {
     "#ff00ff"
   ];
   //draw joints
-  for (var jointType in body.joints) {
-    var joint = body.joints[jointType];
+  for (let jointType in body.joints) {
+    let joint = body.joints[jointType];
     inContext.fillStyle = colors[index];
     inContext.fillRect(
       joint.depthX * inCanvas.width,
@@ -1631,9 +1631,9 @@ function drawSkeleton(inCanvas, inContext, body, index) {
 }
 
 function updateHandState(context, handState, jointPoint) {
-  var HANDCLOSEDCOLOR = "red";
-  var HANDOPENCOLOR = "green";
-  var HANDLASSOCOLOR = "blue";
+  let HANDCLOSEDCOLOR = "red";
+  let HANDOPENCOLOR = "green";
+  let HANDLASSOCOLOR = "blue";
 
   switch (handState) {
     case Kinect2.HandState.closed:
@@ -1651,9 +1651,9 @@ function updateHandState(context, handState, jointPoint) {
 }
 
 function drawHand(context, jointPoint, handColor) {
-  var HANDSIZE = 20;
+  let HANDSIZE = 20;
   // draw semi transparent hand cicles
-  var handData = {
+  let handData = {
     depthX: jointPoint.depthX,
     depthY: jointPoint.depthY,
     handColor: handColor,
