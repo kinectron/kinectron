@@ -11,8 +11,8 @@ Kinect Azure raw depth to point cloud using threejs
 let kinectron = null;
 
 // Set depth width and height same Kinect
-const DEPTHWIDTH = 640;
-const DEPTHHEIGHT = 576;
+const DEPTHWIDTH = 640 / 2;
+const DEPTHHEIGHT = 576 / 2;
 
 let depthBuffer;
 let renderer, camera, scene, controls;
@@ -60,17 +60,17 @@ function initPointCloud() {
 
   // Create three.js camera and controls
   camera = new THREE.PerspectiveCamera(
-    40,
+    30,
     renderer.domElement.width / renderer.domElement.height,
     1,
     10000
   );
-  camera.position.set(0, 300, 3000);
+  camera.position.set(0, 0, 9200);
   controls = new THREE.TrackballControls(camera, renderer.domElement);
 
   // Create three.js scene
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xe80c7a);
+  scene.background = new THREE.Color(0x000000);
 
   createParticles();
   window.addEventListener("resize", onWindowResize, false);
@@ -120,8 +120,8 @@ function pointCloud(depthBuffer) {
   busy = true;
 
   // Set desired depth resolution
-  let nDepthMinReliableDistance = 500;
-  let nDepthMaxDistance = 5000;
+  let nDepthMinReliableDistance = 0;
+  let nDepthMaxDistance = 3000;
   let j = 0;
 
   // Match depth buffer info to each particle

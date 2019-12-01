@@ -253,8 +253,8 @@ const AZURECOLORHEIGHT = 720;
 const AZUREDEPTHWIDTH = 640;
 const AZUREDEPTHHEIGHT = 576;
 
-const AZURERAWWIDTH = 640;
-const AZURERAWHEIGHT = 576;
+const AZURERAWWIDTH = 640 / 2;
+const AZURERAWHEIGHT = 576 / 2;
 
 let colorwidth;
 let colorheight;
@@ -733,26 +733,27 @@ let timeCounter = 0;
 let sendCounter = 0;
 let memCounter = 0;
 function sendToPeer(evt, data) {
+  // console.log(evt);
   // to do: create utility for counting sending fps and size of obj to send
   // console.log(evt);
   // if (evt === "trackedBodyFrame") {
   // if (evt === "frame") {
-  //   if (timer === false) {
-  //     timer = true;
-  //     timeCounter = Date.now();
-  //   }
-
-  //   if (Date.now() > timeCounter + 5000) {
-  //     console.log("resetting. last count: ", sendCounter);
-  //     timer = false;
-  //     sendCounter = 0;
-  //   } else {
-  //     sendCounter++; // count how many times we send in 1 second
-  //   }
-  //   // console.log(roughSizeOfObject(data));
+  // if (evt === "rawDepth") {
+  // if (timer === false) {
+  //   timer = true;
+  //   timeCounter = Date.now();
+  // }
+  // if (Date.now() > timeCounter + 5000) {
+  //   console.log("resetting. last count: ", sendCounter);
+  //   timer = false;
+  //   sendCounter = 0;
+  // } else {
+  //   sendCounter++; // count how many times we send in 1 second
+  // }
+  // console.log(roughSizeOfObject(data));
   // }
 
-  var dataToSend = { event: evt, data: data };
+  let dataToSend = { event: evt, data: data };
 
   peer_connections.forEach(function(connection) {
     connection.send(dataToSend);
@@ -1264,7 +1265,10 @@ function startRawDepth() {
     // KINECT AZURE CODE
     if (kinect.open()) {
       console.log("kinect open");
-      const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
+      // UNBINNED has higher depth resolution at 640x576
+      // const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
+      // BINNED has lower resolution at 320x288
+      const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_2X2BINNED;
       kinect.startCameras({
         depth_mode: depthMode,
         camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
@@ -1284,12 +1288,13 @@ function startRawDepth() {
           1
         );
 
+        sendToPeer("rawDepth", rawDepthImg);
         // limit raw depth to 25 fps // 40
         // limit raw depth to 15fps
-        if (Date.now() > sentTime + 1000 / 15) {
-          sendToPeer("rawDepth", rawDepthImg);
-          sentTime = Date.now();
-        }
+        // if (Date.now() > sentTime + 1000 / 10) {
+        //   sendToPeer("rawDepth", rawDepthImg);
+        //   sentTime = Date.now();
+        // }
       });
     }
   } else {

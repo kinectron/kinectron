@@ -67,8 +67,8 @@ const Kinectron = function(arg1, arg2) {
   const AZUREDEPTHWIDTH = 640;
   const AZUREDEPTHHEIGHT = 576;
 
-  const AZURERAWWIDTH = 640;
-  const AZURERAWHEIGHT = 576;
+  const AZURERAWWIDTH = 640 / 2;
+  const AZURERAWHEIGHT = 576 / 2;
 
   let colorwidth;
   let colorheight;
