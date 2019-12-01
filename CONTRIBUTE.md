@@ -107,7 +107,7 @@ The install script of this module tries copy these files automatically. You shou
 - vcomp140.dll
 - cudnn64_7.dll
 
-If you can't find these files, copy them from inside node_modules/kinect-azure to your kinectron/app.
+If you can't find these files, copy them from inside node_modules/kinect-azure to the kinectron/app folder.
 
 4. Run the electron application with npm start.
 
