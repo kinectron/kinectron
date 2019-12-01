@@ -30,7 +30,7 @@ function setup() {
   noStroke();
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = "10.0.1.16"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to azure

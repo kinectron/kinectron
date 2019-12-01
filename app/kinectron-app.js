@@ -300,7 +300,7 @@ function init() {
   var ipAddresses;
   var allIpAddresses;
 
-  console.log("You are running Kinectron Version 0.2.1!");
+  console.log("You are running Kinectron Version 0.3.0!");
 
   ipAddresses = getIpAddress();
   allIpAddresses = ipAddresses.join(", ");
@@ -1513,14 +1513,9 @@ function startSkeletonTracking() {
         if (data.bodyFrame.numBodies === 0) {
           return;
         }
-
         // normalizing 2d coordinates
         let normalizedBodyFrame = normalizeSkeletonCoords(data.bodyFrame);
-        // let normalizedBodyFrame = data.bodyFrame;
 
-        // to do: completely remove frame limiting?
-        // limit sending to 15fps // 25 fps (40)
-        // if (Date.now() > sentTime + 1000 / 15) {
         if (sendAllBodies) {
           sendToPeer("bodyFrame", normalizedBodyFrame);
         }
@@ -1541,9 +1536,6 @@ function startSkeletonTracking() {
           drawSkeleton(skeletonCanvas, skeletonContext, body, index);
           index++;
         });
-
-        // sentTime = Date.now();
-        // } // fps limiting
       }); // listening
     } // open
   } else {
@@ -1588,10 +1580,12 @@ function startSkeletonTracking() {
 function normalizeSkeletonCoords(bodyFrame) {
   bodyFrame.bodies.forEach(function(body) {
     for (let i = 0; i < body.skeleton.joints.length; i++) {
-      body.skeleton.joints[i].colorX /= 1280;
-      body.skeleton.joints[i].colorY /= 720;
-      body.skeleton.joints[i].depthX /= 640;
-      body.skeleton.joints[i].depthY /= 576;
+      body.skeleton.joints[i].colorX =
+        1.0 - body.skeleton.joints[i].colorX / AZURECOLORWIDTH;
+      body.skeleton.joints[i].colorY /= AZURECOLORHEIGHT;
+      body.skeleton.joints[i].depthX =
+        1.0 - body.skeleton.joints[i].depthX / AZUREDEPTHWIDTH;
+      body.skeleton.joints[i].depthY /= AZUREDEPTHHEIGHT;
     }
   });
 
