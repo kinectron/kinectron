@@ -1,7 +1,222 @@
-var os = require("os");
+const os = require("os");
+const Kinect2 = require("kinect2");
+const KinectAzure = require("kinect-azure");
 
-var Kinect2 = require("kinect2");
-var kinect = new Kinect2();
+const BUTTONINACTIVECLR = "#fff";
+const BUTTONACTIVECLR = "#1daad8";
+
+let kinect = null;
+let whichKinect = null;
+let colorImage, colorCanvas, colorContext;
+
+function startAzureKinect(evt) {
+  kinect = new KinectAzure();
+
+  let kinectType = "azure";
+  whichKinect = kinectType;
+
+  initControls(kinectType);
+  toggleKinectType(evt, kinectType);
+  toggleFrameType(evt, kinectType); // ensure always starts on single frame
+  setCanvasDimensions(kinectType);
+
+  // to do: refactor so this global image and canvas is not needed
+  initAzureColorImageAndCanvas();
+}
+
+function initAzureColorImageAndCanvas() {
+  colorImage = document.getElementById("color-img");
+  colorImage.style.display = "none";
+
+  colorCanvas = document.getElementById("color-canvas");
+  // reduce color image size by 2 for more efficient sending
+  colorCanvas.width = colorwidth / 2;
+  colorCanvas.height = colorheight / 2;
+  colorContext = colorCanvas.getContext("2d");
+
+  colorImage.addEventListener("load", e => {
+    colorContext.drawImage(colorImage, 0, 0, colorwidth / 2, colorheight / 2);
+    createDataUrl(colorCanvas, "color", "webp");
+  });
+}
+
+function startWindowsKinect(evt) {
+  kinect = new Kinect2();
+  let kinectType = "windows";
+  whichKinect = kinectType;
+
+  initControls(kinectType);
+  toggleKinectType(evt, kinectType);
+  toggleFrameType(evt, kinectType); // ensure always starts on single frame
+  setCanvasDimensions(kinectType);
+}
+
+function setCanvasDimensions(kinectType) {
+  if (kinectType === "azure") {
+    colorwidth = AZURECOLORWIDTH;
+    colorheight = AZURECOLORHEIGHT;
+
+    depthwidth = AZUREDEPTHWIDTH;
+    depthheight = AZUREDEPTHHEIGHT;
+
+    rawdepthwidth = AZURERAWWIDTH;
+    rawdepthheight = AZURERAWHEIGHT;
+  } else if (kinectType === "windows") {
+    colorwidth = WINDOWSCOLORWIDTH;
+    colorheight = WINDOWSCOLORHEIGHT;
+
+    depthwidth = WINDOWSDEPTHWIDTH;
+    depthheight = WINDOWSDEPTHHEIGHT;
+
+    rawdepthwidth = WINDOWSRAWWIDTH;
+    rawdepthheight = WINDOWSRAWHEIGHT;
+  }
+}
+
+function initControls(kinectType) {
+  let additionalControls = document.getElementById("additional-controls");
+  additionalControls.style.display = "block";
+
+  // let allFrameButtons = document.querySelectorAll("input[type=button]");
+
+  let allOptions = document.getElementsByClassName("option");
+  // let allFrameButtons = document.getElementsByType('button');
+
+  for (let i = 0; i < allOptions.length; i++) {
+    allOptions[i].style.display = "none";
+  }
+
+  if (kinectType === "azure") {
+    let azureButtons = document.getElementsByClassName("azure-option");
+
+    for (let i = 0; i < azureButtons.length; i++) {
+      azureButtons[i].style.display = "block";
+    }
+  } else if (kinectType === "windows") {
+    let windowsButtons = document.getElementsByClassName("windows-option");
+
+    for (let i = 0; i < windowsButtons.length; i++) {
+      windowsButtons[i].style.display = "block";
+    }
+  }
+}
+
+function toggleKinectType(evt, kinectType) {
+  let button;
+  let state;
+
+  if (evt === null) {
+    if (kinectType === "azure") {
+      button = document.getElementById("start-kinect-azure");
+    } else {
+      button = document.getElementById("start-kinect-windows");
+    }
+  } else {
+    evt.preventDefault();
+    button = evt.srcElement;
+  }
+
+  state = button.id;
+
+  if (state === "start-kinect-azure") {
+    button.style.background = BUTTONACTIVECLR;
+    document.getElementById(
+      "start-kinect-windows"
+    ).style.background = BUTTONINACTIVECLR;
+  } else if (state === "start-kinect-windows") {
+    button.style.background = BUTTONACTIVECLR;
+    document.getElementById(
+      "start-kinect-azure"
+    ).style.background = BUTTONINACTIVECLR;
+  }
+}
+
+// let azureImage, azureCanvas, azureCtx;
+// let depthImageData, depthModeRange;
+
+// function startAzureCaneras() {
+//   kinect = new KinectAzure();
+
+//   console.log("starting azure");
+//   if (kinect.open()) {
+//     console.log("azure open");
+//     const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
+//     kinect.startCameras({
+//       depth_mode: depthMode,
+//       color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
+//       camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+//     });
+//     depthModeRange = kinect.getDepthModeRange(depthMode);
+//     console.log("range", depthModeRange);
+//     // let colorImageURL;
+
+//     kinect.startListening(data => {
+//       // depth
+//       {
+//         if (!depthImageData && data.depthImageFrame.width > 0) {
+//           azureCanvas.width = data.depthImageFrame.width;
+//           azureCanvas.height = data.depthImageFrame.height;
+//           depthImageData = azureCtx.createImageData(
+//             azureCanvas.width,
+//             azureCanvas.height
+//           );
+//         }
+//         if (depthImageData) {
+//           renderDepthFrameAsGreyScale(data);
+//         }
+//       }
+
+//       // // color - default jpg stream
+//       // const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
+//       // debugger;
+//       // // setting a data url leaks memory - Blobs seem to work fine
+//       // // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
+//       // const imageBlob = new Blob([bufferCopy], { type: 'image/jpeg'});
+//       // if (colorImageURL) {
+//       //   URL.revokeObjectURL(colorImageURL);
+//       // }
+//       // colorImageURL = URL.createObjectURL(imageBlob);
+//       // azureImage.src = colorImageURL;
+//     });
+//   }
+// }
+
+// const renderDepthFrameAsGreyScale = data => {
+//   const newPixelDataAzure = Buffer.from(data.depthImageFrame.imageData);
+
+//   const pixelArray = depthImageData.data;
+//   let depthPixelIndex = 0;
+
+//   for (let i = 0; i < depthImageData.data.length; i += 4) {
+//     // console.log('inside');
+//     const depthValue =
+//       (newPixelDataAzure[depthPixelIndex + 1] << 8) |
+//       newPixelDataAzure[depthPixelIndex];
+
+//     const normalizedValue = map(
+//       depthValue,
+//       depthModeRange.min,
+//       depthModeRange.max,
+//       255,
+//       0
+//     );
+//     pixelArray[i] = normalizedValue;
+//     pixelArray[i + 1] = normalizedValue;
+//     pixelArray[i + 2] = normalizedValue;
+//     pixelArray[i + 3] = 0xff;
+
+//     depthPixelIndex += 2;
+//   }
+
+//   azureCtx.putImageData(depthImageData, 0, 0);
+// };
+
+// const map = (value, inputMin, inputMax, outputMin, outputMax) => {
+//   return (
+//     ((value - inputMin) * (outputMax - outputMin)) / (inputMax - inputMin) +
+//     outputMin
+//   );
+// };
 
 //  Create local peer server
 var PeerServer = require("peer").PeerServer;
@@ -21,14 +236,34 @@ var canvas = null;
 var context = null;
 var canvasState = null;
 
-var COLORWIDTH = 1920;
-var COLORHEIGHT = 1080;
+const WINDOWSCOLORWIDTH = 1920;
+const WINDOWSCOLORHEIGHT = 1080;
 
-var DEPTHWIDTH = 512;
-var DEPTHHEIGHT = 424;
+const WINDOWSDEPTHWIDTH = 512;
+const WINDOWSDEPTHHEIGHT = 424;
 
-var RAWWIDTH = 512;
-var RAWHEIGHT = 424;
+const WINDOWSRAWWIDTH = 512;
+const WINDOWSRAWHEIGHT = 424;
+
+// azure resolutions at
+// https://docs.microsoft.com/en-us/azure/kinect-dk/hardware-specification
+const AZURECOLORWIDTH = 1280;
+const AZURECOLORHEIGHT = 720;
+
+const AZUREDEPTHWIDTH = 640;
+const AZUREDEPTHHEIGHT = 576;
+
+const AZURERAWWIDTH = 640 / 2;
+const AZURERAWHEIGHT = 576 / 2;
+
+let colorwidth;
+let colorheight;
+
+let depthwidth;
+let depthheight;
+
+let rawdepthwidth;
+let rawdepthheight;
 
 var imageData = null;
 var imageDataSize = null;
@@ -65,7 +300,7 @@ function init() {
   var ipAddresses;
   var allIpAddresses;
 
-  console.log("You are running Kinectron Version 0.2.0!");
+  console.log("You are running Kinectron Version 0.3.0!");
 
   ipAddresses = getIpAddress();
   allIpAddresses = ipAddresses.join(", ");
@@ -77,11 +312,15 @@ function init() {
   context = canvas.getContext("2d");
 
   setImageData();
-
+  document
+    .getElementById("start-kinect-azure")
+    .addEventListener("click", startAzureKinect);
+  document
+    .getElementById("start-kinect-windows")
+    .addEventListener("click", startWindowsKinect);
   document
     .getElementById("peersubmit")
     .addEventListener("click", newPeerServer);
-  //document.getElementById('loadfile').addEventListener('change', loadFile);
   document
     .getElementById("single-frame-btn")
     .addEventListener("click", toggleFrameType);
@@ -310,23 +549,44 @@ function createMediaRecorder(id, serverSide) {
   return newMediaRecorder;
 }
 
-function toggleFrameType(evt) {
-  evt.preventDefault();
-  var button = evt.srcElement;
-  var state = button.id;
+function toggleFrameType(evt, kinectType) {
+  let pressedButton;
+  let state;
 
-  if (state == "single-frame-btn") {
-    button.style.background = "#1daad8";
-    document.getElementById("multi-frame-btn").style.background = "#fff";
+  if (evt === null) {
+    if (kinectType === "azure") {
+      pressedButton = document.getElementById("start-kinect-azure");
+    } else {
+      pressedButton = document.getElementById("start-kinect-windows");
+    }
+  } else {
+    evt.preventDefault();
+    pressedButton = evt.srcElement;
+  }
 
-    document.getElementById("single-frame").style.display = "block";
-    document.getElementById("multi-frame").style.display = "none";
+  state = pressedButton.id;
+
+  let singleFrameButton = document.getElementById("single-frame-btn");
+  let multiFrameButton = document.getElementById("multi-frame-btn");
+  let singleFrameOptions = document.getElementById("single-frame");
+  let multiFrameOptions = document.getElementById("multi-frame");
+
+  if (
+    state === "single-frame-btn" ||
+    state === "start-kinect-azure" ||
+    state === "start-kinect-windows"
+  ) {
+    singleFrameButton.style.background = BUTTONACTIVECLR;
+    multiFrameButton.style.background = BUTTONINACTIVECLR;
+
+    singleFrameOptions.style.display = "block";
+    multiFrameOptions.style.display = "none";
   } else if (state == "multi-frame-btn") {
-    button.style.background = "#1daad8";
-    document.getElementById("single-frame-btn").style.background = "#fff";
+    multiFrameButton.style.background = BUTTONACTIVECLR;
+    singleFrameButton.style.background = BUTTONINACTIVECLR;
 
-    document.getElementById("single-frame").style.display = "none";
-    document.getElementById("multi-frame").style.display = "block";
+    singleFrameOptions.style.display = "none";
+    multiFrameOptions.style.display = "block";
   }
 }
 
@@ -390,13 +650,23 @@ function initpeer() {
 
     connection.on("open", function() {
       console.log("Connection opened.");
-      sendToPeer("ready", {});
+
+      // to do: revisit
+      if (whichKinect !== null) {
+        sendToPeer("ready", { kinect: whichKinect });
+      } else {
+        sendToPeer("ready", {});
+      }
     });
 
     connection.on("data", function(dataReceived) {
       if (blockAPI == true) return;
 
       switch (dataReceived.event) {
+        case "setkinect":
+          setKinect(dataReceived.data);
+          break;
+
         case "initfeed":
           if (dataReceived.data.feed) {
             chooseCamera(null, dataReceived.data.feed);
@@ -431,6 +701,16 @@ function initpeer() {
   });
 }
 
+function setKinect(kinectType) {
+  whichKinect = kinectType;
+
+  if (whichKinect === "azure") {
+    startAzureKinect(null);
+  } else {
+    startWindowsKinect(null);
+  }
+}
+
 function newPeerServer(evt) {
   console.log("Creating new peer server");
   newPeerEntry = true;
@@ -448,11 +728,61 @@ function newPeerServer(evt) {
   document.getElementById("newpeercreated").style.display = "block";
 }
 
+let timer = false;
+let timeCounter = 0;
+let sendCounter = 0;
+let memCounter = 0;
 function sendToPeer(evt, data) {
-  var dataToSend = { event: evt, data: data };
+  // console.log(evt);
+  // to do: create utility for counting sending fps and size of obj to send
+  // console.log(evt);
+  // if (evt === "trackedBodyFrame") {
+  // if (evt === "frame") {
+  // if (evt === "rawDepth") {
+  // if (timer === false) {
+  //   timer = true;
+  //   timeCounter = Date.now();
+  // }
+  // if (Date.now() > timeCounter + 5000) {
+  //   console.log("resetting. last count: ", sendCounter);
+  //   timer = false;
+  //   sendCounter = 0;
+  // } else {
+  //   sendCounter++; // count how many times we send in 1 second
+  // }
+  // console.log(roughSizeOfObject(data));
+  // }
+
+  let dataToSend = { event: evt, data: data };
+
   peer_connections.forEach(function(connection) {
     connection.send(dataToSend);
   });
+}
+
+function roughSizeOfObject(object) {
+  var objectList = [];
+  var stack = [object];
+  var bytes = 0;
+
+  while (stack.length) {
+    var value = stack.pop();
+
+    if (typeof value === "boolean") {
+      bytes += 4;
+    } else if (typeof value === "string") {
+      bytes += value.length * 2;
+    } else if (typeof value === "number") {
+      bytes += 8;
+    } else if (typeof value === "object" && objectList.indexOf(value) === -1) {
+      objectList.push(value);
+
+      for (var i in value) {
+        stack.push(value[i]);
+      }
+    }
+  }
+  return bytes;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -533,7 +863,8 @@ function setOutputDimensions(evt) {
 //////////////////////////// Feed Choice //////////////////////////////
 
 function chooseCamera(evt, feed) {
-  var camera;
+  let camera;
+  let changingCameras = false;
 
   if (evt) {
     evt.preventDefault();
@@ -547,9 +878,9 @@ function chooseCamera(evt, feed) {
     stopMulti();
   }
 
-  if (currentCamera == camera) {
+  if (currentCamera === camera) {
     return;
-  } else if (camera == "stop-all") {
+  } else if (camera === "stop-all") {
     if (currentCamera) {
       changeCameraState(currentCamera, "stop");
       toggleButtonState(currentCamera, "inactive");
@@ -562,15 +893,31 @@ function chooseCamera(evt, feed) {
     }
   } else {
     if (currentCamera) {
+      changingCameras = true;
       changeCameraState(currentCamera, "stop");
       toggleButtonState(currentCamera, "inactive");
       toggleFeedDiv(currentCamera, "none");
-    }
-    changeCameraState(camera, "start");
-    toggleButtonState(camera, "active");
-    toggleFeedDiv(camera, "block");
 
-    currentCamera = camera;
+      // Using this to avoid fatal error from node-addon-api
+      // FATAL ERROR: ThreadSafeFunction::operator = You cannot assign a new TSFN because existing one is still alive.
+      // I think this is it. Need to revisit
+      // https://github.com/nodejs/node-addon-api/issues/524
+      setTimeout(function() {
+        changeCameraState(camera, "start");
+        toggleButtonState(camera, "active");
+        toggleFeedDiv(camera, "block");
+
+        currentCamera = camera;
+      }, 500);
+    }
+
+    if (!changingCameras) {
+      changeCameraState(camera, "start");
+      toggleButtonState(camera, "active");
+      toggleFeedDiv(camera, "block");
+
+      currentCamera = camera;
+    }
   }
 }
 
@@ -578,9 +925,9 @@ function toggleButtonState(buttonId, state) {
   var button = document.getElementById(buttonId);
 
   if (state == "active") {
-    button.style.background = "#1daad8";
+    button.style.background = BUTTONACTIVECLR;
   } else if (state == "inactive") {
-    button.style.background = "#fff";
+    button.style.background = BUTTONINACTIVECLR;
   }
 }
 
@@ -752,128 +1099,262 @@ function chooseMulti(evt, incomingFrames) {
 }
 
 ////////////////////////////////////////////////////////////////////////
-//////////////////////////// Kinect2 Frames ////////////////////////////
+//////////////////////////// Kinect Frames ////////////////////////////
 
 function startColor() {
   console.log("starting color camera");
 
-  var colorCanvas = document.getElementById("color-canvas");
-  var colorContext = colorCanvas.getContext("2d");
+  // to do: ideally refactor so globals not needed for azure
 
   resetCanvas("color");
   canvasState = "color";
   setImageData();
 
-  if (kinect.open()) {
-    kinect.on("colorFrame", function(newPixelData) {
-      if (busy) {
-        return;
-      }
-      busy = true;
+  if (kinect.constructor.name === "KinectAzure") {
+    // KINECT AZURE
+    if (kinect.open()) {
+      kinect.startCameras({
+        color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+      });
 
-      processColorBuffer(newPixelData);
+      let colorImageURL;
 
-      drawImageToCanvas(colorCanvas, colorContext, "color", "webp");
-      busy = false;
-    });
+      kinect.startListening(data => {
+        // to do: remove frame limiting here entirely? need to test
+        // if (Date.now() > sentTime + 1000 / 15) {
+        const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
+
+        // setting a data url leaks memory - Blobs seem to work fine
+        // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
+        const imageBlob = new Blob([bufferCopy], { type: "image/jpeg" });
+        if (colorImageURL) {
+          URL.revokeObjectURL(colorImageURL);
+        }
+
+        // color canvas processing and seinging managed in colorImage on load event
+        // see initAzureColorImageAndCanvas()
+        colorImageURL = URL.createObjectURL(imageBlob);
+        colorImage.src = colorImageURL;
+
+        //   sentTime = Date.now();
+        // } // framerate limiting
+      }); // listening
+    }
+  } else {
+    let colorCanvas = document.getElementById("color-canvas");
+    colorCanvas.width = colorwidth / 2;
+    colorCanvas.height = colorheight / 2;
+    let colorContext = colorCanvas.getContext("2d");
+
+    // Kinect Windows
+    if (kinect.open()) {
+      kinect.on("colorFrame", function(newPixelData) {
+        if (busy) {
+          return;
+        }
+        busy = true;
+
+        processColorBuffer(newPixelData);
+
+        drawImageToCanvas(colorCanvas, colorContext, "color", "webp");
+        busy = false;
+      });
+    }
+    kinect.openColorReader();
   }
-  kinect.openColorReader();
 }
 
 function stopColor() {
-  console.log("stopping color camera");
-  kinect.closeColorReader();
-  kinect.removeAllListeners();
-  canvasState = null;
-  busy = false;
+  if (kinect.constructor.name === "KinectAzure") {
+    // Kinect Azure Code
+    console.log("stopping color camera");
+    kinect.stopCameras();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  } else {
+    console.log("stopping color camera");
+    kinect.closeColorReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+    busy = false;
+  }
 }
 
 function startDepth() {
   console.log("start depth camera");
 
-  var depthCanvas = document.getElementById("depth-canvas");
-  var depthContext = depthCanvas.getContext("2d");
+  let depthCanvas = document.getElementById("depth-canvas");
+  depthCanvas.width = depthwidth;
+  depthCanvas.height = depthheight;
+  let depthContext = depthCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
   setImageData();
 
-  if (kinect.open()) {
-    kinect.on("depthFrame", function(newPixelData) {
-      if (busy) {
-        return;
-      }
-      busy = true;
+  if (kinect.constructor.name === "KinectAzure") {
+    // KINECT AZURE CODE
+    if (kinect.open()) {
+      const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
+      kinect.startCameras({
+        depth_mode: depthMode,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+      });
 
-      processDepthBuffer(newPixelData);
-      drawImageToCanvas(depthCanvas, depthContext, "depth", "webp");
-      busy = false;
-    });
+      let depthModeRange = kinect.getDepthModeRange(depthMode);
+
+      kinect.startListening(data => {
+        const newPixelData = Buffer.from(data.depthImageFrame.imageData);
+        processAzureDepthBuffer(newPixelData, depthModeRange);
+        drawImageToCanvas(depthCanvas, depthContext, "depth", "webp");
+      });
+    }
+  } else {
+    // KINECT WINDOWS CODE
+    if (kinect.open()) {
+      kinect.on("depthFrame", function(newPixelData) {
+        if (busy) {
+          return;
+        }
+        busy = true;
+
+        processDepthBuffer(newPixelData);
+        drawImageToCanvas(depthCanvas, depthContext, "depth", "webp");
+        busy = false;
+      });
+    }
+    kinect.openDepthReader();
   }
-  kinect.openDepthReader();
 }
 
 function stopDepth() {
-  console.log("stopping depth camera");
-  kinect.closeDepthReader();
-  kinect.removeAllListeners();
-  canvasState = null;
-  busy = false;
+  if (kinect.constructor.name === "KinectAzure") {
+    // Kinect Azure
+    console.log("stopping depth camera");
+    kinect.stopCameras();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  } else {
+    // Kinect Windows
+    console.log("stopping depth camera");
+    kinect.closeDepthReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+    busy = false;
+  }
 }
 
 function startRawDepth() {
   console.log("start Raw Depth Camera");
 
-  var rawDepthCanvas = document.getElementById("raw-depth-canvas");
-  var rawDepthContext = rawDepthCanvas.getContext("2d");
+  let rawDepthCanvas = document.getElementById("raw-depth-canvas");
+  rawDepthCanvas.width = rawdepthwidth;
+  rawDepthCanvas.height = rawdepthheight;
+  let rawDepthContext = rawDepthCanvas.getContext("2d");
 
   resetCanvas("raw");
   canvasState = "raw";
   setImageData();
 
   rawDepth = true;
-  if (kinect.open()) {
-    kinect.on("rawDepthFrame", function(newPixelData) {
-      if (busy) {
-        return;
-      }
-      busy = true;
 
-      processRawDepthBuffer(newPixelData);
-      var rawDepthImg = drawImageToCanvas(
-        rawDepthCanvas,
-        rawDepthContext,
-        "rawDepth",
-        "webp",
-        1
-      );
+  if (kinect.constructor.name === "KinectAzure") {
+    // KINECT AZURE CODE
+    if (kinect.open()) {
+      console.log("kinect open");
+      // UNBINNED has higher depth resolution at 640x576
+      // const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
+      // BINNED has lower resolution at 320x288
+      const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_2X2BINNED;
+      kinect.startCameras({
+        depth_mode: depthMode,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+      });
 
-      // limit raw depth to 25 fps
-      if (Date.now() > sentTime + 40) {
+      // let depthModeRange = kinect.getDepthModeRange(depthMode);
+
+      kinect.startListening(data => {
+        const newPixelData = Buffer.from(data.depthImageFrame.imageData);
+
+        processRawDepthBuffer(newPixelData);
+        let rawDepthImg = drawImageToCanvas(
+          rawDepthCanvas,
+          rawDepthContext,
+          "rawDepth",
+          "webp",
+          1
+        );
+
         sendToPeer("rawDepth", rawDepthImg);
-        sentTime = Date.now();
-      }
+        // limit raw depth to 25 fps // 40
+        // limit raw depth to 15fps
+        // if (Date.now() > sentTime + 1000 / 10) {
+        //   sendToPeer("rawDepth", rawDepthImg);
+        //   sentTime = Date.now();
+        // }
+      });
+    }
+  } else {
+    // Windows Kinect
+    if (kinect.open()) {
+      kinect.on("rawDepthFrame", function(newPixelData) {
+        if (busy) {
+          return;
+        }
+        busy = true;
 
-      busy = false;
-    });
+        processRawDepthBuffer(newPixelData);
+        var rawDepthImg = drawImageToCanvas(
+          rawDepthCanvas,
+          rawDepthContext,
+          "rawDepth",
+          "webp",
+          1
+        );
+
+        // limit raw depth to 25 fps
+        if (Date.now() > sentTime + 40) {
+          sendToPeer("rawDepth", rawDepthImg);
+          sentTime = Date.now();
+        }
+
+        busy = false;
+      });
+    }
+    kinect.openRawDepthReader();
   }
-  kinect.openRawDepthReader();
 }
 
 function stopRawDepth() {
   console.log("stopping raw depth camera");
-  kinect.closeRawDepthReader();
-  kinect.removeAllListeners();
-  canvasState = null;
-  rawDepth = false;
-  busy = false;
+
+  if (kinect.constructor.name === "KinectAzure") {
+    // Kinect Azure
+    console.log("stopping depth camera");
+    kinect.stopCameras();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  } else {
+    // Kinect Windows
+    kinect.closeRawDepthReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+    rawDepth = false;
+    busy = false;
+  }
 }
 
 function startInfrared() {
   console.log("starting infrared camera");
 
-  var infraredCanvas = document.getElementById("infrared-canvas");
-  var infraredContext = infraredCanvas.getContext("2d");
+  let infraredCanvas = document.getElementById("infrared-canvas");
+  infraredCanvas.width = depthwidth;
+  infraredCanvas.height = depthheight;
+  let infraredContext = infraredCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -906,8 +1387,10 @@ function stopInfrared() {
 function startLEInfrared() {
   console.log("starting le-infrared");
 
-  var leInfraredCanvas = document.getElementById("le-infrared-canvas");
-  var leInfraredContext = leInfraredCanvas.getContext("2d");
+  let leInfraredCanvas = document.getElementById("le-infrared-canvas");
+  leInfraredCanvas.width = depthwidth;
+  leInfraredCanvas.height = depthheight;
+  let leInfraredContext = leInfraredCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -946,8 +1429,10 @@ function stopLEInfrared() {
 function startRGBD() {
   console.log("starting rgbd");
 
-  var rgbdCanvas = document.getElementById("rgbd-canvas");
-  var rgbdContext = rgbdCanvas.getContext("2d");
+  let rgbdCanvas = document.getElementById("rgbd-canvas");
+  rgbdCanvas.width = depthwidth;
+  rgbdCanvas.height = depthheight;
+  let rgbdContext = rgbdCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
@@ -1007,55 +1492,122 @@ function stopRGBD() {
 function startSkeletonTracking() {
   console.log("starting skeleton");
 
-  var skeletonCanvas = document.getElementById("skeleton-canvas");
-  var skeletonContext = skeletonCanvas.getContext("2d");
+  let skeletonCanvas = document.getElementById("skeleton-canvas");
+  skeletonCanvas.width = depthwidth;
+  skeletonCanvas.height = depthheight;
+  let skeletonContext = skeletonCanvas.getContext("2d");
 
   resetCanvas("depth");
   canvasState = "depth";
 
-  if (kinect.open()) {
-    kinect.on("bodyFrame", function(bodyFrame) {
-      if (sendAllBodies) {
-        sendToPeer("bodyFrame", bodyFrame);
-        if (doRecord) {
-          bodyFrame.record_startime = recordStartTime;
-          bodyFrame.record_timestamp = Date.now() - recordStartTime;
-          bodyChunks.push(bodyFrame);
+  if (kinect.constructor.name === "KinectAzure") {
+    if (kinect.open()) {
+      // to do: looks like the cameras need to be open for the tracker to work. true?
+      kinect.startCameras({
+        depth_mode: KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
+        color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+      });
+      kinect.createTracker();
+      kinect.startListening(function handleData(data) {
+        if (data.bodyFrame.numBodies === 0) {
+          return;
         }
-      }
+        // normalizing 2d coordinates
+        let normalizedBodyFrame = normalizeSkeletonCoords(data.bodyFrame);
 
-      skeletonContext.clearRect(
-        0,
-        0,
-        skeletonCanvas.width,
-        skeletonCanvas.height
-      );
-      var index = 0;
-      bodyFrame.bodies.forEach(function(body) {
-        if (body.tracked) {
+        if (sendAllBodies) {
+          sendToPeer("bodyFrame", normalizedBodyFrame);
+        }
+
+        skeletonContext.clearRect(
+          0,
+          0,
+          skeletonCanvas.width,
+          skeletonCanvas.height
+        );
+
+        let index = 0;
+        normalizedBodyFrame.bodies.forEach(function drawBody(body) {
           if (!sendAllBodies) {
             sendToPeer("trackedBodyFrame", body);
-            if (doRecord) {
-              body.record_startime = recordStartTime;
-              body.record_timestamp = Date.now() - recordStartTime;
-              bodyChunks.push(body);
-            }
           }
 
           drawSkeleton(skeletonCanvas, skeletonContext, body, index);
           index++;
+        });
+      }); // listening
+    } // open
+  } else {
+    // for windows kinect
+    if (kinect.open()) {
+      kinect.on("bodyFrame", function(bodyFrame) {
+        if (sendAllBodies) {
+          sendToPeer("bodyFrame", bodyFrame);
+          if (doRecord) {
+            bodyFrame.record_startime = recordStartTime;
+            bodyFrame.record_timestamp = Date.now() - recordStartTime;
+            bodyChunks.push(bodyFrame);
+          }
         }
+        skeletonContext.clearRect(
+          0,
+          0,
+          skeletonCanvas.width,
+          skeletonCanvas.height
+        );
+        var index = 0;
+        bodyFrame.bodies.forEach(function(body) {
+          if (body.tracked) {
+            if (!sendAllBodies) {
+              sendToPeer("trackedBodyFrame", body);
+              if (doRecord) {
+                body.record_startime = recordStartTime;
+                body.record_timestamp = Date.now() - recordStartTime;
+                bodyChunks.push(body);
+              }
+            }
+            drawSkeleton(skeletonCanvas, skeletonContext, body, index);
+            index++;
+          }
+        });
       });
-    });
-    kinect.openBodyReader();
+      kinect.openBodyReader();
+    }
   }
+} //tracking
+
+function normalizeSkeletonCoords(bodyFrame) {
+  bodyFrame.bodies.forEach(function(body) {
+    for (let i = 0; i < body.skeleton.joints.length; i++) {
+      body.skeleton.joints[i].colorX =
+        1.0 - body.skeleton.joints[i].colorX / AZURECOLORWIDTH;
+      body.skeleton.joints[i].colorY /= AZURECOLORHEIGHT;
+      body.skeleton.joints[i].depthX =
+        1.0 - body.skeleton.joints[i].depthX / AZUREDEPTHWIDTH;
+      body.skeleton.joints[i].depthY /= AZUREDEPTHHEIGHT;
+    }
+  });
+
+  return bodyFrame;
 }
 
 function stopSkeletonTracking() {
-  console.log("stopping skeleton");
-  kinect.closeBodyReader();
-  kinect.removeAllListeners();
-  canvasState = null;
+  if (kinect.constructor.name === "KinectAzure") {
+    // Kinect Azure Code
+    console.log("stopping skeleton");
+    kinect.stopCameras();
+    kinect.destroyTracker();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  } else {
+    // Kinect Windows Code
+    console.log("stopping skeleton");
+    kinect.closeBodyReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+  }
 }
 
 function displayCurrentFrames() {
@@ -1227,8 +1779,10 @@ function stopMulti() {
 function startKey() {
   console.log("starting key");
 
-  var keyCanvas = document.getElementById("key-canvas");
-  var keyContext = keyCanvas.getContext("2d");
+  let keyCanvas = document.getElementById("key-canvas");
+  keyCanvas.width = colorwidth / 2;
+  keyCanvas.height = colorheight / 2;
+  let keyContext = keyCanvas.getContext("2d");
 
   resetCanvas("color");
   canvasState = "color";
@@ -1278,180 +1832,6 @@ function stopKey() {
   busy = false;
 }
 
-// function startFHJoint() {
-
-//   resetCanvas('color');
-//   canvasState = 'color';
-//   setImageData();
-
-//   trackedBodyIndex = -1;
-
-//   if(kinect.open()) {
-//     kinect.on('multiSourceFrame', function(frame){
-
-//       if(busy) {
-//         return;
-//       }
-//       busy = true;
-
-//       // draw color image to canvas
-//       var newPixelData = frame.color.buffer;
-//       for (var i = 0; i < imageDataSize; i++) {
-//         imageDataArray[i] = newPixelData[i];
-//       }
-
-//       //drawImageToCanvas('fhcolor', 'jpeg');
-
-//       // get closest body
-//       var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
-//       if(closestBodyIndex !== trackedBodyIndex) {
-//         if(closestBodyIndex > -1) {
-//           kinect.trackPixelsForBodyIndices([closestBodyIndex]);
-//         } else {
-//           kinect.trackPixelsForBodyIndices(false);
-//         }
-//       }
-//       else {
-//         if(closestBodyIndex > -1) {
-//           //measure distance from floor
-//           if(frame.body.floorClipPlane)
-//           {
-//             //get position of left hand
-//             var joint = frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.handLeft];
-
-//             //https://social.msdn.microsoft.com/Forums/en-US/594cf9ed-3fa6-4700-872c-68054cac5bf0/angle-of-kinect-device-and-effect-on-xyz-positional-data?forum=kinectv2sdk
-//             var cameraAngleRadians= Math.atan(frame.body.floorClipPlane.z / frame.body.floorClipPlane.y);
-//             var cosCameraAngle = Math.cos(cameraAngleRadians);
-//             var sinCameraAngle = Math.sin(cameraAngleRadians);
-//             var yprime = joint.cameraY * cosCameraAngle + joint.cameraZ * sinCameraAngle;
-//             var jointDistanceFromFloor = frame.body.floorClipPlane.w + yprime;
-
-//             //show height in canvas
-//             showHeight(context, joint, jointDistanceFromFloor);
-//             showHeight(outputContext, joint, jointDistanceFromFloor);
-
-//             //send height data to remote
-//             var jointDataToSend = {joint: joint, distance: jointDistanceFromFloor};
-
-//             sendToPeer('floorHeightTracker', jointDataToSend);
-//           }
-//         }
-//       }
-
-//       trackedBodyIndex = closestBodyIndex;
-//       busy = false;
-//     });
-
-//     kinect.openMultiSourceReader({
-//       frameTypes: Kinect2.FrameType.body | Kinect2.FrameType.color
-//     });
-//   }
-// }
-
-// function stopFHJoint() {
-//   console.log('stopping FHJoint');
-//   kinect.closeMultiSourceReader();
-//   kinect.removeAllListeners();
-//   canvasState = null;
-//   busy = false;
-// }
-
-// function startScaleUser() {
-//   console.log('start scale user');
-
-//   resetCanvas('color');
-//   canvasState = 'color';
-//   setImageData();
-
-//   trackedBodyIndex = -1;
-
-//   if(kinect.open()) {
-//   kinect.on('multiSourceFrame', function(frame){
-//     var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
-//     if(closestBodyIndex !== trackedBodyIndex) {
-//       if(closestBodyIndex > -1) {
-//         kinect.trackPixelsForBodyIndices([closestBodyIndex]);
-//       } else {
-//         kinect.trackPixelsForBodyIndices(false);
-//       }
-//     }
-//     else {
-//       if(closestBodyIndex > -1) {
-//         //get body ground position - when use jumps this point stays on the ground
-//         if(frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].floorColorY)
-//         {
-//           //calculate the source rectangle
-//           var leftJoint = frame.body.bodies[closestBodyIndex].joints[0],
-//               topJoint = frame.body.bodies[closestBodyIndex].joints[0],
-//               rightJoint = frame.body.bodies[closestBodyIndex].joints[0];
-//           for(var i = 1; i < frame.body.bodies[closestBodyIndex].joints.length; i++) {
-//             var joint = frame.body.bodies[closestBodyIndex].joints[i];
-//             if(joint.colorX < leftJoint.colorX) {
-//               leftJoint = joint;
-//             }
-//             if(joint.colorX > rightJoint.colorX) {
-//               rightJoint = joint;
-//             }
-//             if(joint.colorY < topJoint.colorY) {
-//               topJoint = joint;
-//             }
-//           }
-
-//           var pixelWidth = calculatePixelWidth(frame.bodyIndexColor.horizontalFieldOfView, frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].cameraZ * 1000);
-//           scale = 0.3 * pixelWidth;
-
-//           //head joint is in middle of head, add area (y-distance from neck to head joint) above
-//           topJoint = {
-//             colorX: topJoint.colorX,
-//             colorY: Math.min(topJoint.colorY, frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.head].colorY - (frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.neck].colorY - frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.head].colorY))
-//           };
-//           var srcRect = {
-//             x: leftJoint.colorX * canvas.width,
-//             y: topJoint.colorY * canvas.height,
-//             width: (rightJoint.colorX - leftJoint.colorX) * canvas.width,
-//             height: (frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].floorColorY - topJoint.colorY) * canvas.height
-//           };
-//           var dstRect = {
-//             x: outputCanvas.width * 0.5,
-//             y: outputCanvas.height - (srcRect.height * scale),
-//             width: srcRect.width * scale,
-//             height: srcRect.height * scale
-//           };
-//           //center the user horizontally - is not minus half width of image as user might reach to one side or the other
-//           //do minus the space on the left size of the spine
-//           var spaceLeft = frame.body.bodies[closestBodyIndex].joints[Kinect2.JointType.spineMid].colorX - leftJoint.colorX;
-//           dstRect.x -= (spaceLeft * canvas.width * scale);
-
-//           newPixelData = frame.bodyIndexColor.bodies[closestBodyIndex].buffer;
-
-//           for (var i = 0; i < imageDataSize; i++) {
-//             imageDataArray[i] = newPixelData[i];
-//           }
-
-//           drawImageToCanvas('scaleuser', 'png');
-//           }
-//       }
-//     }
-
-//     trackedBodyIndex = closestBodyIndex;
-//   });
-
-//   //include the projected floor positions - we want to keep the floor on the bottom, not crop out the user in the middle of a jump
-//   kinect.openMultiSourceReader({
-//     frameTypes: Kinect2.FrameType.body | Kinect2.FrameType.bodyIndexColor,
-//     includeJointFloorData: true
-//   });
-// }
-// }
-
-// function stopScaleUser() {
-//   console.log('stop scale user');
-//   kinect.closeMultiSourceReader();
-//   kinect.removeAllListeners();
-//   canvasState = null;
-//   busy = false;
-// }
-
 function loadFile(e) {
   window.location.href = e.target.files[0].path;
 }
@@ -1464,42 +1844,44 @@ function setImageData() {
 
 function resetCanvas(size) {
   context.clearRect(0, 0, canvas.width, canvas.height);
-  //outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
 
   switch (size) {
     case "depth":
-      canvas.width = DEPTHWIDTH;
-      canvas.height = DEPTHHEIGHT;
-      //outputCanvas.width = outputDepthW;
-      //outputCanvas.height = outputDepthH;
+      canvas.width = depthwidth;
+      canvas.height = depthheight;
       break;
 
     case "color":
-      canvas.width = COLORWIDTH;
-      canvas.height = COLORHEIGHT;
-      //outputCanvas.width = outputColorW;
-      //outputCanvas.height = outputColorH;
+      canvas.width = colorwidth;
+      canvas.height = colorheight;
       break;
 
     case "raw":
-      canvas.width = RAWWIDTH;
-      canvas.height = RAWHEIGHT;
-      //outputCanvas.width = OUTPUTRAWW;
-      //outputCanvas.height = OUTPUTRAWH;
+      canvas.width = rawdepthwidth;
+      canvas.height = rawdepthheight;
       break;
   }
 }
 
 function drawImageToCanvas(inCanvas, inContext, frameType, imageType, quality) {
-  var outputCanvasData;
-  var imageQuality = imgQuality; //use globally stored image quality variable
-  var dataToSend;
-
-  if (typeof quality !== "undefined") imageQuality = quality; // or replace image quality with stream default
-
   context.putImageData(imageData, 0, 0);
   inContext.clearRect(0, 0, inCanvas.width, inCanvas.height);
   inContext.drawImage(canvas, 0, 0, inCanvas.width, inCanvas.height);
+
+  if (rawDepth) {
+    return createDataUrl(inCanvas, frameType, imageType, quality);
+  } else {
+    createDataUrl(inCanvas, frameType, imageType, quality);
+  }
+}
+
+// to do: test this new function with api
+function createDataUrl(inCanvas, frameType, imageType, quality) {
+  let outputCanvasData;
+  let imageQuality = imgQuality; //use globally stored image quality variable
+
+  if (typeof quality !== "undefined") imageQuality = quality; // or replace image quality with stream default
+
   outputCanvasData = inCanvas.toDataURL("image/" + imageType, imageQuality);
 
   if (multiFrame) {
@@ -1535,6 +1917,37 @@ function processDepthBuffer(newPixelData) {
     j++;
   }
 }
+
+function processAzureDepthBuffer(newPixelData, depthRange) {
+  let depthPixelIndex = 0;
+
+  for (let i = 0; i < imageDataSize; i += 4) {
+    // console.log('inside');
+    const depthValue =
+      (newPixelData[depthPixelIndex + 1] << 8) | newPixelData[depthPixelIndex];
+
+    const normalizedValue = map(
+      depthValue,
+      depthRange.min,
+      depthRange.max,
+      255,
+      0
+    );
+    imageDataArray[i] = normalizedValue;
+    imageDataArray[i + 1] = normalizedValue;
+    imageDataArray[i + 2] = normalizedValue;
+    imageDataArray[i + 3] = 0xff;
+
+    depthPixelIndex += 2;
+  }
+}
+
+const map = (value, inputMin, inputMax, outputMin, outputMax) => {
+  return (
+    ((value - inputMin) * (outputMax - outputMin)) / (inputMax - inputMin) +
+    outputMin
+  );
+};
 
 function processRawDepthBuffer(newPixelData) {
   var j = 0;
@@ -1583,21 +1996,9 @@ function calculatePixelWidth(horizontalFieldOfView, depth) {
   return pixelWidth / numPixels;
 }
 
-// function showHeight(context, joint, jointDistance) {
-//   context.clearRect(0, 0, canvas.width, canvas.height);
-//   outputContext.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-//   context.beginPath();
-//   context.fillStyle = 'red';
-//   context.arc(joint.colorX * context.canvas.width, joint.colorY * context.canvas.height, 10, 0, Math.PI * 2, true);
-//   context.fill();
-//   context.closePath();
-//   context.font = '48px sans';
-//   context.fillText(jointDistance.toFixed(2) + 'm', 20 + joint.colorX * context.canvas.width, joint.colorY * context.canvas.height);
-// }
-
 function drawSkeleton(inCanvas, inContext, body, index) {
   // Skeleton variables
-  var colors = [
+  let colors = [
     "#ff0000",
     "#00ff00",
     "#0000ff",
@@ -1606,28 +2007,46 @@ function drawSkeleton(inCanvas, inContext, body, index) {
     "#ff00ff"
   ];
   //draw joints
-  for (var jointType in body.joints) {
-    var joint = body.joints[jointType];
-    inContext.fillStyle = colors[index];
-    inContext.fillRect(
-      joint.depthX * inCanvas.width,
-      joint.depthY * inCanvas.height,
-      10,
-      10
+
+  // for azure kinect
+  if (kinect.constructor.name === "KinectAzure") {
+    for (let i = 0; i < body.skeleton.joints.length; i++) {
+      let joint = body.skeleton.joints[i];
+      inContext.fillStyle = colors[index];
+      inContext.fillRect(
+        joint.depthX * inCanvas.width,
+        joint.depthY * inCanvas.height,
+        10,
+        10
+      );
+    }
+
+    // for windows kinect
+    // to do: test that this still works with kinect 2
+  } else {
+    for (var jointType in body.joints) {
+      var joint = body.joints[jointType];
+      inContext.fillStyle = colors[index];
+      inContext.fillRect(
+        joint.depthX * inCanvas.width,
+        joint.depthY * inCanvas.height,
+        10,
+        10
+      );
+    }
+
+    //draw hand states
+    updateHandState(
+      inContext,
+      body.leftHandState,
+      body.joints[Kinect2.JointType.handLeft]
+    );
+    updateHandState(
+      inContext,
+      body.rightHandState,
+      body.joints[Kinect2.JointType.handRight]
     );
   }
-
-  //draw hand states
-  updateHandState(
-    inContext,
-    body.leftHandState,
-    body.joints[Kinect2.JointType.handLeft]
-  );
-  updateHandState(
-    inContext,
-    body.rightHandState,
-    body.joints[Kinect2.JointType.handRight]
-  );
 }
 
 function updateHandState(context, handState, jointPoint) {

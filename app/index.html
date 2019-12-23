@@ -3,10 +3,6 @@
   <head>
     <meta charset="UTF-8">
     <title>Kinectron</title>
-
-    <!-- To do: replace this with import in app.js -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.0.4/peerjs.min.js"></script> -->
-    
     <script src="assets/js/peerjsv104.noerror.js"></script>
     <script src="kinectron-app.js" type="text/JavaScript"></script>
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
@@ -25,26 +21,35 @@
         </div>
         </div>
         <div id="controls">
-        <div id="choose-frame">
-          <input type="button" class="frame-type" id="single-frame-btn" value="Single Frame"> 
-          <input type="button" class="frame-type" id="multi-frame-btn" value="Multiple Frames">
+          <div id="choose-kinect"> 
+            <p>Which Kinect are you working with today?</p>  
 
+            <input type="button" class="kinect-type windows-option azure-option" id="start-kinect-azure" value="Azure Kinect">
+            <input type="button" class="kinect-type windows-option azure-option" id="start-kinect-windows" value="Kinect Windows V2">
+            <div class="clear-class" style="clear:both"></div>
+
+          </div>
+
+         <div id="additional-controls"> 
+        <div id="choose-frame">
+          <input type="button" class="option frame-type windows-option azure-option" id="single-frame-btn" value="Single Frame"> 
+          <input type="button" class="option frame-type windows-option" id="multi-frame-btn" value="Multiple Frames">
           <div class="clear-class" style="clear:both"></div>
           <div id="single-frame">
             <p>Choose a single frame to begin broadcast. Click stop all to end broadcast.</p>  
             <div id="options">
-              <input type="button" class="frame-option" id="color" value="Color">
-              <input type="button" class="frame-option" id="depth" value="Depth">
-              <input type="button" class="frame-option" id="raw-depth" value="Raw Depth">
-              <input type="button" class="frame-option" id="skeleton" value="Skeleton (Tracked Bodies)">
-              <input type="button" class="frame-option" id="body" value="All Bodies">
-              <input type="button" class="frame-option" id="infrared" value="Infrared">
-              <input type="button" class="frame-option" id="le-infrared" value="Long Exposure Infrared">
-              <input type="button" class="frame-option" id="key" value="Key">
-              <input type="button" class="frame-option" id="rgbd" value="RGBD">
-              <!-- <input type="button" class="frame-option" id="fh-joint" value="Floor Height Joint"> -->
-              <!-- <input type="button" class="frame-option" id="scale" value="Scale User"> -->
-              <input type="button" class="frame-option" id="stop-all" value="Stop All">
+              <input type="button" class="option frame-option windows-option azure-option" id="color" value="Color">
+              <input type="button" class="option frame-option windows-option azure-option" id="depth" value="Depth">
+              <input type="button" class="option frame-option windows-option azure-option" id="raw-depth" value="Raw Depth">
+              <input type="button" class="option frame-option windows-option azure-option" id="skeleton" value="Skeleton (Tracked Bodies)">
+              <input type="button" class="option frame-option windows-option azure-option" id="body" value="All Bodies">
+              <input type="button" class="option frame-option windows-option" id="infrared" value="Infrared">
+              <input type="button" class="option frame-option windows-option" id="le-infrared" value="Long Exposure Infrared">
+              <input type="button" class="option frame-option windows-option" id="key" value="Key">
+              <input type="button" class="option frame-option windows-option" id="rgbd" value="RGBD">
+              <!-- <input type="button" class="option frame-option" id="fh-joint" value="Floor Height Joint"> -->
+              <!-- <input type="button" class="option frame-option" id="scale" value="Scale User"> -->
+              <input type="button" class="option frame-option windows-option azure-option" id="stop-all" value="Stop All">
               <div class="clear-class" style="clear:both"></div>
             </div>
           </div>
@@ -67,7 +72,7 @@
               <input type="button" class="frame-option" id="stop-multi" value="Stop Multiframe">
           </div>  
           <div class="clear-class" style="clear:both"></div>
-          <div id="record-control">
+          <div class="option windows-option" id="record-control">
             <p>Record stream</p>
             <input type="button" class="frame-option" id="record" value="Start Record">
             <div class="clear-class" style="clear:both"></div>
@@ -75,12 +80,12 @@
         </div>
 
       <div id="advanced-options">
-        <div id="new-peer">
+        <div class="option windows-option azure-option" id="new-peer">
           <p>Have your own peer server? Enter id and server details here:</p> 
             <input type="text" placeholder="ie. myname" id="newpeerid"><input type="text" id="peernet" placeholder="ie. {&quot;host&quot;: &quot;myserver.com&quot;, &quot;port&quot;: &quot;9000&quot;, &quot;path&quot;: &quot;/myapp&quot;,}"><input type="submit" id="peersubmit" value="Submit">
           </div>
         <div class="clear-class" style="clear:both"></div>
-        <div id="imagesize" >
+        <div class="option windows-option azure-option" id="imagesize" >
           <p>Image sizes are set by default. Change them (or don't) here. Dimensions are fixed.</p>
           <span>Color: </span>
           <input type="text" placeholder="960" class="dimensions" id="colorwidth">
@@ -95,7 +100,7 @@
           <input type="submit" id="depthsubmit" value="Submit">
         </div>
         <div class="clear-class" style="clear:both"></div>
-        <div id="img-quality">
+        <div class="option windows-option azure-option" id="img-quality">
           <p>Set image quality 1-10. Default 5. (Does not work for raw depth or RGBD.)</p> 
           <div class="slidecontainer">
             <input type="range" min="1" max="10" value="5" class="slider" id="imgquality">
@@ -111,7 +116,8 @@
       </div>
       <div id="toggle-advanced"><a id="advanced-link" href="#">Show Advanced Options</a></div>  
       </div>   
-      </div>
+      </div><!-- additional-controls -->
+    </div>     
     <div id="feed-images">
       <!-- <h4 >Feed from Kinect</h4> -->
       <!-- <div class="multi-warning">
@@ -119,42 +125,43 @@
       </div> -->
       <canvas id="inputCanvas" width="1920" height="1080"></canvas>
       <h4>Feed output to peer</h4>
-<!--       <div class="multi-warning">
+      <!--       <div class="multi-warning">
         <p>Image preview does not reflect multiple frames. Currently broadcasting: <span class="current-frames"></span></p>
       </div> -->
       <div id="feed-canvases">
         <div id="color-div">
           <h5 id="color-canvas-label">Color Feed</h5>
-          <canvas id="color-canvas" width="960" height="540"></canvas>
+          <img id="color-img">
+          <canvas id="color-canvas"></canvas>
         </div>
         <div id="depth-div" >
           <h5 id="depth-canvas-label">Depth Feed</h5>
-          <canvas id="depth-canvas" width="512" height="424"></canvas>
+          <canvas id="depth-canvas"></canvas>
         </div>
         <div id="raw-depth-div" >
           <h5 id="raw-depth-canvas-label">Raw Deth Feed</h5>
-          <canvas id="raw-depth-canvas" width="512" height="424"></canvas>
+          <canvas id="raw-depth-canvas"></canvas>
         </div>
         <!-- skeleton used for all bodies and tracked bodies -->
         <div id="skeleton-div" >
           <h5 id="skeleton-canvas-label">Skeleton/Bodies Feed</h5>
-          <canvas id="skeleton-canvas" width="512" height="424"></canvas>
+          <canvas id="skeleton-canvas"></canvas>
         </div>
         <div id="infrared-div" >
           <h5 id="infrared-canvas-label">Infrared Feed</h5>
-          <canvas id="infrared-canvas" width="512" height="424"></canvas>
+          <canvas id="infrared-canvas"></canvas>
         </div>
         <div id="le-infrared-div" >
           <h5 id="le-infrared-canvas-label">Long Exposure Infrared Feed</h5>
-          <canvas id="le-infrared-canvas" width="512" height="424"></canvas>
+          <canvas id="le-infrared-canvas"></canvas>
         </div>
         <div id="key-div" >
           <h5 id="key-canvas-label">Key Feed</h5>
-          <canvas id="key-canvas" width="960" height="540"></canvas>  
+          <canvas id="key-canvas"></canvas>  
         </div>
         <div id="rgbd-div" >
           <h5 id="rgbd-canvas-label">RGBD Feed</h5>
-          <canvas id="rgbd-canvas" width="960" height="540"></canvas>  
+          <canvas id="rgbd-canvas"></canvas>  
         </div>
 
       </div>

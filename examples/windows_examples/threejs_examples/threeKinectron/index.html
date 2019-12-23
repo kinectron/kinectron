@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Kinectron For Three.js - Simple Example</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <!-- Origin Trial Token, feature = WebVR (For Chrome M59+), origin = https://juniorxsound.github.io, expires = 2017-08-16 -->
+    <meta
+      http-equiv="origin-trial"
+      data-feature="WebVR (For Chrome M59+)"
+      data-expires="2017-08-16"
+      content="Ahwo2B0LoM2bLB015eLJ4CAvJa0xF9VVn0FO1/AaYfPklvBUwcfYFkXKenD57vhGo1WQt9Hg9IFauhKdRgLN8w8AAABreyJvcmlnaW4iOiJodHRwczovL2p1bmlvcnhzb3VuZC5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYlZSMS4xIiwiZXhwaXJ5IjoxNTAyOTEyNTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZX0="
+    />
+    <style>
+      body {
+        background: #000;
+        color: #fff;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+        font-family: georgia;
+        text-align: center;
+      }
+
+      a {
+        color: skyblue;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!--Three.js - TODO - swap with hosted versions so example serve from Github pages-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.min.js"></script>
+    <script src="../shared/OrbitControls.js"></script>
+    <script src="../shared/stats.min.js"></script>
+
+    <!-- Kinectron client side library -->
+    <script src="../../../../client/dist/kinectron-client.js"></script>
+
+    <!--Three.js Kinectron plugin-->
+    <script src="../shared/three.kinectron.js"></script>
+
+    <script>
+      //Some general Three.js components
+      var renderer, scene, camera, controls, stats;
+
+      //DepthKit character
+      var character;
+
+      //Kinectron
+      var kinectron, kinectronGeo;
+
+      //Kick off the example
+      window.onload = function() {
+        init();
+      };
+
+      function init() {
+        //Setup renderer
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        //Setup Kinectron
+        var kinectronIpAddress = "172.16.222.192"; //Add Kinectron IP here
+
+        //Open connection with Kinect
+        kinectron = new Kinectron(kinectronIpAddress);
+        kinectron.makeConnection();
+
+        //Start RGBD feed and set callback for new frames
+        kinectron.startRGBD(onNewKinectFrame);
+
+        // Setup scene
+        scene = new THREE.Scene();
+
+        // Setup camera
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          500
+        );
+        camera.position.set(-4, 2, 7);
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        //Create a kinectron geometry instance - First argument takes the rendering type ("wire" / "points" / "mesh")
+        kinectronGeo = new THREE.KinectGeometry("mesh");
+
+        //Add it to the scene
+        scene.add(kinectronGeo);
+
+        //Create mouse OrbitControls
+        controls = new THREE.OrbitControls(camera);
+
+        // A grid helper as a floor reference
+        var gridHelper = new THREE.GridHelper(10, 10);
+        scene.add(gridHelper);
+
+        //Add stats
+        stats = new Stats();
+        stats.showPanel(0);
+        document.body.appendChild(stats.dom);
+
+        //Add an event listener for window resize
+        window.addEventListener("resize", onWindowResize, false);
+
+        //Add an event listener to key down
+        window.addEventListener("keydown", onKeyDown, false);
+
+        render();
+      }
+
+      function onNewKinectFrame(ktronImg) {
+        kinectronGeo.kinectron.bind(ktronImg.src);
+      }
+
+      function onKeyDown() {
+        // Use '9' key to stop kinect from running
+        if (event.keyCode === 57) {
+          kinectron.stopAll();
+        }
+      }
+
+      function render() {
+        //Update the FPS counter
+        stats.update();
+
+        //Request the next frame
+        requestAnimationFrame(render);
+
+        //Render
+        renderer.render(scene, camera);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+    </script>
+  </body>
+</html>

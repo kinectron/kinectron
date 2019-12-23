@@ -14,7 +14,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "parcel watch src/kinectron-client.js --out-file dist/kinectron-client.js --no-minify",
+    "start": "parcel watch src/kinectron-client.js --out-file dist/kinectron-client.js",
     "build": "parcel build src/kinectron-client.js --out-file dist/kinectron-client.js --no-minify"
   },
   "repository": {

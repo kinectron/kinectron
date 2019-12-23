@@ -92,6 +92,10 @@ input.dimensions {
   margin-bottom: 20px;
 }
 
+#additional-controls {
+  display: none;
+}
+
 #controls div.clear-class {
   margin-bottom: 0;
 }
