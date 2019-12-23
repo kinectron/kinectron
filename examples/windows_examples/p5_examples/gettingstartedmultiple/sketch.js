@@ -44,8 +44,8 @@ function setup() {
   kinectron2.makeConnection();
 
   // Set callbacks for Kinect 1
-  kinectron1.setRGBCallback(drawFeed1);
-  kinectron2.setRGBCallback(drawFeed2);
+  kinectron1.setColorCallback(drawFeed1);
+  kinectron2.setColorCallback(drawFeed2);
   kinectron1.setDepthCallback(drawFeed1);
 
   // Set callbacks for Kinect 2

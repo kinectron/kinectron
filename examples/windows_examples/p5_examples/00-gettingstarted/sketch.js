@@ -16,7 +16,7 @@ let kinectron = null;
 // ip address is a string between four 
 // this is a string made up from four numbers
 // each number is between 0 and 255 and separated with periods
-let kinectronServerIPAddress = "18.121.129.122";
+let kinectronServerIPAddress = "18.21.129.122";
 
 // declare new HTML elements for displaying text
 let textKinectronServerIP;
@@ -65,24 +65,28 @@ function draw() {
   fill(0);
   stroke(0);
 
-  // update text with current parameters
-  textKinectronServerIP.html("Kinectron Server IP address: " + kinectronServerIPAddress);
-  textCurrentFeed.html("current feed: " + currentFeed);
-  textFramerate.html("fps: " + frameRate().toFixed(0));
+  // update text of HTML <p> elements with current parameters
+  textKinectronServerIP.html("Kinectron server IP address: " + kinectronServerIPAddress);
+  textCurrentFeed.html("Current feed: " + currentFeed);
+  textFramerate.html("frame rate: " + frameRate().toFixed(0));
 }
 
 // keyPressed() is a p5.js function
 // choose camera to start based on key pressed
 function keyPressed() {
+  // if user presses ENTER, change feed to color
   if (keyCode === ENTER) {
     kinectron.startColor();
     currentFeed = "color";
+    // if user presses UP_ARROW, change feed to depth
   } else if (keyCode === UP_ARROW) {
     kinectron.startDepth();
     currentFeed = "depth";
+    // if user presses DOWN_ARROW, change feed to infrared
   } else if (keyCode === DOWN_ARROW) {
     kinectron.startInfrared();
     currentFeed = "infrared";
+    // if user presses RIGHT_ARROW, change feed to none
   } else if (keyCode === RIGHT_ARROW) {
     kinectron.stopAll();
     currentFeed = "none";
