@@ -9,215 +9,6 @@ let kinect = null;
 let whichKinect = null;
 let colorImage, colorCanvas, colorContext;
 
-function startAzureKinect(evt) {
-  kinect = new KinectAzure();
-
-  let kinectType = "azure";
-  whichKinect = kinectType;
-
-  initControls(kinectType);
-  toggleKinectType(evt, kinectType);
-  toggleFrameType(evt, kinectType); // ensure always starts on single frame
-  setCanvasDimensions(kinectType);
-
-  // to do: refactor so this global image and canvas is not needed
-  initAzureColorImageAndCanvas();
-}
-
-function initAzureColorImageAndCanvas() {
-  colorImage = document.getElementById("color-img");
-  colorImage.style.display = "none";
-
-  colorCanvas = document.getElementById("color-canvas");
-  // reduce color image size by 2 for more efficient sending
-  colorCanvas.width = colorwidth / 2;
-  colorCanvas.height = colorheight / 2;
-  colorContext = colorCanvas.getContext("2d");
-
-  colorImage.addEventListener("load", e => {
-    colorContext.drawImage(colorImage, 0, 0, colorwidth / 2, colorheight / 2);
-    createDataUrl(colorCanvas, "color", "webp");
-  });
-}
-
-function startWindowsKinect(evt) {
-  kinect = new Kinect2();
-  let kinectType = "windows";
-  whichKinect = kinectType;
-
-  initControls(kinectType);
-  toggleKinectType(evt, kinectType);
-  toggleFrameType(evt, kinectType); // ensure always starts on single frame
-  setCanvasDimensions(kinectType);
-}
-
-function setCanvasDimensions(kinectType) {
-  if (kinectType === "azure") {
-    colorwidth = AZURECOLORWIDTH;
-    colorheight = AZURECOLORHEIGHT;
-
-    depthwidth = AZUREDEPTHWIDTH;
-    depthheight = AZUREDEPTHHEIGHT;
-
-    rawdepthwidth = AZURERAWWIDTH;
-    rawdepthheight = AZURERAWHEIGHT;
-  } else if (kinectType === "windows") {
-    colorwidth = WINDOWSCOLORWIDTH;
-    colorheight = WINDOWSCOLORHEIGHT;
-
-    depthwidth = WINDOWSDEPTHWIDTH;
-    depthheight = WINDOWSDEPTHHEIGHT;
-
-    rawdepthwidth = WINDOWSRAWWIDTH;
-    rawdepthheight = WINDOWSRAWHEIGHT;
-  }
-}
-
-function initControls(kinectType) {
-  let additionalControls = document.getElementById("additional-controls");
-  additionalControls.style.display = "block";
-
-  // let allFrameButtons = document.querySelectorAll("input[type=button]");
-
-  let allOptions = document.getElementsByClassName("option");
-  // let allFrameButtons = document.getElementsByType('button');
-
-  for (let i = 0; i < allOptions.length; i++) {
-    allOptions[i].style.display = "none";
-  }
-
-  if (kinectType === "azure") {
-    let azureButtons = document.getElementsByClassName("azure-option");
-
-    for (let i = 0; i < azureButtons.length; i++) {
-      azureButtons[i].style.display = "block";
-    }
-  } else if (kinectType === "windows") {
-    let windowsButtons = document.getElementsByClassName("windows-option");
-
-    for (let i = 0; i < windowsButtons.length; i++) {
-      windowsButtons[i].style.display = "block";
-    }
-  }
-}
-
-function toggleKinectType(evt, kinectType) {
-  let button;
-  let state;
-
-  if (evt === null) {
-    if (kinectType === "azure") {
-      button = document.getElementById("start-kinect-azure");
-    } else {
-      button = document.getElementById("start-kinect-windows");
-    }
-  } else {
-    evt.preventDefault();
-    button = evt.srcElement;
-  }
-
-  state = button.id;
-
-  if (state === "start-kinect-azure") {
-    button.style.background = BUTTONACTIVECLR;
-    document.getElementById(
-      "start-kinect-windows"
-    ).style.background = BUTTONINACTIVECLR;
-  } else if (state === "start-kinect-windows") {
-    button.style.background = BUTTONACTIVECLR;
-    document.getElementById(
-      "start-kinect-azure"
-    ).style.background = BUTTONINACTIVECLR;
-  }
-}
-
-// let azureImage, azureCanvas, azureCtx;
-// let depthImageData, depthModeRange;
-
-// function startAzureCaneras() {
-//   kinect = new KinectAzure();
-
-//   console.log("starting azure");
-//   if (kinect.open()) {
-//     console.log("azure open");
-//     const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
-//     kinect.startCameras({
-//       depth_mode: depthMode,
-//       color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
-//       camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
-//     });
-//     depthModeRange = kinect.getDepthModeRange(depthMode);
-//     console.log("range", depthModeRange);
-//     // let colorImageURL;
-
-//     kinect.startListening(data => {
-//       // depth
-//       {
-//         if (!depthImageData && data.depthImageFrame.width > 0) {
-//           azureCanvas.width = data.depthImageFrame.width;
-//           azureCanvas.height = data.depthImageFrame.height;
-//           depthImageData = azureCtx.createImageData(
-//             azureCanvas.width,
-//             azureCanvas.height
-//           );
-//         }
-//         if (depthImageData) {
-//           renderDepthFrameAsGreyScale(data);
-//         }
-//       }
-
-//       // // color - default jpg stream
-//       // const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
-//       // debugger;
-//       // // setting a data url leaks memory - Blobs seem to work fine
-//       // // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
-//       // const imageBlob = new Blob([bufferCopy], { type: 'image/jpeg'});
-//       // if (colorImageURL) {
-//       //   URL.revokeObjectURL(colorImageURL);
-//       // }
-//       // colorImageURL = URL.createObjectURL(imageBlob);
-//       // azureImage.src = colorImageURL;
-//     });
-//   }
-// }
-
-// const renderDepthFrameAsGreyScale = data => {
-//   const newPixelDataAzure = Buffer.from(data.depthImageFrame.imageData);
-
-//   const pixelArray = depthImageData.data;
-//   let depthPixelIndex = 0;
-
-//   for (let i = 0; i < depthImageData.data.length; i += 4) {
-//     // console.log('inside');
-//     const depthValue =
-//       (newPixelDataAzure[depthPixelIndex + 1] << 8) |
-//       newPixelDataAzure[depthPixelIndex];
-
-//     const normalizedValue = map(
-//       depthValue,
-//       depthModeRange.min,
-//       depthModeRange.max,
-//       255,
-//       0
-//     );
-//     pixelArray[i] = normalizedValue;
-//     pixelArray[i + 1] = normalizedValue;
-//     pixelArray[i + 2] = normalizedValue;
-//     pixelArray[i + 3] = 0xff;
-
-//     depthPixelIndex += 2;
-//   }
-
-//   azureCtx.putImageData(depthImageData, 0, 0);
-// };
-
-// const map = (value, inputMin, inputMax, outputMin, outputMax) => {
-//   return (
-//     ((value - inputMin) * (outputMax - outputMin)) / (inputMax - inputMin) +
-//     outputMin
-//   );
-// };
-
 //  Create local peer server
 var PeerServer = require("peer").PeerServer;
 var server = PeerServer({ port: 9001, path: "/" });
@@ -371,6 +162,128 @@ function init() {
   document
     .getElementById("imgquality")
     .addEventListener("input", updateImgQuality);
+}
+
+function startAzureKinect(evt) {
+  kinect = new KinectAzure();
+
+  let kinectType = "azure";
+  whichKinect = kinectType;
+
+  initControls(kinectType);
+  toggleKinectType(evt, kinectType);
+  toggleFrameType(evt, kinectType); // ensure always starts on single frame
+  setCanvasDimensions(kinectType);
+
+  // to do: refactor so this global image and canvas is not needed
+  initAzureColorImageAndCanvas();
+}
+
+function initAzureColorImageAndCanvas() {
+  colorImage = document.getElementById("color-img");
+  colorImage.style.display = "none";
+
+  colorCanvas = document.getElementById("color-canvas");
+  // reduce color image size by 2 for more efficient sending
+  colorCanvas.width = colorwidth / 2;
+  colorCanvas.height = colorheight / 2;
+  colorContext = colorCanvas.getContext("2d");
+
+  colorImage.addEventListener("load", e => {
+    colorContext.drawImage(colorImage, 0, 0, colorwidth / 2, colorheight / 2);
+    createDataUrl(colorCanvas, "color", "webp");
+  });
+}
+
+function startWindowsKinect(evt) {
+  kinect = new Kinect2();
+  let kinectType = "windows";
+  whichKinect = kinectType;
+
+  initControls(kinectType);
+  toggleKinectType(evt, kinectType);
+  toggleFrameType(evt, kinectType); // ensure always starts on single frame
+  setCanvasDimensions(kinectType);
+}
+
+function setCanvasDimensions(kinectType) {
+  if (kinectType === "azure") {
+    colorwidth = AZURECOLORWIDTH;
+    colorheight = AZURECOLORHEIGHT;
+
+    depthwidth = AZUREDEPTHWIDTH;
+    depthheight = AZUREDEPTHHEIGHT;
+
+    rawdepthwidth = AZURERAWWIDTH;
+    rawdepthheight = AZURERAWHEIGHT;
+  } else if (kinectType === "windows") {
+    colorwidth = WINDOWSCOLORWIDTH;
+    colorheight = WINDOWSCOLORHEIGHT;
+
+    depthwidth = WINDOWSDEPTHWIDTH;
+    depthheight = WINDOWSDEPTHHEIGHT;
+
+    rawdepthwidth = WINDOWSRAWWIDTH;
+    rawdepthheight = WINDOWSRAWHEIGHT;
+  }
+}
+
+function initControls(kinectType) {
+  let additionalControls = document.getElementById("additional-controls");
+  additionalControls.style.display = "block";
+
+  // let allFrameButtons = document.querySelectorAll("input[type=button]");
+
+  let allOptions = document.getElementsByClassName("option");
+  // let allFrameButtons = document.getElementsByType('button');
+
+  for (let i = 0; i < allOptions.length; i++) {
+    allOptions[i].style.display = "none";
+  }
+
+  if (kinectType === "azure") {
+    let azureButtons = document.getElementsByClassName("azure-option");
+
+    for (let i = 0; i < azureButtons.length; i++) {
+      azureButtons[i].style.display = "block";
+    }
+  } else if (kinectType === "windows") {
+    let windowsButtons = document.getElementsByClassName("windows-option");
+
+    for (let i = 0; i < windowsButtons.length; i++) {
+      windowsButtons[i].style.display = "block";
+    }
+  }
+}
+
+function toggleKinectType(evt, kinectType) {
+  let button;
+  let state;
+
+  if (evt === null) {
+    if (kinectType === "azure") {
+      button = document.getElementById("start-kinect-azure");
+    } else {
+      button = document.getElementById("start-kinect-windows");
+    }
+  } else {
+    evt.preventDefault();
+    button = evt.srcElement;
+  }
+
+  state = button.id;
+
+  if (state === "start-kinect-azure") {
+    button.style.background = BUTTONACTIVECLR;
+    document.getElementById(
+      "start-kinect-windows"
+    ).style.background = BUTTONINACTIVECLR;
+  } else if (state === "start-kinect-windows") {
+    button.style.background = BUTTONACTIVECLR;
+    document.getElementById(
+      "start-kinect-azure"
+    ).style.background = BUTTONINACTIVECLR;
+  }
 }
 
 function updateImgQuality(evt) {
@@ -1121,8 +1034,6 @@ function startColor() {
       let colorImageURL;
 
       kinect.startListening(data => {
-        // to do: remove frame limiting here entirely? need to test
-        // if (Date.now() > sentTime + 1000 / 15) {
         const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
 
         // setting a data url leaks memory - Blobs seem to work fine
@@ -1136,10 +1047,7 @@ function startColor() {
         // see initAzureColorImageAndCanvas()
         colorImageURL = URL.createObjectURL(imageBlob);
         colorImage.src = colorImageURL;
-
-        //   sentTime = Date.now();
-        // } // framerate limiting
-      }); // listening
+      });
     }
   } else {
     let colorCanvas = document.getElementById("color-canvas");
@@ -1506,7 +1414,7 @@ function startSkeletonTracking() {
       kinect.startCameras({
         depth_mode: KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
         color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
-        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_30
       });
       kinect.createTracker();
       kinect.startListening(function handleData(data) {
