@@ -9,6 +9,161 @@ let kinect = null;
 let whichKinect = null;
 let colorImage, colorCanvas, colorContext;
 
+//  Create local peer server
+var PeerServer = require("peer").PeerServer;
+var server = PeerServer({ port: 9001, path: "/" });
+
+// Set peer credentials for localhost by default
+var peerNet = { host: "localhost", port: 9001, path: "/" };
+var myPeerId = "kinectron";
+var peer_ids = [];
+var peer_connections = [];
+var peer = null;
+var peerIdDisplay = null;
+var newPeerEntry = false;
+var newPeerInfo;
+
+var canvas = null;
+var context = null;
+var canvasState = null;
+
+const WINDOWSCOLORWIDTH = 1920;
+const WINDOWSCOLORHEIGHT = 1080;
+
+const WINDOWSDEPTHWIDTH = 512;
+const WINDOWSDEPTHHEIGHT = 424;
+
+const WINDOWSRAWWIDTH = 512;
+const WINDOWSRAWHEIGHT = 424;
+
+// azure resolutions at
+// https://docs.microsoft.com/en-us/azure/kinect-dk/hardware-specification
+const AZURECOLORWIDTH = 1280;
+const AZURECOLORHEIGHT = 720;
+
+const AZUREDEPTHWIDTH = 640;
+const AZUREDEPTHHEIGHT = 576;
+
+const AZURERAWWIDTH = 640 / 2;
+const AZURERAWHEIGHT = 576 / 2;
+
+let colorwidth;
+let colorheight;
+
+let depthwidth;
+let depthheight;
+
+let rawdepthwidth;
+let rawdepthheight;
+
+var imageData = null;
+var imageDataSize = null;
+var imageDataArray = null;
+
+var busy = false;
+var currentCamera = null;
+
+var sendAllBodies = false;
+
+var multiFrame = false;
+var currentFrames = null;
+var sentTime = Date.now();
+
+var rawDepth = false;
+var blockAPI = false;
+
+// Key Tracking needs cleanup
+var trackedBodyIndex = -1;
+
+// Record variables
+const recordingLocation = os.homedir() + "/kinectron-recordings/";
+var doRecord = false;
+var recordStartTime = 0;
+var bodyChunks = [];
+var mediaRecorders = [];
+
+var imgQuality = 0.5; // set default image quality
+
+window.addEventListener("load", initpeer);
+window.addEventListener("load", init);
+
+function init() {
+  var ipAddresses;
+  var allIpAddresses;
+
+  console.log("You are running Kinectron Version 0.3.1!");
+
+  ipAddresses = getIpAddress();
+  allIpAddresses = ipAddresses.join(", ");
+  document.getElementById("ipaddress").innerHTML = allIpAddresses;
+
+  peerIdDisplay = document.getElementById("peerid");
+
+  canvas = document.getElementById("inputCanvas");
+  context = canvas.getContext("2d");
+
+  setImageData();
+  document
+    .getElementById("start-kinect-azure")
+    .addEventListener("click", startAzureKinect);
+  document
+    .getElementById("start-kinect-windows")
+    .addEventListener("click", startWindowsKinect);
+  document
+    .getElementById("peersubmit")
+    .addEventListener("click", newPeerServer);
+  document
+    .getElementById("single-frame-btn")
+    .addEventListener("click", toggleFrameType);
+  document
+    .getElementById("multi-frame-btn")
+    .addEventListener("click", toggleFrameType);
+  document
+    .getElementById("colorwidth")
+    .addEventListener("change", updateDimFields);
+  document
+    .getElementById("colorheight")
+    .addEventListener("change", updateDimFields);
+  document
+    .getElementById("depthwidth")
+    .addEventListener("change", updateDimFields);
+  document
+    .getElementById("depthheight")
+    .addEventListener("change", updateDimFields);
+  document
+    .getElementById("colorsubmit")
+    .addEventListener("click", setOutputDimensions);
+  document
+    .getElementById("depthsubmit")
+    .addEventListener("click", setOutputDimensions);
+  document.getElementById("color").addEventListener("click", chooseCamera);
+  document.getElementById("depth").addEventListener("click", chooseCamera);
+  document.getElementById("raw-depth").addEventListener("click", chooseCamera);
+  document.getElementById("infrared").addEventListener("click", chooseCamera);
+  document
+    .getElementById("le-infrared")
+    .addEventListener("click", chooseCamera);
+  document.getElementById("key").addEventListener("click", chooseCamera);
+  document.getElementById("rgbd").addEventListener("click", chooseCamera);
+  //document.getElementById('fh-joint').addEventListener('click', chooseCamera);
+  //document.getElementById('scale').addEventListener('click', chooseCamera);
+  document.getElementById("body").addEventListener("click", chooseCamera);
+  document.getElementById("skeleton").addEventListener("click", chooseCamera);
+  document.getElementById("stop-all").addEventListener("click", chooseCamera);
+  document.getElementById("multi").addEventListener("click", chooseMulti);
+  document.getElementById("stop-multi").addEventListener("click", stopMulti);
+  document
+    .getElementById("advanced-link")
+    .addEventListener("click", toggleAdvancedOptions);
+  document.getElementById("record").addEventListener("click", toggleRecord);
+  document
+    .getElementById("api-blocker")
+    .addEventListener("click", toggleAPIBlocker);
+  document
+    .getElementById("imgquality")
+    .addEventListener("input", updateImgQuality);
+}
+
 function startAzureKinect(evt) {
   kinect = new KinectAzure();
 
@@ -129,248 +284,6 @@ function toggleKinectType(evt, kinectType) {
       "start-kinect-azure"
     ).style.background = BUTTONINACTIVECLR;
   }
-}
-
-// let azureImage, azureCanvas, azureCtx;
-// let depthImageData, depthModeRange;
-
-// function startAzureCaneras() {
-//   kinect = new KinectAzure();
-
-//   console.log("starting azure");
-//   if (kinect.open()) {
-//     console.log("azure open");
-//     const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
-//     kinect.startCameras({
-//       depth_mode: depthMode,
-//       color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
-//       camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
-//     });
-//     depthModeRange = kinect.getDepthModeRange(depthMode);
-//     console.log("range", depthModeRange);
-//     // let colorImageURL;
-
-//     kinect.startListening(data => {
-//       // depth
-//       {
-//         if (!depthImageData && data.depthImageFrame.width > 0) {
-//           azureCanvas.width = data.depthImageFrame.width;
-//           azureCanvas.height = data.depthImageFrame.height;
-//           depthImageData = azureCtx.createImageData(
-//             azureCanvas.width,
-//             azureCanvas.height
-//           );
-//         }
-//         if (depthImageData) {
-//           renderDepthFrameAsGreyScale(data);
-//         }
-//       }
-
-//       // // color - default jpg stream
-//       // const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
-//       // debugger;
-//       // // setting a data url leaks memory - Blobs seem to work fine
-//       // // https://stackoverflow.com/questions/19298393/setting-img-src-to-dataurl-leaks-memory
-//       // const imageBlob = new Blob([bufferCopy], { type: 'image/jpeg'});
-//       // if (colorImageURL) {
-//       //   URL.revokeObjectURL(colorImageURL);
-//       // }
-//       // colorImageURL = URL.createObjectURL(imageBlob);
-//       // azureImage.src = colorImageURL;
-//     });
-//   }
-// }
-
-// const renderDepthFrameAsGreyScale = data => {
-//   const newPixelDataAzure = Buffer.from(data.depthImageFrame.imageData);
-
-//   const pixelArray = depthImageData.data;
-//   let depthPixelIndex = 0;
-
-//   for (let i = 0; i < depthImageData.data.length; i += 4) {
-//     // console.log('inside');
-//     const depthValue =
-//       (newPixelDataAzure[depthPixelIndex + 1] << 8) |
-//       newPixelDataAzure[depthPixelIndex];
-
-//     const normalizedValue = map(
-//       depthValue,
-//       depthModeRange.min,
-//       depthModeRange.max,
-//       255,
-//       0
-//     );
-//     pixelArray[i] = normalizedValue;
-//     pixelArray[i + 1] = normalizedValue;
-//     pixelArray[i + 2] = normalizedValue;
-//     pixelArray[i + 3] = 0xff;
-
-//     depthPixelIndex += 2;
-//   }
-
-//   azureCtx.putImageData(depthImageData, 0, 0);
-// };
-
-// const map = (value, inputMin, inputMax, outputMin, outputMax) => {
-//   return (
-//     ((value - inputMin) * (outputMax - outputMin)) / (inputMax - inputMin) +
-//     outputMin
-//   );
-// };
-
-//  Create local peer server
-var PeerServer = require("peer").PeerServer;
-var server = PeerServer({ port: 9001, path: "/" });
-
-// Set peer credentials for localhost by default
-var peerNet = { host: "localhost", port: 9001, path: "/" };
-var myPeerId = "kinectron";
-var peer_ids = [];
-var peer_connections = [];
-var peer = null;
-var peerIdDisplay = null;
-var newPeerEntry = false;
-var newPeerInfo;
-
-var canvas = null;
-var context = null;
-var canvasState = null;
-
-const WINDOWSCOLORWIDTH = 1920;
-const WINDOWSCOLORHEIGHT = 1080;
-
-const WINDOWSDEPTHWIDTH = 512;
-const WINDOWSDEPTHHEIGHT = 424;
-
-const WINDOWSRAWWIDTH = 512;
-const WINDOWSRAWHEIGHT = 424;
-
-// azure resolutions at
-// https://docs.microsoft.com/en-us/azure/kinect-dk/hardware-specification
-const AZURECOLORWIDTH = 1280;
-const AZURECOLORHEIGHT = 720;
-
-const AZUREDEPTHWIDTH = 640;
-const AZUREDEPTHHEIGHT = 576;
-
-const AZURERAWWIDTH = 640 / 2;
-const AZURERAWHEIGHT = 576 / 2;
-
-let colorwidth;
-let colorheight;
-
-let depthwidth;
-let depthheight;
-
-let rawdepthwidth;
-let rawdepthheight;
-
-var imageData = null;
-var imageDataSize = null;
-var imageDataArray = null;
-
-var busy = false;
-var currentCamera = null;
-
-var sendAllBodies = false;
-
-var multiFrame = false;
-var currentFrames = null;
-var sentTime = Date.now();
-
-var rawDepth = false;
-var blockAPI = false;
-
-// Key Tracking needs cleanup
-var trackedBodyIndex = -1;
-
-// Record variables
-const recordingLocation = os.homedir() + "/kinectron-recordings/";
-var doRecord = false;
-var recordStartTime = 0;
-var bodyChunks = [];
-var mediaRecorders = [];
-
-var imgQuality = 0.5; // set default image quality
-
-window.addEventListener("load", initpeer);
-window.addEventListener("load", init);
-
-function init() {
-  var ipAddresses;
-  var allIpAddresses;
-
-  console.log("You are running Kinectron Version 0.3.0!");
-
-  ipAddresses = getIpAddress();
-  allIpAddresses = ipAddresses.join(", ");
-  document.getElementById("ipaddress").innerHTML = allIpAddresses;
-
-  peerIdDisplay = document.getElementById("peerid");
-
-  canvas = document.getElementById("inputCanvas");
-  context = canvas.getContext("2d");
-
-  setImageData();
-  document
-    .getElementById("start-kinect-azure")
-    .addEventListener("click", startAzureKinect);
-  document
-    .getElementById("start-kinect-windows")
-    .addEventListener("click", startWindowsKinect);
-  document
-    .getElementById("peersubmit")
-    .addEventListener("click", newPeerServer);
-  document
-    .getElementById("single-frame-btn")
-    .addEventListener("click", toggleFrameType);
-  document
-    .getElementById("multi-frame-btn")
-    .addEventListener("click", toggleFrameType);
-  document
-    .getElementById("colorwidth")
-    .addEventListener("change", updateDimFields);
-  document
-    .getElementById("colorheight")
-    .addEventListener("change", updateDimFields);
-  document
-    .getElementById("depthwidth")
-    .addEventListener("change", updateDimFields);
-  document
-    .getElementById("depthheight")
-    .addEventListener("change", updateDimFields);
-  document
-    .getElementById("colorsubmit")
-    .addEventListener("click", setOutputDimensions);
-  document
-    .getElementById("depthsubmit")
-    .addEventListener("click", setOutputDimensions);
-  document.getElementById("color").addEventListener("click", chooseCamera);
-  document.getElementById("depth").addEventListener("click", chooseCamera);
-  document.getElementById("raw-depth").addEventListener("click", chooseCamera);
-  document.getElementById("infrared").addEventListener("click", chooseCamera);
-  document
-    .getElementById("le-infrared")
-    .addEventListener("click", chooseCamera);
-  document.getElementById("key").addEventListener("click", chooseCamera);
-  document.getElementById("rgbd").addEventListener("click", chooseCamera);
-  //document.getElementById('fh-joint').addEventListener('click', chooseCamera);
-  //document.getElementById('scale').addEventListener('click', chooseCamera);
-  document.getElementById("body").addEventListener("click", chooseCamera);
-  document.getElementById("skeleton").addEventListener("click", chooseCamera);
-  document.getElementById("stop-all").addEventListener("click", chooseCamera);
-  document.getElementById("multi").addEventListener("click", chooseMulti);
-  document.getElementById("stop-multi").addEventListener("click", stopMulti);
-  document
-    .getElementById("advanced-link")
-    .addEventListener("click", toggleAdvancedOptions);
-  document.getElementById("record").addEventListener("click", toggleRecord);
-  document
-    .getElementById("api-blocker")
-    .addEventListener("click", toggleAPIBlocker);
-  document
-    .getElementById("imgquality")
-    .addEventListener("input", updateImgQuality);
 }
 
 function updateImgQuality(evt) {
@@ -1121,8 +1034,6 @@ function startColor() {
       let colorImageURL;
 
       kinect.startListening(data => {
-        // to do: remove frame limiting here entirely? need to test
-        // if (Date.now() > sentTime + 1000 / 15) {
         const bufferCopy = Buffer.from(data.colorImageFrame.imageData);
 
         // setting a data url leaks memory - Blobs seem to work fine
@@ -1136,10 +1047,7 @@ function startColor() {
         // see initAzureColorImageAndCanvas()
         colorImageURL = URL.createObjectURL(imageBlob);
         colorImage.src = colorImageURL;
-
-        //   sentTime = Date.now();
-        // } // framerate limiting
-      }); // listening
+      });
     }
   } else {
     let colorCanvas = document.getElementById("color-canvas");
@@ -1506,7 +1414,7 @@ function startSkeletonTracking() {
       kinect.startCameras({
         depth_mode: KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
         color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
-        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_30
       });
       kinect.createTracker();
       kinect.startListening(function handleData(data) {

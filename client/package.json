@@ -1,6 +1,6 @@
 {
   "name": "kinectron-api",
-  "version": "1.0.0",
+  "version": "0.3.0",
   "description": "Client for Kinectron peer server",
   "main": "kinectron-client.js",
   "bin": {
@@ -13,7 +13,6 @@
     "parcel": "^1.12.4"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel watch src/kinectron-client.js --out-file dist/kinectron-client.js",
     "build": "parcel build src/kinectron-client.js --out-file dist/kinectron-client.js --no-minify"
   },
