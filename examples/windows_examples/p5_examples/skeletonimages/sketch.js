@@ -67,13 +67,14 @@ function setup() {
 
   // print on console info about live data and pre-recorded data
   if (liveData == false) {
-    console.log("this example is currently using pre-recorded data");
-    console.log("if you want to use live data, switch the variable liveData from false to true");
-    console.log("don't forget to also set up the ip address, and refresh the browser.");
+    console.log(`this example is currently using pre-recorded data
+if you want to use live data, switch the value of variable liveData
+from false to true, setup the ip address, save the changes,
+and refresh the browser.`);
   } else {
-    console.log("this example is currently using live data");
-    console.log("if you want to use pre-recorded data, switch the variable liveData from true to false");
-    console.log("don't forget to refresh the browser.");
+    console.log(`this example is currently using live data
+if you want to use pre-recorded data, switch the value of variable liveData
+from true to false, save the changes, and refresh the browser.`);
   }
 
   
