@@ -1,14 +1,34 @@
+// Copyright (c) 2020 Kinectron
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
+// example name:
+// skeletonimages
+// description:
+// example where a skeleton follows your body
+// this example runs by default with pre-recorded data,
+// and it can be switched to use live data from a kinectron server
+// 
+//
+
 // set to true if using live kinectron data
 const liveData = false;
 let debugKinectJoints = false;
 let debugRotations = false;
 
-// fill in kinectron ip address here ie. "127.16.231.33"
-const kinectronIpAddress = "127.0.0.1";
+// ip address is a string containing four numbers
+// each number is between 0 and 255 and separated with periods
+// since it is a string, it goes between double quotes
+// we put as example here "127.0.0.1"
+// replace it with the kinectron server ip address
+// remember to keep the double quotes
+const kinectronServerIPAddress = "127.0.0.1";
 
 const skelWidth = 230;
 const skelHeight = 250;
 
+// variables for images
 let headImg;
 let torsoImg;
 let hipImg;
@@ -19,6 +39,7 @@ let legRightImg;
 
 // recorded data variables
 const recorded_data_file = "../shared/recorded_skeleton.json";
+// initialize time variables
 let sentTime = Date.now();
 let currentFrame = 0;
 let recorded_skeleton;
@@ -39,8 +60,23 @@ function preload() {
 }
 
 function setup() {
+  // create canvas to draw on
   createCanvas(800, 800);
+  // black background
   background(0);
+
+  // print on console info about live data and pre-recorded data
+  if (liveData == false) {
+    console.log("this example is currently using pre-recorded data");
+    console.log("if you want to use live data, switch the variable liveData from false to true");
+    console.log("don't forget to also set up the ip address, and refresh the browser.");
+  } else {
+    console.log("this example is currently using live data");
+    console.log("if you want to use pre-recorded data, switch the variable liveData from true to false");
+    console.log("don't forget to refresh the browser.");
+  }
+
+  
 
   const jointsCheckbox = createCheckbox("Show Kinect Joints", false);
   jointsCheckbox.changed(jointsChecked);
@@ -48,7 +84,10 @@ function setup() {
   const rotationsCheckbox = createCheckbox("Show Joint Rotations", false);
   rotationsCheckbox.changed(rotationsChecked);
 
-  if (liveData) initKinectron();
+  if (liveData) {
+    initKinectron();
+  }
+  
 }
 
 function jointsChecked() {
@@ -68,7 +107,9 @@ function rotationsChecked() {
 }
 
 function draw() {
-  if (!liveData) loopRecordedData();
+  if (!liveData) {
+    loopRecordedData();
+  }
 }
 
 function loopRecordedData() {
@@ -87,7 +128,7 @@ function loopRecordedData() {
 
 function initKinectron() {
   // define and create an instance of kinectron
-  const kinectron = new Kinectron(kinectronIpAddress);
+  const kinectron = new Kinectron(kinectronServerIPAddress);
 
   // connect with application over peer
   kinectron.makeConnection();
@@ -140,7 +181,9 @@ function bodyTracked(body) {
   rotateBone(legLeftImg, hipLeft, ankleLeft, -20, 0);
   rotateBone(legRightImg, hipRight, ankleRight, 20, 0);
 
-  if (debugKinectJoints) showKinectJoints(body);
+  if (debugKinectJoints){
+    showKinectJoints(body);
+  } 
 }
 
 // for bones that don't use rotation
@@ -277,6 +320,7 @@ function showKinectJoints(body) {
 
 // draw skeleton
 function drawKinectJoint(joint) {
+  // drawing settings
   noStroke();
   fill(100);
 
