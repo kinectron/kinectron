@@ -1,3 +1,5 @@
+import { text } from "body-parser";
+
 // Copyright (c) 2020 Kinectron
 //
 // This software is released under the MIT License.
@@ -9,7 +11,7 @@
 // example where a skeleton follows your body
 // this example runs by default with pre-recorded data,
 // and it can be switched to use live data from a kinectron server
-// 
+//
 //
 
 // set to true if using live kinectron data
@@ -77,8 +79,6 @@ if you want to use pre-recorded data, switch the value of variable liveData
 from true to false, save the changes, and refresh the browser.`);
   }
 
-  
-
   const jointsCheckbox = createCheckbox("Show Kinect Joints", false);
   jointsCheckbox.changed(jointsChecked);
 
@@ -88,7 +88,6 @@ from true to false, save the changes, and refresh the browser.`);
   if (liveData) {
     initKinectron();
   }
-  
 }
 
 function jointsChecked() {
@@ -182,9 +181,9 @@ function bodyTracked(body) {
   rotateBone(legLeftImg, hipLeft, ankleLeft, -20, 0);
   rotateBone(legRightImg, hipRight, ankleRight, 20, 0);
 
-  if (debugKinectJoints){
+  if (debugKinectJoints) {
     showKinectJoints(body);
-  } 
+  }
 }
 
 // for bones that don't use rotation

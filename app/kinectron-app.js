@@ -1426,6 +1426,11 @@ function startSkeletonTracking() {
 
         if (sendAllBodies) {
           sendToPeer("bodyFrame", normalizedBodyFrame);
+          if (doRecord) {
+            bodyFrame.record_startime = recordStartTime;
+            bodyFrame.record_timestamp = Date.now() - recordStartTime;
+            bodyChunks.push(normalizedBodyFrame);
+          }
         }
 
         skeletonContext.clearRect(
@@ -1439,6 +1444,11 @@ function startSkeletonTracking() {
         normalizedBodyFrame.bodies.forEach(function drawBody(body) {
           if (!sendAllBodies) {
             sendToPeer("trackedBodyFrame", body);
+            if (doRecord) {
+              body.record_startime = recordStartTime;
+              body.record_timestamp = Date.now() - recordStartTime;
+              bodyChunks.push(body);
+            }
           }
 
           drawSkeleton(skeletonCanvas, skeletonContext, body, index);
