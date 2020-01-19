@@ -347,8 +347,6 @@ function record(evt) {
     serverSide = true;
   }
 
-  console.log(serverSide);
-
   if (doRecord) {
     // If no frame selected, send alert
     if (multiFrame === false && currentCamera === null) {
@@ -357,6 +355,8 @@ function record(evt) {
     }
 
     var framesToRecord = [];
+
+    console.log("currentcamera", currentCamera);
 
     if (multiFrame) {
       for (var i = 0; i < currentFrames.length; i++) {
@@ -1049,6 +1049,7 @@ function startColor() {
         colorImage.src = colorImageURL;
       });
     }
+    // Windows Kinect
   } else {
     let colorCanvas = document.getElementById("color-canvas");
     colorCanvas.width = colorwidth / 2;
@@ -1427,8 +1428,8 @@ function startSkeletonTracking() {
         if (sendAllBodies) {
           sendToPeer("bodyFrame", normalizedBodyFrame);
           if (doRecord) {
-            bodyFrame.record_startime = recordStartTime;
-            bodyFrame.record_timestamp = Date.now() - recordStartTime;
+            normalizedBodyFrame.record_startime = recordStartTime;
+            normalizedBodyFrame.record_timestamp = Date.now() - recordStartTime;
             bodyChunks.push(normalizedBodyFrame);
           }
         }
