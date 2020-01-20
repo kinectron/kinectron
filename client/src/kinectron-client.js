@@ -1,5 +1,5 @@
 // Import Peer.js
-console.log("You are running Kinectron API version 0.3.0");
+console.log("You are running Kinectron API version 0.3.1");
 import Peer from "peerjs";
 
 const Kinectron = function(arg1, arg2) {
@@ -883,11 +883,11 @@ const Kinectron = function(arg1, arg2) {
   };
 
   this._drawImageToCanvas = function(frame) {
-    var tempContext;
+    let tempContext;
 
     // Look through media recorders for the correct canvas to draw to
-    for (var k = 0; k < mediaRecorders.length; k++) {
-      var id = mediaRecorders[k].canvas.id;
+    for (let k = 0; k < mediaRecorders.length; k++) {
+      let id = mediaRecorders[k].canvas.id;
       if (id.indexOf(frame) >= 0) {
         tempContext = mediaRecorders[k].canvas.getContext("2d");
       }
@@ -904,10 +904,10 @@ const Kinectron = function(arg1, arg2) {
   };
 
   this._createMediaRecorder = function(frame) {
-    var newMediaRecorder;
+    let newMediaRecorder;
 
     // Create hidden canvas to draw to
-    newHiddenCanvas = document.createElement("canvas");
+    let newHiddenCanvas = document.createElement("canvas");
     newHiddenCanvas.setAttribute("id", frame + Date.now());
 
     if (frame == "color" || frame == "key") {
@@ -918,7 +918,7 @@ const Kinectron = function(arg1, arg2) {
       newHiddenCanvas.height = depthheight;
     }
 
-    newHiddenContext = hiddenCanvas.getContext("2d");
+    let newHiddenContext = hiddenCanvas.getContext("2d");
     newHiddenContext.fillRect(
       0,
       0,
@@ -933,16 +933,16 @@ const Kinectron = function(arg1, arg2) {
     newMediaRecorder = new MediaRecorder(newHiddenCanvas.captureStream());
     newMediaRecorder.canvas = newHiddenCanvas;
 
-    var mediaChunks = [];
+    let mediaChunks = [];
 
     newMediaRecorder.onstop = function(e) {
       // If skeleton data is being tracked, write out the body frames to JSON
       if (frame == "body" || frame == "skeleton") {
-        var blobJson = new Blob([JSON.stringify(bodyChunks)], {
+        let blobJson = new Blob([JSON.stringify(bodyChunks)], {
           type: "application/json"
         });
-        var jsonUrl = URL.createObjectURL(blobJson);
-        var a2 = document.createElement("a");
+        let jsonUrl = URL.createObjectURL(blobJson);
+        let a2 = document.createElement("a");
         document.body.appendChild(a2);
         a2.style = "display: none";
         a2.href = jsonUrl;
@@ -955,11 +955,11 @@ const Kinectron = function(arg1, arg2) {
 
         // If raw depth data tracked, write out to JSON
       } else if (frame == "raw-depth") {
-        var blobJsonRd = new Blob([JSON.stringify(rawDepthChunks)], {
+        let blobJsonRd = new Blob([JSON.stringify(rawDepthChunks)], {
           type: "application/json"
         });
-        var jsonRdUrl = URL.createObjectURL(blobJsonRd);
-        var a3 = document.createElement("a");
+        let jsonRdUrl = URL.createObjectURL(blobJsonRd);
+        let a3 = document.createElement("a");
         document.body.appendChild(a3);
         a3.style = "display: none";
         a3.href = jsonRdUrl;
@@ -973,18 +973,18 @@ const Kinectron = function(arg1, arg2) {
         // If video display the video on the page
       } else {
         // The video as a blob
-        var blobVideo = new Blob(mediaChunks, { type: "video/webm" });
+        let blobVideo = new Blob(mediaChunks, { type: "video/webm" });
 
         // Draw video to screen
-        // var videoElement = document.createElement('video');
+        // let videoElement = document.createElement('video');
         // videoElement.setAttribute("id", Date.now());
         // videoElement.controls = true;
         // document.body.appendChild(videoElement);
         // videoElement.src = window.URL.createObjectURL(blobVideo);
 
         // Download the video
-        var url = URL.createObjectURL(blobVideo);
-        var a = document.createElement("a");
+        let url = URL.createObjectURL(blobVideo);
+        let a = document.createElement("a");
         document.body.appendChild(a);
         a.style = "display: none";
         a.href = url;

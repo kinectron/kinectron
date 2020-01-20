@@ -197,7 +197,7 @@ var _peerjs = _interopRequireDefault(require("peerjs"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Import Peer.js
-console.log("You are running Kinectron API version 0.3.0");
+console.log("You are running Kinectron API version 0.3.1");
 
 var Kinectron = function Kinectron(arg1, arg2) {
   this.img = null; // this.rawDepthImg = null;
@@ -1046,7 +1046,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
   this._createMediaRecorder = function (frame) {
     var newMediaRecorder; // Create hidden canvas to draw to
 
-    newHiddenCanvas = document.createElement("canvas");
+    var newHiddenCanvas = document.createElement("canvas");
     newHiddenCanvas.setAttribute("id", frame + Date.now());
 
     if (frame == "color" || frame == "key") {
@@ -1057,7 +1057,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       newHiddenCanvas.height = depthheight;
     }
 
-    newHiddenContext = hiddenCanvas.getContext("2d");
+    var newHiddenContext = hiddenCanvas.getContext("2d");
     newHiddenContext.fillRect(0, 0, newHiddenCanvas.width, newHiddenCanvas.height); // Add canvas to hidden div
 
     myDiv.appendChild(newHiddenCanvas); // Create media recorder, add canvas to recorder
@@ -1101,7 +1101,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
         var blobVideo = new Blob(mediaChunks, {
           type: "video/webm"
         }); // Draw video to screen
-        // var videoElement = document.createElement('video');
+        // let videoElement = document.createElement('video');
         // videoElement.setAttribute("id", Date.now());
         // videoElement.controls = true;
         // document.body.appendChild(videoElement);
