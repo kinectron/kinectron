@@ -1,5 +1,3 @@
-import { text } from "body-parser";
-
 // Copyright (c) 2020 Kinectron
 //
 // This software is released under the MIT License.
