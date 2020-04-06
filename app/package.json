@@ -26,7 +26,7 @@
     "electron-packager": "^14.1.0",
     "kinect-azure": "^0.0.7",
     "kinect2": "^0.1.7",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.3",
     "os": "^0.1.1",
     "peer": "^0.2.10"
   }
