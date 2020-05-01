@@ -1790,7 +1790,7 @@ function drawImageToCanvas(inCanvas, inContext, frameType, imageType, quality) {
   if (rawDepth) {
     return createDataUrl(inCanvas, frameType, imageType, quality);
   } else {
-    createDataUrl(inCanvas, frameType, imageType, quality);
+    return createDataUrl(inCanvas, frameType, imageType, quality);
   }
 }
 
