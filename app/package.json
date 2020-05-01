@@ -5,8 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": ".\\node_modules\\kinect2\\tools\\electronbuild.js --target=1.4.13 --arch=x64",
-    "package": "electron-packager ."
+    "build": "node .\\node_modules\\kinect2\\tools\\electronbuild.js --target=1.4.13 --arch=x64",
+    "package": "electron-packager . --overwrite"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,6 @@
     "kinect2": "^0.1.7",
     "minimist": "^1.2.3",
     "os": "^0.1.1",
-    "peer": "^0.2.10"
+    "peer": "^0.5.2"
   }
 }
