@@ -669,6 +669,15 @@ function sendToPeer(evt, data) {
   let dataToSend = { event: evt, data: data };
 
   peer_connections.forEach(function(connection) {
+    // TODO: Find an optimal buffering amount (or add a configuration setting for it).
+
+    // Check if there is still data in the buffer before adding more information to it.
+    // This prevents bandwidth issues from causing latency.
+    // dataChannel must be null checked because dead peer connections will be in this
+    //  list.
+    if (connection.dataChannel && connection.dataChannel.bufferedAmount > 0) {
+      return;
+    }
     connection.send(dataToSend);
   });
 }
