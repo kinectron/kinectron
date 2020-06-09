@@ -67,7 +67,6 @@ var sendAllBodies = false;
 
 var multiFrame = false;
 var currentFrames = null;
-var sentTime = Date.now();
 
 var rawDepth = false;
 var blockAPI = false;
@@ -645,7 +644,9 @@ let timer = false;
 let timeCounter = 0;
 let sendCounter = 0;
 let memCounter = 0;
-function sendToPeer(evt, data) {
+
+// lossy argument prevents data from being sent if there is data in the buffer
+function sendToPeer(evt, data, lossy) {
   // console.log(evt);
   // to do: create utility for counting sending fps and size of obj to send
   // console.log(evt);
@@ -669,6 +670,15 @@ function sendToPeer(evt, data) {
   let dataToSend = { event: evt, data: data };
 
   peer_connections.forEach(function(connection) {
+    // TODO: Find an optimal buffering amount (or add a configuration setting for it).
+
+    // Check if there is still data in the buffer before adding more information to it.
+    // This prevents bandwidth issues from causing latency.
+    // dataChannel must be null checked because dead peer connections will be in this
+    //  list.
+    if (lossy && connection.dataChannel && connection.dataChannel.bufferedAmount > 0) {
+      return;
+    }
     connection.send(dataToSend);
   });
 }
@@ -1197,7 +1207,7 @@ function startRawDepth() {
           1
         );
 
-        sendToPeer("rawDepth", rawDepthImg);
+        sendToPeer("rawDepth", rawDepthImg, true);
         // limit raw depth to 25 fps // 40
         // limit raw depth to 15fps
         // if (Date.now() > sentTime + 1000 / 10) {
@@ -1224,11 +1234,7 @@ function startRawDepth() {
           1
         );
 
-        // limit raw depth to 25 fps
-        if (Date.now() > sentTime + 40) {
-          sendToPeer("rawDepth", rawDepthImg);
-          sentTime = Date.now();
-        }
+        sendToPeer("rawDepth", rawDepthImg, true);
 
         busy = false;
       });
@@ -1374,11 +1380,7 @@ function startRGBD() {
 
       //busy = false;
 
-      // limit raw depth to 25 fps
-      if (Date.now() > sentTime + 40) {
-        packageData("rgbd", rgbdImg);
-        sentTime = Date.now();
-      }
+      packageData("rgbd", rgbdImg);
 
       setTimeout(function() {
         busy = false;
@@ -1675,7 +1677,7 @@ function startMulti(multiFrames) {
       // }
 
       // No Framerate limiting
-      sendToPeer("multiFrame", multiToSend);
+      sendToPeer("multiFrame", multiToSend, true);
 
       busy = false;
     }); // kinect.on
@@ -1790,7 +1792,7 @@ function drawImageToCanvas(inCanvas, inContext, frameType, imageType, quality) {
   if (rawDepth) {
     return createDataUrl(inCanvas, frameType, imageType, quality);
   } else {
-    createDataUrl(inCanvas, frameType, imageType, quality);
+    return createDataUrl(inCanvas, frameType, imageType, quality);
   }
 }
 
@@ -1816,7 +1818,7 @@ function createDataUrl(inCanvas, frameType, imageType, quality) {
 
 function packageData(frameType, outputCanvasData) {
   dataToSend = { name: frameType, imagedata: outputCanvasData };
-  sendToPeer("frame", dataToSend);
+  sendToPeer("frame", dataToSend, true);
 }
 
 function processColorBuffer(newPixelData) {
