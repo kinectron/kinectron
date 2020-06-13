@@ -25,9 +25,8 @@
     "electron": "^6.1.12",
     "electron-packager": "^14.2.1",
     "kinect-azure": "^0.0.7",
-    "kinect2": "^0.2.1",
-    "minimist": "^1.2.5",
     "os": "^0.1.1",
-    "peer": "^0.5.3"
+    "peer": "^0.5.3",
+    "kinect2": "^0.1.7"
   }
 }
