@@ -23,11 +23,11 @@ function setup() {
   background(255);
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress = '192.168.87.198'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to windows
-  kinectron.setKinectType("windows");
+  kinectron.setKinectType('windows');
 
   // Connect with application over peer
   kinectron.makeConnection();
@@ -38,7 +38,7 @@ function setup() {
   kinectron.setBodiesCallback(bodyCallback);
 
   // Set frames wanted from Kinectron
-  frames = ["color", "depth", "body"];
+  frames = ['color', 'depth', 'body'];
 }
 
 function keyPressed() {
@@ -54,13 +54,13 @@ function keyPressed() {
 }
 
 function rgbCallback(img) {
-  loadImage(img.src, function(loadedImage) {
+  loadImage(img.src, function (loadedImage) {
     image(loadedImage, 0, 273.2, 660, 370);
   });
 }
 
 function depthCallback(img) {
-  loadImage(img.src, function(loadedImage) {
+  loadImage(img.src, function (loadedImage) {
     image(loadedImage, 330, 0, 330, 273.2);
   });
 }
@@ -75,14 +75,19 @@ function bodyCallback(body) {
 }
 
 function bodyTracked(body) {
-  context.fillStyle = "#000000";
+  context.fillStyle = '#000000';
   context.fillRect(0, 0, 330, 273.2);
 
   //draw joints in tracked bodies
   for (let jointType in body.joints) {
     let joint = body.joints[jointType];
-    context.fillStyle = "#ff0000";
-    context.fillRect(joint.depthX * 330, joint.depthY * 273.2, 10, 10);
+    context.fillStyle = '#ff0000';
+    context.fillRect(
+      joint.depthX * 330,
+      joint.depthY * 273.2,
+      10,
+      10,
+    );
   }
 }
 

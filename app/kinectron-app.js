@@ -198,7 +198,7 @@ function startAzureKinect(evt) {
   toggleFrameType(evt, kinectType); // ensure always starts on single frame
   setCanvasDimensions(kinectType);
 
-  // to do: refactor so this global image and canvas is not needed
+  // TODO: refactor so this global image and canvas is not needed
   initAzureColorImageAndCanvas();
 }
 
@@ -609,7 +609,7 @@ function initpeer() {
     connection.on('open', function () {
       console.log('Connection opened.');
 
-      // to do: revisit
+      // TODO: revisit
       if (whichKinect !== null) {
         sendToPeer('ready', { kinect: whichKinect });
       } else {
@@ -694,23 +694,23 @@ let memCounter = 0;
 // lossy argument prevents data from being sent if there is data in the buffer
 function sendToPeer(evt, data, lossy) {
   // console.log(evt);
-  // to do: create utility for counting sending fps and size of obj to send
+  // TODO: create utility for counting sending fps and size of obj to send
   // console.log(evt);
   // if (evt === "trackedBodyFrame") {
-  // if (evt === "frame") {
-  // if (evt === "rawDepth") {
-  // if (timer === false) {
-  //   timer = true;
-  //   timeCounter = Date.now();
-  // }
-  // if (Date.now() > timeCounter + 5000) {
-  //   console.log("resetting. last count: ", sendCounter);
-  //   timer = false;
-  //   sendCounter = 0;
-  // } else {
-  //   sendCounter++; // count how many times we send in 1 second
-  // }
-  // console.log(roughSizeOfObject(data));
+  // if (evt === 'frame') {
+  //   // if (evt === "rawDepth") {
+  //   if (timer === false) {
+  //     timer = true;
+  //     timeCounter = Date.now();
+  //   }
+  //   if (Date.now() > timeCounter + 1000) {
+  //     console.log('resetting. last count: ', sendCounter);
+  //     timer = false;
+  //     sendCounter = 0;
+  //   } else {
+  //     sendCounter++; // count how many times we send in 1 second
+  //   }
+  //   console.log(roughSizeOfObject(data));
   // }
 
   let dataToSend = { event: evt, data: data };
@@ -722,12 +722,28 @@ function sendToPeer(evt, data, lossy) {
     // This prevents bandwidth issues from causing latency.
     // dataChannel must be null checked because dead peer connections will be in this
     //  list.
-    if (
-      lossy &&
-      connection.dataChannel &&
-      connection.dataChannel.bufferedAmount > 0
-    ) {
-      return;
+    // if (
+    //   lossy &&
+    //   connection.dataChannel &&
+    //   connection.dataChannel.bufferedAmount > 0
+    // ) {
+    //   return;
+    // }
+
+    if (evt === 'frame') {
+      // if (evt === "rawDepth") {
+      if (timer === false) {
+        timer = true;
+        timeCounter = Date.now();
+      }
+      if (Date.now() > timeCounter + 1000) {
+        console.log('resetting. last count: ', sendCounter);
+        timer = false;
+        sendCounter = 0;
+      } else {
+        sendCounter++; // count how many times we send in 1 second
+      }
+      console.log(roughSizeOfObject(data));
     }
     connection.send(dataToSend);
   });
@@ -1034,7 +1050,7 @@ function chooseMulti(evt, incomingFrames) {
   // Set global frames variable for use in preview message
   currentFrames = frames;
 
-  // TO DO Simplify the case and result per Shawn
+  // TODO Simplify the case and result per Shawn
   for (var j = 0; j < frames.length; j++) {
     var frameName;
     var tempName;
@@ -1090,7 +1106,7 @@ function chooseMulti(evt, incomingFrames) {
 function startColor() {
   console.log('starting color camera');
 
-  // to do: ideally refactor so globals not needed for azure
+  // TODO: ideally refactor so globals not needed for azure
 
   resetCanvas('color');
   canvasState = 'color';
@@ -1136,15 +1152,21 @@ function startColor() {
     // Kinect Windows
     if (kinect.open()) {
       kinect.on('colorFrame', function (newPixelData) {
-        if (busy) {
-          return;
-        }
-        busy = true;
+        // if (busy) {
+        //   return;
+        // }
+        // busy = true;
 
         processColorBuffer(newPixelData);
 
-        drawImageToCanvas(colorCanvas, colorContext, 'color', 'webp');
-        busy = false;
+        // drawImageToCanvas(colorCanvas, colorContext, 'color', 'webp');
+
+        let tempCanvas = drawImageToCanvas(colorCanvas, colorContext);
+        let dataUrl = createDataUrl(tempCanvas, 'webp');
+        let packagedData = packageData('color', dataUrl);
+        sendToPeer('frame', packagedData);
+
+        // busy = false;
       });
     }
     kinect.openColorReader();
@@ -1492,7 +1514,7 @@ function startSkeletonTracking() {
 
   if (kinect.constructor.name === 'KinectAzure') {
     if (kinect.open()) {
-      // to do: looks like the cameras need to be open for the tracker to work. true?
+      // TODO: looks like the cameras need to be open for the tracker to work. true?
       kinect.startCameras({
         depth_mode: KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
         color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
@@ -1744,7 +1766,7 @@ function startMulti(multiFrames) {
         multiToSend.rawDepth = temp;
       }
 
-      // TO DO Integrate into interface
+      // TODO Integrate into interface
       // if (frame.depthColor) {
       //   resetCanvas('depth');
       //   canvasState = 'depth';
@@ -1772,7 +1794,7 @@ function startMulti(multiFrames) {
       //   return canvas.toDataURL("image/jpeg", 0.1);
       // }
 
-      // TO DO Implement depthColor and bodyIndexColor -- RGBD?
+      // TODO Implement depthColor and bodyIndexColor -- RGBD?
 
       // Used in greenkey
       // if (frame.bodyIndexColor) {
@@ -1894,26 +1916,25 @@ function resetCanvas(size) {
   }
 }
 
-function drawImageToCanvas(
-  inCanvas,
-  inContext,
-  frameType,
-  imageType,
-  quality,
-) {
+function drawImageToCanvas(inCanvas, inContext) {
   context.putImageData(imageData, 0, 0);
   inContext.clearRect(0, 0, inCanvas.width, inCanvas.height);
   inContext.drawImage(canvas, 0, 0, inCanvas.width, inCanvas.height);
 
-  if (rawDepth) {
-    return createDataUrl(inCanvas, frameType, imageType, quality);
-  } else {
-    return createDataUrl(inCanvas, frameType, imageType, quality);
-  }
+  return inCanvas;
+
+  // // we need to return complex frametypes for additional processing before sending
+  // // TODO: this can likely be rewritten so that lossy is passed through directly to packageData from here
+  // if (multiFrame || rawDepth || frameType == 'rgbd') {
+  //   return createDataUrl(inCanvas, frameType, imageType, quality);
+  //   // single frametypes get packaged and sent without additional processing
+  // } else {
+  //   createDataUrl(inCanvas, frameType, imageType, quality);
+  // }
 }
 
-// to do: test this new function with api
-function createDataUrl(inCanvas, frameType, imageType, quality) {
+// TODO: test this new function with api
+function createDataUrl(inCanvas, imageType, quality) {
   let outputCanvasData;
   let imageQuality = imgQuality; //use globally stored image quality variable
 
@@ -1924,20 +1945,19 @@ function createDataUrl(inCanvas, frameType, imageType, quality) {
     imageQuality,
   );
 
-  if (multiFrame) {
-    return outputCanvasData;
-  } else if (rawDepth) {
-    return outputCanvasData;
-  } else if (frameType == 'rgbd') {
-    return outputCanvasData;
-  } else {
-    packageData(frameType, outputCanvasData);
-  }
+  return outputCanvasData;
+
+  // if (multiFrame || rawDepth || frameType == 'rgbd') {
+  //   return outputCanvasData;
+  // } else {
+  //   packageData(frameType, outputCanvasData);
+  // }
 }
 
 function packageData(frameType, outputCanvasData) {
   dataToSend = { name: frameType, imagedata: outputCanvasData };
-  sendToPeer('frame', dataToSend, true);
+  return dataToSend;
+  // sendToPeer('frame', dataToSend, true);
 }
 
 function processColorBuffer(newPixelData) {
@@ -2064,7 +2084,7 @@ function drawSkeleton(inCanvas, inContext, body, index) {
     }
 
     // for windows kinect
-    // to do: test that this still works with kinect 2
+    // TODO: test that this still works with kinect 2
   } else {
     for (var jointType in body.joints) {
       var joint = body.joints[jointType];

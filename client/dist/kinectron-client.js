@@ -117,7 +117,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"zkY3":[function(require,module,exports) {
+})({"../node_modules/peerjs/dist/peerjs.min.js":[function(require,module,exports) {
 var define;
 parcelRequire=function(e,r,t,n){var i,o="function"==typeof parcelRequire&&parcelRequire,u="function"==typeof require&&require;function f(t,n){if(!r[t]){if(!e[t]){var i="function"==typeof parcelRequire&&parcelRequire;if(!n&&i)return i(t,!0);if(o)return o(t,!0);if(u&&"string"==typeof t)return u(t);var c=new Error("Cannot find module '"+t+"'");throw c.code="MODULE_NOT_FOUND",c}p.resolve=function(r){return e[t][1][r]||r},p.cache={};var l=r[t]=new f.Module(t);e[t][0].call(l.exports,p,l,l.exports,this)}return r[t].exports;function p(e){return f(p.resolve(e))}}f.isParcelRequire=!0,f.Module=function(e){this.id=e,this.bundle=f,this.exports={}},f.modules=e,f.cache=r,f.parent=o,f.register=function(r,t){e[r]=[function(e,r){r.exports=t},{}]};for(var c=0;c<t.length;c++)try{f(t[c])}catch(e){i||(i=e)}if(t.length){var l=f(t[t.length-1]);"object"==typeof exports&&"undefined"!=typeof module?module.exports=l:"function"==typeof define&&define.amd?define(function(){return l}):n&&(this[n]=l)}if(parcelRequire=f,i)throw i;return f}({"4EgB":[function(require,module,exports) {
 var e={};e.useBlobBuilder=function(){try{return new Blob([]),!1}catch(e){return!0}}(),e.useArrayBufferView=!e.useBlobBuilder&&function(){try{return 0===new Blob([new Uint8Array([])]).size}catch(e){return!0}}(),module.exports.binaryFeatures=e;var r=module.exports.BlobBuilder;function t(){this._pieces=[],this._parts=[]}"undefined"!=typeof window&&(r=module.exports.BlobBuilder=window.WebKitBlobBuilder||window.MozBlobBuilder||window.MSBlobBuilder||window.BlobBuilder),t.prototype.append=function(e){"number"==typeof e?this._pieces.push(e):(this.flush(),this._parts.push(e))},t.prototype.flush=function(){if(this._pieces.length>0){var r=new Uint8Array(this._pieces);e.useArrayBufferView||(r=r.buffer),this._parts.push(r),this._pieces=[]}},t.prototype.getBuffer=function(){if(this.flush(),e.useBlobBuilder){for(var t=new r,i=0,u=this._parts.length;i<u;i++)t.append(this._parts[i]);return t.getBlob()}return new Blob(this._parts)},module.exports.BufferBuilder=t;
@@ -189,7 +189,7 @@ var t=require("./bufferbuilder").BufferBuilder,e=require("./bufferbuilder").bina
 "use strict";Object.defineProperty(exports,"__esModule",{value:!0});var e=require("./util"),r=require("./peer");exports.peerjs={Peer:r.Peer,util:e.util},exports.default=r.Peer,window.peerjs=exports.peerjs,window.Peer=r.Peer;
 },{"./util":"BHXf","./peer":"Hxpd"}]},{},["iTK6"], null)
 
-},{}],"y4dT":[function(require,module,exports) {
+},{}],"kinectron-client.js":[function(require,module,exports) {
 "use strict";
 
 var _peerjs = _interopRequireDefault(require("peerjs"));
@@ -197,7 +197,7 @@ var _peerjs = _interopRequireDefault(require("peerjs"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Import Peer.js
-console.log("You are running Kinectron API version 0.3.1");
+console.log('You are running Kinectron API version 0.3.1');
 
 var Kinectron = function Kinectron(arg1, arg2) {
   this.img = null; // this.rawDepthImg = null;
@@ -278,12 +278,12 @@ var Kinectron = function Kinectron(arg1, arg2) {
   var peer = null;
   var connection = null;
   var peerNet = {
-    host: "localhost",
+    host: 'localhost',
     port: 9001,
-    path: "/"
+    path: '/'
   }; // Connect to localhost by default
 
-  var peerId = "kinectron"; // Connect to peer Id Kinectron by default
+  var peerId = 'kinectron'; // Connect to peer Id Kinectron by default
   // Hidden div variables
 
   var myDiv = null; // Record variables
@@ -292,12 +292,16 @@ var Kinectron = function Kinectron(arg1, arg2) {
   var recordStartTime = 0;
   var bodyChunks = [];
   var rawDepthChunks = [];
-  var mediaRecorders = []; // Check for ip address in "quickstart" method
+  var mediaRecorders = []; // Debug timer variables
 
-  if (typeof arg1 !== "undefined" && typeof arg2 == "undefined") {
+  var timer = false;
+  var timeCounter = 0;
+  var sendCounter = 0; // Check for ip address in "quickstart" method
+
+  if (typeof arg1 !== 'undefined' && typeof arg2 == 'undefined') {
     var host = arg1;
     peerNet.host = host; // Check for new network provided by user
-  } else if (typeof arg1 !== "undefined" && typeof arg2 !== "undefined") {
+  } else if (typeof arg1 !== 'undefined' && typeof arg2 !== 'undefined') {
     var peerid = arg1;
     var network = arg2;
     peerId = peerid;
@@ -306,27 +310,27 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
 
   peer = new _peerjs.default(peerNet);
-  peer.on("open", function (id) {
-    console.log("My peer ID is: " + id);
+  peer.on('open', function (id) {
+    console.log('My peer ID is: ' + id);
   });
-  peer.on("connection", function (connection) {
-    connection.on("open", function () {
-      console.log("Peer js is connected");
+  peer.on('connection', function (connection) {
+    connection.on('open', function () {
+      console.log('Peer js is connected');
     });
   }); // Create hidden image to draw to
 
-  myDiv = document.createElement("div");
-  myDiv.style.visibility = "hidden";
-  myDiv.style.position = "fixed";
-  myDiv.style.bottom = "0";
+  myDiv = document.createElement('div');
+  myDiv.style.visibility = 'hidden';
+  myDiv.style.position = 'fixed';
+  myDiv.style.bottom = '0';
   document.body.appendChild(myDiv);
-  this.img = document.createElement("img");
+  this.img = document.createElement('img');
   myDiv.appendChild(this.img); // Used for raw depth processing.
   // TO DO refactor: create dynamically in process raw depth
 
-  var hiddenCanvas = document.createElement("canvas");
-  var hiddenContext = hiddenCanvas.getContext("2d");
-  var hiddenImage = document.createElement("img");
+  var hiddenCanvas = document.createElement('canvas');
+  var hiddenContext = hiddenCanvas.getContext('2d');
+  var hiddenImage = document.createElement('img');
   myDiv.appendChild(hiddenCanvas);
   myDiv.appendChild(hiddenImage);
 
@@ -334,7 +338,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
     hiddenCanvas.width = rawdepthwidth;
     hiddenCanvas.height = rawdepthheight;
     hiddenContext.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-    hiddenImage.addEventListener("load", function (e) {
+    hiddenImage.addEventListener('load', function (e) {
       // hiddenContext.clearRect(
       //   0,
       //   0,
@@ -350,16 +354,32 @@ var Kinectron = function Kinectron(arg1, arg2) {
   this.makeConnection = function () {
     connection = peer.connect(peerId); // get a webrtc DataConnection
 
-    connection.on("open", function (data) {
-      console.log("Open data connection with server");
+    connection.on('open', function (data) {
+      console.log('Open data connection with server');
     }); // Route incoming traffic from Kinectron
 
-    connection.on("data", function (dataReceived) {
-      var data = dataReceived.data;
+    connection.on('data', function (dataReceived) {
+      var data = dataReceived.data; // if (evt === 'frame') {
+      // if (evt === "rawDepth") {
+
+      if (timer === false) {
+        timer = true;
+        timeCounter = Date.now();
+      }
+
+      if (Date.now() > timeCounter + 1000) {
+        console.log('resetting. last count: ', sendCounter);
+        timer = false;
+        sendCounter = 0;
+      } else {
+        sendCounter++; // count how many times we send in 1 second
+      } // console.log(roughSizeOfObject(data));
+      // }
+
 
       switch (dataReceived.event) {
         // Wait for ready from Kinectron to initialize
-        case "ready":
+        case 'ready':
           // if kinect set by server and kinect set by API
           // give precedence to the server
           // let the user know
@@ -404,7 +424,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
           break;
         // If image data draw image
 
-        case "frame":
+        case 'frame':
           this.img.src = data.imagedata;
 
           this.img.onload = function () {
@@ -416,7 +436,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
           break;
         // If receive all bodies, send all bodies
 
-        case "bodyFrame":
+        case 'bodyFrame':
           this.bodiesCallback(data);
 
           if (doRecord) {
@@ -428,7 +448,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
           break;
         // If receive tracked skeleton data, send skeleton
 
-        case "trackedBodyFrame":
+        case 'trackedBodyFrame':
           this.body = data; // If joint specified send joint and call joint callback
 
           if (this.jointName && this.trackedJointCallback && this.body.joints[this.jointName] !== 0) {
@@ -455,11 +475,11 @@ var Kinectron = function Kinectron(arg1, arg2) {
           break;
         // If floor height, draw left hand and height
 
-        case "floorHeightTracker":
+        case 'floorHeightTracker':
           this.fhCallback(data);
           break;
 
-        case "rawDepth":
+        case 'rawDepth':
           var processedData = this._processRawDepth(data);
 
           this.rawDepthCallback(processedData);
@@ -474,7 +494,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
           break;
 
-        case "multiFrame":
+        case 'multiFrame':
           if (data.rawDepth) {
             var processedRawDepthData = this._processRawDepth(data.rawDepth);
 
@@ -489,7 +509,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
                 this.img.src = data.color;
 
                 this.img.onload = function () {
-                  this._drawImageToCanvas("color");
+                  this._drawImageToCanvas('color');
                 }.bind(this);
               }
 
@@ -497,7 +517,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
                 this.img.src = data.depth;
 
                 this.img.onload = function () {
-                  this._drawImageToCanvas("depth");
+                  this._drawImageToCanvas('depth');
                 }.bind(this);
               }
 
@@ -521,7 +541,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
               this.img.onload = function () {
                 this.colorCallback(this.img);
-                if (doRecord) this._drawImageToCanvas("color");
+                if (doRecord) this._drawImageToCanvas('color');
               }.bind(this);
             }
 
@@ -530,7 +550,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
               this.img.onload = function () {
                 this.depthCallback(this.img);
-                if (doRecord) this._drawImageToCanvas("depth");
+                if (doRecord) this._drawImageToCanvas('depth');
               }.bind(this);
             }
 
@@ -568,13 +588,13 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
 
   this.startRGB = function (callback) {
-    console.warn("startRGB no longer in use. Use startColor instead");
+    console.warn('startRGB no longer in use. Use startColor instead');
 
     if (callback) {
       this.colorCallback = callback;
     }
 
-    this._setFeed("color");
+    this._setFeed('color');
   };
 
   this.startColor = function (callback) {
@@ -582,7 +602,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       this.colorCallback = callback;
     }
 
-    this._setFeed("color");
+    this._setFeed('color');
   };
 
   this.startDepth = function (callback) {
@@ -590,7 +610,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       this.depthCallback = callback;
     }
 
-    this._setFeed("depth");
+    this._setFeed('depth');
   };
 
   this.startRawDepth = function (callback) {
@@ -598,7 +618,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       this.rawDepthCallback = callback;
     }
 
-    this._setFeed("raw-depth");
+    this._setFeed('raw-depth');
   };
 
   this.startInfrared = function (callback) {
@@ -606,7 +626,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       this.infraredCallback = callback;
     }
 
-    this._setFeed("infrared");
+    this._setFeed('infrared');
   };
 
   this.startLEInfrared = function (callback) {
@@ -614,7 +634,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       this.leInfraredCallback = callback;
     }
 
-    this._setFeed("le-infrared");
+    this._setFeed('le-infrared');
   };
 
   this.startBodies = function (callback) {
@@ -622,7 +642,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       this.bodiesCallback = callback;
     }
 
-    this._setFeed("body");
+    this._setFeed('body');
   };
 
   this.startTrackedBodies = function (callback) {
@@ -634,12 +654,12 @@ var Kinectron = function Kinectron(arg1, arg2) {
     this.jointName = null;
     this.trackedJointCallback = null;
 
-    this._setFeed("skeleton");
+    this._setFeed('skeleton');
   };
 
   this.startTrackedJoint = function (jointName, callback) {
-    if (typeof jointName == "undefined") {
-      console.warn("Joint name does not exist.");
+    if (typeof jointName == 'undefined') {
+      console.warn('Joint name does not exist.');
       return;
     }
 
@@ -648,20 +668,20 @@ var Kinectron = function Kinectron(arg1, arg2) {
       this.trackedJointCallback = callback;
     }
 
-    this._setFeed("skeleton");
+    this._setFeed('skeleton');
   };
 
   this.startMultiFrame = function (frames, callback) {
-    if (typeof callback !== "undefined") {
+    if (typeof callback !== 'undefined') {
       this.multiFrameCallback = callback;
-    } else if (typeof callback == "undefined") {
+    } else if (typeof callback == 'undefined') {
       this.multiFrameCallback = null;
     }
 
     multiFrame = true;
     currentFrames = frames;
 
-    this._sendToPeer("multi", frames);
+    this._sendToPeer('multi', frames);
   };
 
   this.startKey = function (callback) {
@@ -669,7 +689,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       this.keyCallback = callback;
     }
 
-    this._setFeed("key");
+    this._setFeed('key');
   };
 
   this.startRGBD = function (callback) {
@@ -677,7 +697,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       this.rgbdCallback = callback;
     }
 
-    this._setFeed("rgbd");
+    this._setFeed('rgbd');
   }; // this.startScale = function(callback) {
   //   this.callback = callback;
   //   this._setFeed('scale');
@@ -692,13 +712,13 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
 
   this.stopAll = function () {
-    this._setFeed("stop-all");
+    this._setFeed('stop-all');
   }; // Set Callbacks
   // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
 
 
   this.setRGBCallback = function (callback) {
-    console.warn("setRGBCallback no longer in use. Use setColorCallback instead");
+    console.warn('setRGBCallback no longer in use. Use setColorCallback instead');
     this.colorCallback = callback;
   };
 
@@ -749,7 +769,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
   this.getJoints = function (callback) {
     var jointCallback = callback;
 
-    if (whichKinect === "azure") {
+    if (whichKinect === 'azure') {
       var joints = this.body.skeleton.joints;
 
       for (var i = 0; i < joints.length; i++) {
@@ -772,7 +792,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
     var leftHandState;
     var rightHandState;
 
-    if (whichKinect === "azure") {
+    if (whichKinect === 'azure') {
       leftHand = this.body.skeleton.joints[8];
       rightHand = this.body.skeleton.joints[15];
       leftHandState = null; // azure kinect doesn't track handstates
@@ -796,27 +816,27 @@ var Kinectron = function Kinectron(arg1, arg2) {
   };
 
   this.startRecord = function () {
-    console.log("Starting record");
+    console.log('Starting record');
 
     this._record();
   };
 
   this.stopRecord = function () {
-    console.log("Ending record");
+    console.log('Ending record');
 
     this._record();
   };
 
   this.startServerRecord = function () {
-    console.log("Starting recording on your server");
+    console.log('Starting recording on your server');
 
-    this._sendToPeer("record", "start");
+    this._sendToPeer('record', 'start');
   };
 
   this.stopServerRecord = function () {
-    console.log("Ending recording on your server");
+    console.log('Ending recording on your server');
 
-    this._sendToPeer("record", "stop");
+    this._sendToPeer('record', 'stop');
   }; // Private functions //
 
 
@@ -827,18 +847,18 @@ var Kinectron = function Kinectron(arg1, arg2) {
   };
 
   this._setKinectOnServer = function (kinectType) {
-    this._sendToPeer("setkinect", kinectType);
+    this._sendToPeer('setkinect', kinectType);
   };
 
   this._setCanvasDimensions = function (kinectType) {
-    if (kinectType === "azure") {
+    if (kinectType === 'azure') {
       colorwidth = AZURECOLORWIDTH;
       colorheight = AZURECOLORHEIGHT;
       depthwidth = AZUREDEPTHWIDTH;
       depthheight = AZUREDEPTHHEIGHT;
       rawdepthwidth = AZURERAWWIDTH;
       rawdepthheight = AZURERAWHEIGHT;
-    } else if (kinectType === "windows") {
+    } else if (kinectType === 'windows') {
       colorwidth = WINDOWSCOLORWIDTH;
       colorheight = WINDOWSCOLORHEIGHT;
       depthwidth = WINDOWSDEPTHWIDTH;
@@ -858,7 +878,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
     multiFrame = false;
 
-    this._sendToPeer("feed", dataToSend);
+    this._sendToPeer('feed', dataToSend);
   }; // Send data to peer
 
 
@@ -869,7 +889,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
     }; // If connection not ready, wait for connection
     // but allow "setkinect message to pass"
 
-    if (!ready && dataToSend.event !== "setkinect") {
+    if (!ready && dataToSend.event !== 'setkinect') {
       holdInitFeed = dataToSend;
       return;
     }
@@ -880,27 +900,27 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
   this._chooseCallback = function (frame) {
     switch (frame) {
-      case "color":
+      case 'color':
         this.colorCallback(this.img);
         break;
 
-      case "depth":
+      case 'depth':
         this.depthCallback(this.img);
         break;
 
-      case "infrared":
+      case 'infrared':
         this.infraredCallback(this.img);
         break;
 
-      case "LEinfrared":
+      case 'LEinfrared':
         this.leInfraredCallback(this.img);
         break;
 
-      case "key":
+      case 'key':
         this.keyCallback(this.img);
         break;
 
-      case "rgbd":
+      case 'rgbd':
         this.rgbdCallback(this.img);
         break;
     }
@@ -910,19 +930,19 @@ var Kinectron = function Kinectron(arg1, arg2) {
   this._getHandState = function (handState) {
     switch (handState) {
       case 0:
-        return "unknown";
+        return 'unknown';
 
       case 1:
-        return "notTracked";
+        return 'notTracked';
 
       case 2:
-        return "open";
+        return 'open';
 
       case 3:
-        return "closed";
+        return 'closed';
 
       case 4:
-        return "lasso";
+        return 'lasso';
     }
   }; // this._initRawDepth = function() {
   //   this.rawDepthImg = new Image();
@@ -950,41 +970,13 @@ var Kinectron = function Kinectron(arg1, arg2) {
     var imageData;
     var depthBuffer;
     var processedData = [];
+    hiddenImage.src = data;
+    imageData = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
 
-    if (whichKinect === "azure") {
-      hiddenImage.src = data;
-      imageData = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
+    for (var i = 0; i < imageData.data.length; i += 4) {
+      var depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
 
-      for (var i = 0; i < imageData.data.length; i += 4) {
-        var depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
-
-        processedData.push(depth);
-      }
-    } else {// kinect windows
-      // var imageData;
-      // var depthBuffer;
-      // var processedData = [];
-      // var newImg = new Image();
-      // newImg.src = data;
-      // newImg.onload = function() {
-      //   hiddenContext.clearRect(
-      //     0,
-      //     0,
-      //     hiddenContext.canvas.width,
-      //     hiddenContext.canvas.height
-      //   );
-      //   hiddenContext.drawImage(newImg, 0, 0);
-      // }.bind(this);
-      // imageData = hiddenContext.getImageData(
-      //   0,
-      //   0,
-      //   hiddenContext.canvas.width,
-      //   hiddenContext.canvas.height
-      // );
-      // for (var i = 0; i < imageData.data.length; i += 4) {
-      //   var depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
-      //   processedData.push(depth);
-      // }
+      processedData.push(depth);
     }
 
     busy = false;
@@ -995,8 +987,8 @@ var Kinectron = function Kinectron(arg1, arg2) {
   this._record = function () {
     if (!doRecord) {
       // If no feed started, send warning and return
-      if (multiFrame === false && this.feed === null || this.feed === "stop-all") {
-        console.warn("Record does not work until a feed is started");
+      if (multiFrame === false && this.feed === null || this.feed === 'stop-all') {
+        console.warn('Record does not work until a feed is started');
         return;
       }
 
@@ -1034,7 +1026,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       var id = mediaRecorders[k].canvas.id;
 
       if (id.indexOf(frame) >= 0) {
-        tempContext = mediaRecorders[k].canvas.getContext("2d");
+        tempContext = mediaRecorders[k].canvas.getContext('2d');
       }
     } // Draw to the appropriate canvas
 
@@ -1046,10 +1038,10 @@ var Kinectron = function Kinectron(arg1, arg2) {
   this._createMediaRecorder = function (frame) {
     var newMediaRecorder; // Create hidden canvas to draw to
 
-    var newHiddenCanvas = document.createElement("canvas");
-    newHiddenCanvas.setAttribute("id", frame + Date.now());
+    var newHiddenCanvas = document.createElement('canvas');
+    newHiddenCanvas.setAttribute('id', frame + Date.now());
 
-    if (frame == "color" || frame == "key") {
+    if (frame == 'color' || frame == 'key') {
       newHiddenCanvas.width = colorwidth;
       newHiddenCanvas.height = colorheight;
     } else {
@@ -1057,7 +1049,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       newHiddenCanvas.height = depthheight;
     }
 
-    var newHiddenContext = hiddenCanvas.getContext("2d");
+    var newHiddenContext = hiddenCanvas.getContext('2d');
     newHiddenContext.fillRect(0, 0, newHiddenCanvas.width, newHiddenCanvas.height); // Add canvas to hidden div
 
     myDiv.appendChild(newHiddenCanvas); // Create media recorder, add canvas to recorder
@@ -1068,30 +1060,30 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
     newMediaRecorder.onstop = function (e) {
       // If skeleton data is being tracked, write out the body frames to JSON
-      if (frame == "body" || frame == "skeleton") {
+      if (frame == 'body' || frame == 'skeleton') {
         var blobJson = new Blob([JSON.stringify(bodyChunks)], {
-          type: "application/json"
+          type: 'application/json'
         });
         var jsonUrl = URL.createObjectURL(blobJson);
-        var a2 = document.createElement("a");
+        var a2 = document.createElement('a');
         document.body.appendChild(a2);
-        a2.style = "display: none";
+        a2.style = 'display: none';
         a2.href = jsonUrl;
-        a2.download = frame + Date.now() + ".json";
+        a2.download = frame + Date.now() + '.json';
         a2.click();
         window.URL.revokeObjectURL(jsonUrl); // Reset body chunks
 
         bodyChunks.length = 0; // If raw depth data tracked, write out to JSON
-      } else if (frame == "raw-depth") {
+      } else if (frame == 'raw-depth') {
         var blobJsonRd = new Blob([JSON.stringify(rawDepthChunks)], {
-          type: "application/json"
+          type: 'application/json'
         });
         var jsonRdUrl = URL.createObjectURL(blobJsonRd);
-        var a3 = document.createElement("a");
+        var a3 = document.createElement('a');
         document.body.appendChild(a3);
-        a3.style = "display: none";
+        a3.style = 'display: none';
         a3.href = jsonRdUrl;
-        a3.download = frame + Date.now() + ".json";
+        a3.download = frame + Date.now() + '.json';
         a3.click();
         window.URL.revokeObjectURL(jsonRdUrl); // Reset body chunks
 
@@ -1099,7 +1091,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
       } else {
         // The video as a blob
         var blobVideo = new Blob(mediaChunks, {
-          type: "video/webm"
+          type: 'video/webm'
         }); // Draw video to screen
         // let videoElement = document.createElement('video');
         // videoElement.setAttribute("id", Date.now());
@@ -1109,11 +1101,11 @@ var Kinectron = function Kinectron(arg1, arg2) {
         // Download the video
 
         var url = URL.createObjectURL(blobVideo);
-        var a = document.createElement("a");
+        var a = document.createElement('a');
         document.body.appendChild(a);
-        a.style = "display: none";
+        a.style = 'display: none';
         a.href = url;
-        a.download = frame + Date.now() + ".webm";
+        a.download = frame + Date.now() + '.webm';
         a.click();
         window.URL.revokeObjectURL(url); // Reset media chunks
 
@@ -1133,5 +1125,209 @@ var Kinectron = function Kinectron(arg1, arg2) {
 };
 
 window.Kinectron = Kinectron;
-},{"peerjs":"zkY3"}]},{},["y4dT"], null)
+},{"peerjs":"../node_modules/peerjs/dist/peerjs.min.js"}],"../node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+var global = arguments[3];
+var OVERLAY_ID = '__parcel__error__overlay__';
+var OldModule = module.bundle.Module;
+
+function Module(moduleName) {
+  OldModule.call(this, moduleName);
+  this.hot = {
+    data: module.bundle.hotData,
+    _acceptCallbacks: [],
+    _disposeCallbacks: [],
+    accept: function (fn) {
+      this._acceptCallbacks.push(fn || function () {});
+    },
+    dispose: function (fn) {
+      this._disposeCallbacks.push(fn);
+    }
+  };
+  module.bundle.hotData = null;
+}
+
+module.bundle.Module = Module;
+var checkedAssets, assetsToAccept;
+var parent = module.bundle.parent;
+
+if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
+  var hostname = "" || location.hostname;
+  var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61662" + '/');
+
+  ws.onmessage = function (event) {
+    checkedAssets = {};
+    assetsToAccept = [];
+    var data = JSON.parse(event.data);
+
+    if (data.type === 'update') {
+      var handled = false;
+      data.assets.forEach(function (asset) {
+        if (!asset.isNew) {
+          var didAccept = hmrAcceptCheck(global.parcelRequire, asset.id);
+
+          if (didAccept) {
+            handled = true;
+          }
+        }
+      }); // Enable HMR for CSS by default.
+
+      handled = handled || data.assets.every(function (asset) {
+        return asset.type === 'css' && asset.generated.js;
+      });
+
+      if (handled) {
+        console.clear();
+        data.assets.forEach(function (asset) {
+          hmrApply(global.parcelRequire, asset);
+        });
+        assetsToAccept.forEach(function (v) {
+          hmrAcceptRun(v[0], v[1]);
+        });
+      } else if (location.reload) {
+        // `location` global exists in a web worker context but lacks `.reload()` function.
+        location.reload();
+      }
+    }
+
+    if (data.type === 'reload') {
+      ws.close();
+
+      ws.onclose = function () {
+        location.reload();
+      };
+    }
+
+    if (data.type === 'error-resolved') {
+      console.log('[parcel] ✨ Error resolved');
+      removeErrorOverlay();
+    }
+
+    if (data.type === 'error') {
+      console.error('[parcel] 🚨  ' + data.error.message + '\n' + data.error.stack);
+      removeErrorOverlay();
+      var overlay = createErrorOverlay(data);
+      document.body.appendChild(overlay);
+    }
+  };
+}
+
+function removeErrorOverlay() {
+  var overlay = document.getElementById(OVERLAY_ID);
+
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+function createErrorOverlay(data) {
+  var overlay = document.createElement('div');
+  overlay.id = OVERLAY_ID; // html encode message and stack trace
+
+  var message = document.createElement('div');
+  var stackTrace = document.createElement('pre');
+  message.innerText = data.error.message;
+  stackTrace.innerText = data.error.stack;
+  overlay.innerHTML = '<div style="background: black; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; opacity: 0.85; font-family: Menlo, Consolas, monospace; z-index: 9999;">' + '<span style="background: red; padding: 2px 4px; border-radius: 2px;">ERROR</span>' + '<span style="top: 2px; margin-left: 5px; position: relative;">🚨</span>' + '<div style="font-size: 18px; font-weight: bold; margin-top: 20px;">' + message.innerHTML + '</div>' + '<pre>' + stackTrace.innerHTML + '</pre>' + '</div>';
+  return overlay;
+}
+
+function getParents(bundle, id) {
+  var modules = bundle.modules;
+
+  if (!modules) {
+    return [];
+  }
+
+  var parents = [];
+  var k, d, dep;
+
+  for (k in modules) {
+    for (d in modules[k][1]) {
+      dep = modules[k][1][d];
+
+      if (dep === id || Array.isArray(dep) && dep[dep.length - 1] === id) {
+        parents.push(k);
+      }
+    }
+  }
+
+  if (bundle.parent) {
+    parents = parents.concat(getParents(bundle.parent, id));
+  }
+
+  return parents;
+}
+
+function hmrApply(bundle, asset) {
+  var modules = bundle.modules;
+
+  if (!modules) {
+    return;
+  }
+
+  if (modules[asset.id] || !bundle.parent) {
+    var fn = new Function('require', 'module', 'exports', asset.generated.js);
+    asset.isNew = !modules[asset.id];
+    modules[asset.id] = [fn, asset.deps];
+  } else if (bundle.parent) {
+    hmrApply(bundle.parent, asset);
+  }
+}
+
+function hmrAcceptCheck(bundle, id) {
+  var modules = bundle.modules;
+
+  if (!modules) {
+    return;
+  }
+
+  if (!modules[id] && bundle.parent) {
+    return hmrAcceptCheck(bundle.parent, id);
+  }
+
+  if (checkedAssets[id]) {
+    return;
+  }
+
+  checkedAssets[id] = true;
+  var cached = bundle.cache[id];
+  assetsToAccept.push([bundle, id]);
+
+  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
+    return true;
+  }
+
+  return getParents(global.parcelRequire, id).some(function (id) {
+    return hmrAcceptCheck(global.parcelRequire, id);
+  });
+}
+
+function hmrAcceptRun(bundle, id) {
+  var cached = bundle.cache[id];
+  bundle.hotData = {};
+
+  if (cached) {
+    cached.hot.data = bundle.hotData;
+  }
+
+  if (cached && cached.hot && cached.hot._disposeCallbacks.length) {
+    cached.hot._disposeCallbacks.forEach(function (cb) {
+      cb(bundle.hotData);
+    });
+  }
+
+  delete bundle.cache[id];
+  bundle(id);
+  cached = bundle.cache[id];
+
+  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
+    cached.hot._acceptCallbacks.forEach(function (cb) {
+      cb();
+    });
+
+    return true;
+  }
+}
+},{}]},{},["../node_modules/parcel/src/builtins/hmr-runtime.js","kinectron-client.js"], null)
 //# sourceMappingURL=/kinectron-client.js.map

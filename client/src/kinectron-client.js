@@ -108,6 +108,11 @@ const Kinectron = function (arg1, arg2) {
   var rawDepthChunks = [];
   var mediaRecorders = [];
 
+  // Debug timer variables
+  let timer = false;
+  let timeCounter = 0;
+  let sendCounter = 0;
+
   // Check for ip address in "quickstart" method
   if (typeof arg1 !== 'undefined' && typeof arg2 == 'undefined') {
     var host = arg1;
@@ -195,6 +200,22 @@ const Kinectron = function (arg1, arg2) {
       function (dataReceived) {
         let data = dataReceived.data;
 
+        // if (evt === 'frame') {
+        // if (evt === "rawDepth") {
+        if (timer === false) {
+          timer = true;
+          timeCounter = Date.now();
+        }
+        if (Date.now() > timeCounter + 1000) {
+          console.log('resetting. last count: ', sendCounter);
+          timer = false;
+          sendCounter = 0;
+        } else {
+          sendCounter++; // count how many times we send in 1 second
+        }
+
+        // console.log(roughSizeOfObject(data));
+        // }
         switch (dataReceived.event) {
           // Wait for ready from Kinectron to initialize
 
@@ -810,46 +831,18 @@ const Kinectron = function (arg1, arg2) {
     let depthBuffer;
     let processedData = [];
 
-    if (whichKinect === 'azure') {
-      hiddenImage.src = data;
+    hiddenImage.src = data;
 
-      imageData = hiddenContext.getImageData(
-        0,
-        0,
-        hiddenContext.canvas.width,
-        hiddenContext.canvas.height,
-      );
+    imageData = hiddenContext.getImageData(
+      0,
+      0,
+      hiddenContext.canvas.width,
+      hiddenContext.canvas.height,
+    );
 
-      for (let i = 0; i < imageData.data.length; i += 4) {
-        let depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
-        processedData.push(depth);
-      }
-    } else {
-      // kinect windows
-      // var imageData;
-      // var depthBuffer;
-      // var processedData = [];
-      // var newImg = new Image();
-      // newImg.src = data;
-      // newImg.onload = function() {
-      //   hiddenContext.clearRect(
-      //     0,
-      //     0,
-      //     hiddenContext.canvas.width,
-      //     hiddenContext.canvas.height
-      //   );
-      //   hiddenContext.drawImage(newImg, 0, 0);
-      // }.bind(this);
-      // imageData = hiddenContext.getImageData(
-      //   0,
-      //   0,
-      //   hiddenContext.canvas.width,
-      //   hiddenContext.canvas.height
-      // );
-      // for (var i = 0; i < imageData.data.length; i += 4) {
-      //   var depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
-      //   processedData.push(depth);
-      // }
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      let depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
+      processedData.push(depth);
     }
 
     busy = false;
