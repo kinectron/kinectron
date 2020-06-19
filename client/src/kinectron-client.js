@@ -202,17 +202,17 @@ const Kinectron = function (arg1, arg2) {
 
         // if (evt === 'frame') {
         // if (evt === "rawDepth") {
-        if (timer === false) {
-          timer = true;
-          timeCounter = Date.now();
-        }
-        if (Date.now() > timeCounter + 1000) {
-          console.log('resetting. last count: ', sendCounter);
-          timer = false;
-          sendCounter = 0;
-        } else {
-          sendCounter++; // count how many times we send in 1 second
-        }
+        // if (timer === false) {
+        //   timer = true;
+        //   timeCounter = Date.now();
+        // }
+        // if (Date.now() > timeCounter + 1000) {
+        //   console.log('resetting. last count: ', sendCounter);
+        //   timer = false;
+        //   sendCounter = 0;
+        // } else {
+        //   sendCounter++; // count how many times we send in 1 second
+        // }
 
         // console.log(roughSizeOfObject(data));
         // }
@@ -327,7 +327,7 @@ const Kinectron = function (arg1, arg2) {
             break;
 
           case 'rawDepth':
-            let processedData = this._processRawDepth(data);
+            let processedData = this._processRawDepth(data.imagedata);
             this.rawDepthCallback(processedData);
 
             if (doRecord) {

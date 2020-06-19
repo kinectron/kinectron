@@ -20,13 +20,11 @@ window.addEventListener('load', function () {
   initPointCloud();
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress = '192.168.87.198'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  var kinectronIpAddress = '10.0.1.34'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
-  // Connect to the microstudio
-  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
-
   // Connect remote to application
+  kinectron.setKinectType('windows');
   kinectron.makeConnection();
   kinectron.startRawDepth(rdCallback);
 });

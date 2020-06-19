@@ -18,7 +18,7 @@ let kinectron = null;
 // we put as example here "1.2.3.4"
 // replace it with the kinectron server ip address
 // remember to keep the double quotes
-let kinectronServerIPAddress = '192.168.87.198';
+let kinectronServerIPAddress = '10.0.1.34';
 
 // declare new HTML elements for displaying text
 let textKinectronServerIP;
@@ -97,6 +97,7 @@ function keyPressed() {
 
 // callback function when feed sends a new frame
 function drawFeed(newFrame) {
+  console.log("receiveing ");
   // loadImage() is a p5.js function
   // load new frame from feed and then place it on p5.js canvas
   loadImage(newFrame.src, function (loadedFrame) {

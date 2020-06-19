@@ -81,7 +81,7 @@ var recordStartTime = 0;
 var bodyChunks = [];
 var mediaRecorders = [];
 
-var imgQuality = 0.5; // set default image quality
+let imgQuality = 0.5; // set default image quality
 
 window.addEventListener('load', initpeer);
 window.addEventListener('load', init);
@@ -1152,21 +1152,23 @@ function startColor() {
     // Kinect Windows
     if (kinect.open()) {
       kinect.on('colorFrame', function (newPixelData) {
-        // if (busy) {
-        //   return;
-        // }
-        // busy = true;
+        if (busy) {
+          return;
+        }
+        busy = true;
 
         processColorBuffer(newPixelData);
 
-        // drawImageToCanvas(colorCanvas, colorContext, 'color', 'webp');
-
-        let tempCanvas = drawImageToCanvas(colorCanvas, colorContext);
-        let dataUrl = createDataUrl(tempCanvas, 'webp');
-        let packagedData = packageData('color', dataUrl);
+        let packagedData = prepareDataToSend(
+          colorCanvas,
+          colorContext,
+          'webp',
+          imgQuality,
+          'color',
+        );
         sendToPeer('frame', packagedData);
 
-        // busy = false;
+        busy = false;
       });
     }
     kinect.openColorReader();
@@ -1231,7 +1233,16 @@ function startDepth() {
         busy = true;
 
         processDepthBuffer(newPixelData);
-        drawImageToCanvas(depthCanvas, depthContext, 'depth', 'webp');
+
+        let packagedData = prepareDataToSend(
+          depthCanvas,
+          depthContext,
+          'webp',
+          imgQuality,
+          'depth',
+        );
+        sendToPeer('frame', packagedData);
+
         busy = false;
       });
     }
@@ -1319,15 +1330,16 @@ function startRawDepth() {
         busy = true;
 
         processRawDepthBuffer(newPixelData);
-        var rawDepthImg = drawImageToCanvas(
+
+        let packagedData = prepareDataToSend(
           rawDepthCanvas,
           rawDepthContext,
-          'rawDepth',
           'webp',
           1,
+          'rawDepth',
         );
 
-        sendToPeer('rawDepth', rawDepthImg, true);
+        sendToPeer('rawDepth', packagedData, true);
 
         busy = false;
       });
@@ -1376,12 +1388,16 @@ function startInfrared() {
       busy = true;
 
       processDepthBuffer(newPixelData);
-      drawImageToCanvas(
+
+      let packagedData = prepareDataToSend(
         infraredCanvas,
         infraredContext,
-        'infrared',
         'webp',
+        imgQuality,
+        'infrared',
       );
+
+      sendToPeer('frame', packagedData);
 
       busy = false;
     });
@@ -1419,12 +1435,15 @@ function startLEInfrared() {
       busy = true;
 
       processDepthBuffer(newPixelData);
-      drawImageToCanvas(
+
+      let packagedData = prepareDataToSend(
         leInfraredCanvas,
         leInfraredContext,
-        'LEinfrared',
         'webp',
+        imgQuality,
+        'LEinfrared',
       );
+      sendToPeer('frame', packagedData);
 
       busy = false;
     });
@@ -1461,8 +1480,8 @@ function startRGBD() {
 
       busy = true;
 
-      var j = 0;
-      for (var i = 0; i < imageDataSize; i += 4) {
+      let j = 0;
+      for (let i = 0; i < imageDataSize; i += 4) {
         imageDataArray[i] = frame.depthColor.buffer[i];
         imageDataArray[i + 1] = frame.depthColor.buffer[i + 1];
         imageDataArray[i + 2] = frame.depthColor.buffer[i + 2];
@@ -1478,9 +1497,18 @@ function startRGBD() {
         0.1,
       );
 
+      let packagedData = prepareDataToSend(
+        rgbdCanvas,
+        rgbdContext,
+        'webp',
+        0.1,
+        'rgbd',
+      );
+
+      sendToPeer('frame', packagedData);
       //busy = false;
 
-      packageData('rgbd', rgbdImg);
+      // packageData('rgbd', rgbdImg);
 
       setTimeout(function () {
         busy = false;
@@ -1863,7 +1891,15 @@ function startKey() {
               imageDataArray[i] = newPixelData[i];
             }
 
-            drawImageToCanvas(keyCanvas, keyContext, 'key', 'webp');
+            // drawImageToCanvas(keyCanvas, keyContext, 'key', 'webp');
+            let packagedData = prepareDataToSend(
+              keyCanvas,
+              keyContext,
+              'webp',
+              imgQuality,
+              'key',
+            );
+            sendToPeer('frame', packagedData);
           }
         }
       }
@@ -1916,6 +1952,19 @@ function resetCanvas(size) {
   }
 }
 
+function prepareDataToSend(
+  inCanvas,
+  inContext,
+  imageType,
+  quality,
+  frameType,
+) {
+  let tempCanvas = drawImageToCanvas(inCanvas, inContext);
+  let dataUrl = createDataUrl(tempCanvas, imageType, quality);
+  let packagedData = packageData(frameType, dataUrl);
+  return packagedData;
+}
+
 function drawImageToCanvas(inCanvas, inContext) {
   context.putImageData(imageData, 0, 0);
   inContext.clearRect(0, 0, inCanvas.width, inCanvas.height);
@@ -1946,18 +1995,11 @@ function createDataUrl(inCanvas, imageType, quality) {
   );
 
   return outputCanvasData;
-
-  // if (multiFrame || rawDepth || frameType == 'rgbd') {
-  //   return outputCanvasData;
-  // } else {
-  //   packageData(frameType, outputCanvasData);
-  // }
 }
 
 function packageData(frameType, outputCanvasData) {
   dataToSend = { name: frameType, imagedata: outputCanvasData };
   return dataToSend;
-  // sendToPeer('frame', dataToSend, true);
 }
 
 function processColorBuffer(newPixelData) {

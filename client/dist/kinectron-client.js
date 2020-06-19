@@ -361,21 +361,19 @@ var Kinectron = function Kinectron(arg1, arg2) {
     connection.on('data', function (dataReceived) {
       var data = dataReceived.data; // if (evt === 'frame') {
       // if (evt === "rawDepth") {
-
-      if (timer === false) {
-        timer = true;
-        timeCounter = Date.now();
-      }
-
-      if (Date.now() > timeCounter + 1000) {
-        console.log('resetting. last count: ', sendCounter);
-        timer = false;
-        sendCounter = 0;
-      } else {
-        sendCounter++; // count how many times we send in 1 second
-      } // console.log(roughSizeOfObject(data));
+      // if (timer === false) {
+      //   timer = true;
+      //   timeCounter = Date.now();
       // }
-
+      // if (Date.now() > timeCounter + 1000) {
+      //   console.log('resetting. last count: ', sendCounter);
+      //   timer = false;
+      //   sendCounter = 0;
+      // } else {
+      //   sendCounter++; // count how many times we send in 1 second
+      // }
+      // console.log(roughSizeOfObject(data));
+      // }
 
       switch (dataReceived.event) {
         // Wait for ready from Kinectron to initialize
@@ -480,7 +478,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
           break;
 
         case 'rawDepth':
-          var processedData = this._processRawDepth(data);
+          var processedData = this._processRawDepth(data.imagedata);
 
           this.rawDepthCallback(processedData);
 
@@ -1153,7 +1151,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61662" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52041" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
