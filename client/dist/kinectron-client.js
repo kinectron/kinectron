@@ -359,7 +359,9 @@ var Kinectron = function Kinectron(arg1, arg2) {
     }); // Route incoming traffic from Kinectron
 
     connection.on('data', function (dataReceived) {
-      var data = dataReceived.data; // if (evt === 'frame') {
+      var data = dataReceived.data,
+          event = dataReceived.event;
+      console.log(data); // if (evt === 'frame') {
       // if (evt === "rawDepth") {
       // if (timer === false) {
       //   timer = true;
@@ -375,30 +377,30 @@ var Kinectron = function Kinectron(arg1, arg2) {
       // console.log(roughSizeOfObject(data));
       // }
 
-      switch (dataReceived.event) {
+      switch (event) {
         // Wait for ready from Kinectron to initialize
         case 'ready':
           // if kinect set by server and kinect set by API
           // give precedence to the server
           // let the user know
-          if (dataReceived.data.kinect && whichKinect !== null) {
-            if (whichKinect !== dataReceived.data.kinect) {
-              whichKinect = dataReceived.data.kinect;
+          if (data.kinect && whichKinect !== null) {
+            if (whichKinect !== data.kinect) {
+              whichKinect = data.kinect;
               console.warn("The Kinect server set the Kinect type to ".concat(whichKinect));
             }
           } // if kinect set by api and blank on server
           // set it on server
 
 
-          if (Object.entries(dataReceived.data).length === 0 && dataReceived.data.constructor === Object && whichKinect) {
+          if (Object.entries(data).length === 0 && data.constructor === Object && whichKinect) {
             this._setKinectOnServer(whichKinect);
 
             console.log("The Kinect type is set to ".concat(whichKinect));
           } // if kinect set by server, set the same in api
 
 
-          if (dataReceived.data.kinect && whichKinect === null) {
-            whichKinect = dataReceived.data.kinect;
+          if (data.kinect && whichKinect === null) {
+            whichKinect = data.kinect;
 
             this._setKinect(whichKinect);
 
@@ -504,18 +506,23 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
             if (doRecord) {
               if (data.color) {
-                this.img.src = data.color;
+                var newImg = new Image(WINDOWSCOLORHEIGHT, WINDOWSCOLORWIDTH);
+                newImg.src = data.color;
 
-                this.img.onload = function () {
-                  this._drawImageToCanvas('color');
+                newImg.onload = function () {
+                  this.colorCallback(newImg);
+                  if (doRecord) this._drawImageToCanvas('color', newImg);
                 }.bind(this);
               }
 
               if (data.depth) {
-                this.img.src = data.depth;
+                var _newImg = new Image(WINDOWSDEPTHWIDTH, WINDOWSDEPTHHEIGHT);
 
-                this.img.onload = function () {
-                  this._drawImageToCanvas('depth');
+                _newImg.src = data.depth;
+
+                _newImg.onload = function () {
+                  this.depthCallback(_newImg);
+                  if (doRecord) this._drawImageToCanvas('depth', _newImg);
                 }.bind(this);
               }
 
@@ -535,20 +542,22 @@ var Kinectron = function Kinectron(arg1, arg2) {
             }
           } else {
             if (data.color) {
-              this.img.src = data.color;
+              var clrImg = new Image(WINDOWSCOLORHEIGHT, WINDOWSCOLORWIDTH);
+              clrImg.src = data.color;
 
-              this.img.onload = function () {
-                this.colorCallback(this.img);
-                if (doRecord) this._drawImageToCanvas('color');
+              clrImg.onload = function () {
+                this.colorCallback(clrImg);
+                if (doRecord) this._drawImageToCanvas('color', clrImg);
               }.bind(this);
             }
 
             if (data.depth) {
-              this.img.src = data.depth;
+              var depthImg = new Image(WINDOWSDEPTHWIDTH, WINDOWSDEPTHHEIGHT);
+              depthImg.src = data.depth;
 
-              this.img.onload = function () {
-                this.depthCallback(this.img);
-                if (doRecord) this._drawImageToCanvas('depth');
+              depthImg.onload = function () {
+                this.depthCallback(depthImg);
+                if (doRecord) this._drawImageToCanvas('depth', depthImg);
               }.bind(this);
             }
 
@@ -1017,7 +1026,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
     }
   };
 
-  this._drawImageToCanvas = function (frame) {
+  this._drawImageToCanvas = function (frame, img) {
     var tempContext; // Look through media recorders for the correct canvas to draw to
 
     for (var k = 0; k < mediaRecorders.length; k++) {
@@ -1030,7 +1039,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
 
     tempContext.clearRect(0, 0, tempContext.canvas.width, tempContext.canvas.height);
-    tempContext.drawImage(this.img, 0, 0);
+    tempContext.drawImage(img, 0, 0);
   };
 
   this._createMediaRecorder = function (frame) {
@@ -1151,7 +1160,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52041" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51448" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

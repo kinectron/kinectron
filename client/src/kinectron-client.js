@@ -198,7 +198,9 @@ const Kinectron = function (arg1, arg2) {
     connection.on(
       'data',
       function (dataReceived) {
-        let data = dataReceived.data;
+        const { data, event } = dataReceived;
+
+        console.log(data);
 
         // if (evt === 'frame') {
         // if (evt === "rawDepth") {
@@ -216,16 +218,16 @@ const Kinectron = function (arg1, arg2) {
 
         // console.log(roughSizeOfObject(data));
         // }
-        switch (dataReceived.event) {
+        switch (event) {
           // Wait for ready from Kinectron to initialize
 
           case 'ready':
             // if kinect set by server and kinect set by API
             // give precedence to the server
             // let the user know
-            if (dataReceived.data.kinect && whichKinect !== null) {
-              if (whichKinect !== dataReceived.data.kinect) {
-                whichKinect = dataReceived.data.kinect;
+            if (data.kinect && whichKinect !== null) {
+              if (whichKinect !== data.kinect) {
+                whichKinect = data.kinect;
                 console.warn(
                   `The Kinect server set the Kinect type to ${whichKinect}`,
                 );
@@ -235,8 +237,8 @@ const Kinectron = function (arg1, arg2) {
             // if kinect set by api and blank on server
             // set it on server
             if (
-              Object.entries(dataReceived.data).length === 0 &&
-              dataReceived.data.constructor === Object &&
+              Object.entries(data).length === 0 &&
+              data.constructor === Object &&
               whichKinect
             ) {
               this._setKinectOnServer(whichKinect);
@@ -244,8 +246,8 @@ const Kinectron = function (arg1, arg2) {
             }
 
             // if kinect set by server, set the same in api
-            if (dataReceived.data.kinect && whichKinect === null) {
-              whichKinect = dataReceived.data.kinect;
+            if (data.kinect && whichKinect === null) {
+              whichKinect = data.kinect;
 
               this._setKinect(whichKinect);
               console.log(`The Kinect type is set to ${whichKinect}`);
@@ -343,7 +345,7 @@ const Kinectron = function (arg1, arg2) {
 
           case 'multiFrame':
             if (data.rawDepth) {
-              var processedRawDepthData = this._processRawDepth(
+              let processedRawDepthData = this._processRawDepth(
                 data.rawDepth,
               );
               data.rawDepth = processedRawDepthData;
@@ -354,18 +356,34 @@ const Kinectron = function (arg1, arg2) {
 
               if (doRecord) {
                 if (data.color) {
-                  this.img.src = data.color;
+                  let newImg = new Image(
+                    WINDOWSCOLORHEIGHT,
+                    WINDOWSCOLORWIDTH,
+                  );
 
-                  this.img.onload = function () {
-                    this._drawImageToCanvas('color');
+                  newImg.src = data.color;
+
+                  newImg.onload = function () {
+                    this.colorCallback(newImg);
+
+                    if (doRecord)
+                      this._drawImageToCanvas('color', newImg);
                   }.bind(this);
                 }
 
                 if (data.depth) {
-                  this.img.src = data.depth;
+                  let newImg = new Image(
+                    WINDOWSDEPTHWIDTH,
+                    WINDOWSDEPTHHEIGHT,
+                  );
 
-                  this.img.onload = function () {
-                    this._drawImageToCanvas('depth');
+                  newImg.src = data.depth;
+
+                  newImg.onload = function () {
+                    this.depthCallback(newImg);
+
+                    if (doRecord)
+                      this._drawImageToCanvas('depth', newImg);
                   }.bind(this);
                 }
 
@@ -387,22 +405,34 @@ const Kinectron = function (arg1, arg2) {
               }
             } else {
               if (data.color) {
-                this.img.src = data.color;
+                let clrImg = new Image(
+                  WINDOWSCOLORHEIGHT,
+                  WINDOWSCOLORWIDTH,
+                );
 
-                this.img.onload = function () {
-                  this.colorCallback(this.img);
+                clrImg.src = data.color;
 
-                  if (doRecord) this._drawImageToCanvas('color');
+                clrImg.onload = function () {
+                  this.colorCallback(clrImg);
+
+                  if (doRecord)
+                    this._drawImageToCanvas('color', clrImg);
                 }.bind(this);
               }
 
               if (data.depth) {
-                this.img.src = data.depth;
+                let depthImg = new Image(
+                  WINDOWSDEPTHWIDTH,
+                  WINDOWSDEPTHHEIGHT,
+                );
 
-                this.img.onload = function () {
-                  this.depthCallback(this.img);
+                depthImg.src = data.depth;
 
-                  if (doRecord) this._drawImageToCanvas('depth');
+                depthImg.onload = function () {
+                  this.depthCallback(depthImg);
+
+                  if (doRecord)
+                    this._drawImageToCanvas('depth', depthImg);
                 }.bind(this);
               }
 
@@ -861,11 +891,11 @@ const Kinectron = function (arg1, arg2) {
         return;
       }
 
-      var framesToRecord = [];
+      let framesToRecord = [];
 
       // How many recorders needed
       if (multiFrame) {
-        for (var i = 0; i < currentFrames.length; i++) {
+        for (let i = 0; i < currentFrames.length; i++) {
           framesToRecord.push(currentFrames[i]);
         }
       } else {
@@ -873,7 +903,7 @@ const Kinectron = function (arg1, arg2) {
       }
 
       // Create one media recorder for each feed
-      for (var j = 0; j < framesToRecord.length; j++) {
+      for (let j = 0; j < framesToRecord.length; j++) {
         mediaRecorders.push(
           this._createMediaRecorder(framesToRecord[j]),
         );
@@ -885,14 +915,14 @@ const Kinectron = function (arg1, arg2) {
       doRecord = false;
 
       // Stop all mediarecorders and remove them from array
-      for (var k = mediaRecorders.length - 1; k >= 0; k--) {
+      for (let k = mediaRecorders.length - 1; k >= 0; k--) {
         mediaRecorders[k].stop();
         mediaRecorders.splice(k, 1);
       }
     }
   };
 
-  this._drawImageToCanvas = function (frame) {
+  this._drawImageToCanvas = function (frame, img) {
     let tempContext;
 
     // Look through media recorders for the correct canvas to draw to
@@ -910,7 +940,7 @@ const Kinectron = function (arg1, arg2) {
       tempContext.canvas.width,
       tempContext.canvas.height,
     );
-    tempContext.drawImage(this.img, 0, 0);
+    tempContext.drawImage(img, 0, 0);
   };
 
   this._createMediaRecorder = function (frame) {

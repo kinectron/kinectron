@@ -730,21 +730,7 @@ function sendToPeer(evt, data, lossy) {
     //   return;
     // }
 
-    if (evt === 'frame') {
-      // if (evt === "rawDepth") {
-      if (timer === false) {
-        timer = true;
-        timeCounter = Date.now();
-      }
-      if (Date.now() > timeCounter + 1000) {
-        console.log('resetting. last count: ', sendCounter);
-        timer = false;
-        sendCounter = 0;
-      } else {
-        sendCounter++; // count how many times we send in 1 second
-      }
-      console.log(roughSizeOfObject(data));
-    }
+    console.log(dataToSend);
     connection.send(dataToSend);
   });
 }
@@ -1136,7 +1122,7 @@ function startColor() {
           URL.revokeObjectURL(colorImageURL);
         }
 
-        // color canvas processing and seinging managed in colorImage on load event
+        // color canvas processing and sending managed in colorImage on load event
         // see initAzureColorImageAndCanvas()
         colorImageURL = URL.createObjectURL(imageBlob);
         colorImage.src = colorImageURL;
@@ -1681,8 +1667,8 @@ function displayCurrentFrames() {
 function startMulti(multiFrames) {
   console.log('starting multi');
 
-  var options = { frameTypes: multiFrames };
-  var multiToSend = {};
+  let options = { frameTypes: multiFrames };
+  let multiToSend = {};
 
   displayCurrentFrames();
 
@@ -1694,12 +1680,14 @@ function startMulti(multiFrames) {
       }
       busy = true;
 
-      var newPixelData;
-      var temp;
+      let newPixelData;
+      let temp;
 
       if (frame.color) {
-        var colorCanvas = document.getElementById('color-canvas');
-        var colorContext = colorCanvas.getContext('2d');
+        let colorCanvas = document.getElementById('color-canvas');
+        colorCanvas.width = colorwidth / 2;
+        colorCanvas.height = colorheight / 2;
+        let colorContext = colorCanvas.getContext('2d');
 
         resetCanvas('color');
         canvasState = 'color';
@@ -1707,20 +1695,19 @@ function startMulti(multiFrames) {
 
         newPixelData = frame.color.buffer;
         processColorBuffer(newPixelData);
-        temp = drawImageToCanvas(
-          colorCanvas,
-          colorContext,
-          null,
-          'webp',
-        );
-        multiToSend.color = temp;
+
+        let tempCanvas = drawImageToCanvas(colorCanvas, colorContext);
+        let dataUrl = createDataUrl(tempCanvas, 'webp', imgQuality);
+        multiToSend.color = dataUrl;
       }
 
       if (frame.body) {
-        var skeletonCanvas = document.getElementById(
+        let skeletonCanvas = document.getElementById(
           'skeleton-canvas',
         );
-        var skeletonContext = skeletonCanvas.getContext('2d');
+        skeletonCanvas.width = depthwidth;
+        skeletonCanvas.height = depthheight;
+        let skeletonContext = skeletonCanvas.getContext('2d');
 
         if (doRecord) {
           frame.body.record_startime = recordStartTime;
@@ -1729,7 +1716,7 @@ function startMulti(multiFrames) {
         }
 
         // index used to change colors on draw
-        var index = 0;
+        let index = 0;
 
         // draw tracked bodies
         skeletonContext.clearRect(
@@ -1754,8 +1741,10 @@ function startMulti(multiFrames) {
       }
 
       if (frame.depth) {
-        var depthCanvas = document.getElementById('depth-canvas');
-        var depthContext = depthCanvas.getContext('2d');
+        let depthCanvas = document.getElementById('depth-canvas');
+        depthCanvas.width = depthwidth;
+        depthCanvas.height = depthheight;
+        let depthContext = depthCanvas.getContext('2d');
 
         resetCanvas('depth');
         canvasState = 'depth';
@@ -1763,20 +1752,20 @@ function startMulti(multiFrames) {
 
         newPixelData = frame.depth.buffer;
         processDepthBuffer(newPixelData);
-        temp = drawImageToCanvas(
-          depthCanvas,
-          depthContext,
-          null,
-          'webp',
-        );
-        multiToSend.depth = temp;
+
+        let tempCanvas = drawImageToCanvas(depthCanvas, depthContext);
+        let dataUrl = createDataUrl(tempCanvas, 'webp', imgQuality);
+
+        multiToSend.depth = dataUrl;
       }
 
       if (frame.rawDepth) {
-        var rawDepthCanvas = document.getElementById(
+        let rawDepthCanvas = document.getElementById(
           'raw-depth-canvas',
         );
-        var rawDepthContext = rawDepthCanvas.getContext('2d');
+        rawDepthCanvas.width = rawdepthwidth;
+        rawDepthCanvas.height = rawdepthheight;
+        let rawDepthContext = rawDepthCanvas.getContext('2d');
 
         resetCanvas('raw');
         canvasState = 'raw';
@@ -1793,40 +1782,6 @@ function startMulti(multiFrames) {
         );
         multiToSend.rawDepth = temp;
       }
-
-      // TODO Integrate into interface
-      // if (frame.depthColor) {
-      //   resetCanvas('depth');
-      //   canvasState = 'depth';
-      //   setImageData();
-
-      //   newPixelData = frame.depthColor.buffer;
-      //   processColorBuffer(newPixelData);
-      //   temp = drawImageToCanvas(null, 'jpeg');
-      //   multiToSend.depthColor = temp;
-
-      // }
-
-      // function drawColorBuffer(imageBuffer) {
-      //   if(busy) {
-      //     return;
-      //   }
-      //   busy = true;
-      //   var newPixelData = new Uint8Array(imageBuffer);
-      //   for (var i = 0; i < imageDataSize; i++) {
-      //     imageDataArray[i] = newPixelData[i];
-      //   }
-      //   context.putImageData(imageData, 0, 0);
-      //   busy = false;
-      //   // send really low quality image data to prioritize depth data
-      //   return canvas.toDataURL("image/jpeg", 0.1);
-      // }
-
-      // TODO Implement depthColor and bodyIndexColor -- RGBD?
-
-      // Used in greenkey
-      // if (frame.bodyIndexColor) {
-      // }
 
       //Frame rate limiting
       // if (Date.now() > sentTime + 40) {

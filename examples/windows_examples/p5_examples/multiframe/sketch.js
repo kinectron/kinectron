@@ -19,12 +19,11 @@ function setup() {
   myCanvas = createCanvas(1000, 1000);
   context = myCanvas.drawingContext;
 
-  //console.log(myCanvas.drawingContext);
   background(255);
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = '192.168.87.198'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
-  kinectron = new Kinectron(kinectronIpAddress);
+  let kinectronServerIPAddress = '10.0.1.34'; // FILL IN YOUR KINECTRON IP ADDRESS HERE kinectron = new Kinectron(kinectronIpAddress);
+  kinectron = new Kinectron(kinectronServerIPAddress);
 
   // Set kinect type to windows
   kinectron.setKinectType('windows');
@@ -50,6 +49,14 @@ function keyPressed() {
   if (keyCode === UP_ARROW) {
     // Start multiframe using individual frame callbacks
     kinectron.startMultiFrame(frames);
+  }
+
+  if (keyCode === DOWN_ARROW) {
+    kinectron.startRecord();
+  }
+
+  if (keyCode === RIGHT_ARROW) {
+    kinectron.stopRecord();
   }
 }
 
