@@ -25,16 +25,16 @@ let animFrame = null;
 let busy = false;
 
 // Wait for page to load to create webgl canvas and Kinectron connection
-window.addEventListener("load", function() {
+window.addEventListener('load', function () {
   // Create point cloud
   initPointCloud();
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress = '10.0.1.34'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to azure
-  kinectron.setKinectType("azure");
+  kinectron.setKinectType('azure');
 
   // Connect remote to application
   kinectron.makeConnection();
@@ -52,10 +52,10 @@ function rdCallback(dataReceived) {
 function initPointCloud() {
   // Create three.js renderer
   renderer = new THREE.WebGLRenderer({
-    canvas: document.getElementById("cloudCanvas"),
+    canvas: document.getElementById('cloudCanvas'),
     alpha: 0,
     antialias: true,
-    clearColor: 0x000000
+    clearColor: 0x000000,
   });
 
   // Create three.js camera and controls
@@ -63,7 +63,7 @@ function initPointCloud() {
     30,
     renderer.domElement.width / renderer.domElement.height,
     1,
-    10000
+    10000,
   );
   camera.position.set(0, 0, 9200);
   controls = new THREE.TrackballControls(camera, renderer.domElement);
@@ -73,7 +73,7 @@ function initPointCloud() {
   scene.background = new THREE.Color(0x000000);
 
   createParticles();
-  window.addEventListener("resize", onWindowResize, false);
+  window.addEventListener('resize', onWindowResize, false);
   onWindowResize();
   render();
 }
@@ -97,7 +97,7 @@ function createParticles() {
     let color = Math.floor((i / numParticles) * 100);
     let color2 = 100 - color;
     colors[i] = new THREE.Color(
-      "rgb(" + color2 + "%," + color2 + "%, " + color + "%)"
+      'rgb(' + color2 + '%,' + color2 + '%, ' + color + '%)',
     );
   }
 
@@ -106,7 +106,7 @@ function createParticles() {
   let material = new THREE.PointsMaterial({
     size: 4,
     vertexColors: THREE.VertexColors,
-    transparent: true
+    transparent: true,
   });
   mesh = new THREE.Points(particles, material);
   scene.add(mesh);
@@ -127,7 +127,10 @@ function pointCloud(depthBuffer) {
   // Match depth buffer info to each particle
   for (let i = 0; i < depthBuffer.length; i++) {
     let depth = depthBuffer[i];
-    if (depth <= nDepthMinReliableDistance || depth >= nDepthMaxDistance)
+    if (
+      depth <= nDepthMinReliableDistance ||
+      depth >= nDepthMaxDistance
+    )
       depth = Number.MAX_VALUE; //push particles far far away so we don't see them
     particles.vertices[j].z = nDepthMaxDistance - depth - 2000;
     j++;

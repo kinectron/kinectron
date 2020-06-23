@@ -220,7 +220,10 @@ function initAzureColorImageAndCanvas() {
       colorwidth / 2,
       colorheight / 2,
     );
-    createDataUrl(colorCanvas, 'color', 'webp');
+
+    let dataUrl = createDataUrl(colorCanvas, 'webp', imgQuality);
+    let packagedData = packageData('color', dataUrl);
+    sendToPeer('frame', packagedData);
   });
 }
 
@@ -1206,7 +1209,15 @@ function startDepth() {
           data.depthImageFrame.imageData,
         );
         processAzureDepthBuffer(newPixelData, depthModeRange);
-        drawImageToCanvas(depthCanvas, depthContext, 'depth', 'webp');
+
+        let packagedData = prepareDataToSend(
+          depthCanvas,
+          depthContext,
+          'webp',
+          imgQuality,
+          'depth',
+        );
+        sendToPeer('frame', packagedData);
       });
     }
   } else {
@@ -1289,15 +1300,16 @@ function startRawDepth() {
         );
 
         processRawDepthBuffer(newPixelData);
-        let rawDepthImg = drawImageToCanvas(
+
+        let packagedData = prepareDataToSend(
           rawDepthCanvas,
           rawDepthContext,
-          'rawDepth',
           'webp',
           1,
+          'rawDepth',
         );
 
-        sendToPeer('rawDepth', rawDepthImg, true);
+        sendToPeer('rawDepth', packagedData, true);
         // limit raw depth to 25 fps // 40
         // limit raw depth to 15fps
         // if (Date.now() > sentTime + 1000 / 10) {
