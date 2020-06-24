@@ -42,7 +42,7 @@ let currentFeed = 'none';
 // setup() is a p5.js function
 // setup() runs once, at the beginning
 function setup() {
-  // create canvas the size of kinect2 depth image
+  // create canvas the size of depth image
   createCanvas(640, 576);
   pixelDensity(1);
   // white background
@@ -56,7 +56,7 @@ function setup() {
   // create an instance of kinectron
   kinectron = new Kinectron(kinectronServerIPAddress);
 
-  // Set kinect type to windows
+  // Set kinect type to azure
   kinectron.setKinectType('azure');
 
   // Connect with application over peer
@@ -68,6 +68,8 @@ function setup() {
   kinectron.setRawDepthCallback(drawRawDepth);
   kinectron.setTrackedBodiesCallback(drawBody);
   kinectron.setBodiesCallback(getBodies);
+
+  // Feeds not implemented for azure
   // kinectron.setInfraredCallback(drawImage);
   // kinectron.setLeInfraredCallback(drawImage);
   // kinectron.setKeyCallback(drawImage);
@@ -93,8 +95,6 @@ function draw() {
 // keyPressed() is a p5.js function
 // choose camera to start based on key pressed
 function keyPressed() {
-  console.log('key, ', key);
-
   switch (key) {
     case '1':
       resizeCanvas(AZURECOLORWIDTH, AZURECOLORHEIGHT);
@@ -175,7 +175,6 @@ function drawRawDepth(depthBuffer) {
   let j = 0;
   for (let i = 0; i < pixels.length; i++) {
     let imgColor = map(depthBuffer[i], 0, 8191, 0, 255);
-    // let imgColor = 100;
     pixels[j + 0] = imgColor;
     pixels[j + 1] = imgColor;
     pixels[j + 2] = imgColor;
@@ -183,13 +182,11 @@ function drawRawDepth(depthBuffer) {
     j += 4;
   }
   updatePixels();
-
   busy = false;
 }
 
 function getBodies(allBodies) {
   background(0, 20);
-  // debugger;
 
   // kinect azure only sends tracked bodies in bodies array
   for (let i = 0; i < allBodies.bodies.length; i++) {
@@ -203,7 +200,6 @@ function getBodies(allBodies) {
 }
 
 function drawBody(body) {
-  // console.log(body);
   background(0, 20);
 
   // Get all the joints off the tracked body and do something with them

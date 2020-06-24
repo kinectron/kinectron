@@ -7,7 +7,7 @@
     "kinectron-api": "kinectron.bundle.js"
   },
   "dependencies": {
-    "peerjs": "1.1.0"
+    "peerjs": "^1.1.0"
   },
   "devDependencies": {
     "parcel": "^1.12.4"
