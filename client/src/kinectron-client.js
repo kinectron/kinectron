@@ -200,8 +200,6 @@ const Kinectron = function (arg1, arg2) {
       function (dataReceived) {
         const { data, event } = dataReceived;
 
-        console.log(data);
-
         // if (evt === 'frame') {
         // if (evt === "rawDepth") {
         // if (timer === false) {

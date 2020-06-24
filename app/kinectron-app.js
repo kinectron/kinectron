@@ -1552,17 +1552,15 @@ function startSkeletonTracking() {
           return;
         }
         // normalizing 2d coordinates
-        let normalizedBodyFrame = normalizeSkeletonCoords(
-          data.bodyFrame,
-        );
+        let processedBodyFrame = processBodyFrame(data.bodyFrame);
 
         if (sendAllBodies) {
-          sendToPeer('bodyFrame', normalizedBodyFrame);
+          sendToPeer('bodyFrame', processedBodyFrame);
           if (doRecord) {
-            normalizedBodyFrame.record_startime = recordStartTime;
-            normalizedBodyFrame.record_timestamp =
+            processedBodyFrame.record_startime = recordStartTime;
+            processedBodyFrame.record_timestamp =
               Date.now() - recordStartTime;
-            bodyChunks.push(normalizedBodyFrame);
+            bodyChunks.push(processedBodyFrame);
           }
         }
 
@@ -1574,7 +1572,7 @@ function startSkeletonTracking() {
         );
 
         let index = 0;
-        normalizedBodyFrame.bodies.forEach(function drawBody(body) {
+        processedBodyFrame.bodies.forEach(function drawBody(body) {
           if (!sendAllBodies) {
             sendToPeer('trackedBodyFrame', body);
             if (doRecord) {
@@ -1632,6 +1630,21 @@ function startSkeletonTracking() {
     }
   }
 } //tracking
+
+function processBodyFrame(bodyFrame) {
+  bodyFrame = removeUnusedImageFrames(bodyFrame);
+  bodyFrame = normalizeSkeletonCoords(bodyFrame);
+  return bodyFrame;
+}
+
+// Need to remove unused image frames because of error in packing
+// empty array in peerjs/packer
+// in peerjs see:     var length = blob.length || blob.byteLength || blob.size; returns undefined
+function removeUnusedImageFrames(bodyFrame) {
+  delete bodyFrame.bodyIndexMapImageFrame;
+  delete bodyFrame.bodyIndexMapToColorImageFrame;
+  return bodyFrame;
+}
 
 function normalizeSkeletonCoords(bodyFrame) {
   bodyFrame.bodies.forEach(function (body) {
