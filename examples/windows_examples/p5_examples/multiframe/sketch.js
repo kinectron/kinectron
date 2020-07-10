@@ -22,7 +22,7 @@ function setup() {
   background(255);
 
   // Define and create an instance of kinectron
-  let kinectronServerIPAddress = '10.0.1.34'; // FILL IN YOUR KINECTRON IP ADDRESS HERE kinectron = new Kinectron(kinectronIpAddress);
+  let kinectronServerIPAddress = '192.168.68.114'; // FILL IN YOUR KINECTRON IP ADDRESS HERE kinectron = new Kinectron(kinectronIpAddress);
   kinectron = new Kinectron(kinectronServerIPAddress);
 
   // Set kinect type to windows

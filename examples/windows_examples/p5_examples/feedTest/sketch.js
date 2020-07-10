@@ -18,7 +18,7 @@ let kinectron = null;
 // we put as example here "1.2.3.4"
 // replace it with the kinectron server ip address
 // remember to keep the double quotes
-let kinectronServerIPAddress = '10.0.1.34';
+let kinectronServerIPAddress = '192.168.68.111';
 
 // declare new HTML elements for displaying text
 let textKinectronServerIP;
@@ -189,7 +189,6 @@ function getBodies(allBodies) {
 }
 
 function drawBody(body) {
-  console.log(body);
   background(0, 20);
 
   // Get all the joints off the tracked body and do something with them

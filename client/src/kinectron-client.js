@@ -82,7 +82,7 @@ const Kinectron = function (arg1, arg2) {
   let whichKinect = null;
 
   // Processing raw depth indicator
-  var busy = false;
+  let busy = false;
 
   // Running multiframe indicator
   var multiFrame = false;
@@ -200,8 +200,7 @@ const Kinectron = function (arg1, arg2) {
       function (dataReceived) {
         const { data, event } = dataReceived;
 
-        // if (evt === 'frame') {
-        // if (evt === "rawDepth") {
+        // to check receiveing fps
         // if (timer === false) {
         //   timer = true;
         //   timeCounter = Date.now();
@@ -214,8 +213,6 @@ const Kinectron = function (arg1, arg2) {
         //   sendCounter++; // count how many times we send in 1 second
         // }
 
-        // console.log(roughSizeOfObject(data));
-        // }
         switch (event) {
           // Wait for ready from Kinectron to initialize
 
@@ -327,11 +324,13 @@ const Kinectron = function (arg1, arg2) {
             break;
 
           case 'rawDepth':
-            let processedData = this._processRawDepth(data.imagedata);
+            const processedData = this._processRawDepth(
+              data.imagedata,
+            );
             this.rawDepthCallback(processedData);
 
             if (doRecord) {
-              var recordedData = {};
+              let recordedData = {};
               recordedData.data = processedData;
               recordedData.record_startime = recordStartTime;
               recordedData.record_timestamp =
@@ -832,31 +831,8 @@ const Kinectron = function (arg1, arg2) {
     }
   };
 
-  // this._initRawDepth = function() {
-  //   this.rawDepthImg = new Image();
-  //   this.rawDepthImg.addEventListener("load", e => {
-  //     // hiddenContext.clearRect(
-  //     //   0,
-  //     //   0,
-  //     //   hiddenContext.canvas.width,
-  //     //   hiddenContext.canvas.height
-  //     // );
-  //     hiddenContext.drawImage(
-  //       this.rawDepthImg,
-  //       0,
-  //       0,
-  //       hiddenContext.canvas.width,
-  //       hiddenContext.canvas.height
-  //     );
-  //   });
-  // };
-
   this._processRawDepth = function (data) {
-    if (busy) return;
-    busy = true;
-
     let imageData;
-    let depthBuffer;
     let processedData = [];
 
     hiddenImage.src = data;
@@ -873,7 +849,6 @@ const Kinectron = function (arg1, arg2) {
       processedData.push(depth);
     }
 
-    busy = false;
     return processedData;
   };
 
@@ -1045,6 +1020,34 @@ const Kinectron = function (arg1, arg2) {
     // Start recording
     newMediaRecorder.start();
     return newMediaRecorder;
+  };
+
+  this._roughSizeOfObject = function (object) {
+    let objectList = [];
+    let stack = [object];
+    let bytes = 0;
+
+    while (stack.length) {
+      let value = stack.pop();
+
+      if (typeof value === 'boolean') {
+        bytes += 4;
+      } else if (typeof value === 'string') {
+        bytes += value.length * 2;
+      } else if (typeof value === 'number') {
+        bytes += 8;
+      } else if (
+        typeof value === 'object' &&
+        objectList.indexOf(value) === -1
+      ) {
+        objectList.push(value);
+
+        for (let i in value) {
+          stack.push(value[i]);
+        }
+      }
+    }
+    return bytes;
   };
 };
 

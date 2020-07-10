@@ -30,7 +30,7 @@ window.addEventListener('load', function () {
   initPointCloud();
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = '10.0.1.34'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  let kinectronIpAddress = '192.168.68.114'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to azure

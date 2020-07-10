@@ -196,6 +196,8 @@ var _peerjs = _interopRequireDefault(require("peerjs"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 // Import Peer.js
 console.log('You are running Kinectron API version 0.3.1');
 
@@ -360,8 +362,7 @@ var Kinectron = function Kinectron(arg1, arg2) {
 
     connection.on('data', function (dataReceived) {
       var data = dataReceived.data,
-          event = dataReceived.event; // if (evt === 'frame') {
-      // if (evt === "rawDepth") {
+          event = dataReceived.event; // to check receiveing fps
       // if (timer === false) {
       //   timer = true;
       //   timeCounter = Date.now();
@@ -372,8 +373,6 @@ var Kinectron = function Kinectron(arg1, arg2) {
       //   sendCounter = 0;
       // } else {
       //   sendCounter++; // count how many times we send in 1 second
-      // }
-      // console.log(roughSizeOfObject(data));
       // }
 
       switch (event) {
@@ -950,31 +949,10 @@ var Kinectron = function Kinectron(arg1, arg2) {
       case 4:
         return 'lasso';
     }
-  }; // this._initRawDepth = function() {
-  //   this.rawDepthImg = new Image();
-  //   this.rawDepthImg.addEventListener("load", e => {
-  //     // hiddenContext.clearRect(
-  //     //   0,
-  //     //   0,
-  //     //   hiddenContext.canvas.width,
-  //     //   hiddenContext.canvas.height
-  //     // );
-  //     hiddenContext.drawImage(
-  //       this.rawDepthImg,
-  //       0,
-  //       0,
-  //       hiddenContext.canvas.width,
-  //       hiddenContext.canvas.height
-  //     );
-  //   });
-  // };
+  };
 
-
-  this._processRawDepth = function (data) {
-    if (busy) return;
-    busy = true;
+  this._processRawDepth = function _processRawDepth(data) {
     var imageData;
-    var depthBuffer;
     var processedData = [];
     hiddenImage.src = data;
     imageData = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
@@ -985,7 +963,6 @@ var Kinectron = function Kinectron(arg1, arg2) {
       processedData.push(depth);
     }
 
-    busy = false;
     return processedData;
   }; // Toggle Recording
 
@@ -1128,6 +1105,32 @@ var Kinectron = function Kinectron(arg1, arg2) {
     newMediaRecorder.start();
     return newMediaRecorder;
   };
+
+  this._roughSizeOfObject = function (object) {
+    var objectList = [];
+    var stack = [object];
+    var bytes = 0;
+
+    while (stack.length) {
+      var value = stack.pop();
+
+      if (typeof value === 'boolean') {
+        bytes += 4;
+      } else if (typeof value === 'string') {
+        bytes += value.length * 2;
+      } else if (typeof value === 'number') {
+        bytes += 8;
+      } else if (_typeof(value) === 'object' && objectList.indexOf(value) === -1) {
+        objectList.push(value);
+
+        for (var i in value) {
+          stack.push(value[i]);
+        }
+      }
+    }
+
+    return bytes;
+  };
 };
 
 window.Kinectron = Kinectron;
@@ -1159,7 +1162,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50552" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50133" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

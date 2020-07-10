@@ -74,6 +74,8 @@ var blockAPI = false;
 // Key Tracking needs cleanup
 var trackedBodyIndex = -1;
 
+let sentTime = Date.now();
+
 // Record variables
 const recordingLocation = os.homedir() + '/kinectron-recordings/';
 var doRecord = false;
@@ -221,8 +223,8 @@ function initAzureColorImageAndCanvas() {
       colorheight / 2,
     );
 
-    let dataUrl = createDataUrl(colorCanvas, 'webp', imgQuality);
-    let packagedData = packageData('color', dataUrl);
+    const dataUrl = createDataUrl(colorCanvas, 'webp', imgQuality);
+    const packagedData = packageData('color', dataUrl);
     sendToPeer('frame', packagedData);
   });
 }
@@ -696,12 +698,12 @@ let memCounter = 0;
 
 // lossy argument prevents data from being sent if there is data in the buffer
 function sendToPeer(evt, data, lossy) {
+  const dataToSend = { event: evt, data: data };
+
   // console.log(evt);
   // TODO: create utility for counting sending fps and size of obj to send
   // console.log(evt);
-  // if (evt === "trackedBodyFrame") {
-  // if (evt === 'frame') {
-  //   // if (evt === "rawDepth") {
+  // if (evt === 'rawDepth') {
   //   if (timer === false) {
   //     timer = true;
   //     timeCounter = Date.now();
@@ -713,10 +715,8 @@ function sendToPeer(evt, data, lossy) {
   //   } else {
   //     sendCounter++; // count how many times we send in 1 second
   //   }
-  //   console.log(roughSizeOfObject(data));
+  //   // console.log(roughSizeOfObject(data));
   // }
-
-  let dataToSend = { event: evt, data: data };
 
   peer_connections.forEach(function (connection) {
     // TODO: Find an optimal buffering amount (or add a configuration setting for it).
@@ -725,15 +725,15 @@ function sendToPeer(evt, data, lossy) {
     // This prevents bandwidth issues from causing latency.
     // dataChannel must be null checked because dead peer connections will be in this
     //  list.
-    // if (
-    //   lossy &&
-    //   connection.dataChannel &&
-    //   connection.dataChannel.bufferedAmount > 0
-    // ) {
-    //   return;
-    // }
 
-    console.log(dataToSend);
+    if (
+      lossy &&
+      connection.dataChannel &&
+      connection.dataChannel.bufferedAmount > 0
+    ) {
+      return;
+    }
+
     connection.send(dataToSend);
   });
 }
@@ -1133,10 +1133,10 @@ function startColor() {
     }
     // Windows Kinect
   } else {
-    let colorCanvas = document.getElementById('color-canvas');
+    const colorCanvas = document.getElementById('color-canvas');
     colorCanvas.width = colorwidth / 2;
     colorCanvas.height = colorheight / 2;
-    let colorContext = colorCanvas.getContext('2d');
+    const colorContext = colorCanvas.getContext('2d');
 
     // Kinect Windows
     if (kinect.open()) {
@@ -1148,7 +1148,7 @@ function startColor() {
 
         processColorBuffer(newPixelData);
 
-        let packagedData = prepareDataToSend(
+        const packagedData = prepareDataToSend(
           colorCanvas,
           colorContext,
           'webp',
@@ -1184,10 +1184,10 @@ function stopColor() {
 function startDepth() {
   console.log('start depth camera');
 
-  let depthCanvas = document.getElementById('depth-canvas');
+  const depthCanvas = document.getElementById('depth-canvas');
   depthCanvas.width = depthwidth;
   depthCanvas.height = depthheight;
-  let depthContext = depthCanvas.getContext('2d');
+  const depthContext = depthCanvas.getContext('2d');
 
   resetCanvas('depth');
   canvasState = 'depth';
@@ -1202,7 +1202,7 @@ function startDepth() {
         camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15,
       });
 
-      let depthModeRange = kinect.getDepthModeRange(depthMode);
+      const depthModeRange = kinect.getDepthModeRange(depthMode);
 
       kinect.startListening((data) => {
         const newPixelData = Buffer.from(
@@ -1210,7 +1210,7 @@ function startDepth() {
         );
         processAzureDepthBuffer(newPixelData, depthModeRange);
 
-        let packagedData = prepareDataToSend(
+        const packagedData = prepareDataToSend(
           depthCanvas,
           depthContext,
           'webp',
@@ -1224,14 +1224,9 @@ function startDepth() {
     // KINECT WINDOWS CODE
     if (kinect.open()) {
       kinect.on('depthFrame', function (newPixelData) {
-        if (busy) {
-          return;
-        }
-        busy = true;
-
         processDepthBuffer(newPixelData);
 
-        let packagedData = prepareDataToSend(
+        const packagedData = prepareDataToSend(
           depthCanvas,
           depthContext,
           'webp',
@@ -1239,8 +1234,6 @@ function startDepth() {
           'depth',
         );
         sendToPeer('frame', packagedData);
-
-        busy = false;
       });
     }
     kinect.openDepthReader();
@@ -1268,10 +1261,10 @@ function stopDepth() {
 function startRawDepth() {
   console.log('start Raw Depth Camera');
 
-  let rawDepthCanvas = document.getElementById('raw-depth-canvas');
+  const rawDepthCanvas = document.getElementById('raw-depth-canvas');
   rawDepthCanvas.width = rawdepthwidth;
   rawDepthCanvas.height = rawdepthheight;
-  let rawDepthContext = rawDepthCanvas.getContext('2d');
+  const rawDepthContext = rawDepthCanvas.getContext('2d');
 
   resetCanvas('raw');
   canvasState = 'raw';
@@ -1301,7 +1294,7 @@ function startRawDepth() {
 
         processRawDepthBuffer(newPixelData);
 
-        let packagedData = prepareDataToSend(
+        const packagedData = prepareDataToSend(
           rawDepthCanvas,
           rawDepthContext,
           'webp',
@@ -1310,26 +1303,15 @@ function startRawDepth() {
         );
 
         sendToPeer('rawDepth', packagedData, true);
-        // limit raw depth to 25 fps // 40
-        // limit raw depth to 15fps
-        // if (Date.now() > sentTime + 1000 / 10) {
-        //   sendToPeer("rawDepth", rawDepthImg);
-        //   sentTime = Date.now();
-        // }
       });
     }
   } else {
     // Windows Kinect
     if (kinect.open()) {
       kinect.on('rawDepthFrame', function (newPixelData) {
-        if (busy) {
-          return;
-        }
-        busy = true;
-
         processRawDepthBuffer(newPixelData);
 
-        let packagedData = prepareDataToSend(
+        const packagedData = prepareDataToSend(
           rawDepthCanvas,
           rawDepthContext,
           'webp',
@@ -1337,9 +1319,18 @@ function startRawDepth() {
           'rawDepth',
         );
 
-        sendToPeer('rawDepth', packagedData, true);
+        // no frame limiting
+        // sendToPeer('rawDepth', packagedData, true);
 
-        busy = false;
+        // we need to limit frames sent to avoid overwhelming client
+        // limit raw depth to 15fps
+        const framesPerSecond = 15;
+        const sendEvery = 1000 / framesPerSecond;
+
+        if (Date.now() > sentTime + sendEvery) {
+          sendToPeer('rawDepth', packagedData, true);
+          sentTime = Date.now();
+        }
       });
     }
     kinect.openRawDepthReader();
@@ -1369,10 +1360,10 @@ function stopRawDepth() {
 function startInfrared() {
   console.log('starting infrared camera');
 
-  let infraredCanvas = document.getElementById('infrared-canvas');
+  const infraredCanvas = document.getElementById('infrared-canvas');
   infraredCanvas.width = depthwidth;
   infraredCanvas.height = depthheight;
-  let infraredContext = infraredCanvas.getContext('2d');
+  const infraredContext = infraredCanvas.getContext('2d');
 
   resetCanvas('depth');
   canvasState = 'depth';
@@ -1387,7 +1378,7 @@ function startInfrared() {
 
       processDepthBuffer(newPixelData);
 
-      let packagedData = prepareDataToSend(
+      const packagedData = prepareDataToSend(
         infraredCanvas,
         infraredContext,
         'webp',
@@ -1414,12 +1405,12 @@ function stopInfrared() {
 function startLEInfrared() {
   console.log('starting le-infrared');
 
-  let leInfraredCanvas = document.getElementById(
+  const leInfraredCanvas = document.getElementById(
     'le-infrared-canvas',
   );
   leInfraredCanvas.width = depthwidth;
   leInfraredCanvas.height = depthheight;
-  let leInfraredContext = leInfraredCanvas.getContext('2d');
+  const leInfraredContext = leInfraredCanvas.getContext('2d');
 
   resetCanvas('depth');
   canvasState = 'depth';
@@ -1434,7 +1425,7 @@ function startLEInfrared() {
 
       processDepthBuffer(newPixelData);
 
-      let packagedData = prepareDataToSend(
+      const packagedData = prepareDataToSend(
         leInfraredCanvas,
         leInfraredContext,
         'webp',
@@ -1461,10 +1452,10 @@ function stopLEInfrared() {
 function startRGBD() {
   console.log('starting rgbd');
 
-  let rgbdCanvas = document.getElementById('rgbd-canvas');
+  const rgbdCanvas = document.getElementById('rgbd-canvas');
   rgbdCanvas.width = depthwidth;
   rgbdCanvas.height = depthheight;
-  let rgbdContext = rgbdCanvas.getContext('2d');
+  const rgbdContext = rgbdCanvas.getContext('2d');
 
   resetCanvas('depth');
   canvasState = 'depth';
@@ -1487,7 +1478,7 @@ function startRGBD() {
         j++;
       }
 
-      var rgbdImg = drawImageToCanvas(
+      const rgbdImg = drawImageToCanvas(
         rgbdCanvas,
         rgbdContext,
         'rgbd',
@@ -1495,7 +1486,7 @@ function startRGBD() {
         0.1,
       );
 
-      let packagedData = prepareDataToSend(
+      const packagedData = prepareDataToSend(
         rgbdCanvas,
         rgbdContext,
         'webp',
@@ -1504,15 +1495,13 @@ function startRGBD() {
       );
 
       sendToPeer('frame', packagedData);
-      //busy = false;
 
-      // packageData('rgbd', rgbdImg);
-
+      // TODO: Still needed?
       setTimeout(function () {
         busy = false;
       });
-    }); // kinect.on
-  } // open
+    });
+  }
   kinect.openMultiSourceReader({
     frameTypes:
       Kinect2.FrameType.depth | Kinect2.FrameType.depthColor,
@@ -1530,10 +1519,10 @@ function stopRGBD() {
 function startSkeletonTracking() {
   console.log('starting skeleton');
 
-  let skeletonCanvas = document.getElementById('skeleton-canvas');
+  const skeletonCanvas = document.getElementById('skeleton-canvas');
   skeletonCanvas.width = depthwidth;
   skeletonCanvas.height = depthheight;
-  let skeletonContext = skeletonCanvas.getContext('2d');
+  const skeletonContext = skeletonCanvas.getContext('2d');
 
   resetCanvas('depth');
   canvasState = 'depth';
@@ -1551,7 +1540,7 @@ function startSkeletonTracking() {
         if (data.bodyFrame.numBodies === 0) {
           return;
         }
-        // normalizing 2d coordinates
+        // normalizing 2d coordinates & remove unneeded image buffers
         let processedBodyFrame = processBodyFrame(data.bodyFrame);
 
         if (sendAllBodies) {
@@ -1605,7 +1594,7 @@ function startSkeletonTracking() {
           skeletonCanvas.width,
           skeletonCanvas.height,
         );
-        var index = 0;
+        let index = 0;
         bodyFrame.bodies.forEach(function (body) {
           if (body.tracked) {
             if (!sendAllBodies) {
@@ -1939,9 +1928,9 @@ function prepareDataToSend(
   quality,
   frameType,
 ) {
-  let tempCanvas = drawImageToCanvas(inCanvas, inContext);
-  let dataUrl = createDataUrl(tempCanvas, imageType, quality);
-  let packagedData = packageData(frameType, dataUrl);
+  const tempCanvas = drawImageToCanvas(inCanvas, inContext);
+  const dataUrl = createDataUrl(tempCanvas, imageType, quality);
+  const packagedData = packageData(frameType, dataUrl);
   return packagedData;
 }
 
@@ -1951,25 +1940,14 @@ function drawImageToCanvas(inCanvas, inContext) {
   inContext.drawImage(canvas, 0, 0, inCanvas.width, inCanvas.height);
 
   return inCanvas;
-
-  // // we need to return complex frametypes for additional processing before sending
-  // // TODO: this can likely be rewritten so that lossy is passed through directly to packageData from here
-  // if (multiFrame || rawDepth || frameType == 'rgbd') {
-  //   return createDataUrl(inCanvas, frameType, imageType, quality);
-  //   // single frametypes get packaged and sent without additional processing
-  // } else {
-  //   createDataUrl(inCanvas, frameType, imageType, quality);
-  // }
 }
 
-// TODO: test this new function with api
 function createDataUrl(inCanvas, imageType, quality) {
-  let outputCanvasData;
   let imageQuality = imgQuality; //use globally stored image quality variable
 
   if (typeof quality !== 'undefined') imageQuality = quality; // or replace image quality with stream default
 
-  outputCanvasData = inCanvas.toDataURL(
+  const outputCanvasData = inCanvas.toDataURL(
     'image/' + imageType,
     imageQuality,
   );
@@ -1978,20 +1956,20 @@ function createDataUrl(inCanvas, imageType, quality) {
 }
 
 function packageData(frameType, outputCanvasData) {
-  dataToSend = { name: frameType, imagedata: outputCanvasData };
+  const dataToSend = { name: frameType, imagedata: outputCanvasData };
   return dataToSend;
 }
 
 function processColorBuffer(newPixelData) {
-  for (var i = 0; i < imageDataSize; i++) {
+  for (let i = 0; i < imageDataSize; i++) {
     imageDataArray[i] = newPixelData[i];
   }
 }
 
 function processDepthBuffer(newPixelData) {
-  var j = 0;
+  let j = 0;
 
-  for (var i = 0; i < imageDataSize; i += 4) {
+  for (let i = 0; i < imageDataSize; i += 4) {
     imageDataArray[i] = newPixelData[j];
     imageDataArray[i + 1] = newPixelData[j];
     imageDataArray[i + 2] = newPixelData[j];
@@ -2059,27 +2037,6 @@ function getClosestBodyIndex(bodies) {
   return closestBodyIndex;
 }
 
-function calculateLength(joints) {
-  var length = 0;
-  var numJoints = joints.length;
-  for (var i = 1; i < numJoints; i++) {
-    length += Math.sqrt(
-      Math.pow(joints[i].colorX - joints[i - 1].colorX, 2) +
-        Math.pow(joints[i].colorY - joints[i - 1].colorY, 2),
-    );
-  }
-  return length;
-}
-
-function calculatePixelWidth(horizontalFieldOfView, depth) {
-  // measure the size of the pixel
-  var hFov = horizontalFieldOfView / 2;
-  var numPixels = canvas.width / 2;
-  var T = Math.tan((Math.PI * 180) / hFov);
-  var pixelWidth = T * depth;
-  return pixelWidth / numPixels;
-}
-
 function drawSkeleton(inCanvas, inContext, body, index) {
   // Skeleton variables
   let colors = [
@@ -2106,7 +2063,6 @@ function drawSkeleton(inCanvas, inContext, body, index) {
     }
 
     // for windows kinect
-    // TODO: test that this still works with kinect 2
   } else {
     for (var jointType in body.joints) {
       var joint = body.joints[jointType];
