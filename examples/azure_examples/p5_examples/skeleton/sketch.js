@@ -22,7 +22,7 @@ let light = 255;
 let dark = 100;
 let hueValue = light;
 let lerpAmt = 0.3;
-let state = "ascending";
+let state = 'ascending';
 
 function setup() {
   myCanvas = createCanvas(640, 576); // Canvas is the same size as the Kinect depth image
@@ -30,11 +30,11 @@ function setup() {
   noStroke();
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = "127.0.0.1"; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to azure
-  kinectron.setKinectType("azure");
+  kinectron.setKinectType('azure');
 
   // Connect with application over peer
   kinectron.makeConnection();
@@ -63,13 +63,18 @@ function drawJoint(joint) {
     joint.depthX * myCanvas.width,
     joint.depthY * myCanvas.height,
     15,
-    15
+    15,
   );
 
   fill(200);
 
   // Kinect joint location needs to be normalized to canvas size
-  ellipse(joint.depthX * myCanvas.width, joint.depthY * myCanvas.height, 3, 3);
+  ellipse(
+    joint.depthX * myCanvas.width,
+    joint.depthY * myCanvas.height,
+    3,
+    3,
+  );
 }
 
 // Draw hands
@@ -79,11 +84,11 @@ function drawHands(hands) {
     Math.abs(hands.leftHand.depthX - hands.rightHand.depthX) < 0.1 &&
     Math.abs(hands.leftHand.depthY - hands.rightHand.depthY) < 0.1
   ) {
-    hands.leftHandState = "clapping";
-    hands.rightHandState = "clapping";
+    hands.leftHandState = 'clapping';
+    hands.rightHandState = 'clapping';
   } else {
-    hands.leftHandState = "notclapping";
-    hands.rightHandState = "notclapping";
+    hands.leftHandState = 'notclapping';
+    hands.rightHandState = 'notclapping';
   }
 
   // draw hand states
@@ -94,31 +99,31 @@ function drawHands(hands) {
 // Find out state of hands
 function updateHandState(handState, hand) {
   switch (handState) {
-    case "notclapping":
+    case 'notclapping':
       drawHand(hand, 0, 255);
       break;
 
-    case "clapping":
-      drawHand(hand, 1, "red");
+    case 'clapping':
+      drawHand(hand, 1, 'red');
   }
 }
 
 // Draw the hands based on their state
 function drawHand(hand, handState, color) {
   if (handState === 1) {
-    state = "ascending";
+    state = 'ascending';
   }
 
   if (handState === 0) {
-    state = "descending";
+    state = 'descending';
   }
 
-  if (state == "ascending") {
+  if (state == 'ascending') {
     diameter = lerp(diameter, target, lerpAmt);
     hueValue = lerp(hueValue, dark, lerpAmt);
   }
 
-  if (state == "descending") {
+  if (state == 'descending') {
     diameter = lerp(diameter, start, lerpAmt);
     hueValue = lerp(hueValue, light, lerpAmt);
   }
@@ -130,6 +135,6 @@ function drawHand(hand, handState, color) {
     hand.depthX * myCanvas.width,
     hand.depthY * myCanvas.height,
     diameter,
-    diameter
+    diameter,
   );
 }

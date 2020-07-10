@@ -20,7 +20,7 @@ window.addEventListener('load', function () {
   initPointCloud();
 
   // Define and create an instance of kinectron
-  var kinectronIpAddress = '192.168.68.114'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Connect remote to application

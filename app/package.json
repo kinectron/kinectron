@@ -1,6 +1,6 @@
 {
   "name": "kinectron-server",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "A realtime peer server for Kinect 2 and Azure Kinect.",
   "main": "main.js",
   "scripts": {

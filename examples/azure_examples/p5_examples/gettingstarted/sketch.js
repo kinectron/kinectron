@@ -19,14 +19,14 @@ function setup() {
   createCanvas(1280, 720);
   background(0);
 
-  frameRateP = createP("");
+  frameRateP = createP('');
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to azure
-  kinectron.setKinectType("azure");
+  kinectron.setKinectType('azure');
 
   // Connect with application over peer
   kinectron.makeConnection();
@@ -57,7 +57,7 @@ function keyPressed() {
 
 function drawFeed(img) {
   // Draws feed using p5 load and display image functions
-  loadImage(img.src, function(loadedImage) {
+  loadImage(img.src, function (loadedImage) {
     background(255);
     image(loadedImage, 0, 0);
   });

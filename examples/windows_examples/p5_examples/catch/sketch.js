@@ -46,11 +46,11 @@ function setup() {
   background(0);
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to windows
-  kinectron.setKinectType("windows");
+  kinectron.setKinectType('windows');
 
   // Connect remote to application
   kinectron.makeConnection();
@@ -89,7 +89,10 @@ function playCatch(body) {
       // Put joints into array
       joints[j] = {
         x: (body.joints[j].cameraX * characterWidth) / 2 + width / 2,
-        y: (body.joints[j].cameraY * -1 * characterHeight) / 2 + height / 2 + 50
+        y:
+          (body.joints[j].cameraY * -1 * characterHeight) / 2 +
+          height / 2 +
+          50,
       };
     }
 

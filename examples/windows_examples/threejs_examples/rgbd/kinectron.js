@@ -9,7 +9,7 @@ var busy = false;
 
 function initKinectron() {
   // Define and create an instance of kinectron
-  var kinectronIpAddress = '192.168.87.198'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Open connection to Kinectron app

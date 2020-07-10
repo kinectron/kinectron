@@ -24,11 +24,11 @@ function setup() {
   noStroke();
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to windows
-  kinectron.setKinectType("windows");
+  kinectron.setKinectType('windows');
 
   // Connect with application over peer
   kinectron.makeConnection();
@@ -67,7 +67,11 @@ function drawRightHand(hand) {
   // Draw an ellipse at each hand's location in its designated color
   for (let key in hands) {
     let trackedHand = hands[key];
-    fill(trackedHand.color[0], trackedHand.color[1], trackedHand.color[2]);
+    fill(
+      trackedHand.color[0],
+      trackedHand.color[1],
+      trackedHand.color[2],
+    );
 
     // draw label with tracking id to player's hand location
     text(
@@ -76,7 +80,7 @@ function drawRightHand(hand) {
         with tracking Id:
         ` + trackedHand.trackingId,
       trackedHand.depthX * width - ballWidth * 3,
-      trackedHand.depthY * height
+      trackedHand.depthY * height,
     );
 
     // draw ellipse at player's hand location
@@ -84,7 +88,7 @@ function drawRightHand(hand) {
       trackedHand.depthX * width,
       trackedHand.depthY * height,
       ballWidth,
-      ballWidth
+      ballWidth,
     );
   }
 }
