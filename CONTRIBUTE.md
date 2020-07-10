@@ -57,16 +57,7 @@ Run the build script one final time after you stop running the Parcel watch comm
 
 You can develop on the server application from **Windows only**. This has only been tested on Windows 10.
 
-1. Install dependencies.
-
-After you've forked and cloned the repository, move into the `app` folder and install all dependencies.
-
-```bash
-cd app
-npm install
-```
-
-2. Build Kinect 2 for Electron
+1. Install Kinect2 SDK and Node-Gyp
 
    **You will need to have the official Kinect 2 SDK and node-gyp and it's dependencies installed before you can continue.**
 
@@ -82,14 +73,15 @@ Install node-gyp dependencies. Follow the [installation instructions for Windows
 
 As of 10/2019 the windows-build-tools installation from the command line (Option 1) is buggy. It's recommended to use Option 2 in the node-gyp dependency install instructions. For this option, make sure that you check the box next to "Desktop Development with C++ Workload" from the available Workloads during the Visual Studio 2017 Community install process.
 
-Now you are ready to build Kinect 2 for Electron.
+As of release 0.3.3 you no longer need to build Kinect2 for Electron. If you are using an earlier version of the Kinectron application you will need to build it. See [CONTRIBUTE.md at tag 0.3.2](https://github.com/kinectron/kinectron/blob/0.3.2/CONTRIBUTE.md) for instructions.
+
+2. Install dependencies.
+
+After you've forked and cloned the repository, move into the `app` folder and install all dependencies.
 
 ```bash
-// cd into kinect2
-cd app\node_modules\kinect2
-
-// run kinect2 build script to create a native binary for electron
-npm run build:electron
+cd app
+npm install
 ```
 
 3. Copy body tracking models into application folder

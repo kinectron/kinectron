@@ -21,7 +21,7 @@ let processing = false;
 let kinectron = null;
 
 function preload() {
-  beach = loadImage("images/beach.png");
+  beach = loadImage('images/beach.png');
 }
 
 function setup() {
@@ -29,11 +29,11 @@ function setup() {
   background(255);
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to windows
-  kinectron.setKinectType("windows");
+  kinectron.setKinectType('windows');
 
   // Create connection between remote and application
   kinectron.makeConnection();
@@ -45,7 +45,7 @@ function setup() {
 function draw() {}
 
 function goToBeach(img) {
-  loadImage(img.src, function(loadedImage) {
+  loadImage(img.src, function (loadedImage) {
     image(beach, 0, 0);
     image(loadedImage, 0, 0);
   });

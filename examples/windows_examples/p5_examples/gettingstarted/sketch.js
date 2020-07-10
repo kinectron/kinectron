@@ -18,20 +18,19 @@ let kinectron = null;
 // we put as example here "1.2.3.4"
 // replace it with the kinectron server ip address
 // remember to keep the double quotes
-let kinectronServerIPAddress = "1.2.3.4";
+let kinectronServerIPAddress = '10.0.1.34';
 
 // declare new HTML elements for displaying text
 let textKinectronServerIP;
 let textCurrentFeed;
 let textFramerate;
 
-// variable for storing current 
-let currentFeed = "none";
+// variable for storing current
+let currentFeed = 'none';
 
 // setup() is a p5.js function
 // setup() runs once, at the beginning
 function setup() {
-
   // create canvas 500px wide x 500px high
   createCanvas(500, 500);
 
@@ -39,15 +38,15 @@ function setup() {
   background(255);
 
   // create new HTML <p> elements for displaying text
-  textKinectronServerIP = createP("");
-  textCurrentFeed = createP("");
-  textFramerate = createP("");
+  textKinectronServerIP = createP('');
+  textCurrentFeed = createP('');
+  textFramerate = createP('');
 
   // create an instance of kinectron
   kinectron = new Kinectron(kinectronServerIPAddress);
 
   // Set kinect type to windows
-  kinectron.setKinectType("windows");
+  kinectron.setKinectType('windows');
 
   // Connect with application over peer
   kinectron.makeConnection();
@@ -61,16 +60,17 @@ function setup() {
 // draw() is a p5.js function
 // after setup() runs once, draw() runs on a loop
 function draw() {
-
   // p5.js drawing settings
   // black fill() and stroke()
   fill(0);
   stroke(0);
 
   // update text of HTML <p> elements with current parameters
-  textKinectronServerIP.html("Kinectron server IP address: " + kinectronServerIPAddress);
-  textCurrentFeed.html("Current feed: " + currentFeed);
-  textFramerate.html("frame rate: " + frameRate().toFixed(0));
+  textKinectronServerIP.html(
+    'Kinectron server IP address: ' + kinectronServerIPAddress,
+  );
+  textCurrentFeed.html('Current feed: ' + currentFeed);
+  textFramerate.html('frame rate: ' + frameRate().toFixed(0));
 }
 
 // keyPressed() is a p5.js function
@@ -79,27 +79,28 @@ function keyPressed() {
   // if user presses ENTER, change feed to color
   if (keyCode === ENTER) {
     kinectron.startColor();
-    currentFeed = "color";
+    currentFeed = 'color';
     // if user presses UP_ARROW, change feed to depth
   } else if (keyCode === UP_ARROW) {
     kinectron.startDepth();
-    currentFeed = "depth";
+    currentFeed = 'depth';
     // if user presses DOWN_ARROW, change feed to infrared
   } else if (keyCode === DOWN_ARROW) {
     kinectron.startInfrared();
-    currentFeed = "infrared";
+    currentFeed = 'infrared';
     // if user presses RIGHT_ARROW, change feed to none
   } else if (keyCode === RIGHT_ARROW) {
     kinectron.stopAll();
-    currentFeed = "none";
+    currentFeed = 'none';
   }
 }
 
 // callback function when feed sends a new frame
 function drawFeed(newFrame) {
+  console.log("receiveing ");
   // loadImage() is a p5.js function
   // load new frame from feed and then place it on p5.js canvas
-  loadImage(newFrame.src, function(loadedFrame) {
+  loadImage(newFrame.src, function (loadedFrame) {
     // white background
     background(255);
     // place the frame from kinectron at (0,0)

@@ -55,7 +55,7 @@
       var kinectron, kinectronGeo;
 
       //Kick off the example
-      window.onload = function() {
+      window.onload = function () {
         init();
       };
 
@@ -67,7 +67,7 @@
         document.body.appendChild(renderer.domElement);
 
         //Setup Kinectron
-        var kinectronIpAddress = "172.16.222.192"; //Add Kinectron IP here
+        const kinectronIpAddress = '127.0.0.1'; //Add Kinectron IP here
 
         //Open connection with Kinect
         kinectron = new Kinectron(kinectronIpAddress);
@@ -84,13 +84,13 @@
           75,
           window.innerWidth / window.innerHeight,
           0.1,
-          500
+          500,
         );
         camera.position.set(-4, 2, 7);
         camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         //Create a kinectron geometry instance - First argument takes the rendering type ("wire" / "points" / "mesh")
-        kinectronGeo = new THREE.KinectGeometry("mesh");
+        kinectronGeo = new THREE.KinectGeometry('mesh');
 
         //Add it to the scene
         scene.add(kinectronGeo);
@@ -108,10 +108,10 @@
         document.body.appendChild(stats.dom);
 
         //Add an event listener for window resize
-        window.addEventListener("resize", onWindowResize, false);
+        window.addEventListener('resize', onWindowResize, false);
 
         //Add an event listener to key down
-        window.addEventListener("keydown", onKeyDown, false);
+        window.addEventListener('keydown', onKeyDown, false);
 
         render();
       }

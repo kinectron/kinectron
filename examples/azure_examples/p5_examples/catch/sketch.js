@@ -38,11 +38,11 @@ function setup() {
   ellipseMode(CENTER);
 
   // Define and create an instance of kinectron
-  let kinectronIpAddress = ""; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronIpAddress);
 
   // Set kinect type to azure
-  kinectron.setKinectType("azure");
+  kinectron.setKinectType('azure');
 
   // Connect remote to application
   kinectron.makeConnection();
@@ -103,7 +103,7 @@ function getJoints(body) {
     // Put joints into array
     joints[i] = {
       x: (body.skeleton.joints[i].depthX * width) / 2,
-      y: (body.skeleton.joints[i].depthY * height) / 2 + height / 2
+      y: (body.skeleton.joints[i].depthY * height) / 2 + height / 2,
     };
   }
 }
