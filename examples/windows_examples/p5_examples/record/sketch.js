@@ -1,7 +1,7 @@
-var myCanvas = null;
-var context = null;
-var kinectron = null;
-var frames = [];
+let myCanvas = null;
+let context = null;
+let kinectron = null;
+let frames = [];
 
 function setup() {
   myCanvas = createCanvas(1000, 1000);
@@ -14,8 +14,8 @@ function setup() {
   const kinectronServerIPAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
   kinectron = new Kinectron(kinectronServerIPAddress);
 
-  // Connect to the microstudio
-  //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");
+  // Set kinect type to windows
+  kinectron.setKinectType('windows');
 
   // Connect with application over peer
   kinectron.makeConnection();
@@ -55,7 +55,7 @@ function depthCallback(img) {
 
 function bodyCallback(body) {
   //find tracked bodies
-  for (var i = 0; i < body.length; i++) {
+  for (let i = 0; i < body.length; i++) {
     if (body[i].tracked === true) {
       bodyTracked(body[i]);
     }
@@ -67,8 +67,8 @@ function bodyTracked(body) {
   context.fillRect(0, 0, 330, 273.2);
 
   //draw joints in tracked bodies
-  for (var jointType in body.joints) {
-    var joint = body.joints[jointType];
+  for (let jointType in body.joints) {
+    const joint = body.joints[jointType];
     context.fillStyle = '#ff0000';
     context.fillRect(
       joint.depthX * 330,
