@@ -15,8 +15,8 @@ var scaleDiv = 200;
 
 function initKinectron() {
   // Define and create an instance of kinectron
-  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
-  kinectron = new Kinectron(kinectronIpAddress);
+  const kinectronServerIPAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  kinectron = new Kinectron(kinectronServerIPAddress);
 
   // Connect to the microstudio
   //kinectron = new Kinectron("kinectron.itp.tsoa.nyu.edu");

@@ -20,10 +20,10 @@ let debugRotations = false;
 // ip address is a string containing four numbers
 // each number is between 0 and 255 and separated with periods
 // since it is a string, it goes between double quotes
-// we put as example here "127.0.0.1"
+// we put as example here '127.0.0.1'
 // replace it with the kinectron server ip address
 // remember to keep the double quotes
-const kinectronServerIPAddress = "127.0.0.1";
+const kinectronServerIPAddress = '127.0.0.1';
 
 const skelWidth = 0.25;
 const skelHeight = 0.28;
@@ -38,7 +38,7 @@ let legLeftImg;
 let legRightImg;
 
 // recorded data variables
-const recorded_data_file = "../shared/azure_recorded_skeleton.json";
+const recorded_data_file = '../shared/azure_recorded_skeleton.json';
 // initialize time variables
 let sentTime = Date.now();
 let currentFrame = 0;
@@ -50,13 +50,13 @@ function preload() {
   }
 
   // images should be double desired display size to account for retina screens
-  headImg = loadImage("images/skull.png");
-  torsoImg = loadImage("images/torso.png");
-  hipImg = loadImage("images/hips.png");
-  boneImg = loadImage("images/bone.png");
-  boneSmallImg = loadImage("images/boneSmall.png");
-  legLeftImg = loadImage("images/leftLeg.png");
-  legRightImg = loadImage("images/rightLeg.png");
+  headImg = loadImage('images/skull.png');
+  torsoImg = loadImage('images/torso.png');
+  hipImg = loadImage('images/hips.png');
+  boneImg = loadImage('images/bone.png');
+  boneSmallImg = loadImage('images/boneSmall.png');
+  legLeftImg = loadImage('images/leftLeg.png');
+  legRightImg = loadImage('images/rightLeg.png');
 }
 
 function setup() {
@@ -77,10 +77,13 @@ if you want to use pre-recorded data, switch the value of variable liveData
 from true to false, save the changes, and refresh the browser.`);
   }
 
-  const jointsCheckbox = createCheckbox("Show Kinect Joints", false);
+  const jointsCheckbox = createCheckbox('Show Kinect Joints', false);
   jointsCheckbox.changed(jointsChecked);
 
-  const rotationsCheckbox = createCheckbox("Show Joint Rotations", false);
+  const rotationsCheckbox = createCheckbox(
+    'Show Joint Rotations',
+    false,
+  );
   rotationsCheckbox.changed(rotationsChecked);
 
   if (liveData) {
@@ -132,7 +135,7 @@ function initKinectron() {
   kinectron.makeConnection();
 
   // Set Kinect type to "windows" or "azure"
-  kinectron.setKinectType("azure");
+  kinectron.setKinectType('azure');
 
   // request all tracked bodies and pass data to your callback
   kinectron.startTrackedBodies(bodyTracked);
@@ -149,7 +152,9 @@ function bodyTracked(body) {
   let hipLeft = calculateJointPosition(body.skeleton.joints[18]);
   let hipRight = calculateJointPosition(body.skeleton.joints[22]);
   let shoulderLeft = calculateJointPosition(body.skeleton.joints[5]);
-  let shoulderRight = calculateJointPosition(body.skeleton.joints[12]);
+  let shoulderRight = calculateJointPosition(
+    body.skeleton.joints[12],
+  );
   let elbowLeft = calculateJointPosition(body.skeleton.joints[6]);
   let elbowRight = calculateJointPosition(body.skeleton.joints[13]);
   let handLeft = calculateJointPosition(body.skeleton.joints[8]);
@@ -191,7 +196,8 @@ function calculateJointPosition(joint) {
   // to mirror x, subtract x value from width over screen
   // in this case width/2 is far right edge of screen because drawing is translated to 0,0 later
   // then x needs to be brought back to center with -width/2
-  tempJoint.cameraX = width / 2 - joint.cameraX * skelWidth - width / 2;
+  tempJoint.cameraX =
+    width / 2 - joint.cameraX * skelWidth - width / 2;
   tempJoint.cameraY = joint.cameraY * skelHeight;
 
   return tempJoint;
@@ -216,7 +222,7 @@ function placeBone(boneImg, joint, xOff, yOff) {
     -0.5 * (boneImg.width / 2),
     0,
     boneImg.width / 2,
-    boneImg.height / 2
+    boneImg.height / 2,
   );
 
   // see https://p5js.org/reference/#/p5/push
@@ -306,7 +312,7 @@ function rotateBone(boneImg, joint1, joint2, xOff, yOff) {
     -0.5 * (boneImg.width / 2),
     0,
     boneImg.width / 2,
-    boneImg.height / 2
+    boneImg.height / 2,
   );
 
   // see https://p5js.org/reference/#/p5/push

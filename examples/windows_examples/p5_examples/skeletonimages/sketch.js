@@ -20,10 +20,10 @@ let debugRotations = false;
 // ip address is a string containing four numbers
 // each number is between 0 and 255 and separated with periods
 // since it is a string, it goes between double quotes
-// we put as example here "127.0.0.1"
+// we put as example here '127.0.0.1'
 // replace it with the kinectron server ip address
 // remember to keep the double quotes
-const kinectronServerIPAddress = "127.0.0.1";
+const kinectronServerIPAddress = '127.0.0.1';
 
 const skelWidth = 230;
 const skelHeight = 250;
@@ -38,7 +38,7 @@ let legLeftImg;
 let legRightImg;
 
 // recorded data variables
-const recorded_data_file = "../shared/recorded_skeleton.json";
+const recorded_data_file = '../shared/recorded_skeleton.json';
 // initialize time variables
 let sentTime = Date.now();
 let currentFrame = 0;
@@ -50,13 +50,13 @@ function preload() {
   }
 
   // images should be double desired display size to account for retina screens
-  headImg = loadImage("images/skull.png");
-  torsoImg = loadImage("images/torso.png");
-  hipImg = loadImage("images/hips.png");
-  boneImg = loadImage("images/bone.png");
-  boneSmallImg = loadImage("images/boneSmall.png");
-  legLeftImg = loadImage("images/leftLeg.png");
-  legRightImg = loadImage("images/rightLeg.png");
+  headImg = loadImage('images/skull.png');
+  torsoImg = loadImage('images/torso.png');
+  hipImg = loadImage('images/hips.png');
+  boneImg = loadImage('images/bone.png');
+  boneSmallImg = loadImage('images/boneSmall.png');
+  legLeftImg = loadImage('images/leftLeg.png');
+  legRightImg = loadImage('images/rightLeg.png');
 }
 
 function setup() {
@@ -77,10 +77,13 @@ if you want to use pre-recorded data, switch the value of variable liveData
 from true to false, save the changes, and refresh the browser.`);
   }
 
-  const jointsCheckbox = createCheckbox("Show Kinect Joints", false);
+  const jointsCheckbox = createCheckbox('Show Kinect Joints', false);
   jointsCheckbox.changed(jointsChecked);
 
-  const rotationsCheckbox = createCheckbox("Show Joint Rotations", false);
+  const rotationsCheckbox = createCheckbox(
+    'Show Joint Rotations',
+    false,
+  );
   rotationsCheckbox.changed(rotationsChecked);
 
   if (liveData) {
@@ -132,7 +135,7 @@ function initKinectron() {
   kinectron.makeConnection();
 
   // Set Kinect type to "windows" or "azure"
-  kinectron.setKinectType("windows");
+  kinectron.setKinectType('windows');
 
   // request all tracked bodies and pass data to your callback
   kinectron.startTrackedBodies(bodyTracked);
@@ -197,7 +200,7 @@ function placeBone(boneImg, joint, xOff, yOff) {
   // add x offset or y offset if needed for desired positioning
   translate(
     joint.cameraX * skelWidth + xOff,
-    joint.cameraY * skelHeight * -1 + yOff
+    joint.cameraY * skelHeight * -1 + yOff,
   );
 
   // draw bone image at joint position at half image size
@@ -206,7 +209,7 @@ function placeBone(boneImg, joint, xOff, yOff) {
     -0.5 * (boneImg.width / 2),
     0,
     boneImg.width / 2,
-    boneImg.height / 2
+    boneImg.height / 2,
   );
 
   // see https://p5js.org/reference/#/p5/push
@@ -223,11 +226,11 @@ function rotateBone(boneImg, joint1, joint2, xOff, yOff) {
   // create three points
   let v1 = createVector(
     joint1.cameraX * skelWidth,
-    joint1.cameraY * skelHeight * -1
+    joint1.cameraY * skelHeight * -1,
   );
   let v2 = createVector(
     joint2.cameraX * skelWidth,
-    joint2.cameraY * skelHeight * -1
+    joint2.cameraY * skelHeight * -1,
   );
 
   let v3 = createVector(v1.x, v2.y);
@@ -302,7 +305,7 @@ function rotateBone(boneImg, joint1, joint2, xOff, yOff) {
     -0.5 * (boneImg.width / 2),
     0,
     boneImg.width / 2,
-    boneImg.height / 2
+    boneImg.height / 2,
   );
 
   pop();
@@ -324,6 +327,11 @@ function drawKinectJoint(joint) {
 
   push();
   translate(width / 2, height / 2);
-  ellipse(joint.cameraX * skelWidth, joint.cameraY * skelHeight * -1, 15, 15);
+  ellipse(
+    joint.cameraX * skelWidth,
+    joint.cameraY * skelHeight * -1,
+    15,
+    15,
+  );
   pop();
 }

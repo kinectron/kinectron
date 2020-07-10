@@ -28,12 +28,12 @@ function setup() {
   frameP = createP('');
 
   // Define and create first instance of kinectron
-  const kinectronIpAddress1 = ''; // FILL IN YOUR KINECTRON IP ADDRESS HERE
-  kinectron1 = new Kinectron(kinectronIpAddress1);
+  const kinectronServerIPAddress1 = ''; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  kinectron1 = new Kinectron(kinectronServerIPAddress1);
 
   // Define and create second instance of kinectron
-  const kinectronIpAddress2 = ''; // FILL IN YOUR KINECTRON IP ADDRESS HERE
-  kinectron2 = new Kinectron(kinectronIpAddress2);
+  const kinectronServerIPAddress2 = ''; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  kinectron2 = new Kinectron(kinectronServerIPAddress2);
 
   // Set kinect type to windows
   kinectron1.setKinectType('windows');

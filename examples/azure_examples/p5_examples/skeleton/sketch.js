@@ -30,8 +30,8 @@ function setup() {
   noStroke();
 
   // Define and create an instance of kinectron
-  const kinectronIpAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
-  kinectron = new Kinectron(kinectronIpAddress);
+  const kinectronServerIPAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
+  kinectron = new Kinectron(kinectronServerIPAddress);
 
   // Set kinect type to azure
   kinectron.setKinectType('azure');

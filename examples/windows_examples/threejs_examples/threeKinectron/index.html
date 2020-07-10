@@ -67,10 +67,10 @@
         document.body.appendChild(renderer.domElement);
 
         //Setup Kinectron
-        const kinectronIpAddress = '127.0.0.1'; //Add Kinectron IP here
+        const kinectronServerIPAddress = '127.0.0.1'; //Add Kinectron IP here
 
         //Open connection with Kinect
-        kinectron = new Kinectron(kinectronIpAddress);
+        kinectron = new Kinectron(kinectronServerIPAddress);
         kinectron.makeConnection();
 
         //Start RGBD feed and set callback for new frames
