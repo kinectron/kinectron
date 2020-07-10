@@ -1,13 +1,13 @@
 {
-  "name": "kinectron-api",
-  "version": "0.3.2",
+  "name": "kinectron-client",
+  "version": "0.3.3",
   "description": "Client for Kinectron peer server",
   "main": "kinectron-client.js",
   "bin": {
-    "kinectron-api": "kinectron.bundle.js"
+    "kinectron-client": "kinectron-client.js"
   },
   "dependencies": {
-    "peerjs": "^1.1.0"
+    "peerjs": "1.1.0"
   },
   "devDependencies": {
     "parcel": "^1.12.4"

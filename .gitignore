@@ -7,4 +7,4 @@ app/cudnn64_7.dll
 app/dnn_model_2_0.onnx
 app/onnxruntime.dll
 app/vcomp140.dll
-app/kinectron-server-win32-x64
+app/kinectron-server*

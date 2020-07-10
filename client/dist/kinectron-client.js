@@ -199,7 +199,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 // Import Peer.js
-console.log('You are running Kinectron API version 0.3.2');
+console.log('You are running Kinectron API version 0.3.3');
 
 var Kinectron = function Kinectron(arg1, arg2) {
   this.img = null; // this.rawDepthImg = null;
