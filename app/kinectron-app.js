@@ -85,6 +85,11 @@ var mediaRecorders = [];
 
 let imgQuality = 0.5; // set default image quality
 
+// globals for debug fps timer;
+let timer = false;
+let timeCounter = 0;
+let sendCounter = 0;
+
 window.addEventListener('load', initpeer);
 window.addEventListener('load', init);
 
@@ -691,32 +696,15 @@ function newPeerServer(evt) {
   document.getElementById('newpeercreated').style.display = 'block';
 }
 
-let timer = false;
-let timeCounter = 0;
-let sendCounter = 0;
-let memCounter = 0;
-
 // lossy argument prevents data from being sent if there is data in the buffer
 function sendToPeer(evt, data, lossy) {
   const dataToSend = { event: evt, data: data };
+  let debugSendingData = false;
 
-  // console.log(evt);
-  // TODO: create utility for counting sending fps and size of obj to send
-  // console.log(evt);
-  // if (evt === 'frame') {
-  //   if (timer === false) {
-  //     timer = true;
-  //     timeCounter = Date.now();
-  //   }
-  //   if (Date.now() > timeCounter + 1000) {
-  //     console.log('resetting. last count: ', sendCounter);
-  //     timer = false;
-  //     sendCounter = 0;
-  //   } else {
-  //     sendCounter++; // count how many times we send in 1 second
-  //   }
-  //   console.log(roughSizeOfObject(data));
-  // }
+  if (debugSendingData) {
+    countFPS(evt);
+    console.log(roughSizeOfObject(dataToSend));
+  }
 
   peer_connections.forEach(function (connection) {
     // TODO: Find an optimal buffering amount (or add a configuration setting for it).
@@ -736,6 +724,22 @@ function sendToPeer(evt, data, lossy) {
 
     connection.send(dataToSend);
   });
+}
+
+function countFPS(evt) {
+  if (evt === 'frame') {
+    if (timer === false) {
+      timer = true;
+      timeCounter = Date.now();
+    }
+    if (Date.now() > timeCounter + 1000) {
+      console.log('resetting. last count: ', sendCounter);
+      timer = false;
+      sendCounter = 0;
+    } else {
+      sendCounter++; // count how many times we send in 1 second
+    }
+  }
 }
 
 function roughSizeOfObject(object) {

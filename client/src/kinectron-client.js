@@ -199,19 +199,12 @@ const Kinectron = function (arg1, arg2) {
       'data',
       function (dataReceived) {
         const { data, event } = dataReceived;
+        let debugReceivingData = false;
 
-        // to check receiveing fps
-        // if (timer === false) {
-        //   timer = true;
-        //   timeCounter = Date.now();
-        // }
-        // if (Date.now() > timeCounter + 1000) {
-        //   console.log('resetting. last count: ', sendCounter);
-        //   timer = false;
-        //   sendCounter = 0;
-        // } else {
-        //   sendCounter++; // count how many times we send in 1 second
-        // }
+        if (debugReceivingData) {
+          this._countFPS(event);
+          console.log(this._roughSizeOfObject(data));
+        }
 
         switch (event) {
           // Wait for ready from Kinectron to initialize
@@ -1020,6 +1013,23 @@ const Kinectron = function (arg1, arg2) {
     // Start recording
     newMediaRecorder.start();
     return newMediaRecorder;
+  };
+
+  this._countFPS = function (event) {
+    // use event to count only specific frames
+    if (event === 'frame') {
+      if (timer === false) {
+        timer = true;
+        timeCounter = Date.now();
+      }
+      if (Date.now() > timeCounter + 1000) {
+        console.log('resetting. last count: ', sendCounter);
+        timer = false;
+        sendCounter = 0;
+      } else {
+        sendCounter++; // count how many times we send in 1 second
+      }
+    }
   };
 
   this._roughSizeOfObject = function (object) {
