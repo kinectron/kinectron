@@ -68,11 +68,11 @@ function setup() {
   kinectron.setRawDepthCallback(drawRawDepth);
   kinectron.setTrackedBodiesCallback(drawBody);
   kinectron.setBodiesCallback(getBodies);
+  kinectron.setKeyCallback(drawImage);
 
   // Feeds not implemented for azure
   // kinectron.setInfraredCallback(drawImage);
   // kinectron.setLeInfraredCallback(drawImage);
-  // kinectron.setKeyCallback(drawImage);
   // kinectron.setRGBDCallback(drawImage);
 }
 
@@ -137,10 +137,11 @@ function keyPressed() {
     //   currentFeed = 'le infrared';
     //   break;
 
-    // case '8':
-    //   kinectron.startKey();
-    //   currentFeed = 'key';
-    //   break;
+    case '8':
+      resizeCanvas(AZURECOLORWIDTH, AZURECOLORHEIGHT);
+      kinectron.startKey();
+      currentFeed = 'key';
+      break;
 
     // case '9':
     //   kinectron.startRGBD();

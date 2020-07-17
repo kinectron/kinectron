@@ -47,7 +47,7 @@
               <input type="button" class="option frame-option windows-option azure-option" id="body" value="All Bodies">
               <input type="button" class="option frame-option windows-option" id="infrared" value="Infrared">
               <input type="button" class="option frame-option windows-option" id="le-infrared" value="Long Exposure Infrared">
-              <input type="button" class="option frame-option windows-option" id="key" value="Key">
+              <input type="button" class="option frame-option windows-option azure-option" id="key" value="Key">
               <input type="button" class="option frame-option windows-option" id="rgbd" value="RGBD">
               <!-- <input type="button" class="option frame-option" id="fh-joint" value="Floor Height Joint"> -->
               <!-- <input type="button" class="option frame-option" id="scale" value="Scale User"> -->
@@ -121,15 +121,8 @@
       </div><!-- additional-controls -->
     </div>     
     <div id="feed-images">
-      <!-- <h4 >Feed from Kinect</h4> -->
-      <!-- <div class="multi-warning">
-        <p>Image preview does not reflect multiple frames. Currently broadcasting: <span class="current-frames"></span> </p>
-      </div> -->
       <canvas id="inputCanvas" width="1920" height="1080"></canvas>
       <h4>Feed output to peer</h4>
-      <!--       <div class="multi-warning">
-        <p>Image preview does not reflect multiple frames. Currently broadcasting: <span class="current-frames"></span></p>
-      </div> -->
       <div id="feed-canvases">
         <div id="color-div">
           <h5 id="color-canvas-label">Color Feed</h5>

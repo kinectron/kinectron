@@ -703,7 +703,7 @@ function sendToPeer(evt, data, lossy) {
   // console.log(evt);
   // TODO: create utility for counting sending fps and size of obj to send
   // console.log(evt);
-  // if (evt === 'rawDepth') {
+  // if (evt === 'frame') {
   //   if (timer === false) {
   //     timer = true;
   //     timeCounter = Date.now();
@@ -715,7 +715,7 @@ function sendToPeer(evt, data, lossy) {
   //   } else {
   //     sendCounter++; // count how many times we send in 1 second
   //   }
-  //   // console.log(roughSizeOfObject(data));
+  //   console.log(roughSizeOfObject(data));
   // }
 
   peer_connections.forEach(function (connection) {
@@ -1827,67 +1827,114 @@ function stopMulti() {
 function startKey() {
   console.log('starting key');
 
-  let keyCanvas = document.getElementById('key-canvas');
+  const keyCanvas = document.getElementById('key-canvas');
   keyCanvas.width = colorwidth / 2;
   keyCanvas.height = colorheight / 2;
-  let keyContext = keyCanvas.getContext('2d');
+  const keyContext = keyCanvas.getContext('2d');
 
   resetCanvas('color');
   canvasState = 'color';
   setImageData();
 
-  if (kinect.open()) {
-    kinect.on('multiSourceFrame', function (frame) {
-      if (busy) {
-        return;
-      }
-      busy = true;
+  if (kinect.constructor.name === 'KinectAzure') {
+    // KINECT AZURE
+    if (kinect.open()) {
+      kinect.startCameras({
+        depth_mode: KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
+        color_format: KinectAzure.K4A_IMAGE_FORMAT_COLOR_BGRA32,
+        color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
+        include_depth_to_color: true,
+        include_body_index_map: true,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15,
+      });
+      depthModeRange = kinect.getDepthModeRange(
+        KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
+      );
+      kinect.createTracker();
 
-      var closestBodyIndex = getClosestBodyIndex(frame.body.bodies);
-      if (closestBodyIndex !== trackedBodyIndex) {
-        if (closestBodyIndex > -1) {
-          kinect.trackPixelsForBodyIndices([closestBodyIndex]);
-        } else {
-          kinect.trackPixelsForBodyIndices(false);
+      kinect.startListening((data) => {
+        processAzureKeyBuffer(
+          data.colorImageFrame,
+          data.bodyFrame.bodyIndexMapToColorImageFrame,
+        );
+        const packagedData = prepareDataToSend(
+          keyCanvas,
+          keyContext,
+          'webp',
+          imgQuality,
+          'key',
+        );
+        sendToPeer('frame', packagedData);
+      });
+    }
+  } else {
+    // KINECT WINDOWS
+    if (kinect.open()) {
+      kinect.on('multiSourceFrame', function (frame) {
+        if (busy) {
+          return;
         }
-      } else {
-        if (closestBodyIndex > -1) {
-          if (frame.bodyIndexColor.bodies[closestBodyIndex].buffer) {
-            newPixelData =
-              frame.bodyIndexColor.bodies[closestBodyIndex].buffer;
+        busy = true;
 
-            for (var i = 0; i < imageDataSize; i++) {
-              imageDataArray[i] = newPixelData[i];
+        const closestBodyIndex = getClosestBodyIndex(
+          frame.body.bodies,
+        );
+        if (closestBodyIndex !== trackedBodyIndex) {
+          if (closestBodyIndex > -1) {
+            kinect.trackPixelsForBodyIndices([closestBodyIndex]);
+          } else {
+            kinect.trackPixelsForBodyIndices(false);
+          }
+        } else {
+          if (closestBodyIndex > -1) {
+            if (
+              frame.bodyIndexColor.bodies[closestBodyIndex].buffer
+            ) {
+              newPixelData =
+                frame.bodyIndexColor.bodies[closestBodyIndex].buffer;
+
+              for (let i = 0; i < imageDataSize; i++) {
+                imageDataArray[i] = newPixelData[i];
+              }
+
+              const packagedData = prepareDataToSend(
+                keyCanvas,
+                keyContext,
+                'webp',
+                imgQuality,
+                'key',
+              );
+              sendToPeer('frame', packagedData);
             }
-
-            // drawImageToCanvas(keyCanvas, keyContext, 'key', 'webp');
-            let packagedData = prepareDataToSend(
-              keyCanvas,
-              keyContext,
-              'webp',
-              imgQuality,
-              'key',
-            );
-            sendToPeer('frame', packagedData);
           }
         }
-      }
-      trackedBodyIndex = closestBodyIndex;
-      busy = false;
-    }); // kinect.on
-  } // open
-  kinect.openMultiSourceReader({
-    frameTypes:
-      Kinect2.FrameType.bodyIndexColor | Kinect2.FrameType.body,
-  });
+        trackedBodyIndex = closestBodyIndex;
+        busy = false;
+      }); // kinect.on
+    } // open
+    kinect.openMultiSourceReader({
+      frameTypes:
+        Kinect2.FrameType.bodyIndexColor | Kinect2.FrameType.body,
+    });
+  }
 }
 
 function stopKey() {
-  console.log('stopping key');
-  kinect.closeMultiSourceReader();
-  kinect.removeAllListeners();
-  canvasState = null;
-  busy = false;
+  if (kinect.constructor.name === 'KinectAzure') {
+    // Kinect Azure
+    console.log('stopping key');
+    kinect.stopCameras();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  } else {
+    // Kinect Windows
+    console.log('stopping key');
+    kinect.closeMultiSourceReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+    busy = false;
+  }
 }
 
 function loadFile(e) {
@@ -2000,6 +2047,35 @@ function processAzureDepthBuffer(newPixelData, depthRange) {
     imageDataArray[i + 3] = 0xff;
 
     depthPixelIndex += 2;
+  }
+}
+
+// see body index map color mask example from https://github.com/wouterverweirder/kinect-azure/
+function processAzureKeyBuffer(
+  imageFrame,
+  bodyIndexMapToColorImageFrame,
+) {
+  const newPixelData = Buffer.from(imageFrame.imageData);
+  const newBodyIndexData = Buffer.from(
+    bodyIndexMapToColorImageFrame.imageData,
+  );
+  let bodyIndexPixelIndex = 0;
+  for (let i = 0; i < imageDataSize; i += 4) {
+    const bodyIndexValue = newBodyIndexData[bodyIndexPixelIndex];
+    if (
+      bodyIndexValue !== KinectAzure.K4ABT_BODY_INDEX_MAP_BACKGROUND
+    ) {
+      imageDataArray[i] = newPixelData[i + 2];
+      imageDataArray[i + 1] = newPixelData[i + 1];
+      imageDataArray[i + 2] = newPixelData[i];
+      imageDataArray[i + 3] = 0xff;
+    } else {
+      imageDataArray[i] = 0;
+      imageDataArray[i + 1] = 0;
+      imageDataArray[i + 2] = 0;
+      imageDataArray[i + 3] = 0;
+    }
+    bodyIndexPixelIndex++;
   }
 }
 
