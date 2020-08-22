@@ -3,7 +3,8 @@ html {
   text-transform: uppercase;
 }
 
-input, #custom-file-upload {
+input,
+#custom-file-upload {
   border: 1px solid black;
   background: white;
   color: black;
@@ -17,13 +18,24 @@ input, #custom-file-upload {
   cursor: pointer;
 }
 
-input[type="file"] {
+input[type='file'] {
   display: none;
 }
 
-#custom-file-upload:hover, input[type="button"]:hover, input[type="button"]:active {
+#custom-file-upload:hover,
+input[type='button']:hover,
+input[type='button']:active {
   background: #1daad8;
-} 
+}
+
+#startngrok {
+  padding: 10px 30px;
+  margin-top: 10px;
+}
+
+#ngrokaddress {
+  display: none;
+}
 
 div.intro {
   font-weight: bold;
@@ -37,7 +49,7 @@ div.intro {
 
 span.highlight {
   text-transform: none;
-  background: #D87C1D;
+  background: #d87c1d;
   font-size: 2em;
 }
 
@@ -45,12 +57,13 @@ input#newpeerid {
   width: 100px;
 }
 
-input::-webkit-input-placeholder, input[type="text"] {
+input::-webkit-input-placeholder,
+input[type='text'] {
   text-transform: none;
 }
 
 input.dimensions {
-  width: 40px; 
+  width: 40px;
 }
 
 #imagesize span {
@@ -58,7 +71,8 @@ input.dimensions {
   padding-top: 5px;
 }
 
-#imagesize span, #imagesize input {
+#imagesize span,
+#imagesize input {
   margin-right: 10px;
   margin-bottom: 10px;
 }
@@ -75,9 +89,13 @@ input.dimensions {
   text-transform: none;
 }
 
-#connectionopen {
- margin-bottom: 2em;
+#ip-display {
+  margin-bottom: 2em;
 }
+
+/* #publicaddress {
+  display: none;
+} */
 
 #controls {
   background-color: #f7f8fa;
@@ -104,11 +122,9 @@ input.dimensions {
   background-color: #1daad8;
 }
 
-input[type="checkbox"] {
+input[type='checkbox'] {
   float: none;
 }
-
-
 
 /* .styleCheckBox */
 .styleCheckBox {
@@ -117,7 +133,6 @@ input[type="checkbox"] {
   position: relative;
   margin-right: 20px;
   line-height: 20px;
-
 }
 .styleCheckBox label {
   width: 20px;
@@ -143,13 +158,13 @@ input[type="checkbox"] {
   background: transparent;
   opacity: 0;
   -webkit-transform: rotate(-45deg);
-          transform: rotate(-45deg);
+  transform: rotate(-45deg);
 }
 
-.styleCheckBox input[type=checkbox] {
+.styleCheckBox input[type='checkbox'] {
   visibility: hidden;
 }
-.styleCheckBox input[type=checkbox]:checked + label:after {
+.styleCheckBox input[type='checkbox']:checked + label:after {
   opacity: 1;
 }
 
@@ -158,9 +173,8 @@ input[type="checkbox"] {
 }
 /* end .styleCheckBox */
 
-
-
-h1, #ip-display {
+h1,
+#ip-display {
   margin-left: 20px;
 }
 
@@ -172,7 +186,6 @@ div.multi-warning {
   display: none;
 }
 .multi-warning p {
-
 }
 
 #inputCanvas {
@@ -186,37 +199,35 @@ div.multi-warning {
 /* Slider */
 
 .slidecontainer {
-    width: 317px; /* Width of the outside container */
+  width: 317px; /* Width of the outside container */
 }
 
 /* The slider itself */
 .slider {
-    -webkit-appearance: none;  /* Override default CSS styles */
-    appearance: none;
-    width: 100%; /* Full-width */
-    height: 16px; /* Specified height */
-    background: #fff; /* Grey background */
-    outline: none; /* Remove outline */
-    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
-    transition: opacity .2s;
-    border: 1px solid black;
+  -webkit-appearance: none; /* Override default CSS styles */
+  appearance: none;
+  width: 100%; /* Full-width */
+  height: 16px; /* Specified height */
+  background: #fff; /* Grey background */
+  outline: none; /* Remove outline */
+  -webkit-transition: 0.2s; /* 0.2 seconds transition on hover */
+  transition: opacity 0.2s;
+  border: 1px solid black;
 }
 
-
-
-/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */ 
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
 .slider::-webkit-slider-thumb {
-    -webkit-appearance: none; /* Override default look */
-    appearance: none;
-    width: 16px; /* Set a specific slider handle width */
-    height: 16px; /* Slider handle height */
-    background: #1daad8; /* Green background */
-    cursor: pointer; /* Cursor on hover */
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 16px; /* Set a specific slider handle width */
+  height: 16px; /* Slider handle height */
+  background: #1daad8; /* Green background */
+  cursor: pointer; /* Cursor on hover */
 }
 
 .slider::-moz-range-thumb {
-    width: 16px; /* Set a specific slider handle width */
-    height: 16px; /* Slider handle height */
-    background: #1daad8; /* Green background */
-    cursor: pointer; /* Cursor on hover */
+  width: 16px; /* Set a specific slider handle width */
+  height: 16px; /* Slider handle height */
+  background: #1daad8; /* Green background */
+  cursor: pointer; /* Cursor on hover */
 }

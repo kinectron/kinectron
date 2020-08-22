@@ -1,5 +1,5 @@
 // Import Peer.js
-console.log('You are running Kinectron API version 0.3.3');
+console.log('You are running Kinectron API version 0.3.4');
 import Peer from 'peerjs';
 
 const Kinectron = function (arg1, arg2) {
@@ -85,28 +85,28 @@ const Kinectron = function (arg1, arg2) {
   let busy = false;
 
   // Running multiframe indicator
-  var multiFrame = false;
-  var currentFrames = [];
+  let multiFrame = false;
+  let currentFrames = [];
 
   // Hold initital frame request until peer connection ready
-  var ready = false;
-  var holdInitFeed = null;
+  let ready = false;
+  let holdInitFeed = null;
 
   // Peer variables and defaults
-  var peer = null;
-  var connection = null;
-  var peerNet = { host: 'localhost', port: 9001, path: '/' }; // Connect to localhost by default
-  var peerId = 'kinectron'; // Connect to peer Id Kinectron by default
+  let peer = null;
+  let connection = null;
+  let peerNet = { host: 'localhost', port: 9001, path: '/' }; // Connect to localhost by default
+  const peerId = 'kinectron'; // Connect to peer Id Kinectron by default
 
   // Hidden div variables
-  var myDiv = null;
+  let myDiv = null;
 
   // Record variables
-  var doRecord = false;
-  var recordStartTime = 0;
-  var bodyChunks = [];
-  var rawDepthChunks = [];
-  var mediaRecorders = [];
+  let doRecord = false;
+  let recordStartTime = 0;
+  let bodyChunks = [];
+  let rawDepthChunks = [];
+  let mediaRecorders = [];
 
   // Debug timer variables
   let timer = false;
@@ -114,17 +114,33 @@ const Kinectron = function (arg1, arg2) {
   let sendCounter = 0;
 
   // Check for ip address in "quickstart" method
-  if (typeof arg1 !== 'undefined' && typeof arg2 == 'undefined') {
-    var host = arg1;
-    peerNet.host = host;
+  // If user has provided only first argument
+  if (typeof arg1 !== 'undefined' && typeof arg2 === 'undefined') {
+    // If it is an ngrok address
+    if (arg1.includes('ngrok.io')) {
+      const ngrokUrl = arg1;
+      const network = {
+        host: ngrokUrl, // ngrok url
+        port: '443', // https portnumber
+        path: '/', // starting path
+        secure: 'true', //
+      };
+      peerNet = network;
 
-    // Check for new network provided by user
+      // Otherwise it is a local address
+    } else {
+      const host = arg1;
+      peerNet.host = host;
+    }
+
+    // If user has provided two arguments
+    // User has provided their own peer network
   } else if (
     typeof arg1 !== 'undefined' &&
     typeof arg2 !== 'undefined'
   ) {
-    var peerid = arg1;
-    var network = arg2;
+    const peerid = arg1;
+    const network = arg2;
     peerId = peerid;
     peerNet = network;
   }

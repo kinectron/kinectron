@@ -126,6 +126,12 @@ function keyPressed() {
       currentFeed = 'bodies';
       break;
 
+    case '6':
+      resizeCanvas(AZURECOLORWIDTH, AZURECOLORHEIGHT);
+      kinectron.startKey();
+      currentFeed = 'key';
+      break;
+
     // THESE FEEDS ARE NOT YET IMPLEMENTED FOR AZURE
     // case '6':
     //   kinectron.startInfrared();
@@ -136,12 +142,6 @@ function keyPressed() {
     //   kinectron.startLEInfrared();
     //   currentFeed = 'le infrared';
     //   break;
-
-    case '8':
-      resizeCanvas(AZURECOLORWIDTH, AZURECOLORHEIGHT);
-      kinectron.startKey();
-      currentFeed = 'key';
-      break;
 
     // case '9':
     //   kinectron.startRGBD();

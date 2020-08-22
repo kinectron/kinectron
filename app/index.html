@@ -15,9 +15,19 @@
       <div class="intro">
         <div id="ip-display">
         <div id="connectionopen">
-          <p>Your IP Address is <br>
-          <span class='highlight' id="ipaddress">xxxx</span></p>
+          <div id="localaddress">
+            <p>Your Local Address is <br>
+              <span class='highlight' id="ipaddress">xxxx</span></p>    
+          </div>
+           <div id='publicaddress'>
+            <p>Your Public Address is <br>
+            <input type="button" class="" id="startngrok" value="Create Public Address">
+            
+              <span class='highlight' id="ngrokaddress">xxxx</span></p>
+           </div> 
         </div>
+        <div class="clear-class" style="clear:both"></div>
+
         <div id="newpeercreated">
           <p>You created a new peer server. Your network details are: <br/><br/>Peer ID: <span class='highlight' id="peerid">xxxx</span> IP Address: <span class='highlight' id="newipaddress">xxxx</span> Port: <span class="highlight" id="port">xxxx</span><br/><br/></p>
         </div>

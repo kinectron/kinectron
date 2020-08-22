@@ -1,6 +1,6 @@
 {
   "name": "kinectron-server",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "A realtime peer server for Kinect 2 and Azure Kinect.",
   "main": "main.js",
   "scripts": {
@@ -26,6 +26,7 @@
     "electron-packager": "^14.2.1",
     "kinect-azure": "0.0.19",
     "kinect2": "^0.1.7",
+    "ngrok": "^3.2.7",
     "os": "^0.1.1",
     "peer": "^0.5.3"
   }

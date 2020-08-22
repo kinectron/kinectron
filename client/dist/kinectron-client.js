@@ -198,8 +198,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
+
 // Import Peer.js
-console.log('You are running Kinectron API version 0.3.3');
+console.log('You are running Kinectron API version 0.3.4');
 
 var Kinectron = function Kinectron(arg1, arg2) {
   this.img = null; // this.rawDepthImg = null;
@@ -299,15 +301,33 @@ var Kinectron = function Kinectron(arg1, arg2) {
   var timer = false;
   var timeCounter = 0;
   var sendCounter = 0; // Check for ip address in "quickstart" method
+  // if user has provided only first argument
 
-  if (typeof arg1 !== 'undefined' && typeof arg2 == 'undefined') {
-    var host = arg1;
-    peerNet.host = host; // Check for new network provided by user
+  if (typeof arg1 !== 'undefined' && typeof arg2 === 'undefined') {
+    // If it is an ngrok address
+    if (arg1.includes('ngrok.io')) {
+      var ngrokUrl = arg1;
+      var network = {
+        host: ngrokUrl,
+        // ngrok url
+        port: '443',
+        // https portnumber
+        path: '/',
+        // starting path
+        secure: 'true' //
+
+      };
+      peerNet = network; // Otherwise it is a local address
+    } else {
+      var host = arg1;
+      peerNet.host = host;
+    } // If user has provided two arguments
+
   } else if (typeof arg1 !== 'undefined' && typeof arg2 !== 'undefined') {
     var peerid = arg1;
-    var network = arg2;
-    peerId = peerid;
-    peerNet = network;
+    var _network = arg2;
+    peerId = (_readOnlyError("peerId"), peerid);
+    peerNet = _network;
   } // Create new peer
 
 
@@ -1176,7 +1196,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55455" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55670" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

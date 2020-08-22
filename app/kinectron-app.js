@@ -1,6 +1,7 @@
 const os = require('os');
 const Kinect2 = require('kinect2');
 const KinectAzure = require('kinect-azure');
+const ngrok = require('ngrok');
 
 const BUTTONINACTIVECLR = '#fff';
 const BUTTONACTIVECLR = '#1daad8';
@@ -97,7 +98,7 @@ function init() {
   var ipAddresses;
   var allIpAddresses;
 
-  console.log('You are running Kinectron Version 0.3.3!');
+  console.log('You are running Kinectron Version 0.3.4!');
 
   ipAddresses = getIpAddress();
   allIpAddresses = ipAddresses.join(', ');
@@ -163,8 +164,6 @@ function init() {
   document
     .getElementById('rgbd')
     .addEventListener('click', chooseCamera);
-  //document.getElementById('fh-joint').addEventListener('click', chooseCamera);
-  //document.getElementById('scale').addEventListener('click', chooseCamera);
   document
     .getElementById('body')
     .addEventListener('click', chooseCamera);
@@ -192,6 +191,34 @@ function init() {
   document
     .getElementById('imgquality')
     .addEventListener('input', updateImgQuality);
+  document
+    .getElementById('startngrok')
+    .addEventListener('click', startNgrok);
+}
+
+function startNgrok(evt) {
+  const ngroklink = '<a href=>';
+  if (
+    confirm(
+      `Creating a public address will open a secure public tunnel to your computer at port 9001 over https using ngrok. Learn more at ngrok.com. While this developer thinks this is a pretty nifty solution to getting your Kinectron server up on the internet, it could open you up to security threats. The risks are probably relatively low, but proceed at your own risk (and/or consider constributing to Kinectron to make it more secure (･ω･)b).`,
+    )
+  ) {
+    (async function () {
+      let ngrokUrl = await ngrok.connect(9001);
+      console.log('Created public address at ' + ngrokUrl);
+
+      let newStr = ngrokUrl.replace('https://', '');
+
+      const ngrokAddress = document.getElementById('ngrokaddress');
+      ngrokAddress.style.display = 'inline';
+      ngrokAddress.innerHTML = newStr;
+
+      const ngrokButton = document.getElementById('startngrok');
+      ngrokButton.style.display = 'none';
+    })();
+  } else {
+    console.log('No public address created.');
+  }
 }
 
 function startAzureKinect(evt) {
@@ -1928,6 +1955,7 @@ function stopKey() {
     // Kinect Azure
     console.log('stopping key');
     kinect.stopCameras();
+    kinect.destroyTracker();
     kinect.stopListening();
     canvasState = null;
     busy = false;
