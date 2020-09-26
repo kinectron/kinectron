@@ -36,7 +36,7 @@ function setup() {
   // set kinect type to azure
   kinectron.setKinectType('azure');
 
-  // sonnect with application over peer
+  // connect with application over peer
   kinectron.makeConnection();
 
   // define callback for depth feed
@@ -63,7 +63,7 @@ function drawImage(newFrame) {
     for (let i = 0; i < depthPixels.length; i += 4) {
       // if there's a depth value
       if (depthPixels[i] > 0) {
-        // map the depth value to the 0-1 for hue
+        // map the depth value to range 0-1 for hue
         // the kinect depth value can go up to 8000,
         // play with the depth range numbers (0,500) for different results
         const newClr = map(depthPixels[i], 0, 500, 0, 1.0);
