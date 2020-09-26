@@ -195,7 +195,7 @@ window.addEventListener('resize', onWindowResize, false);
 
 // Wait for page to load to create three.js scene and Kinectron connection
 window.addEventListener('load', function () {
-  // Create three js scene
+  // Create three.js scene
   initThreeJS();
 
   // Start kinectron
