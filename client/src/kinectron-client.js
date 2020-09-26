@@ -1,5 +1,5 @@
 // Import Peer.js
-console.log('You are running Kinectron API version 0.3.4');
+console.log('You are running Kinectron API version 0.3.5');
 import Peer from 'peerjs';
 
 const Kinectron = function (arg1, arg2) {
@@ -19,6 +19,7 @@ const Kinectron = function (arg1, arg2) {
   this.trackedBodiesCallback = null;
   this.trackedJointCallback = null;
   this.keyCallback = null;
+  this.depthKeyCallback = null;
   this.rgbdCallback = null;
   this.fhCallback = null;
   this.multiFrameCallback = null;
@@ -327,9 +328,11 @@ const Kinectron = function (arg1, arg2) {
             }
             break;
 
-          // If floor height, draw left hand and height
-          case 'floorHeightTracker':
-            this.fhCallback(data);
+          case 'depthKey':
+            const processedKeyData = this._processRawDepth(
+              data.imagedata,
+            );
+            this.depthKeyCallback(processedKeyData);
             break;
 
           case 'rawDepth':
@@ -501,6 +504,14 @@ const Kinectron = function (arg1, arg2) {
     this._setFeed('depth');
   };
 
+  this.startDepthKey = function (callback) {
+    if (callback) {
+      this.depthKeyCallback = callback;
+    }
+
+    this._setFeed('depth-key');
+  };
+
   this.startRawDepth = function (callback) {
     if (callback) {
       this.rawDepthCallback = callback;
@@ -646,6 +657,10 @@ const Kinectron = function (arg1, arg2) {
 
   this.setKeyCallback = function (callback) {
     this.keyCallback = callback;
+  };
+
+  this.setDepthKeyCallback = function (callback) {
+    this.depthKeyCallback = callback;
   };
 
   this.setRGBDCallback = function (callback) {
@@ -814,6 +829,10 @@ const Kinectron = function (arg1, arg2) {
         this.keyCallback(this.img);
         break;
 
+      case 'depthkey':
+        this.depthKeyCallback(this.img);
+        break;
+
       case 'rgbd':
         this.rgbdCallback(this.img);
         break;
@@ -854,7 +873,7 @@ const Kinectron = function (arg1, arg2) {
     );
 
     for (let i = 0; i < imageData.data.length; i += 4) {
-      let depth = (imageData.data[i + 1] << 8) + imageData.data[i]; //get uint16 data from buffer
+      let depth = (imageData.data[i + 1] << 8) | imageData.data[i]; //get uint16 data from buffer
       processedData.push(depth);
     }
 

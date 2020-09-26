@@ -5,7 +5,8 @@
 
 /* ===
 Kinectron Example
-Kinect Azure raw depth to point cloud using threejs
+Kinect Azure depth key to point cloud using threejs
+Depth key delivers depth data corresponding only to detected people 
 === */
 // variable for kinectron
 let kinectron = null;
@@ -38,11 +39,11 @@ function initKinectron() {
   kinectron.makeConnection();
 
   // Start depth key feed and set a callback
-  kinectron.startRawDepth(rdCallback);
+  kinectron.startDepthKey(dkCallback);
 }
 
 // Run this callback each time Kinect data is received
-function rdCallback(depthBuffer) {
+function dkCallback(depthBuffer) {
   // Update point cloud based on incoming Kinect data
   pointCloud(depthBuffer);
 }

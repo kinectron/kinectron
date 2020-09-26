@@ -69,6 +69,7 @@ function setup() {
   kinectron.setTrackedBodiesCallback(drawBody);
   kinectron.setBodiesCallback(getBodies);
   kinectron.setKeyCallback(drawImage);
+  kinectron.setDepthKeyCallback(drawRawDepth);
 
   // Feeds not implemented for azure
   // kinectron.setInfraredCallback(drawImage);
@@ -130,6 +131,12 @@ function keyPressed() {
       resizeCanvas(AZURECOLORWIDTH, AZURECOLORHEIGHT);
       kinectron.startKey();
       currentFeed = 'key';
+      break;
+
+    case '7':
+      resizeCanvas(AZURERAWWIDTH, AZURERAWHEIGHT);
+      kinectron.startDepthKey();
+      currentFeed = 'depth key';
       break;
 
     // THESE FEEDS ARE NOT YET IMPLEMENTED FOR AZURE

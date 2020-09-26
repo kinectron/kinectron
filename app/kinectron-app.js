@@ -98,7 +98,7 @@ function init() {
   var ipAddresses;
   var allIpAddresses;
 
-  console.log('You are running Kinectron Version 0.3.4!');
+  console.log('You are running Kinectron Version 0.3.5!');
 
   ipAddresses = getIpAddress();
   allIpAddresses = ipAddresses.join(', ');
@@ -160,6 +160,9 @@ function init() {
     .addEventListener('click', chooseCamera);
   document
     .getElementById('key')
+    .addEventListener('click', chooseCamera);
+  document
+    .getElementById('depth-key')
     .addEventListener('click', chooseCamera);
   document
     .getElementById('rgbd')
@@ -995,6 +998,10 @@ function changeCameraState(camera, state) {
       cameraCode = 'Key';
       break;
 
+    case 'depth-key':
+      cameraCode = 'DepthKey';
+      break;
+
     case 'infrared':
       cameraCode = 'Infrared';
       break;
@@ -1245,7 +1252,7 @@ function startDepth() {
           depthCanvas,
           depthContext,
           'webp',
-          imgQuality,
+          1.0,
           'depth',
         );
         sendToPeer('frame', packagedData);
@@ -1969,8 +1976,63 @@ function stopKey() {
   }
 }
 
-function loadFile(e) {
-  window.location.href = e.target.files[0].path;
+function startDepthKey() {
+  console.log('starting depth key');
+
+  const depthKeyCanvas = document.getElementById('depth-key-canvas');
+  depthKeyCanvas.width = rawdepthwidth;
+  depthKeyCanvas.height = rawdepthheight;
+  const depthKeyContext = depthKeyCanvas.getContext('2d');
+
+  resetCanvas('raw');
+  canvasState = 'raw';
+  setImageData();
+
+  if (kinect.constructor.name === 'KinectAzure') {
+    // KINECT AZURE
+    if (kinect.open()) {
+      const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_2X2BINNED;
+      kinect.startCameras({
+        depth_mode: depthMode,
+        include_body_index_map: true,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15,
+      });
+
+      kinect.createTracker();
+
+      kinect.startListening((data) => {
+        const depthBuffer = Buffer.from(
+          data.depthImageFrame.imageData,
+        );
+        const indexMapBuffer = Buffer.from(
+          data.bodyFrame.bodyIndexMapImageFrame.imageData,
+        );
+
+        processAzureDepthKeyBuffer(depthBuffer, indexMapBuffer);
+
+        const packagedData = prepareDataToSend(
+          depthKeyCanvas,
+          depthKeyContext,
+          'webp',
+          1,
+          'depthkey',
+        );
+        sendToPeer('depthKey', packagedData, true);
+      });
+    }
+  }
+}
+
+function stopDepthKey() {
+  if (kinect.constructor.name === 'KinectAzure') {
+    // Kinect Azure
+    console.log('stopping key');
+    kinect.stopCameras();
+    kinect.destroyTracker();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  }
 }
 
 function setImageData() {
@@ -2057,15 +2119,18 @@ function processDepthBuffer(newPixelData) {
   }
 }
 
+// creates grayscale 0-255 depth image
 function processAzureDepthBuffer(newPixelData, depthRange) {
   let depthPixelIndex = 0;
 
   for (let i = 0; i < imageDataSize; i += 4) {
-    // console.log('inside');
+    // iterate by 4 through pixel array
+
     const depthValue =
       (newPixelData[depthPixelIndex + 1] << 8) |
-      newPixelData[depthPixelIndex];
+      newPixelData[depthPixelIndex]; // get 16 bit depth value into an integer
 
+    // map that integer from depth range to 255-0 / grayscale
     const normalizedValue = map(
       depthValue,
       depthRange.min,
@@ -2082,32 +2147,67 @@ function processAzureDepthBuffer(newPixelData, depthRange) {
   }
 }
 
-// see body index map color mask example from https://github.com/wouterverweirder/kinect-azure/
-function processAzureKeyBuffer(
-  imageFrame,
-  bodyIndexMapToColorImageFrame,
-) {
-  const newPixelData = Buffer.from(imageFrame.imageData);
-  const newBodyIndexData = Buffer.from(
-    bodyIndexMapToColorImageFrame.imageData,
-  );
-  let bodyIndexPixelIndex = 0;
+function processAzureDepthKeyBuffer(depthBuffer, bodyIndexBuffer) {
+  let depthPixelIndex = 0;
+  let bodyPixelIndex = 0;
+
   for (let i = 0; i < imageDataSize; i += 4) {
-    const bodyIndexValue = newBodyIndexData[bodyIndexPixelIndex];
+    const bodyIndexValue = bodyIndexBuffer[bodyPixelIndex]; // getting value from index map
+
     if (
+      // this is not a body
+      // see https://docs.microsoft.com/en-us/azure/kinect-dk/body-index-map
       bodyIndexValue !== KinectAzure.K4ABT_BODY_INDEX_MAP_BACKGROUND
     ) {
-      imageDataArray[i] = newPixelData[i + 2];
-      imageDataArray[i + 1] = newPixelData[i + 1];
-      imageDataArray[i + 2] = newPixelData[i];
+      imageDataArray[i] = depthBuffer[depthPixelIndex];
+      imageDataArray[i + 1] = depthBuffer[depthPixelIndex + 1];
+      imageDataArray[i + 2] = 0;
       imageDataArray[i + 3] = 0xff;
     } else {
       imageDataArray[i] = 0;
       imageDataArray[i + 1] = 0;
       imageDataArray[i + 2] = 0;
-      imageDataArray[i + 3] = 0;
+      imageDataArray[i + 3] = 0xff;
     }
-    bodyIndexPixelIndex++;
+
+    depthPixelIndex += 2;
+    bodyPixelIndex++;
+  }
+}
+
+// see body index map color mask example from https://github.com/wouterverweirder/kinect-azure/
+function processAzureKeyBuffer(
+  imageFrame,
+  bodyIndexMapToColorImageFrame,
+) {
+  const newPixelData = Buffer.from(imageFrame.imageData); // color image buffer
+  const newBodyIndexData = Buffer.from(
+    bodyIndexMapToColorImageFrame.imageData,
+  ); // body index map to color buffer
+  let bodyIndexPixelIndex = 0;
+  for (let i = 0; i < imageDataSize; i += 4) {
+    // iterates the image pixels by 4
+    const bodyIndexValue = newBodyIndexData[bodyIndexPixelIndex]; // gets value from body index map
+    // if this is a body
+    if (
+      // this is not a body
+      // see https://docs.microsoft.com/en-us/azure/kinect-dk/body-index-map
+      bodyIndexValue !== KinectAzure.K4ABT_BODY_INDEX_MAP_BACKGROUND
+    ) {
+      // get the pixel data from the color image
+      // image comes in bgra rather than rgba and needs to be reversed
+      imageDataArray[i] = newPixelData[i + 2]; // r // b
+      imageDataArray[i + 1] = newPixelData[i + 1]; // g // g
+      imageDataArray[i + 2] = newPixelData[i]; // b //r
+      imageDataArray[i + 3] = 0xff; //a //a
+    } else {
+      // otherwise it's black
+      imageDataArray[i] = 0;
+      imageDataArray[i + 1] = 0;
+      imageDataArray[i + 2] = 0;
+      imageDataArray[i + 3] = 0; // make it transparent
+    }
+    bodyIndexPixelIndex++; // iterates the body index pixels by 1
   }
 }
 
