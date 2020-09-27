@@ -5,7 +5,7 @@
 
 /* ===
 Kinectron Example
-Kinect Azure depth key feed using p5.js
+Draw Kinect Azure grayscale depth feed using p5.js
 === */
 //
 
@@ -64,9 +64,8 @@ function drawImage(newFrame) {
       // if there's a depth value
       if (depthPixels[i] > 0) {
         // map the depth value to range 0-1 for hue
-        // the kinect depth value can go up to 8000,
-        // play with the depth range numbers (0,500) for different results
-        const newClr = map(depthPixels[i], 0, 500, 0, 1.0);
+        // grayscale depth range numbers (0,255) for different results
+        const newClr = map(depthPixels[i], 0, 255, 0, 1.0);
         // get rgb from hsv
         const newRGB = HSVtoRGB(newClr, 1.0, 1.0);
 
