@@ -1252,7 +1252,7 @@ function startDepth() {
           depthCanvas,
           depthContext,
           'webp',
-          1.0,
+          imgQuality,
           'depth',
         );
         sendToPeer('frame', packagedData);
