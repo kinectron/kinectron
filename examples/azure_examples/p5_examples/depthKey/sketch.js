@@ -71,7 +71,7 @@ function drawDepth(depthBuffer) {
   for (let i = 0; i < depthArray.length; i++) {
     // if there's a depth value
     if (depthArray[i] > 0) {
-      // map the depth value to the 0-1 for hue
+      // map the depth value to range 0-1 for hue
       // the kinect depth value can go up to 8000,
       // play with the depth range numbers (0,3000) for different results
       const newClr = map(depthArray[i], 0, 3000, 0, 1.0);
