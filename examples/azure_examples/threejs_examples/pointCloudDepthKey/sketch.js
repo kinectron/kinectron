@@ -90,8 +90,6 @@ function createParticles() {
 
   // Create particles
   for (let i = 0; i < numParticles; i++) {
-    // i % DEPTHWIDTH gives x remainder
-    // - DEPTHWIDTH * 0.5 centers
     let x = (i % DEPTHWIDTH) - DEPTHWIDTH * 0.5;
     // creates y from the height to 0
     let y = DEPTHHEIGHT - Math.floor(i / DEPTHWIDTH);
@@ -108,15 +106,6 @@ function createParticles() {
     colors[i] = new THREE.Color(
       'rgb(' + color2 + '%,' + color2 + '%, ' + color + '%)',
     );
-
-    // Some other color options....
-
-    // Assign each particle a color -- rainbow
-    // let color = i/numParticles * 360;
-    //colors[i] = new THREE.Color("hsl(" + color + ", 50%, 50%)");
-
-    // Assign each particle a color -- white
-    //colors[i] = new THREE.Color(0xffffff);
   }
 
   // Give the particles their colors
@@ -124,9 +113,9 @@ function createParticles() {
 
   // Create material for the points
   let material = new THREE.PointsMaterial({
-    size: 4,
+    size: 3,
     vertexColors: THREE.VertexColors,
-    transparent: true,
+    // transparent: true,
   });
 
   // Create the points geometry
@@ -136,11 +125,11 @@ function createParticles() {
   scene.add(mesh);
 }
 
-// Function to update point cloud with depth data
+/// Function to update point cloud with depth data
 function pointCloud(depthBuffer) {
   // Set desired depth range
-  let nDepthMinReliableDistance = 0;
-  let nDepthMaxDistance = 3000;
+  const rangeMin = 0;
+  const rangeMax = 3000;
 
   // To iterate through particles
   let particleIndex = 0;
@@ -150,24 +139,77 @@ function pointCloud(depthBuffer) {
     // Get current depth value
     let depth = depthBuffer[i];
 
+    // map depth to color
+    const hue = map(depth, 500, 2000, 0.8, 0.2);
+    const rgb = HSVtoRGB(hue, 1.0, 0.8);
+
+    // assign rgb values
+    particles.colors[particleIndex].r = rgb.r;
+    particles.colors[particleIndex].g = rgb.g;
+    particles.colors[particleIndex].b = rgb.b;
+
     // If the depth is out of depth range
-    if (
-      depth <= nDepthMinReliableDistance ||
-      depth >= nDepthMaxDistance
-    ) {
+    if (depth <= rangeMin || depth >= rangeMax) {
       // Push the particle far far away so we don't see it
       depth = Number.MAX_VALUE;
     }
 
     // Update depth value in the particle array
-    particles.vertices[particleIndex].z = depth;
+    particles.vertices[particleIndex].z = -depth;
 
     // Increase the particle index
     particleIndex++;
   }
 
-  // Update particles
+  // Update particles and colors
   particles.verticesNeedUpdate = true;
+  particles.colorsNeedUpdate = true;
+}
+
+function map(value, inputMin, inputMax, outputMin, outputMax) {
+  return (
+    ((value - inputMin) * (outputMax - outputMin)) /
+      (inputMax - inputMin) +
+    outputMin
+  );
+}
+
+// https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately
+function HSVtoRGB(h, s, v) {
+  var r, g, b, i, f, p, q, t;
+  if (arguments.length === 1) {
+    (s = h.s), (v = h.v), (h = h.h);
+  }
+  i = Math.floor(h * 6);
+  f = h * 6 - i;
+  p = v * (1 - s);
+  q = v * (1 - f * s);
+  t = v * (1 - (1 - f) * s);
+  switch (i % 6) {
+    case 0:
+      (r = v), (g = t), (b = p);
+      break;
+    case 1:
+      (r = q), (g = v), (b = p);
+      break;
+    case 2:
+      (r = p), (g = v), (b = t);
+      break;
+    case 3:
+      (r = p), (g = q), (b = v);
+      break;
+    case 4:
+      (r = t), (g = p), (b = v);
+      break;
+    case 5:
+      (r = v), (g = p), (b = q);
+      break;
+  }
+  return {
+    r: r,
+    g: g,
+    b: b,
+  };
 }
 
 // Resize scene based on window size
