@@ -70,11 +70,11 @@ function setup() {
   kinectron.setBodiesCallback(getBodies);
   kinectron.setKeyCallback(drawImage);
   kinectron.setDepthKeyCallback(drawRawDepth);
+  kinectron.setRGBDCallback(drawImage);
 
   // Feeds not implemented for azure
   // kinectron.setInfraredCallback(drawImage);
   // kinectron.setLeInfraredCallback(drawImage);
-  // kinectron.setRGBDCallback(drawImage);
 }
 
 // draw() is a p5.js function
@@ -150,10 +150,10 @@ function keyPressed() {
     //   currentFeed = 'le infrared';
     //   break;
 
-    // case '9':
-    //   kinectron.startRGBD();
-    //   currentFeed = 'rgbd';
-    //   break;
+    case '9':
+      kinectron.startRGBD();
+      currentFeed = 'rgbd';
+      break;
 
     case '0':
       kinectron.stopAll();

@@ -48,6 +48,9 @@ const AZUREDEPTHHEIGHT = 576;
 const AZURERAWWIDTH = 640 / 2;
 const AZURERAWHEIGHT = 576 / 2;
 
+const AZURERGBDWIDTH = 512;
+const AZURERGBDHEIGHT = 512;
+
 let colorwidth;
 let colorheight;
 
@@ -56,6 +59,9 @@ let depthheight;
 
 let rawdepthwidth;
 let rawdepthheight;
+
+let rgbdwidth;
+let rgbdheight;
 
 var imageData = null;
 var imageDataSize = null;
@@ -285,6 +291,9 @@ function setCanvasDimensions(kinectType) {
 
     rawdepthwidth = AZURERAWWIDTH;
     rawdepthheight = AZURERAWHEIGHT;
+
+    rgbdwidth = AZURERGBDWIDTH;
+    rgbdheight = AZURERGBDHEIGHT;
   } else if (kinectType === 'windows') {
     colorwidth = WINDOWSCOLORWIDTH;
     colorheight = WINDOWSCOLORHEIGHT;
@@ -313,17 +322,15 @@ function initControls(kinectType) {
   }
 
   if (kinectType === 'azure') {
-    let azureButtons = document.getElementsByClassName(
-      'azure-option',
-    );
+    let azureButtons =
+      document.getElementsByClassName('azure-option');
 
     for (let i = 0; i < azureButtons.length; i++) {
       azureButtons[i].style.display = 'block';
     }
   } else if (kinectType === 'windows') {
-    let windowsButtons = document.getElementsByClassName(
-      'windows-option',
-    );
+    let windowsButtons =
+      document.getElementsByClassName('windows-option');
 
     for (let i = 0; i < windowsButtons.length; i++) {
       windowsButtons[i].style.display = 'block';
@@ -350,14 +357,12 @@ function toggleKinectType(evt, kinectType) {
 
   if (state === 'start-kinect-azure') {
     button.style.background = BUTTONACTIVECLR;
-    document.getElementById(
-      'start-kinect-windows',
-    ).style.background = BUTTONINACTIVECLR;
+    document.getElementById('start-kinect-windows').style.background =
+      BUTTONINACTIVECLR;
   } else if (state === 'start-kinect-windows') {
     button.style.background = BUTTONACTIVECLR;
-    document.getElementById(
-      'start-kinect-azure',
-    ).style.background = BUTTONINACTIVECLR;
+    document.getElementById('start-kinect-azure').style.background =
+      BUTTONINACTIVECLR;
   }
 }
 
@@ -861,23 +866,19 @@ function setOutputDimensions(evt) {
     switch (elementId) {
       case 'colorsubmit':
         if (currentCanvasResolution == 1.8) {
-          currentCanvas.width = document.getElementById(
-            'colorwidth',
-          ).value;
-          currentCanvas.height = document.getElementById(
-            'colorheight',
-          ).value;
+          currentCanvas.width =
+            document.getElementById('colorwidth').value;
+          currentCanvas.height =
+            document.getElementById('colorheight').value;
         }
         break;
 
       case 'depthsubmit':
         if (currentCanvasResolution == 1.2) {
-          currentCanvas.width = document.getElementById(
-            'depthwidth',
-          ).value;
-          currentCanvas.height = document.getElementById(
-            'depthheight',
-          ).value;
+          currentCanvas.width =
+            document.getElementById('depthwidth').value;
+          currentCanvas.height =
+            document.getElementById('depthheight').value;
         }
         break;
     }
@@ -1491,67 +1492,119 @@ function startRGBD() {
   console.log('starting rgbd');
 
   const rgbdCanvas = document.getElementById('rgbd-canvas');
-  rgbdCanvas.width = depthwidth;
-  rgbdCanvas.height = depthheight;
+  rgbdCanvas.width = rgbdwidth;
+  rgbdCanvas.height = rgbdheight;
   const rgbdContext = rgbdCanvas.getContext('2d');
 
-  resetCanvas('depth');
-  canvasState = 'depth';
+  resetCanvas('rgbd');
+  canvasState = 'rgbd';
+
   setImageData();
 
-  if (kinect.open()) {
-    kinect.on('multiSourceFrame', function (frame) {
-      if (busy) {
-        return;
-      }
-
-      busy = true;
-
-      let j = 0;
-      for (let i = 0; i < imageDataSize; i += 4) {
-        imageDataArray[i] = frame.depthColor.buffer[i];
-        imageDataArray[i + 1] = frame.depthColor.buffer[i + 1];
-        imageDataArray[i + 2] = frame.depthColor.buffer[i + 2];
-        imageDataArray[i + 3] = frame.depth.buffer[j]; // set alpha channel as depth
-        j++;
-      }
-
-      const rgbdImg = drawImageToCanvas(
-        rgbdCanvas,
-        rgbdContext,
-        'rgbd',
-        'webp',
-        0.1,
-      );
-
-      const packagedData = prepareDataToSend(
-        rgbdCanvas,
-        rgbdContext,
-        'webp',
-        0.1,
-        'rgbd',
-      );
-
-      sendToPeer('frame', packagedData);
-
-      // TODO: Still needed?
-      setTimeout(function () {
-        busy = false;
+  if (kinect.constructor.name === 'KinectAzure') {
+    // KINECT AZURE CODE
+    if (kinect.open()) {
+      const depthMode = KinectAzure.K4A_DEPTH_MODE_WFOV_2X2BINNED; // wfov does better with image doubling
+      kinect.startCameras({
+        depth_mode: depthMode,
+        color_format: KinectAzure.K4A_IMAGE_FORMAT_COLOR_BGRA32,
+        color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15, // change to 15?
+        include_color_to_depth: true,
       });
+
+      const depthModeRange = kinect.getDepthModeRange(depthMode);
+
+      kinect.startListening((data) => {
+        const newDepthPixelData = Buffer.from(
+          data.depthImageFrame.imageData,
+        );
+
+        const newBGRAPixelData = Buffer.from(
+          data.colorToDepthImageFrame.imageData,
+        );
+
+        if (data.colorToDepthImageFrame.height === 0) return;
+        processAzureRGBDBuffer(
+          newDepthPixelData,
+          newBGRAPixelData,
+          depthModeRange,
+        );
+
+        const packagedData = prepareDataToSend(
+          rgbdCanvas,
+          rgbdContext,
+          'webp',
+          1.0,
+          'rgbd',
+        );
+        sendToPeer('frame', packagedData);
+      });
+    }
+  } else {
+    // KINECT WINDOWS CODE
+    if (kinect.open()) {
+      kinect.on('multiSourceFrame', function (frame) {
+        if (busy) {
+          return;
+        }
+
+        busy = true;
+
+        let j = 0;
+        for (let i = 0; i < imageDataSize; i += 4) {
+          imageDataArray[i] = frame.depthColor.buffer[i];
+          imageDataArray[i + 1] = frame.depthColor.buffer[i + 1];
+          imageDataArray[i + 2] = frame.depthColor.buffer[i + 2];
+          imageDataArray[i + 3] = frame.depth.buffer[j]; // set alpha channel as depth
+          j++;
+        }
+
+        const rgbdImg = drawImageToCanvas(
+          rgbdCanvas,
+          rgbdContext,
+          'rgbd',
+          'webp',
+          0.1,
+        );
+
+        const packagedData = prepareDataToSend(
+          rgbdCanvas,
+          rgbdContext,
+          'webp',
+          0.1,
+          'rgbd',
+        );
+
+        sendToPeer('frame', packagedData);
+
+        // TODO: Still needed?
+        setTimeout(function () {
+          busy = false;
+        });
+      });
+    }
+    kinect.openMultiSourceReader({
+      frameTypes:
+        Kinect2.FrameType.depth | Kinect2.FrameType.depthColor,
     });
   }
-  kinect.openMultiSourceReader({
-    frameTypes:
-      Kinect2.FrameType.depth | Kinect2.FrameType.depthColor,
-  });
 }
 
 function stopRGBD() {
   console.log('stopping rgbd');
-  kinect.closeMultiSourceReader();
-  kinect.removeAllListeners();
-  canvasState = null;
-  busy = false;
+  if (kinect.constructor.name === 'KinectAzure') {
+    // Kinect Azure
+    kinect.stopCameras();
+    kinect.stopListening();
+    canvasState = null;
+    busy = false;
+  } else {
+    kinect.closeMultiSourceReader();
+    kinect.removeAllListeners();
+    canvasState = null;
+    busy = false;
+  }
 }
 
 function startSkeletonTracking() {
@@ -1707,9 +1760,8 @@ function stopSkeletonTracking() {
 }
 
 function displayCurrentFrames() {
-  var allFrameDisplay = document.getElementsByClassName(
-    'current-frames',
-  );
+  var allFrameDisplay =
+    document.getElementsByClassName('current-frames');
 
   for (var i = 0; i < allFrameDisplay.length; i++) {
     allFrameDisplay[i].innerHTML = currentFrames;
@@ -1754,9 +1806,8 @@ function startMulti(multiFrames) {
       }
 
       if (frame.body) {
-        let skeletonCanvas = document.getElementById(
-          'skeleton-canvas',
-        );
+        let skeletonCanvas =
+          document.getElementById('skeleton-canvas');
         skeletonCanvas.width = depthwidth;
         skeletonCanvas.height = depthheight;
         let skeletonContext = skeletonCanvas.getContext('2d');
@@ -2059,6 +2110,11 @@ function resetCanvas(size) {
       canvas.width = rawdepthwidth;
       canvas.height = rawdepthheight;
       break;
+
+    case 'rgbd':
+      canvas.width = rgbdwidth;
+      canvas.height = rgbdheight;
+      break;
   }
 }
 
@@ -2142,6 +2198,33 @@ function processAzureDepthBuffer(newPixelData, depthRange) {
     imageDataArray[i + 1] = normalizedValue;
     imageDataArray[i + 2] = normalizedValue;
     imageDataArray[i + 3] = 0xff;
+
+    depthPixelIndex += 2;
+  }
+}
+
+function processAzureRGBDBuffer(depthBuffer, bgraBuffer, depthRange) {
+  let depthPixelIndex = 0;
+
+  for (let i = 0; i < imageDataSize; i += 4) {
+    // iterate by 4 through pixel array
+
+    const depthValue =
+      (depthBuffer[depthPixelIndex + 1] << 8) |
+      depthBuffer[depthPixelIndex]; // get 16 bit depth value into an integer
+
+    // map that integer from depth range to 255-0 / grayscale
+    const normalizedDepthValue = map(
+      depthValue,
+      depthRange.min,
+      depthRange.max,
+      255,
+      0,
+    );
+    imageDataArray[i] = bgraBuffer[i + 2];
+    imageDataArray[i + 1] = bgraBuffer[i + 1];
+    imageDataArray[i + 2] = bgraBuffer[i + 0];
+    imageDataArray[i + 3] = normalizedDepthValue;
 
     depthPixelIndex += 2;
   }

@@ -71,6 +71,9 @@ const Kinectron = function (arg1, arg2) {
   const AZURERAWWIDTH = 640 / 2;
   const AZURERAWHEIGHT = 576 / 2;
 
+  const AZURERGBDWIDTH = 512;
+  const AZURERGBDHEIGHT = 512;
+
   let colorwidth;
   let colorheight;
 
@@ -80,10 +83,10 @@ const Kinectron = function (arg1, arg2) {
   let rawdepthwidth;
   let rawdepthheight;
 
-  let whichKinect = null;
+  let rgbdwidth;
+  let rgbdheight;
 
-  // Processing raw depth indicator
-  let busy = false;
+  let whichKinect = null;
 
   // Running multiframe indicator
   let multiFrame = false;
@@ -764,6 +767,9 @@ const Kinectron = function (arg1, arg2) {
 
       rawdepthwidth = AZURERAWWIDTH;
       rawdepthheight = AZURERAWHEIGHT;
+
+      rgbdwidth = AZURERGBDWIDTH;
+      rgbdheight = AZURERGBDHEIGHT;
     } else if (kinectType === 'windows') {
       colorwidth = WINDOWSCOLORWIDTH;
       colorheight = WINDOWSCOLORHEIGHT;
