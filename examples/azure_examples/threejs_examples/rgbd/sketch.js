@@ -1,11 +1,8 @@
 //Some general Three.js components
-var renderer, scene, camera, controls, stats;
-
-//DepthKit character
-var character;
+let renderer, scene, camera, controls, stats;
 
 //Kinectron
-var kinectron, kinectronGeo;
+let kinectron, kinectronGeo;
 
 //Kick off the example
 window.onload = function () {
@@ -20,12 +17,15 @@ function init() {
   document.body.appendChild(renderer.domElement);
 
   //Setup Kinectron
-  var kinectronIpAddress = '127.0.0.1'; //Add Kinectron IP here
+  const kinectronIpAddress = '127.0.0.1'; //Add Kinectron IP here
 
   //Open connection with Kinect
   kinectron = new Kinectron(kinectronIpAddress);
+
   // Set kinect type to azure
   kinectron.setKinectType('azure');
+
+  // Connect to Kinectron server
   kinectron.makeConnection();
 
   //Start RGBD feed and set callback for new frames
@@ -45,8 +45,8 @@ function init() {
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   //Create a kinectron geometry instance - First argument takes the rendering type ("wire" / "points" / "mesh")
-  kinectronGeo = new THREE.KinectGeometry('mesh');
-  kinectronGeo.kinectron.setDisplacement(5.0);
+  kinectronGeo = new THREE.KinectGeometry('wire');
+  kinectronGeo.kinectron.setDisplacement(15.0);
 
   //Add it to the scene
   scene.add(kinectronGeo);
@@ -55,7 +55,7 @@ function init() {
   controls = new THREE.OrbitControls(camera);
 
   // A grid helper as a floor reference
-  var gridHelper = new THREE.GridHelper(10, 10);
+  const gridHelper = new THREE.GridHelper(10, 10);
   scene.add(gridHelper);
 
   //Add stats
@@ -91,7 +91,6 @@ function render() {
   requestAnimationFrame(render);
 
   //Render
-
   renderer.render(scene, camera);
 }
 

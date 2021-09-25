@@ -1509,7 +1509,7 @@ function startRGBD() {
         depth_mode: depthMode,
         color_format: KinectAzure.K4A_IMAGE_FORMAT_COLOR_BGRA32,
         color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
-        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15, // change to 15?
+        camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15,
         include_color_to_depth: true,
       });
 

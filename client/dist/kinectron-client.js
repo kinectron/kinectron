@@ -264,15 +264,17 @@ var Kinectron = function Kinectron(arg1, arg2) {
   var AZUREDEPTHHEIGHT = 576;
   var AZURERAWWIDTH = 640 / 2;
   var AZURERAWHEIGHT = 576 / 2;
+  var AZURERGBDWIDTH = 512;
+  var AZURERGBDHEIGHT = 512;
   var colorwidth;
   var colorheight;
   var depthwidth;
   var depthheight;
   var rawdepthwidth;
   var rawdepthheight;
-  var whichKinect = null; // Processing raw depth indicator
-
-  var busy = false; // Running multiframe indicator
+  var rgbdwidth;
+  var rgbdheight;
+  var whichKinect = null; // Running multiframe indicator
 
   var multiFrame = false;
   var currentFrames = []; // Hold initital frame request until peer connection ready
@@ -894,6 +896,8 @@ var Kinectron = function Kinectron(arg1, arg2) {
       depthheight = AZUREDEPTHHEIGHT;
       rawdepthwidth = AZURERAWWIDTH;
       rawdepthheight = AZURERAWHEIGHT;
+      rgbdwidth = AZURERGBDWIDTH;
+      rgbdheight = AZURERGBDHEIGHT;
     } else if (kinectType === 'windows') {
       colorwidth = WINDOWSCOLORWIDTH;
       colorheight = WINDOWSCOLORHEIGHT;
@@ -1215,7 +1219,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61620" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64668" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
