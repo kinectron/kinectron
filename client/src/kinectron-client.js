@@ -1,5 +1,5 @@
 // Import Peer.js
-console.log('You are running Kinectron API version 0.3.6');
+console.log('You are running Kinectron API version 0.3.7');
 import Peer from 'peerjs';
 
 const Kinectron = function (arg1, arg2) {

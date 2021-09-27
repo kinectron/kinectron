@@ -201,7 +201,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
 
 // Import Peer.js
-console.log('You are running Kinectron API version 0.3.6');
+console.log('You are running Kinectron API version 0.3.7');
 
 var Kinectron = function Kinectron(arg1, arg2) {
   this.img = null; // this.rawDepthImg = null;
@@ -1219,7 +1219,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64668" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60148" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

@@ -16,8 +16,8 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  //Setup Kinectron
-  const kinectronIpAddress = '127.0.0.1'; //Add Kinectron IP here
+  // Define and create an instance of kinectron
+  const kinectronServerIPAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
 
   //Open connection with Kinect
   kinectron = new Kinectron(kinectronIpAddress);

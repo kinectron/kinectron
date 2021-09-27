@@ -104,7 +104,7 @@ function init() {
   var ipAddresses;
   var allIpAddresses;
 
-  console.log('You are running Kinectron Version 0.3.6!');
+  console.log('You are running Kinectron Version 0.3.7!');
 
   ipAddresses = getIpAddress();
   allIpAddresses = ipAddresses.join(', ');
