@@ -303,6 +303,9 @@ function setCanvasDimensions(kinectType) {
 
     rawdepthwidth = WINDOWSRAWWIDTH;
     rawdepthheight = WINDOWSRAWHEIGHT;
+
+    rgbdwidth = WINDOWSRAWWIDTH;
+    rgbdheight = WINDOWSRAWHEIGHT;
   }
 }
 
