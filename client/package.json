@@ -10,7 +10,7 @@
     "peerjs": "1.1.0"
   },
   "devDependencies": {
-    "parcel": "^1.12.4"
+    "parcel": "^2.8.2"
   },
   "scripts": {
     "start": "parcel watch src/kinectron-client.js --out-file dist/kinectron-client.js",
