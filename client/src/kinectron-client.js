@@ -121,7 +121,7 @@ const Kinectron = function (arg1, arg2) {
   // If user has provided only first argument
   if (typeof arg1 !== 'undefined' && typeof arg2 === 'undefined') {
     // If it is an ngrok address
-    if (arg1.includes('ngrok.io')) {
+    if (arg1.includes('ngrok')) {
       const ngrokUrl = arg1;
       const network = {
         host: ngrokUrl, // ngrok url

@@ -20,7 +20,7 @@ function init() {
   const kinectronServerIPAddress = '127.0.0.1'; // FILL IN YOUR KINECTRON IP ADDRESS HERE
 
   //Open connection with Kinect
-  kinectron = new Kinectron(kinectronIpAddress);
+  kinectron = new Kinectron(kinectronServerIPAddress);
 
   // Set kinect type to azure
   kinectron.setKinectType('azure');
