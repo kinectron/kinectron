@@ -21,7 +21,7 @@
   "author": "Lisa Jamhoury and Shawn Van Every",
   "license": "MIT",
   "dependencies": {
-    "async": "^3.2.0",
+    "async": "^3.2.2",
     "electron": "^6.1.12",
     "electron-packager": "^14.2.1",
     "kinect-azure": "0.0.19",
