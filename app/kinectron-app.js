@@ -607,11 +607,15 @@ function toggleAdvancedOptions(evt) {
 }
 
 function getIpAddress() {
-  var ifaces = os.networkInterfaces();
-  var ipAddresses = [];
-
+  const ifaces = os.networkInterfaces();
+  let ipAddresses = [];
+  
   Object.keys(ifaces).forEach(function (ifname) {
-    var alias = 0;
+    let alias = 0;
+
+    if (ifname !== 'Ethernet' && ifname !== 'Wi-Fi' ) {
+      return
+    }
 
     ifaces[ifname].forEach(function (iface) {
       if ('IPv4' !== iface.family || iface.internal !== false) {
@@ -626,6 +630,7 @@ function getIpAddress() {
         // this interface has only one ipv4 adress
         ipAddresses.push(iface.address);
       }
+    
       ++alias;
     });
   });
