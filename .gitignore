@@ -1,10 +1,6 @@
 .DS_Store
 node_modules/
 client/.cache/
-app/cublas64_100.dll
-app/cudart64_100.dll
-app/cudnn64_7.dll
-app/dnn_model_2_0.onnx
-app/onnxruntime.dll
-app/vcomp140.dll
+app/*.dll
+app/*.onnx
 app/kinectron-server*
