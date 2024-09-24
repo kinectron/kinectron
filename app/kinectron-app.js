@@ -241,8 +241,13 @@ function startAzureKinect(evt) {
   toggleFrameType(evt, kinectType); // ensure always starts on single frame
   setCanvasDimensions(kinectType);
 
+  
+  if (kinect.open()) { 
   // TODO: refactor so this global image and canvas is not needed
-  initAzureColorImageAndCanvas();
+    initAzureColorImageAndCanvas();
+  } else {
+    console.warn('Kinect not open. There might be a problem with your Kinect')
+  }  
 }
 
 function initAzureColorImageAndCanvas() {
@@ -1148,9 +1153,9 @@ function startColor() {
   canvasState = 'color';
   setImageData();
 
+  // KINECT AZURE
   if (kinect.constructor.name === 'KinectAzure') {
-    // KINECT AZURE
-    if (kinect.open()) {
+      
       kinect.startCameras({
         color_resolution: KinectAzure.K4A_COLOR_RESOLUTION_720P,
         camera_fps: KinectAzure.K4A_FRAMES_PER_SECOND_15,
@@ -1177,7 +1182,6 @@ function startColor() {
         colorImageURL = URL.createObjectURL(imageBlob);
         colorImage.src = colorImageURL;
       });
-    }
     // Windows Kinect
   } else {
     const colorCanvas = document.getElementById('color-canvas');
@@ -1215,10 +1219,11 @@ function stopColor() {
   if (kinect.constructor.name === 'KinectAzure') {
     // Kinect Azure Code
     console.log('stopping color camera');
-    kinect.stopCameras();
-    kinect.stopListening();
-    canvasState = null;
-    busy = false;
+    kinect.stopListening((err, result) => {
+      kinect.stopCameras();
+      canvasState = null;
+      busy = false;
+    });
   } else {
     console.log('stopping color camera');
     kinect.closeColorReader();
@@ -1242,7 +1247,6 @@ function startDepth() {
 
   if (kinect.constructor.name === 'KinectAzure') {
     // KINECT AZURE CODE
-    if (kinect.open()) {
       const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
       kinect.startCameras({
         depth_mode: depthMode,
@@ -1266,7 +1270,6 @@ function startDepth() {
         );
         sendToPeer('frame', packagedData);
       });
-    }
   } else {
     // KINECT WINDOWS CODE
     if (kinect.open()) {
@@ -1291,10 +1294,11 @@ function stopDepth() {
   if (kinect.constructor.name === 'KinectAzure') {
     // Kinect Azure
     console.log('stopping depth camera');
-    kinect.stopCameras();
-    kinect.stopListening();
-    canvasState = null;
-    busy = false;
+    kinect.stopListening((err, result) => {
+      kinect.stopCameras();
+      canvasState = null;
+      busy = false;
+    });
   } else {
     // Kinect Windows
     console.log('stopping depth camera');
@@ -1321,7 +1325,6 @@ function startRawDepth() {
 
   if (kinect.constructor.name === 'KinectAzure') {
     // KINECT AZURE CODE
-    if (kinect.open()) {
       console.log('kinect open');
       // UNBINNED has higher depth resolution at 640x576
       // const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED;
@@ -1351,7 +1354,7 @@ function startRawDepth() {
 
         sendToPeer('rawDepth', packagedData, true);
       });
-    }
+    
   } else {
     // Windows Kinect
     if (kinect.open()) {
@@ -1390,10 +1393,11 @@ function stopRawDepth() {
   if (kinect.constructor.name === 'KinectAzure') {
     // Kinect Azure
     console.log('stopping depth camera');
-    kinect.stopCameras();
-    kinect.stopListening();
-    canvasState = null;
-    busy = false;
+    kinect.stopListening((err, result) => {
+      kinect.stopCameras();
+      canvasState = null;
+      busy = false;
+    });
   } else {
     // Kinect Windows
     kinect.closeRawDepthReader();
@@ -1511,7 +1515,6 @@ function startRGBD() {
 
   if (kinect.constructor.name === 'KinectAzure') {
     // KINECT AZURE CODE
-    if (kinect.open()) {
       const depthMode = KinectAzure.K4A_DEPTH_MODE_WFOV_2X2BINNED; // wfov does better with image doubling
       kinect.startCameras({
         depth_mode: depthMode,
@@ -1548,7 +1551,7 @@ function startRGBD() {
         );
         sendToPeer('frame', packagedData);
       });
-    }
+    
   } else {
     // KINECT WINDOWS CODE
     if (kinect.open()) {
@@ -1603,10 +1606,12 @@ function stopRGBD() {
   console.log('stopping rgbd');
   if (kinect.constructor.name === 'KinectAzure') {
     // Kinect Azure
-    kinect.stopCameras();
-    kinect.stopListening();
-    canvasState = null;
-    busy = false;
+    kinect.stopListening((err, result) => {
+      console.log("stopped listening");
+      kinect.stopCameras();
+      canvasState = null;
+      busy = false;
+    });
   } else {
     kinect.closeMultiSourceReader();
     kinect.removeAllListeners();
@@ -1626,8 +1631,7 @@ function startSkeletonTracking() {
   resetCanvas('depth');
   canvasState = 'depth';
 
-  if (kinect.constructor.name === 'KinectAzure') {
-    if (kinect.open()) {
+  if (kinect.constructor.name === 'KinectAzure') {    
       // TODO: looks like the cameras need to be open for the tracker to work. true?
       kinect.startCameras({
         depth_mode: KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
@@ -1674,7 +1678,7 @@ function startSkeletonTracking() {
           index++;
         });
       }); // listening
-    } // open
+    
   } else {
     // for windows kinect
     if (kinect.open()) {
@@ -1750,14 +1754,16 @@ function normalizeSkeletonCoords(bodyFrame) {
 }
 
 function stopSkeletonTracking() {
+  
   if (kinect.constructor.name === 'KinectAzure') {
     // Kinect Azure Code
     console.log('stopping skeleton');
-    kinect.stopCameras();
-    kinect.destroyTracker();
-    kinect.stopListening();
-    canvasState = null;
-    busy = false;
+    kinect.stopListening((err, result) => {
+      kinect.destroyTracker();
+      kinect.stopCameras();
+      canvasState = null;
+      busy = false;
+    });
   } else {
     // Kinect Windows Code
     console.log('stopping skeleton');
@@ -1935,7 +1941,6 @@ function startKey() {
 
   if (kinect.constructor.name === 'KinectAzure') {
     // KINECT AZURE
-    if (kinect.open()) {
       kinect.startCameras({
         depth_mode: KinectAzure.K4A_DEPTH_MODE_NFOV_UNBINNED,
         color_format: KinectAzure.K4A_IMAGE_FORMAT_COLOR_BGRA32,
@@ -1963,7 +1968,7 @@ function startKey() {
         );
         sendToPeer('frame', packagedData);
       });
-    }
+    
   } else {
     // KINECT WINDOWS
     if (kinect.open()) {
@@ -2020,11 +2025,13 @@ function stopKey() {
   if (kinect.constructor.name === 'KinectAzure') {
     // Kinect Azure
     console.log('stopping key');
-    kinect.stopCameras();
-    kinect.destroyTracker();
-    kinect.stopListening();
-    canvasState = null;
-    busy = false;
+    kinect.stopListening((err, result) => {
+      kinect.destroyTracker();
+      kinect.stopCameras();
+      canvasState = null;
+      busy = false;
+    });
+
   } else {
     // Kinect Windows
     console.log('stopping key');
@@ -2049,7 +2056,7 @@ function startDepthKey() {
 
   if (kinect.constructor.name === 'KinectAzure') {
     // KINECT AZURE
-    if (kinect.open()) {
+    
       const depthMode = KinectAzure.K4A_DEPTH_MODE_NFOV_2X2BINNED;
       kinect.startCameras({
         depth_mode: depthMode,
@@ -2078,7 +2085,7 @@ function startDepthKey() {
         );
         sendToPeer('depthKey', packagedData, true);
       });
-    }
+    
   }
 }
 
@@ -2086,11 +2093,12 @@ function stopDepthKey() {
   if (kinect.constructor.name === 'KinectAzure') {
     // Kinect Azure
     console.log('stopping key');
-    kinect.stopCameras();
-    kinect.destroyTracker();
-    kinect.stopListening();
-    canvasState = null;
-    busy = false;
+    kinect.stopListening((err, result) => {
+      kinect.destroyTracker();
+      kinect.stopCameras();
+      canvasState = null;
+      busy = false;
+    });
   }
 }
 
