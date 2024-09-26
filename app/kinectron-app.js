@@ -231,8 +231,12 @@ function startNgrok(evt) {
       ngrokAddress.style.display = 'inline';
       ngrokAddress.innerHTML = newStr;
 
+      ngrokAuthToken.value = "";
+      
       const ngrokButton = document.getElementById('startngrok');
       ngrokButton.style.display = 'none';
+
+
     })();
   } else {
     console.log('No public address created.');
