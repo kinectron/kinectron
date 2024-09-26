@@ -33,6 +33,10 @@ input[type='button']:active {
   margin-top: 10px;
 }
 
+#ngrokAuthToken {
+  width: 195px;
+}
+
 #ngrokaddress {
   display: none;
 }

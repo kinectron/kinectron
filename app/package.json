@@ -22,11 +22,11 @@
   "license": "MIT",
   "dependencies": {
     "async": "^3.2.0",
-    "electron": "^6.1.12",
+    "electron": "^32.1.2",
     "electron-packager": "^14.2.1",
     "kinect-azure": "0.4.0",
     "kinect2": "^0.3.0",
-    "ngrok": "^3.2.7",
+    "ngrok": "^5.0.0-beta.2",
     "os": "^0.1.1",
     "peer": "^0.5.3"
   }

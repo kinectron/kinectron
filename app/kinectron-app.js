@@ -207,13 +207,22 @@ function init() {
 
 function startNgrok(evt) {
   const ngroklink = '<a href=>';
+
+  const ngrokAuthToken = document.getElementById('ngrokAuthToken');
+
+  if (ngrokAuthToken !== null && ngrokAuthToken.value === "")
+    {
+      alert('You need to add an ngrok auth token to create a public address. See ngrok.com or Kinectron documentation for more information.')
+      return
+    }
+
   if (
     confirm(
       `Creating a public address will open a secure public tunnel to your computer at port 9001 over https using ngrok. Learn more at ngrok.com. While this developer thinks this is a pretty nifty solution to getting your Kinectron server up on the internet, it could open you up to security threats. The risks are probably relatively low, but proceed at your own risk (and/or consider constributing to Kinectron to make it more secure (･ω･)b).`,
     )
   ) {
     (async function () {
-      let ngrokUrl = await ngrok.connect(9001);
+      let ngrokUrl = await ngrok.connect({addr: 9001, authtoken:ngrokAuthToken.value});
       console.log('Created public address at ' + ngrokUrl);
 
       let newStr = ngrokUrl.replace('https://', '');
@@ -228,6 +237,8 @@ function startNgrok(evt) {
   } else {
     console.log('No public address created.');
   }
+
+  
 }
 
 function startAzureKinect(evt) {

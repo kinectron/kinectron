@@ -26,7 +26,9 @@ app.on("ready", function() {
     width,
     height,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      contextIsolation: false,
+      enableRemoteModule: true,
     }
   });
 
