@@ -2459,22 +2459,19 @@ function drawHand(context, jointPoint, handColor) {
 
 function closeKinect()
 {
-  console.log('closing closing closing!!!!')
+  console.log('closing kinect')
 
   if (kinect.constructor.name === 'KinectAzure') {
     // Kinect Azure Code
-    console.log('stopping skeleton');
     kinect.stopListening((err, result) => {
       kinect.destroyTracker();
       kinect.stopCameras();
     }); 
     kinect.close();
   } else {
+
     // Kinect Windows Code
-    console.log('stopping skeleton');
-    kinect.closeBodyReader();
-    kinect.removeAllListeners();
-    canvasState = null;
+    kinect.close();
   }
 }
 window.onbeforeunload = closeKinect;
