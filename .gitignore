@@ -1,6 +1,7 @@
 .DS_Store
 node_modules/
 client/.cache/
+client/.parcel-cache/
 app/*.dll
 app/*.onnx
 app/kinectron-server*

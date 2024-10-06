@@ -2,7 +2,6 @@
   "name": "kinectron-client",
   "version": "0.3.8",
   "description": "Client for Kinectron peer server",
-  "main": "kinectron-client.js",
   "bin": {
     "kinectron-client": "kinectron-client.js"
   },
@@ -10,11 +9,12 @@
     "peerjs": "1.1.0"
   },
   "devDependencies": {
-    "parcel": "^1.12.4"
+    "parcel": "^2.12.0",
+    "process": "^0.11.10"
   },
   "scripts": {
-    "start": "parcel watch src/kinectron-client.js --out-file dist/kinectron-client.js",
-    "build": "parcel build src/kinectron-client.js --out-file dist/kinectron-client.js --no-minify"
+    "start": "parcel watch src/kinectron-client.js",
+    "build": "parcel build src/kinectron-client.js --no-optimize"
   },
   "repository": {
     "type": "git",
