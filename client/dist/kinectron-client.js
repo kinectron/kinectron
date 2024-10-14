@@ -1,1380 +1,10 @@
-// modules are defined as an array
-// [ module function, map of requires ]
-//
-// map of requires is short require name -> numeric require
-//
-// anything defined in a previous bundle is accessed via the
-// orig method which is the require for previous bundles
+(() => {
 
-(function (modules, entry, mainEntry, parcelRequireName, globalName) {
-  /* eslint-disable no-undef */
-  var globalObject =
-    typeof globalThis !== 'undefined'
-      ? globalThis
-      : typeof self !== 'undefined'
-      ? self
-      : typeof window !== 'undefined'
-      ? window
-      : typeof global !== 'undefined'
-      ? global
-      : {};
-  /* eslint-enable no-undef */
-
-  // Save the require from previous bundle to this closure if any
-  var previousRequire =
-    typeof globalObject[parcelRequireName] === 'function' &&
-    globalObject[parcelRequireName];
-
-  var cache = previousRequire.cache || {};
-  // Do not use `require` to prevent Webpack from trying to bundle this call
-  var nodeRequire =
-    typeof module !== 'undefined' &&
-    typeof module.require === 'function' &&
-    module.require.bind(module);
-
-  function newRequire(name, jumped) {
-    if (!cache[name]) {
-      if (!modules[name]) {
-        // if we cannot find the module within our internal map or
-        // cache jump to the current global require ie. the last bundle
-        // that was added to the page.
-        var currentRequire =
-          typeof globalObject[parcelRequireName] === 'function' &&
-          globalObject[parcelRequireName];
-        if (!jumped && currentRequire) {
-          return currentRequire(name, true);
-        }
-
-        // If there are other bundles on this page the require from the
-        // previous one is saved to 'previousRequire'. Repeat this as
-        // many times as there are bundles until the module is found or
-        // we exhaust the require chain.
-        if (previousRequire) {
-          return previousRequire(name, true);
-        }
-
-        // Try the node require function if it exists.
-        if (nodeRequire && typeof name === 'string') {
-          return nodeRequire(name);
-        }
-
-        var err = new Error("Cannot find module '" + name + "'");
-        err.code = 'MODULE_NOT_FOUND';
-        throw err;
-      }
-
-      localRequire.resolve = resolve;
-      localRequire.cache = {};
-
-      var module = (cache[name] = new newRequire.Module(name));
-
-      modules[name][0].call(
-        module.exports,
-        localRequire,
-        module,
-        module.exports,
-        this
-      );
-    }
-
-    return cache[name].exports;
-
-    function localRequire(x) {
-      var res = localRequire.resolve(x);
-      return res === false ? {} : newRequire(res);
-    }
-
-    function resolve(x) {
-      var id = modules[name][1][x];
-      return id != null ? id : x;
-    }
-  }
-
-  function Module(moduleName) {
-    this.id = moduleName;
-    this.bundle = newRequire;
-    this.exports = {};
-  }
-
-  newRequire.isParcelRequire = true;
-  newRequire.Module = Module;
-  newRequire.modules = modules;
-  newRequire.cache = cache;
-  newRequire.parent = previousRequire;
-  newRequire.register = function (id, exports) {
-    modules[id] = [
-      function (require, module) {
-        module.exports = exports;
-      },
-      {},
-    ];
-  };
-
-  Object.defineProperty(newRequire, 'root', {
-    get: function () {
-      return globalObject[parcelRequireName];
-    },
-  });
-
-  globalObject[parcelRequireName] = newRequire;
-
-  for (var i = 0; i < entry.length; i++) {
-    newRequire(entry[i]);
-  }
-
-  if (mainEntry) {
-    // Expose entry point to Node, AMD or browser globals
-    // Based on https://github.com/ForbesLindesay/umd/blob/master/template.js
-    var mainExports = newRequire(mainEntry);
-
-    // CommonJS
-    if (typeof exports === 'object' && typeof module !== 'undefined') {
-      module.exports = mainExports;
-
-      // RequireJS
-    } else if (typeof define === 'function' && define.amd) {
-      define(function () {
-        return mainExports;
-      });
-
-      // <script>
-    } else if (globalName) {
-      this[globalName] = mainExports;
-    }
-  }
-})({"czMM4":[function(require,module,exports) {
-var global = arguments[3];
-var HMR_HOST = null;
-var HMR_PORT = 1234;
-var HMR_SECURE = false;
-var HMR_ENV_HASH = "d6ea1d42532a7575";
-var HMR_USE_SSE = false;
-module.bundle.HMR_BUNDLE_ID = "2a4ddb2368cffafa";
-"use strict";
-/* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
-import type {
-  HMRAsset,
-  HMRMessage,
-} from '@parcel/reporter-dev-server/src/HMRServer.js';
-interface ParcelRequire {
-  (string): mixed;
-  cache: {|[string]: ParcelModule|};
-  hotData: {|[string]: mixed|};
-  Module: any;
-  parent: ?ParcelRequire;
-  isParcelRequire: true;
-  modules: {|[string]: [Function, {|[string]: string|}]|};
-  HMR_BUNDLE_ID: string;
-  root: ParcelRequire;
+function $parcel$interopDefault(a) {
+  return a && a.__esModule ? a.default : a;
 }
-interface ParcelModule {
-  hot: {|
-    data: mixed,
-    accept(cb: (Function) => void): void,
-    dispose(cb: (mixed) => void): void,
-    // accept(deps: Array<string> | string, cb: (Function) => void): void,
-    // decline(): void,
-    _acceptCallbacks: Array<(Function) => void>,
-    _disposeCallbacks: Array<(mixed) => void>,
-  |};
-}
-interface ExtensionContext {
-  runtime: {|
-    reload(): void,
-    getURL(url: string): string;
-    getManifest(): {manifest_version: number, ...};
-  |};
-}
-declare var module: {bundle: ParcelRequire, ...};
-declare var HMR_HOST: string;
-declare var HMR_PORT: string;
-declare var HMR_ENV_HASH: string;
-declare var HMR_SECURE: boolean;
-declare var HMR_USE_SSE: boolean;
-declare var chrome: ExtensionContext;
-declare var browser: ExtensionContext;
-declare var __parcel__import__: (string) => Promise<void>;
-declare var __parcel__importScripts__: (string) => Promise<void>;
-declare var globalThis: typeof self;
-declare var ServiceWorkerGlobalScope: Object;
-*/ var OVERLAY_ID = "__parcel__error__overlay__";
-var OldModule = module.bundle.Module;
-function Module(moduleName) {
-    OldModule.call(this, moduleName);
-    this.hot = {
-        data: module.bundle.hotData[moduleName],
-        _acceptCallbacks: [],
-        _disposeCallbacks: [],
-        accept: function(fn) {
-            this._acceptCallbacks.push(fn || function() {});
-        },
-        dispose: function(fn) {
-            this._disposeCallbacks.push(fn);
-        }
-    };
-    module.bundle.hotData[moduleName] = undefined;
-}
-module.bundle.Module = Module;
-module.bundle.hotData = {};
-var checkedAssets /*: {|[string]: boolean|} */ , assetsToDispose /*: Array<[ParcelRequire, string]> */ , assetsToAccept /*: Array<[ParcelRequire, string]> */ ;
-function getHostname() {
-    return HMR_HOST || (location.protocol.indexOf("http") === 0 ? location.hostname : "localhost");
-}
-function getPort() {
-    return HMR_PORT || location.port;
-}
-// eslint-disable-next-line no-redeclare
-var parent = module.bundle.parent;
-if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== "undefined") {
-    var hostname = getHostname();
-    var port = getPort();
-    var protocol = HMR_SECURE || location.protocol == "https:" && ![
-        "localhost",
-        "127.0.0.1",
-        "0.0.0.0"
-    ].includes(hostname) ? "wss" : "ws";
-    var ws;
-    if (HMR_USE_SSE) ws = new EventSource("/__parcel_hmr");
-    else try {
-        ws = new WebSocket(protocol + "://" + hostname + (port ? ":" + port : "") + "/");
-    } catch (err) {
-        if (err.message) console.error(err.message);
-        ws = {};
-    }
-    // Web extension context
-    var extCtx = typeof browser === "undefined" ? typeof chrome === "undefined" ? null : chrome : browser;
-    // Safari doesn't support sourceURL in error stacks.
-    // eval may also be disabled via CSP, so do a quick check.
-    var supportsSourceURL = false;
-    try {
-        (0, eval)('throw new Error("test"); //# sourceURL=test.js');
-    } catch (err) {
-        supportsSourceURL = err.stack.includes("test.js");
-    }
-    // $FlowFixMe
-    ws.onmessage = async function(event /*: {data: string, ...} */ ) {
-        checkedAssets = {} /*: {|[string]: boolean|} */ ;
-        assetsToAccept = [];
-        assetsToDispose = [];
-        var data /*: HMRMessage */  = JSON.parse(event.data);
-        if (data.type === "update") {
-            // Remove error overlay if there is one
-            if (typeof document !== "undefined") removeErrorOverlay();
-            let assets = data.assets.filter((asset)=>asset.envHash === HMR_ENV_HASH);
-            // Handle HMR Update
-            let handled = assets.every((asset)=>{
-                return asset.type === "css" || asset.type === "js" && hmrAcceptCheck(module.bundle.root, asset.id, asset.depsByBundle);
-            });
-            if (handled) {
-                console.clear();
-                // Dispatch custom event so other runtimes (e.g React Refresh) are aware.
-                if (typeof window !== "undefined" && typeof CustomEvent !== "undefined") window.dispatchEvent(new CustomEvent("parcelhmraccept"));
-                await hmrApplyUpdates(assets);
-                // Dispose all old assets.
-                let processedAssets = {} /*: {|[string]: boolean|} */ ;
-                for(let i = 0; i < assetsToDispose.length; i++){
-                    let id = assetsToDispose[i][1];
-                    if (!processedAssets[id]) {
-                        hmrDispose(assetsToDispose[i][0], id);
-                        processedAssets[id] = true;
-                    }
-                }
-                // Run accept callbacks. This will also re-execute other disposed assets in topological order.
-                processedAssets = {};
-                for(let i = 0; i < assetsToAccept.length; i++){
-                    let id = assetsToAccept[i][1];
-                    if (!processedAssets[id]) {
-                        hmrAccept(assetsToAccept[i][0], id);
-                        processedAssets[id] = true;
-                    }
-                }
-            } else fullReload();
-        }
-        if (data.type === "error") {
-            // Log parcel errors to console
-            for (let ansiDiagnostic of data.diagnostics.ansi){
-                let stack = ansiDiagnostic.codeframe ? ansiDiagnostic.codeframe : ansiDiagnostic.stack;
-                console.error("\uD83D\uDEA8 [parcel]: " + ansiDiagnostic.message + "\n" + stack + "\n\n" + ansiDiagnostic.hints.join("\n"));
-            }
-            if (typeof document !== "undefined") {
-                // Render the fancy html overlay
-                removeErrorOverlay();
-                var overlay = createErrorOverlay(data.diagnostics.html);
-                // $FlowFixMe
-                document.body.appendChild(overlay);
-            }
-        }
-    };
-    if (ws instanceof WebSocket) {
-        ws.onerror = function(e) {
-            if (e.message) console.error(e.message);
-        };
-        ws.onclose = function() {
-            console.warn("[parcel] \uD83D\uDEA8 Connection to the HMR server was lost");
-        };
-    }
-}
-function removeErrorOverlay() {
-    var overlay = document.getElementById(OVERLAY_ID);
-    if (overlay) {
-        overlay.remove();
-        console.log("[parcel] \u2728 Error resolved");
-    }
-}
-function createErrorOverlay(diagnostics) {
-    var overlay = document.createElement("div");
-    overlay.id = OVERLAY_ID;
-    let errorHTML = '<div style="background: black; opacity: 0.85; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; font-family: Menlo, Consolas, monospace; z-index: 9999;">';
-    for (let diagnostic of diagnostics){
-        let stack = diagnostic.frames.length ? diagnostic.frames.reduce((p, frame)=>{
-            return `${p}
-<a href="/__parcel_launch_editor?file=${encodeURIComponent(frame.location)}" style="text-decoration: underline; color: #888" onclick="fetch(this.href); return false">${frame.location}</a>
-${frame.code}`;
-        }, "") : diagnostic.stack;
-        errorHTML += `
-      <div>
-        <div style="font-size: 18px; font-weight: bold; margin-top: 20px;">
-          \u{1F6A8} ${diagnostic.message}
-        </div>
-        <pre>${stack}</pre>
-        <div>
-          ${diagnostic.hints.map((hint)=>"<div>\uD83D\uDCA1 " + hint + "</div>").join("")}
-        </div>
-        ${diagnostic.documentation ? `<div>\u{1F4DD} <a style="color: violet" href="${diagnostic.documentation}" target="_blank">Learn more</a></div>` : ""}
-      </div>
-    `;
-    }
-    errorHTML += "</div>";
-    overlay.innerHTML = errorHTML;
-    return overlay;
-}
-function fullReload() {
-    if ("reload" in location) location.reload();
-    else if (extCtx && extCtx.runtime && extCtx.runtime.reload) extCtx.runtime.reload();
-}
-function getParents(bundle, id) /*: Array<[ParcelRequire, string]> */ {
-    var modules = bundle.modules;
-    if (!modules) return [];
-    var parents = [];
-    var k, d, dep;
-    for(k in modules)for(d in modules[k][1]){
-        dep = modules[k][1][d];
-        if (dep === id || Array.isArray(dep) && dep[dep.length - 1] === id) parents.push([
-            bundle,
-            k
-        ]);
-    }
-    if (bundle.parent) parents = parents.concat(getParents(bundle.parent, id));
-    return parents;
-}
-function updateLink(link) {
-    var href = link.getAttribute("href");
-    if (!href) return;
-    var newLink = link.cloneNode();
-    newLink.onload = function() {
-        if (link.parentNode !== null) // $FlowFixMe
-        link.parentNode.removeChild(link);
-    };
-    newLink.setAttribute("href", // $FlowFixMe
-    href.split("?")[0] + "?" + Date.now());
-    // $FlowFixMe
-    link.parentNode.insertBefore(newLink, link.nextSibling);
-}
-var cssTimeout = null;
-function reloadCSS() {
-    if (cssTimeout) return;
-    cssTimeout = setTimeout(function() {
-        var links = document.querySelectorAll('link[rel="stylesheet"]');
-        for(var i = 0; i < links.length; i++){
-            // $FlowFixMe[incompatible-type]
-            var href /*: string */  = links[i].getAttribute("href");
-            var hostname = getHostname();
-            var servedFromHMRServer = hostname === "localhost" ? new RegExp("^(https?:\\/\\/(0.0.0.0|127.0.0.1)|localhost):" + getPort()).test(href) : href.indexOf(hostname + ":" + getPort());
-            var absolute = /^https?:\/\//i.test(href) && href.indexOf(location.origin) !== 0 && !servedFromHMRServer;
-            if (!absolute) updateLink(links[i]);
-        }
-        cssTimeout = null;
-    }, 50);
-}
-function hmrDownload(asset) {
-    if (asset.type === "js") {
-        if (typeof document !== "undefined") {
-            let script = document.createElement("script");
-            script.src = asset.url + "?t=" + Date.now();
-            if (asset.outputFormat === "esmodule") script.type = "module";
-            return new Promise((resolve, reject)=>{
-                var _document$head;
-                script.onload = ()=>resolve(script);
-                script.onerror = reject;
-                (_document$head = document.head) === null || _document$head === void 0 || _document$head.appendChild(script);
-            });
-        } else if (typeof importScripts === "function") {
-            // Worker scripts
-            if (asset.outputFormat === "esmodule") return import(asset.url + "?t=" + Date.now());
-            else return new Promise((resolve, reject)=>{
-                try {
-                    importScripts(asset.url + "?t=" + Date.now());
-                    resolve();
-                } catch (err) {
-                    reject(err);
-                }
-            });
-        }
-    }
-}
-async function hmrApplyUpdates(assets) {
-    global.parcelHotUpdate = Object.create(null);
-    let scriptsToRemove;
-    try {
-        // If sourceURL comments aren't supported in eval, we need to load
-        // the update from the dev server over HTTP so that stack traces
-        // are correct in errors/logs. This is much slower than eval, so
-        // we only do it if needed (currently just Safari).
-        // https://bugs.webkit.org/show_bug.cgi?id=137297
-        // This path is also taken if a CSP disallows eval.
-        if (!supportsSourceURL) {
-            let promises = assets.map((asset)=>{
-                var _hmrDownload;
-                return (_hmrDownload = hmrDownload(asset)) === null || _hmrDownload === void 0 ? void 0 : _hmrDownload.catch((err)=>{
-                    // Web extension fix
-                    if (extCtx && extCtx.runtime && extCtx.runtime.getManifest().manifest_version == 3 && typeof ServiceWorkerGlobalScope != "undefined" && global instanceof ServiceWorkerGlobalScope) {
-                        extCtx.runtime.reload();
-                        return;
-                    }
-                    throw err;
-                });
-            });
-            scriptsToRemove = await Promise.all(promises);
-        }
-        assets.forEach(function(asset) {
-            hmrApply(module.bundle.root, asset);
-        });
-    } finally{
-        delete global.parcelHotUpdate;
-        if (scriptsToRemove) scriptsToRemove.forEach((script)=>{
-            if (script) {
-                var _document$head2;
-                (_document$head2 = document.head) === null || _document$head2 === void 0 || _document$head2.removeChild(script);
-            }
-        });
-    }
-}
-function hmrApply(bundle /*: ParcelRequire */ , asset /*:  HMRAsset */ ) {
-    var modules = bundle.modules;
-    if (!modules) return;
-    if (asset.type === "css") reloadCSS();
-    else if (asset.type === "js") {
-        let deps = asset.depsByBundle[bundle.HMR_BUNDLE_ID];
-        if (deps) {
-            if (modules[asset.id]) {
-                // Remove dependencies that are removed and will become orphaned.
-                // This is necessary so that if the asset is added back again, the cache is gone, and we prevent a full page reload.
-                let oldDeps = modules[asset.id][1];
-                for(let dep in oldDeps)if (!deps[dep] || deps[dep] !== oldDeps[dep]) {
-                    let id = oldDeps[dep];
-                    let parents = getParents(module.bundle.root, id);
-                    if (parents.length === 1) hmrDelete(module.bundle.root, id);
-                }
-            }
-            if (supportsSourceURL) // Global eval. We would use `new Function` here but browser
-            // support for source maps is better with eval.
-            (0, eval)(asset.output);
-            // $FlowFixMe
-            let fn = global.parcelHotUpdate[asset.id];
-            modules[asset.id] = [
-                fn,
-                deps
-            ];
-        } else if (bundle.parent) hmrApply(bundle.parent, asset);
-    }
-}
-function hmrDelete(bundle, id) {
-    let modules = bundle.modules;
-    if (!modules) return;
-    if (modules[id]) {
-        // Collect dependencies that will become orphaned when this module is deleted.
-        let deps = modules[id][1];
-        let orphans = [];
-        for(let dep in deps){
-            let parents = getParents(module.bundle.root, deps[dep]);
-            if (parents.length === 1) orphans.push(deps[dep]);
-        }
-        // Delete the module. This must be done before deleting dependencies in case of circular dependencies.
-        delete modules[id];
-        delete bundle.cache[id];
-        // Now delete the orphans.
-        orphans.forEach((id)=>{
-            hmrDelete(module.bundle.root, id);
-        });
-    } else if (bundle.parent) hmrDelete(bundle.parent, id);
-}
-function hmrAcceptCheck(bundle /*: ParcelRequire */ , id /*: string */ , depsByBundle /*: ?{ [string]: { [string]: string } }*/ ) {
-    if (hmrAcceptCheckOne(bundle, id, depsByBundle)) return true;
-    // Traverse parents breadth first. All possible ancestries must accept the HMR update, or we'll reload.
-    let parents = getParents(module.bundle.root, id);
-    let accepted = false;
-    while(parents.length > 0){
-        let v = parents.shift();
-        let a = hmrAcceptCheckOne(v[0], v[1], null);
-        if (a) // If this parent accepts, stop traversing upward, but still consider siblings.
-        accepted = true;
-        else {
-            // Otherwise, queue the parents in the next level upward.
-            let p = getParents(module.bundle.root, v[1]);
-            if (p.length === 0) {
-                // If there are no parents, then we've reached an entry without accepting. Reload.
-                accepted = false;
-                break;
-            }
-            parents.push(...p);
-        }
-    }
-    return accepted;
-}
-function hmrAcceptCheckOne(bundle /*: ParcelRequire */ , id /*: string */ , depsByBundle /*: ?{ [string]: { [string]: string } }*/ ) {
-    var modules = bundle.modules;
-    if (!modules) return;
-    if (depsByBundle && !depsByBundle[bundle.HMR_BUNDLE_ID]) {
-        // If we reached the root bundle without finding where the asset should go,
-        // there's nothing to do. Mark as "accepted" so we don't reload the page.
-        if (!bundle.parent) return true;
-        return hmrAcceptCheck(bundle.parent, id, depsByBundle);
-    }
-    if (checkedAssets[id]) return true;
-    checkedAssets[id] = true;
-    var cached = bundle.cache[id];
-    assetsToDispose.push([
-        bundle,
-        id
-    ]);
-    if (!cached || cached.hot && cached.hot._acceptCallbacks.length) {
-        assetsToAccept.push([
-            bundle,
-            id
-        ]);
-        return true;
-    }
-}
-function hmrDispose(bundle /*: ParcelRequire */ , id /*: string */ ) {
-    var cached = bundle.cache[id];
-    bundle.hotData[id] = {};
-    if (cached && cached.hot) cached.hot.data = bundle.hotData[id];
-    if (cached && cached.hot && cached.hot._disposeCallbacks.length) cached.hot._disposeCallbacks.forEach(function(cb) {
-        cb(bundle.hotData[id]);
-    });
-    delete bundle.cache[id];
-}
-function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
-    // Execute the module.
-    bundle(id);
-    // Run the accept callbacks in the new version of the module.
-    var cached = bundle.cache[id];
-    if (cached && cached.hot && cached.hot._acceptCallbacks.length) cached.hot._acceptCallbacks.forEach(function(cb) {
-        var assetsToAlsoAccept = cb(function() {
-            return getParents(module.bundle.root, id);
-        });
-        if (assetsToAlsoAccept && assetsToAccept.length) {
-            assetsToAlsoAccept.forEach(function(a) {
-                hmrDispose(a[0], a[1]);
-            });
-            // $FlowFixMe[method-unbinding]
-            assetsToAccept.push.apply(assetsToAccept, assetsToAlsoAccept);
-        }
-    });
-}
-
-},{}],"ft3H0":[function(require,module,exports) {
 // Import Peer.js
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-var _peerjs = require("peerjs");
-var _peerjsDefault = parcelHelpers.interopDefault(_peerjs);
-console.log("You are running Kinectron API version 0.3.7");
-const Kinectron = function(arg1, arg2) {
-    this.img = null;
-    // this.rawDepthImg = null;
-    this.feed = null;
-    this.body = null;
-    this.jointName = null;
-    this.rgbCallback = null; // rgb depricated 3/16/17 use color instead
-    this.colorCallback = null;
-    this.depthCallback = null;
-    this.rawDepthCallback = null;
-    this.infraredCallback = null;
-    this.leInfraredCallback = null;
-    this.bodiesCallback = null;
-    this.trackedBodiesCallback = null;
-    this.trackedJointCallback = null;
-    this.keyCallback = null;
-    this.depthKeyCallback = null;
-    this.rgbdCallback = null;
-    this.fhCallback = null;
-    this.multiFrameCallback = null;
-    // Joint Name Constants
-    this.SPINEBASE = 0;
-    this.SPINEMID = 1;
-    this.NECK = 2;
-    this.HEAD = 3;
-    this.SHOULDERLEFT = 4;
-    this.ELBOWLEFT = 5;
-    this.WRISTLEFT = 6;
-    this.HANDLEFT = 7;
-    this.SHOULDERRIGHT = 8;
-    this.ELBOWRIGHT = 9;
-    this.WRISTRIGHT = 10;
-    this.HANDRIGHT = 11;
-    this.HIPLEFT = 12;
-    this.KNEELEFT = 13;
-    this.ANKLELEFT = 14;
-    this.FOOTLEFT = 15;
-    this.HIPRIGHT = 16;
-    this.KNEERIGHT = 17;
-    this.ANKLERIGHT = 18;
-    this.FOOTRIGHT = 19;
-    this.SPINESHOULDER = 20;
-    this.HANDTIPLEFT = 21;
-    this.THUMBLEFT = 22;
-    this.HANDTIPRIGHT = 23;
-    this.THUMBRIGHT = 24;
-    const WINDOWSCOLORWIDTH = 960;
-    const WINDOWSCOLORHEIGHT = 540;
-    const WINDOWSDEPTHWIDTH = 512;
-    const WINDOWSDEPTHHEIGHT = 424;
-    const WINDOWSRAWWIDTH = 512;
-    const WINDOWSRAWHEIGHT = 424;
-    // azure resolutions at
-    // https://docs.microsoft.com/en-us/azure/kinect-dk/hardware-specification
-    const AZURECOLORWIDTH = 1280;
-    const AZURECOLORHEIGHT = 720;
-    const AZUREDEPTHWIDTH = 640;
-    const AZUREDEPTHHEIGHT = 576;
-    const AZURERAWWIDTH = 320;
-    const AZURERAWHEIGHT = 288;
-    const AZURERGBDWIDTH = 512;
-    const AZURERGBDHEIGHT = 512;
-    let colorwidth;
-    let colorheight;
-    let depthwidth;
-    let depthheight;
-    let rawdepthwidth;
-    let rawdepthheight;
-    let rgbdwidth;
-    let rgbdheight;
-    let whichKinect = null;
-    // Running multiframe indicator
-    let multiFrame = false;
-    let currentFrames = [];
-    // Hold initital frame request until peer connection ready
-    let ready = false;
-    let holdInitFeed = null;
-    // Peer variables and defaults
-    let peer = null;
-    let connection = null;
-    let peerNet = {
-        host: "localhost",
-        port: 9001,
-        path: "/"
-    }; // Connect to localhost by default
-    const peerId = "kinectron"; // Connect to peer Id Kinectron by default
-    // Hidden div variables
-    let myDiv = null;
-    // Record variables
-    let doRecord = false;
-    let recordStartTime = 0;
-    let bodyChunks = [];
-    let rawDepthChunks = [];
-    let mediaRecorders = [];
-    // Debug timer variables
-    let timer = false;
-    let timeCounter = 0;
-    let sendCounter = 0;
-    // Check for ip address in "quickstart" method
-    // If user has provided only first argument
-    if (typeof arg1 !== "undefined" && typeof arg2 === "undefined") {
-        // If it is an ngrok address
-        if (arg1.includes("ngrok")) {
-            const ngrokUrl = arg1;
-            const network = {
-                host: ngrokUrl,
-                port: "443",
-                path: "/",
-                secure: "true"
-            };
-            peerNet = network;
-        // Otherwise it is a local address
-        } else {
-            const host = arg1;
-            peerNet.host = host;
-        }
-    } else if (typeof arg1 !== "undefined" && typeof arg2 !== "undefined") {
-        const peerid = arg1;
-        const network = arg2;
-        peerId = peerid;
-        peerNet = network;
-    }
-    // Create new peer
-    peer = new (0, _peerjsDefault.default)(peerNet);
-    peer.on("open", function(id) {
-        console.log("My peer ID is: " + id);
-    });
-    peer.on("connection", function(connection) {
-        connection.on("open", function() {
-            console.log("Peer js is connected");
-        });
-    });
-    // Create hidden image to draw to
-    myDiv = document.createElement("div");
-    myDiv.style.visibility = "hidden";
-    myDiv.style.position = "fixed";
-    myDiv.style.bottom = "0";
-    document.body.appendChild(myDiv);
-    this.img = document.createElement("img");
-    myDiv.appendChild(this.img);
-    // Used for raw depth processing.
-    // TO DO refactor: create dynamically in process raw depth
-    const hiddenCanvas = document.createElement("canvas");
-    const hiddenContext = hiddenCanvas.getContext("2d");
-    const hiddenImage = document.createElement("img");
-    myDiv.appendChild(hiddenCanvas);
-    myDiv.appendChild(hiddenImage);
-    this._initHiddenCanvas = function() {
-        hiddenCanvas.width = rawdepthwidth;
-        hiddenCanvas.height = rawdepthheight;
-        hiddenContext.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-        hiddenImage.addEventListener("load", (e)=>{
-            // hiddenContext.clearRect(
-            //   0,
-            //   0,
-            //   hiddenContext.canvas.width,
-            //   hiddenContext.canvas.height
-            // );
-            hiddenContext.drawImage(hiddenImage, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
-        });
-    };
-    // Make peer connection
-    this.makeConnection = function() {
-        connection = peer.connect(peerId); // get a webrtc DataConnection
-        connection.on("open", function(data) {
-            console.log("Open data connection with server");
-        });
-        // Route incoming traffic from Kinectron
-        connection.on("data", (function(dataReceived) {
-            const { data, event } = dataReceived;
-            let debugReceivingData = false;
-            if (debugReceivingData) {
-                this._countFPS(event);
-                console.log(this._roughSizeOfObject(data));
-            }
-            switch(event){
-                // Wait for ready from Kinectron to initialize
-                case "ready":
-                    // if kinect set by server and kinect set by API
-                    // give precedence to the server
-                    // let the user know
-                    if (data.kinect && whichKinect !== null) {
-                        if (whichKinect !== data.kinect) {
-                            whichKinect = data.kinect;
-                            console.warn(`The Kinect server set the Kinect type to ${whichKinect}`);
-                        }
-                    }
-                    // if kinect set by api and blank on server
-                    // set it on server
-                    if (Object.entries(data).length === 0 && data.constructor === Object && whichKinect) {
-                        this._setKinectOnServer(whichKinect);
-                        console.log(`The Kinect type is set to ${whichKinect}`);
-                    }
-                    // if kinect set by server, set the same in api
-                    if (data.kinect && whichKinect === null) {
-                        whichKinect = data.kinect;
-                        this._setKinect(whichKinect);
-                        console.log(`The Kinect type is set to ${whichKinect}`);
-                    }
-                    if (whichKinect) {
-                        ready = true;
-                        this._initHiddenCanvas(); // init hidden canvas after global img dimensions set
-                        if (holdInitFeed) {
-                            connection.send(holdInitFeed);
-                            holdInitFeed = null;
-                        }
-                    } else console.error("Kinectron cannot start. Kinect type must be set to 'azure' or 'windows' on server or API.");
-                    break;
-                // If image data draw image
-                case "frame":
-                    this.img.src = data.imagedata;
-                    this.img.onload = (function() {
-                        this._chooseCallback(data.name);
-                        if (doRecord) this._drawImageToCanvas(data.name);
-                    }).bind(this);
-                    break;
-                // If receive all bodies, send all bodies
-                case "bodyFrame":
-                    this.bodiesCallback(data);
-                    if (doRecord) {
-                        data.record_startime = recordStartTime;
-                        data.record_timestamp = Date.now() - recordStartTime;
-                        bodyChunks.push(data);
-                    }
-                    break;
-                // If receive tracked skeleton data, send skeleton
-                case "trackedBodyFrame":
-                    this.body = data;
-                    // If joint specified send joint and call joint callback
-                    if (this.jointName && this.trackedJointCallback && this.body.joints[this.jointName] !== 0) {
-                        var joint = this.body.joints[this.jointName];
-                        joint.trackingId = this.body.trackingId;
-                        this.trackedJointCallback(joint);
-                        if (doRecord) {
-                            joint.record_startime = recordStartTime;
-                            joint.record_timestamp = Date.now() - recordStartTime;
-                            bodyChunks.push(joint);
-                        }
-                    // Or call tracked bodies callback on invidual tracked body
-                    } else if (this.trackedBodiesCallback) {
-                        this.trackedBodiesCallback(data);
-                        if (doRecord) {
-                            data.record_startime = recordStartTime;
-                            data.record_timestamp = Date.now() - recordStartTime;
-                            bodyChunks.push(data);
-                        }
-                    }
-                    break;
-                case "depthKey":
-                    const processedKeyData = this._processRawDepth(data.imagedata);
-                    this.depthKeyCallback(processedKeyData);
-                    break;
-                case "rawDepth":
-                    const processedData = this._processRawDepth(data.imagedata);
-                    this.rawDepthCallback(processedData);
-                    if (doRecord) {
-                        let recordedData = {};
-                        recordedData.data = processedData;
-                        recordedData.record_startime = recordStartTime;
-                        recordedData.record_timestamp = Date.now() - recordStartTime;
-                        rawDepthChunks.push(recordedData);
-                    }
-                    break;
-                case "multiFrame":
-                    if (data.rawDepth) {
-                        let processedRawDepthData = this._processRawDepth(data.rawDepth);
-                        data.rawDepth = processedRawDepthData;
-                    }
-                    if (this.multiFrameCallback) {
-                        this.multiFrameCallback(data);
-                        if (doRecord) {
-                            if (data.color) {
-                                let newImg = new Image(WINDOWSCOLORHEIGHT, WINDOWSCOLORWIDTH);
-                                newImg.src = data.color;
-                                newImg.onload = (function() {
-                                    this.colorCallback(newImg);
-                                    if (doRecord) this._drawImageToCanvas("color", newImg);
-                                }).bind(this);
-                            }
-                            if (data.depth) {
-                                let newImg = new Image(WINDOWSDEPTHWIDTH, WINDOWSDEPTHHEIGHT);
-                                newImg.src = data.depth;
-                                newImg.onload = (function() {
-                                    this.depthCallback(newImg);
-                                    if (doRecord) this._drawImageToCanvas("depth", newImg);
-                                }).bind(this);
-                            }
-                            if (data.body) {
-                                data.body.record_startime = recordStartTime;
-                                data.body.record_timestamp = Date.now() - recordStartTime;
-                                bodyChunks.push(data.body);
-                            }
-                            if (data.rawDepth) {
-                                var recordedData2 = {};
-                                recordedData2.data = data.rawDepth;
-                                recordedData2.record_startime = recordStartTime;
-                                recordedData2.record_timestamp = Date.now() - recordStartTime;
-                                rawDepthChunks.push(recordedData2);
-                            }
-                        }
-                    } else {
-                        if (data.color) {
-                            let clrImg = new Image(WINDOWSCOLORHEIGHT, WINDOWSCOLORWIDTH);
-                            clrImg.src = data.color;
-                            clrImg.onload = (function() {
-                                this.colorCallback(clrImg);
-                                if (doRecord) this._drawImageToCanvas("color", clrImg);
-                            }).bind(this);
-                        }
-                        if (data.depth) {
-                            let depthImg = new Image(WINDOWSDEPTHWIDTH, WINDOWSDEPTHHEIGHT);
-                            depthImg.src = data.depth;
-                            depthImg.onload = (function() {
-                                this.depthCallback(depthImg);
-                                if (doRecord) this._drawImageToCanvas("depth", depthImg);
-                            }).bind(this);
-                        }
-                        if (data.body) {
-                            this.bodiesCallback(data.body);
-                            if (doRecord) {
-                                data.body.record_startime = recordStartTime;
-                                data.body.record_timestamp = Date.now() - recordStartTime;
-                                bodyChunks.push(data.body);
-                            }
-                        }
-                        if (data.rawDepth) {
-                            this.rawDepthCallback(data.rawDepth);
-                            if (doRecord) {
-                                var recordedData3 = {};
-                                recordedData3.data = data.rawDepth;
-                                recordedData3.record_startime = recordStartTime;
-                                recordedData3.record_timestamp = Date.now() - recordStartTime;
-                                rawDepthChunks.push(recordedData3);
-                            }
-                        }
-                    }
-                    break;
-            }
-        }).bind(this));
-    };
-    this.setKinectType = function(kinectType) {
-        this._setKinect(kinectType);
-    };
-    // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
-    this.startRGB = function(callback) {
-        console.warn("startRGB no longer in use. Use startColor instead");
-        if (callback) this.colorCallback = callback;
-        this._setFeed("color");
-    };
-    this.startColor = function(callback) {
-        if (callback) this.colorCallback = callback;
-        this._setFeed("color");
-    };
-    this.startDepth = function(callback) {
-        if (callback) this.depthCallback = callback;
-        this._setFeed("depth");
-    };
-    this.startDepthKey = function(callback) {
-        if (callback) this.depthKeyCallback = callback;
-        this._setFeed("depth-key");
-    };
-    this.startRawDepth = function(callback) {
-        if (callback) this.rawDepthCallback = callback;
-        this._setFeed("raw-depth");
-    };
-    this.startInfrared = function(callback) {
-        if (callback) this.infraredCallback = callback;
-        this._setFeed("infrared");
-    };
-    this.startLEInfrared = function(callback) {
-        if (callback) this.leInfraredCallback = callback;
-        this._setFeed("le-infrared");
-    };
-    this.startBodies = function(callback) {
-        if (callback) this.bodiesCallback = callback;
-        this._setFeed("body");
-    };
-    this.startTrackedBodies = function(callback) {
-        if (callback) this.trackedBodiesCallback = callback;
-        // Reset tracked joint variables
-        this.jointName = null;
-        this.trackedJointCallback = null;
-        this._setFeed("skeleton");
-    };
-    this.startTrackedJoint = function(jointName, callback) {
-        if (typeof jointName == "undefined") {
-            console.warn("Joint name does not exist.");
-            return;
-        }
-        if (jointName && callback) {
-            this.jointName = jointName;
-            this.trackedJointCallback = callback;
-        }
-        this._setFeed("skeleton");
-    };
-    this.startMultiFrame = function(frames, callback) {
-        if (typeof callback !== "undefined") this.multiFrameCallback = callback;
-        else if (typeof callback == "undefined") this.multiFrameCallback = null;
-        multiFrame = true;
-        currentFrames = frames;
-        this._sendToPeer("multi", frames);
-    };
-    this.startKey = function(callback) {
-        if (callback) this.keyCallback = callback;
-        this._setFeed("key");
-    };
-    this.startRGBD = function(callback) {
-        if (callback) this.rgbdCallback = callback;
-        this._setFeed("rgbd");
-    };
-    // this.startScale = function(callback) {
-    //   this.callback = callback;
-    //   this._setFeed('scale');
-    // };
-    // this.startFloorHeight = function(callback) {
-    //   if (callback) {
-    //     this.fhCallback = callback;
-    //   }
-    //   this._setFeed('fh-joint');
-    // };
-    // Stop all feeds
-    this.stopAll = function() {
-        this._setFeed("stop-all");
-    };
-    // Set Callbacks
-    // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
-    this.setRGBCallback = function(callback) {
-        console.warn("setRGBCallback no longer in use. Use setColorCallback instead");
-        this.colorCallback = callback;
-    };
-    this.setColorCallback = function(callback) {
-        this.colorCallback = callback;
-    };
-    this.setDepthCallback = function(callback) {
-        this.depthCallback = callback;
-    };
-    this.setRawDepthCallback = function(callback) {
-        this.rawDepthCallback = callback;
-    };
-    this.setInfraredCallback = function(callback) {
-        this.infraredCallback = callback;
-    };
-    this.setLeInfraredCallback = function(callback) {
-        this.leInfraredCallback = callback;
-    };
-    this.setBodiesCallback = function(callback) {
-        this.bodiesCallback = callback;
-    };
-    this.setTrackedBodiesCallback = function(callback) {
-        this.trackedBodiesCallback = callback;
-    };
-    this.setKeyCallback = function(callback) {
-        this.keyCallback = callback;
-    };
-    this.setDepthKeyCallback = function(callback) {
-        this.depthKeyCallback = callback;
-    };
-    this.setRGBDCallback = function(callback) {
-        this.rgbdCallback = callback;
-    };
-    this.setFhCallback = function(callback) {
-        this.fhCallback = callback;
-    };
-    this.setMultiFrameCallback = function(callback) {
-        this.multiFrameCallback = callback;
-    };
-    this.getJoints = function(callback) {
-        let jointCallback = callback;
-        if (whichKinect === "azure") {
-            let joints = this.body.skeleton.joints;
-            for(let i = 0; i < joints.length; i++){
-                let joint = joints[i];
-                jointCallback(joint);
-            }
-        } else // for kinect windows
-        for(let jointType in this.body.joints){
-            let joint = this.body.joints[jointType];
-            jointCallback(joint);
-        }
-    };
-    this.getHands = function(callback) {
-        let handCallback = callback;
-        let leftHand;
-        let rightHand;
-        let leftHandState;
-        let rightHandState;
-        if (whichKinect === "azure") {
-            leftHand = this.body.skeleton.joints[8];
-            rightHand = this.body.skeleton.joints[15];
-            leftHandState = null; // azure kinect doesn't track handstates
-            rightHandState = null; // azure kinect doesn't track handstates
-        } else {
-            // for kinect windows
-            leftHand = this.body.joints[7];
-            rightHand = this.body.joints[11];
-            leftHandState = this._getHandState(this.body.leftHandState);
-            rightHandState = this._getHandState(this.body.rightHandState);
-        }
-        let hands = {
-            leftHand: leftHand,
-            rightHand: rightHand,
-            leftHandState: leftHandState,
-            rightHandState: rightHandState
-        };
-        handCallback(hands);
-    };
-    this.startRecord = function() {
-        console.log("Starting record");
-        this._record();
-    };
-    this.stopRecord = function() {
-        console.log("Ending record");
-        this._record();
-    };
-    this.startServerRecord = function() {
-        console.log("Starting recording on your server");
-        this._sendToPeer("record", "start");
-    };
-    this.stopServerRecord = function() {
-        console.log("Ending recording on your server");
-        this._sendToPeer("record", "stop");
-    };
-    // Private functions //
-    this._setKinect = function(kinectType) {
-        whichKinect = kinectType;
-        this._setCanvasDimensions(kinectType);
-    };
-    this._setKinectOnServer = function(kinectType) {
-        this._sendToPeer("setkinect", kinectType);
-    };
-    this._setCanvasDimensions = function(kinectType) {
-        if (kinectType === "azure") {
-            colorwidth = AZURECOLORWIDTH;
-            colorheight = AZURECOLORHEIGHT;
-            depthwidth = AZUREDEPTHWIDTH;
-            depthheight = AZUREDEPTHHEIGHT;
-            rawdepthwidth = AZURERAWWIDTH;
-            rawdepthheight = AZURERAWHEIGHT;
-            rgbdwidth = AZURERGBDWIDTH;
-            rgbdheight = AZURERGBDHEIGHT;
-        } else if (kinectType === "windows") {
-            colorwidth = WINDOWSCOLORWIDTH;
-            colorheight = WINDOWSCOLORHEIGHT;
-            depthwidth = WINDOWSDEPTHWIDTH;
-            depthheight = WINDOWSDEPTHHEIGHT;
-            rawdepthwidth = WINDOWSRAWWIDTH;
-            rawdepthheight = WINDOWSRAWHEIGHT;
-        }
-    };
-    // Change feed on user input
-    this._setFeed = function(feed) {
-        var dataToSend = null;
-        this.feed = feed;
-        dataToSend = {
-            feed: this.feed
-        };
-        // Reset multiframe
-        multiFrame = false;
-        this._sendToPeer("feed", dataToSend);
-    };
-    // Send data to peer
-    this._sendToPeer = function(evt, data) {
-        var dataToSend = {
-            event: evt,
-            data: data
-        };
-        // If connection not ready, wait for connection
-        // but allow "setkinect message to pass"
-        if (!ready && dataToSend.event !== "setkinect") {
-            holdInitFeed = dataToSend;
-            return;
-        }
-        connection.send(dataToSend);
-    };
-    // Choose callback for image-based frames
-    this._chooseCallback = function(frame) {
-        switch(frame){
-            case "color":
-                this.colorCallback(this.img);
-                break;
-            case "depth":
-                this.depthCallback(this.img);
-                break;
-            case "infrared":
-                this.infraredCallback(this.img);
-                break;
-            case "LEinfrared":
-                this.leInfraredCallback(this.img);
-                break;
-            case "key":
-                this.keyCallback(this.img);
-                break;
-            case "depthkey":
-                this.depthKeyCallback(this.img);
-                break;
-            case "rgbd":
-                this.rgbdCallback(this.img);
-                break;
-        }
-    };
-    // Make handstate more readable
-    this._getHandState = function(handState) {
-        switch(handState){
-            case 0:
-                return "unknown";
-            case 1:
-                return "notTracked";
-            case 2:
-                return "open";
-            case 3:
-                return "closed";
-            case 4:
-                return "lasso";
-        }
-    };
-    this._processRawDepth = function(data) {
-        let imageData;
-        let processedData = [];
-        hiddenImage.src = data;
-        imageData = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
-        for(let i = 0; i < imageData.data.length; i += 4){
-            let depth = imageData.data[i + 1] << 8 | imageData.data[i]; //get uint16 data from buffer
-            processedData.push(depth);
-        }
-        return processedData;
-    };
-    // Toggle Recording
-    this._record = function() {
-        if (!doRecord) {
-            // If no feed started, send warning and return
-            if (multiFrame === false && this.feed === null || this.feed === "stop-all") {
-                console.warn("Record does not work until a feed is started");
-                return;
-            }
-            let framesToRecord = [];
-            // How many recorders needed
-            if (multiFrame) for(let i = 0; i < currentFrames.length; i++)framesToRecord.push(currentFrames[i]);
-            else framesToRecord.push(this.feed);
-            // Create one media recorder for each feed
-            for(let j = 0; j < framesToRecord.length; j++)mediaRecorders.push(this._createMediaRecorder(framesToRecord[j]));
-            recordStartTime = Date.now();
-            doRecord = true;
-        } else {
-            doRecord = false;
-            // Stop all mediarecorders and remove them from array
-            for(let k = mediaRecorders.length - 1; k >= 0; k--){
-                mediaRecorders[k].stop();
-                mediaRecorders.splice(k, 1);
-            }
-        }
-    };
-    this._drawImageToCanvas = function(frame, img) {
-        let tempContext;
-        // Look through media recorders for the correct canvas to draw to
-        for(let k = 0; k < mediaRecorders.length; k++){
-            let id = mediaRecorders[k].canvas.id;
-            if (id.indexOf(frame) >= 0) tempContext = mediaRecorders[k].canvas.getContext("2d");
-        }
-        // Draw to the appropriate canvas
-        tempContext.clearRect(0, 0, tempContext.canvas.width, tempContext.canvas.height);
-        tempContext.drawImage(img, 0, 0);
-    };
-    this._createMediaRecorder = function(frame) {
-        let newMediaRecorder;
-        // Create hidden canvas to draw to
-        let newHiddenCanvas = document.createElement("canvas");
-        newHiddenCanvas.setAttribute("id", frame + Date.now());
-        if (frame == "color" || frame == "key") {
-            newHiddenCanvas.width = colorwidth;
-            newHiddenCanvas.height = colorheight;
-        } else {
-            newHiddenCanvas.width = depthwidth;
-            newHiddenCanvas.height = depthheight;
-        }
-        let newHiddenContext = hiddenCanvas.getContext("2d");
-        newHiddenContext.fillRect(0, 0, newHiddenCanvas.width, newHiddenCanvas.height);
-        // Add canvas to hidden div
-        myDiv.appendChild(newHiddenCanvas);
-        // Create media recorder, add canvas to recorder
-        newMediaRecorder = new MediaRecorder(newHiddenCanvas.captureStream());
-        newMediaRecorder.canvas = newHiddenCanvas;
-        let mediaChunks = [];
-        newMediaRecorder.onstop = (function(e) {
-            // If skeleton data is being tracked, write out the body frames to JSON
-            if (frame == "body" || frame == "skeleton") {
-                let blobJson = new Blob([
-                    JSON.stringify(bodyChunks)
-                ], {
-                    type: "application/json"
-                });
-                let jsonUrl = URL.createObjectURL(blobJson);
-                let a2 = document.createElement("a");
-                document.body.appendChild(a2);
-                a2.style = "display: none";
-                a2.href = jsonUrl;
-                a2.download = frame + Date.now() + ".json";
-                a2.click();
-                window.URL.revokeObjectURL(jsonUrl);
-                // Reset body chunks
-                bodyChunks.length = 0;
-            // If raw depth data tracked, write out to JSON
-            } else if (frame == "raw-depth") {
-                let blobJsonRd = new Blob([
-                    JSON.stringify(rawDepthChunks)
-                ], {
-                    type: "application/json"
-                });
-                let jsonRdUrl = URL.createObjectURL(blobJsonRd);
-                let a3 = document.createElement("a");
-                document.body.appendChild(a3);
-                a3.style = "display: none";
-                a3.href = jsonRdUrl;
-                a3.download = frame + Date.now() + ".json";
-                a3.click();
-                window.URL.revokeObjectURL(jsonRdUrl);
-                // Reset body chunks
-                rawDepthChunks.length = 0;
-            // If video display the video on the page
-            } else {
-                // The video as a blob
-                let blobVideo = new Blob(mediaChunks, {
-                    type: "video/webm"
-                });
-                // Draw video to screen
-                // let videoElement = document.createElement('video');
-                // videoElement.setAttribute("id", Date.now());
-                // videoElement.controls = true;
-                // document.body.appendChild(videoElement);
-                // videoElement.src = window.URL.createObjectURL(blobVideo);
-                // Download the video
-                let url = URL.createObjectURL(blobVideo);
-                let a = document.createElement("a");
-                document.body.appendChild(a);
-                a.style = "display: none";
-                a.href = url;
-                a.download = frame + Date.now() + ".webm";
-                a.click();
-                window.URL.revokeObjectURL(url);
-                // Reset media chunks
-                mediaChunks.length = 0;
-            }
-        }).bind(this);
-        // When video data is available
-        newMediaRecorder.ondataavailable = function(e) {
-            mediaChunks.push(e.data);
-        };
-        // Start recording
-        newMediaRecorder.start();
-        return newMediaRecorder;
-    };
-    this._countFPS = function(event) {
-        // use event to count only specific frames
-        if (event === "frame") {
-            if (timer === false) {
-                timer = true;
-                timeCounter = Date.now();
-            }
-            if (Date.now() > timeCounter + 1000) {
-                console.log("resetting. last count: ", sendCounter);
-                timer = false;
-                sendCounter = 0;
-            } else sendCounter++; // count how many times we send in 1 second
-        }
-    };
-    this._roughSizeOfObject = function(object) {
-        let objectList = [];
-        let stack = [
-            object
-        ];
-        let bytes = 0;
-        while(stack.length){
-            let value = stack.pop();
-            if (typeof value === "boolean") bytes += 4;
-            else if (typeof value === "string") bytes += value.length * 2;
-            else if (typeof value === "number") bytes += 8;
-            else if (typeof value === "object" && objectList.indexOf(value) === -1) {
-                objectList.push(value);
-                for(let i in value)stack.push(value[i]);
-            }
-        }
-        return bytes;
-    };
-};
-window.Kinectron = Kinectron;
-
-},{"peerjs":"jvZeO","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jvZeO":[function(require,module,exports) {
+var $8a778be88183940c$exports = {};
 parcelRequire = function(e, r, t, n) {
     var i, o = "function" == typeof parcelRequire && parcelRequire, u = undefined;
     function f(t, n) {
@@ -1415,13 +45,13 @@ parcelRequire = function(e, r, t, n) {
     }
     if (t.length) {
         var l = f(t[t.length - 1]);
-        module.exports = l;
+        $8a778be88183940c$exports = l;
     }
     if (parcelRequire = f, i) throw i;
     return f;
 }({
     "4EgB": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             var e = {};
             e.useBlobBuilder = function() {
                 try {
@@ -1460,8 +90,8 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "kdPp": [
-        function(require, module1, exports) {
-            var t = require("./bufferbuilder").BufferBuilder, e = require("./bufferbuilder").binaryFeatures, i = {
+        function(require1, module1, exports) {
+            var t = require1("./bufferbuilder").BufferBuilder, e = require1("./bufferbuilder").binaryFeatures, i = {
                 unpack: function(t) {
                     return new r(t).unpack();
                 },
@@ -1700,7 +330,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "iSxC": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             function e(e, t, n) {
                 return t in e ? Object.defineProperty(e, t, {
@@ -1821,12 +451,12 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "s6SN": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             }), exports.shimGetUserMedia = i;
-            var e = r(require("../utils.js"));
+            var e = r(require1("../utils.js"));
             function r(e) {
                 if (e && e.__esModule) return e;
                 var r = {};
@@ -1963,7 +593,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "VHa8": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             function e(e, i) {
                 e.navigator.mediaDevices && "getDisplayMedia" in e.navigator.mediaDevices || e.navigator.mediaDevices && ("function" == typeof i ? e.navigator.mediaDevices.getDisplayMedia = function(a) {
@@ -1986,7 +616,7 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "uI5X": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
@@ -2001,7 +631,7 @@ parcelRequire = function(e, r, t, n) {
                     return r.shimGetDisplayMedia;
                 }
             });
-            var e = n(require("../utils.js")), t = require("./getusermedia"), r = require("./getdisplaymedia");
+            var e = n(require1("../utils.js")), t = require1("./getusermedia"), r = require1("./getdisplaymedia");
             function n(e) {
                 if (e && e.__esModule) return e;
                 var t = {};
@@ -2444,12 +1074,12 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "6NZ1": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             }), exports.filterIceServers = t;
-            var r = e(require("../utils"));
+            var r = e(require1("../utils"));
             function e(r) {
                 if (r && r.__esModule) return r;
                 var e = {};
@@ -2484,7 +1114,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "YHvh": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var r = {
                 generateIdentifier: function() {
@@ -2798,9 +1428,9 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "NJ2u": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
-            var e = require("sdp");
+            var e = require1("sdp");
             function t(e) {
                 return ({
                     inboundrtp: "inbound-rtp",
@@ -3537,7 +2167,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "YdKx": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             function e(e) {
                 var r = e && e.navigator, t = r.mediaDevices.getUserMedia.bind(r.mediaDevices);
@@ -3565,7 +2195,7 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "5P3b": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             function e(e) {
                 "getDisplayMedia" in e.navigator && e.navigator.mediaDevices && (e.navigator.mediaDevices && "getDisplayMedia" in e.navigator.mediaDevices || (e.navigator.mediaDevices.getDisplayMedia = e.navigator.getDisplayMedia.bind(e.navigator)));
@@ -3577,7 +2207,7 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "XRic": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
@@ -3592,7 +2222,7 @@ parcelRequire = function(e, r, t, n) {
                     return i.shimGetDisplayMedia;
                 }
             });
-            var e = s(require("../utils")), r = require("./filtericeservers"), t = o(require("rtcpeerconnection-shim")), n = require("./getusermedia"), i = require("./getdisplaymedia");
+            var e = s(require1("../utils")), r = require1("./filtericeservers"), t = o(require1("rtcpeerconnection-shim")), n = require1("./getusermedia"), i = require1("./getdisplaymedia");
             function o(e) {
                 return e && e.__esModule ? e : {
                     default: e
@@ -3648,12 +2278,12 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "/GzS": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             }), exports.shimGetUserMedia = r;
-            var e = t(require("../utils"));
+            var e = t(require1("../utils"));
             function t(e) {
                 if (e && e.__esModule) return e;
                 var t = {};
@@ -3705,7 +2335,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "UuGU": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             function e(e, i) {
                 e.navigator.mediaDevices && "getDisplayMedia" in e.navigator.mediaDevices || e.navigator.mediaDevices && (e.navigator.mediaDevices.getDisplayMedia = function(a) {
@@ -3725,7 +2355,7 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "Fzdr": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
@@ -3740,7 +2370,7 @@ parcelRequire = function(e, r, t, n) {
                     return r.shimGetDisplayMedia;
                 }
             });
-            var e = n(require("../utils")), t = require("./getusermedia"), r = require("./getdisplaymedia");
+            var e = n(require1("../utils")), t = require1("./getusermedia"), r = require1("./getdisplaymedia");
             function n(e) {
                 if (e && e.__esModule) return e;
                 var t = {};
@@ -3923,12 +2553,12 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "t1lL": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             }), exports.shimLocalStreamsAPI = o, exports.shimRemoteStreamsAPI = i, exports.shimCallbacksAPI = n, exports.shimGetUserMedia = s, exports.shimConstraints = a, exports.shimRTCIceServerUrls = c, exports.shimTrackEventTransceiver = d, exports.shimCreateOfferLegacy = p;
-            var e = t(require("../utils"));
+            var e = t(require1("../utils"));
             function t(e) {
                 if (e && e.__esModule) return e;
                 var t = {};
@@ -4116,12 +2746,12 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "GOQK": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             }), exports.shimRTCIceCandidate = i, exports.shimMaxMessageSize = a, exports.shimSendThrowTypeError = c, exports.shimConnectionState = s, exports.removeAllowExtmapMixed = p;
-            var e = o(require("sdp")), t = n(require("./utils"));
+            var e = o(require1("sdp")), t = n(require1("./utils"));
             function n(e) {
                 if (e && e.__esModule) return e;
                 var t = {};
@@ -4300,12 +2930,12 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "KtlG": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             }), exports.adapterFactory = h;
-            var e = m(require("./utils")), i = m(require("./chrome/chrome_shim")), r = m(require("./edge/edge_shim")), s = m(require("./firefox/firefox_shim")), a = m(require("./safari/safari_shim")), t = m(require("./common_shim"));
+            var e = m(require1("./utils")), i = m(require1("./chrome/chrome_shim")), r = m(require1("./edge/edge_shim")), s = m(require1("./firefox/firefox_shim")), a = m(require1("./safari/safari_shim")), t = m(require1("./common_shim"));
             function m(e) {
                 if (e && e.__esModule) return e;
                 var i = {};
@@ -4363,12 +2993,12 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "tI1X": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             }), exports.default = void 0;
-            var e = require("./adapter_factory.js"), r = (0, e.adapterFactory)({
+            var e = require1("./adapter_factory.js"), r = (0, e.adapterFactory)({
                 window: window
             }), t = r;
             exports.default = t;
@@ -4378,7 +3008,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "sXtV": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var e = this && this.__importDefault || function(e) {
                 return e && e.__esModule ? e : {
@@ -4388,7 +3018,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var t = e(require("webrtc-adapter"));
+            var t = e(require1("webrtc-adapter"));
             exports.webRTCAdapter = t.default;
         },
         {
@@ -4396,12 +3026,12 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "I+31": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var r = require("./adapter");
+            var r = require1("./adapter");
             exports.Supports = new (function() {
                 function e() {
                     this.isIOS = [
@@ -4445,7 +3075,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "BHXf": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var r = this && this.__importStar || function(r) {
                 if (r && r.__esModule) return r;
@@ -4456,7 +3086,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var t = r(require("peerjs-js-binarypack")), e = require("./supports"), o = {
+            var t = r(require1("peerjs-js-binarypack")), e = require1("./supports"), o = {
                 iceServers: [
                     {
                         urls: "stun:stun.l.google.com:19302"
@@ -4537,7 +3167,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "2JJl": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var e = Object.prototype.hasOwnProperty, t = "~";
             function n() {}
@@ -4639,7 +3269,7 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "8WOs": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var r = this && this.__read || function(r, e) {
                 var o = "function" == typeof Symbol && r[Symbol.iterator];
@@ -4718,7 +3348,7 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "9ZRY": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var e, r, n, o, t, a, i;
             Object.defineProperty(exports, "__esModule", {
@@ -4742,7 +3372,7 @@ parcelRequire = function(e, r, t, n) {
         {}
     ],
     "wJlv": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var e = this && this.__extends || function() {
                 var e = function(t, r) {
@@ -4801,7 +3431,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var o = require("eventemitter3"), i = n(require("./logger")), a = require("./enums"), c = function(t) {
+            var o = require1("eventemitter3"), i = n(require1("./logger")), a = require1("./enums"), c = function(t) {
                 function n(e, r, s, n, o, i) {
                     void 0 === i && (i = 5e3);
                     var a = t.call(this) || this;
@@ -4883,7 +3513,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "HCdX": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var e = this && this.__assign || function() {
                 return (e = Object.assign || function(e) {
@@ -5006,7 +3636,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var i = require("./util"), r = o(require("./logger")), c = require("./enums"), a = function() {
+            var i = require1("./util"), r = o(require1("./logger")), c = require1("./enums"), a = function() {
                 function o(e) {
                     this.connection = e;
                 }
@@ -5311,7 +3941,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "tQFK": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var t = this && this.__extends || function() {
                 var t = function(e, r) {
@@ -5333,7 +3963,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var e = require("eventemitter3"), r = function(e) {
+            var e = require1("eventemitter3"), r = function(e) {
                 function r(t, r, n) {
                     var o = e.call(this) || this;
                     return o.peer = t, o.provider = r, o.options = n, o._open = !1, o.metadata = n.metadata, o;
@@ -5353,7 +3983,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "dbHP": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var e = this && this.__extends || function() {
                 var e = function(t, o) {
@@ -5396,7 +4026,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var n = require("./util"), i = r(require("./logger")), a = require("./negotiator"), s = require("./enums"), l = require("./baseconnection"), c = function(r) {
+            var n = require1("./util"), i = r(require1("./logger")), a = require1("./negotiator"), s = require1("./enums"), l = require1("./baseconnection"), c = function(r) {
                 function l(e, t, o) {
                     var i = r.call(this, e, t, o) || this;
                     return i._localStream = i.options._stream, i.connectionId = i.options.connectionId || l.ID_PREFIX + n.util.randomToken(), i._negotiator = new a.Negotiator(i), i._localStream && i._negotiator.startConnection({
@@ -5477,7 +4107,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "GGp6": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var e = this && this.__extends || function() {
                 var e = function(t, r) {
@@ -5503,7 +4133,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var r = require("eventemitter3"), o = t(require("./logger")), n = function(t) {
+            var r = require1("eventemitter3"), o = t(require1("./logger")), n = function(t) {
                 function r() {
                     var e = t.call(this) || this;
                     return e.fileReader = new FileReader, e._queue = [], e._processing = !1, e.fileReader.onload = function(t) {
@@ -5546,7 +4176,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "GBTQ": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var e = this && this.__extends || function() {
                 var e = function(t, n) {
@@ -5584,7 +4214,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var i = require("./util"), o = n(require("./logger")), r = require("./negotiator"), a = require("./enums"), s = require("./baseconnection"), u = require("./encodingQueue"), l = function(n) {
+            var i = require1("./util"), o = n(require1("./logger")), r = require1("./negotiator"), a = require1("./enums"), s = require1("./baseconnection"), u = require1("./encodingQueue"), l = function(n) {
                 function s(e, t, l) {
                     var f = n.call(this, e, t, l) || this;
                     return f._buffer = [], f._bufferSize = 0, f._buffering = !1, f._chunkedData = {}, f._encodingQueue = new u.EncodingQueue, f.connectionId = f.options.connectionId || s.ID_PREFIX + i.util.randomToken(), f.label = f.options.label || f.connectionId, f.serialization = f.options.serialization || a.SerializationType.Binary, f.reliable = !!f.options.reliable, f.options._payload && (f._peerBrowser = f.options._payload.browser), f._encodingQueue.on("done", function(e) {
@@ -5726,7 +4356,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "in7L": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var t = this && this.__awaiter || function(t, e, r, o) {
                 return new (r || (r = Promise))(function(n, s) {
@@ -5844,7 +4474,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var o = require("./util"), n = r(require("./logger")), s = function() {
+            var o = require1("./util"), n = r(require1("./logger")), s = function() {
                 function r(t) {
                     this._options = t;
                 }
@@ -5928,7 +4558,7 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "Hxpd": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             var e = this && this.__extends || function() {
                 var e = function(t, n) {
@@ -5989,7 +4619,7 @@ parcelRequire = function(e, r, t, n) {
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var i = require("eventemitter3"), s = require("./util"), a = r(require("./logger")), c = require("./socket"), l = require("./mediaconnection"), d = require("./dataconnection"), u = require("./enums"), p = require("./api"), h = function() {
+            var i = require1("eventemitter3"), s = require1("./util"), a = r(require1("./logger")), c = require1("./socket"), l = require1("./mediaconnection"), d = require1("./dataconnection"), u = require1("./enums"), p = require1("./api"), h = function() {
                 return function() {};
             }(), f = function(r) {
                 function i(e, n) {
@@ -6269,12 +4899,12 @@ parcelRequire = function(e, r, t, n) {
         }
     ],
     "iTK6": [
-        function(require, module1, exports) {
+        function(require1, module1, exports) {
             "use strict";
             Object.defineProperty(exports, "__esModule", {
                 value: !0
             });
-            var e = require("./util"), r = require("./peer");
+            var e = require1("./util"), r = require1("./peer");
             exports.peerjs = {
                 Peer: r.Peer,
                 util: e.util
@@ -6290,36 +4920,792 @@ parcelRequire = function(e, r, t, n) {
 ], null) //# sourceMappingURL=/peerjs.min.js.map
 ;
 
-},{}],"gkKU3":[function(require,module,exports) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, "__esModule", {
-        value: true
+
+console.log("You are running Kinectron API version 0.3.9");
+const $436ce2f67319af2a$var$Kinectron = function(arg1, arg2) {
+    this.img = null;
+    // this.rawDepthImg = null;
+    this.feed = null;
+    this.body = null;
+    this.jointName = null;
+    this.rgbCallback = null; // rgb depricated 3/16/17 use color instead
+    this.colorCallback = null;
+    this.depthCallback = null;
+    this.rawDepthCallback = null;
+    this.infraredCallback = null;
+    this.leInfraredCallback = null;
+    this.bodiesCallback = null;
+    this.trackedBodiesCallback = null;
+    this.trackedJointCallback = null;
+    this.keyCallback = null;
+    this.depthKeyCallback = null;
+    this.rgbdCallback = null;
+    this.fhCallback = null;
+    this.multiFrameCallback = null;
+    // Joint Name Constants
+    this.SPINEBASE = 0;
+    this.SPINEMID = 1;
+    this.NECK = 2;
+    this.HEAD = 3;
+    this.SHOULDERLEFT = 4;
+    this.ELBOWLEFT = 5;
+    this.WRISTLEFT = 6;
+    this.HANDLEFT = 7;
+    this.SHOULDERRIGHT = 8;
+    this.ELBOWRIGHT = 9;
+    this.WRISTRIGHT = 10;
+    this.HANDRIGHT = 11;
+    this.HIPLEFT = 12;
+    this.KNEELEFT = 13;
+    this.ANKLELEFT = 14;
+    this.FOOTLEFT = 15;
+    this.HIPRIGHT = 16;
+    this.KNEERIGHT = 17;
+    this.ANKLERIGHT = 18;
+    this.FOOTRIGHT = 19;
+    this.SPINESHOULDER = 20;
+    this.HANDTIPLEFT = 21;
+    this.THUMBLEFT = 22;
+    this.HANDTIPRIGHT = 23;
+    this.THUMBRIGHT = 24;
+    const WINDOWSCOLORWIDTH = 960;
+    const WINDOWSCOLORHEIGHT = 540;
+    const WINDOWSDEPTHWIDTH = 512;
+    const WINDOWSDEPTHHEIGHT = 424;
+    const WINDOWSRAWWIDTH = 512;
+    const WINDOWSRAWHEIGHT = 424;
+    // azure resolutions at
+    // https://docs.microsoft.com/en-us/azure/kinect-dk/hardware-specification
+    const AZURECOLORWIDTH = 1280;
+    const AZURECOLORHEIGHT = 720;
+    const AZUREDEPTHWIDTH = 640;
+    const AZUREDEPTHHEIGHT = 576;
+    const AZURERAWWIDTH = 320;
+    const AZURERAWHEIGHT = 288;
+    const AZURERGBDWIDTH = 512;
+    const AZURERGBDHEIGHT = 512;
+    let colorwidth;
+    let colorheight;
+    let depthwidth;
+    let depthheight;
+    let rawdepthwidth;
+    let rawdepthheight;
+    let rgbdwidth;
+    let rgbdheight;
+    let whichKinect = null;
+    // Running multiframe indicator
+    let multiFrame = false;
+    let currentFrames = [];
+    // Hold initital frame request until peer connection ready
+    let ready = false;
+    let holdInitFeed = null;
+    // Peer variables and defaults
+    let peer = null;
+    let connection = null;
+    let peerNet = {
+        host: "localhost",
+        port: 9001,
+        path: "/"
+    }; // Connect to localhost by default
+    const peerId = "kinectron"; // Connect to peer Id Kinectron by default
+    // Hidden div variables
+    let myDiv = null;
+    // Record variables
+    let doRecord = false;
+    let recordStartTime = 0;
+    let bodyChunks = [];
+    let rawDepthChunks = [];
+    let mediaRecorders = [];
+    // Debug timer variables
+    let timer = false;
+    let timeCounter = 0;
+    let sendCounter = 0;
+    // Check for ip address in "quickstart" method
+    // If user has provided only first argument
+    if (typeof arg1 !== "undefined" && typeof arg2 === "undefined") {
+        // If it is an ngrok address
+        if (arg1.includes("ngrok")) {
+            const ngrokUrl = arg1;
+            const network = {
+                host: ngrokUrl,
+                port: "443",
+                path: "/",
+                secure: "true"
+            };
+            peerNet = network;
+        // Otherwise it is a local address
+        } else {
+            const host = arg1;
+            peerNet.host = host;
+        }
+    } else if (typeof arg1 !== "undefined" && typeof arg2 !== "undefined") {
+        const peerid = arg1;
+        const network = arg2;
+        peerId = peerid;
+        peerNet = network;
+    }
+    // Create new peer
+    peer = new (0, (/*@__PURE__*/$parcel$interopDefault($8a778be88183940c$exports)))(peerNet);
+    peer.on("open", function(id) {
+        console.log("My peer ID is: " + id);
     });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === "default" || key === "__esModule" || Object.prototype.hasOwnProperty.call(dest, key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
+    peer.on("connection", function(connection) {
+        connection.on("open", function() {
+            console.log("Peer js is connected");
         });
     });
-    return dest;
+    // Create hidden image to draw to
+    myDiv = document.createElement("div");
+    myDiv.style.visibility = "hidden";
+    myDiv.style.position = "fixed";
+    myDiv.style.bottom = "0";
+    document.body.appendChild(myDiv);
+    this.img = document.createElement("img");
+    myDiv.appendChild(this.img);
+    // Used for raw depth processing.
+    // TO DO refactor: create dynamically in process raw depth
+    const hiddenCanvas = document.createElement("canvas");
+    const hiddenContext = hiddenCanvas.getContext("2d");
+    const hiddenImage = document.createElement("img");
+    myDiv.appendChild(hiddenCanvas);
+    myDiv.appendChild(hiddenImage);
+    this._initHiddenCanvas = function() {
+        hiddenCanvas.width = rawdepthwidth;
+        hiddenCanvas.height = rawdepthheight;
+        hiddenContext.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+        hiddenImage.addEventListener("load", (e)=>{
+            // hiddenContext.clearRect(
+            //   0,
+            //   0,
+            //   hiddenContext.canvas.width,
+            //   hiddenContext.canvas.height
+            // );
+            hiddenContext.drawImage(hiddenImage, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+        });
+    };
+    // Make peer connection
+    this.makeConnection = function() {
+        connection = peer.connect(peerId); // get a webrtc DataConnection
+        connection.on("open", function(data) {
+            console.log("Open data connection with server");
+        });
+        // Route incoming traffic from Kinectron
+        connection.on("data", (function(dataReceived) {
+            const { data: data, event: event } = dataReceived;
+            let debugReceivingData = false;
+            if (debugReceivingData) {
+                this._countFPS(event);
+                console.log(this._roughSizeOfObject(data));
+            }
+            switch(event){
+                // Wait for ready from Kinectron to initialize
+                case "ready":
+                    // if kinect set by server and kinect set by API
+                    // give precedence to the server
+                    // let the user know
+                    if (data.kinect && whichKinect !== null) {
+                        if (whichKinect !== data.kinect) {
+                            whichKinect = data.kinect;
+                            console.warn(`The Kinect server set the Kinect type to ${whichKinect}`);
+                        }
+                    }
+                    // if kinect set by api and blank on server
+                    // set it on server
+                    if (Object.entries(data).length === 0 && data.constructor === Object && whichKinect) {
+                        this._setKinectOnServer(whichKinect);
+                        console.log(`The Kinect type is set to ${whichKinect}`);
+                    }
+                    // if kinect set by server, set the same in api
+                    if (data.kinect && whichKinect === null) {
+                        whichKinect = data.kinect;
+                        this._setKinect(whichKinect);
+                        console.log(`The Kinect type is set to ${whichKinect}`);
+                    }
+                    if (whichKinect) {
+                        ready = true;
+                        this._initHiddenCanvas(); // init hidden canvas after global img dimensions set
+                        if (holdInitFeed) {
+                            connection.send(holdInitFeed);
+                            holdInitFeed = null;
+                        }
+                    } else console.error("Kinectron cannot start. Kinect type must be set to 'azure' or 'windows' on server or API.");
+                    break;
+                // If image data draw image
+                case "frame":
+                    this.img.src = data.imagedata;
+                    this.img.onload = (function() {
+                        this._chooseCallback(data.name);
+                        if (doRecord) this._drawImageToCanvas(data.name);
+                    }).bind(this);
+                    break;
+                // If receive all bodies, send all bodies
+                case "bodyFrame":
+                    this.bodiesCallback(data);
+                    if (doRecord) {
+                        data.record_startime = recordStartTime;
+                        data.record_timestamp = Date.now() - recordStartTime;
+                        bodyChunks.push(data);
+                    }
+                    break;
+                // If receive tracked skeleton data, send skeleton
+                case "trackedBodyFrame":
+                    this.body = data;
+                    // If joint specified send joint and call joint callback
+                    if (this.jointName && this.trackedJointCallback && this.body.joints[this.jointName] !== 0) {
+                        var joint = this.body.joints[this.jointName];
+                        joint.trackingId = this.body.trackingId;
+                        this.trackedJointCallback(joint);
+                        if (doRecord) {
+                            joint.record_startime = recordStartTime;
+                            joint.record_timestamp = Date.now() - recordStartTime;
+                            bodyChunks.push(joint);
+                        }
+                    // Or call tracked bodies callback on invidual tracked body
+                    } else if (this.trackedBodiesCallback) {
+                        this.trackedBodiesCallback(data);
+                        if (doRecord) {
+                            data.record_startime = recordStartTime;
+                            data.record_timestamp = Date.now() - recordStartTime;
+                            bodyChunks.push(data);
+                        }
+                    }
+                    break;
+                case "depthKey":
+                    const processedKeyData = this._processRawDepth(data.imagedata);
+                    this.depthKeyCallback(processedKeyData);
+                    break;
+                case "rawDepth":
+                    const processedData = this._processRawDepth(data.imagedata);
+                    this.rawDepthCallback(processedData);
+                    if (doRecord) {
+                        let recordedData = {};
+                        recordedData.data = processedData;
+                        recordedData.record_startime = recordStartTime;
+                        recordedData.record_timestamp = Date.now() - recordStartTime;
+                        rawDepthChunks.push(recordedData);
+                    }
+                    break;
+                case "multiFrame":
+                    if (data.rawDepth) {
+                        let processedRawDepthData = this._processRawDepth(data.rawDepth);
+                        data.rawDepth = processedRawDepthData;
+                    }
+                    if (this.multiFrameCallback) {
+                        this.multiFrameCallback(data);
+                        if (doRecord) {
+                            if (data.color) {
+                                let newImg = new Image(WINDOWSCOLORHEIGHT, WINDOWSCOLORWIDTH);
+                                newImg.src = data.color;
+                                newImg.onload = (function() {
+                                    this.colorCallback(newImg);
+                                    if (doRecord) this._drawImageToCanvas("color", newImg);
+                                }).bind(this);
+                            }
+                            if (data.depth) {
+                                let newImg = new Image(WINDOWSDEPTHWIDTH, WINDOWSDEPTHHEIGHT);
+                                newImg.src = data.depth;
+                                newImg.onload = (function() {
+                                    this.depthCallback(newImg);
+                                    if (doRecord) this._drawImageToCanvas("depth", newImg);
+                                }).bind(this);
+                            }
+                            if (data.body) {
+                                data.body.record_startime = recordStartTime;
+                                data.body.record_timestamp = Date.now() - recordStartTime;
+                                bodyChunks.push(data.body);
+                            }
+                            if (data.rawDepth) {
+                                var recordedData2 = {};
+                                recordedData2.data = data.rawDepth;
+                                recordedData2.record_startime = recordStartTime;
+                                recordedData2.record_timestamp = Date.now() - recordStartTime;
+                                rawDepthChunks.push(recordedData2);
+                            }
+                        }
+                    } else {
+                        if (data.color) {
+                            let clrImg = new Image(WINDOWSCOLORHEIGHT, WINDOWSCOLORWIDTH);
+                            clrImg.src = data.color;
+                            clrImg.onload = (function() {
+                                this.colorCallback(clrImg);
+                                if (doRecord) this._drawImageToCanvas("color", clrImg);
+                            }).bind(this);
+                        }
+                        if (data.depth) {
+                            let depthImg = new Image(WINDOWSDEPTHWIDTH, WINDOWSDEPTHHEIGHT);
+                            depthImg.src = data.depth;
+                            depthImg.onload = (function() {
+                                this.depthCallback(depthImg);
+                                if (doRecord) this._drawImageToCanvas("depth", depthImg);
+                            }).bind(this);
+                        }
+                        if (data.body) {
+                            this.bodiesCallback(data.body);
+                            if (doRecord) {
+                                data.body.record_startime = recordStartTime;
+                                data.body.record_timestamp = Date.now() - recordStartTime;
+                                bodyChunks.push(data.body);
+                            }
+                        }
+                        if (data.rawDepth) {
+                            this.rawDepthCallback(data.rawDepth);
+                            if (doRecord) {
+                                var recordedData3 = {};
+                                recordedData3.data = data.rawDepth;
+                                recordedData3.record_startime = recordStartTime;
+                                recordedData3.record_timestamp = Date.now() - recordStartTime;
+                                rawDepthChunks.push(recordedData3);
+                            }
+                        }
+                    }
+                    break;
+            }
+        }).bind(this));
+    };
+    this.setKinectType = function(kinectType) {
+        this._setKinect(kinectType);
+    };
+    // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
+    this.startRGB = function(callback) {
+        console.warn("startRGB no longer in use. Use startColor instead");
+        if (callback) this.colorCallback = callback;
+        this._setFeed("color");
+    };
+    this.startColor = function(callback) {
+        if (callback) this.colorCallback = callback;
+        this._setFeed("color");
+    };
+    this.startDepth = function(callback) {
+        if (callback) this.depthCallback = callback;
+        this._setFeed("depth");
+    };
+    this.startDepthKey = function(callback) {
+        if (callback) this.depthKeyCallback = callback;
+        this._setFeed("depth-key");
+    };
+    this.startRawDepth = function(callback) {
+        if (callback) this.rawDepthCallback = callback;
+        this._setFeed("raw-depth");
+    };
+    this.startInfrared = function(callback) {
+        if (callback) this.infraredCallback = callback;
+        this._setFeed("infrared");
+    };
+    this.startLEInfrared = function(callback) {
+        if (callback) this.leInfraredCallback = callback;
+        this._setFeed("le-infrared");
+    };
+    this.startBodies = function(callback) {
+        if (callback) this.bodiesCallback = callback;
+        this._setFeed("body");
+    };
+    this.startTrackedBodies = function(callback) {
+        if (callback) this.trackedBodiesCallback = callback;
+        // Reset tracked joint variables
+        this.jointName = null;
+        this.trackedJointCallback = null;
+        this._setFeed("skeleton");
+    };
+    this.startTrackedJoint = function(jointName, callback) {
+        if (typeof jointName == "undefined") {
+            console.warn("Joint name does not exist.");
+            return;
+        }
+        if (jointName && callback) {
+            this.jointName = jointName;
+            this.trackedJointCallback = callback;
+        }
+        this._setFeed("skeleton");
+    };
+    this.startMultiFrame = function(frames, callback) {
+        if (typeof callback !== "undefined") this.multiFrameCallback = callback;
+        else if (typeof callback == "undefined") this.multiFrameCallback = null;
+        multiFrame = true;
+        currentFrames = frames;
+        this._sendToPeer("multi", frames);
+    };
+    this.startKey = function(callback) {
+        if (callback) this.keyCallback = callback;
+        this._setFeed("key");
+    };
+    this.startRGBD = function(callback) {
+        if (callback) this.rgbdCallback = callback;
+        this._setFeed("rgbd");
+    };
+    // this.startScale = function(callback) {
+    //   this.callback = callback;
+    //   this._setFeed('scale');
+    // };
+    // this.startFloorHeight = function(callback) {
+    //   if (callback) {
+    //     this.fhCallback = callback;
+    //   }
+    //   this._setFeed('fh-joint');
+    // };
+    // Stop all feeds
+    this.stopAll = function() {
+        this._setFeed("stop-all");
+    };
+    // Set Callbacks
+    // Changed RGB to Color to be consistent with SDK, RGB depricated 3/16/17
+    this.setRGBCallback = function(callback) {
+        console.warn("setRGBCallback no longer in use. Use setColorCallback instead");
+        this.colorCallback = callback;
+    };
+    this.setColorCallback = function(callback) {
+        this.colorCallback = callback;
+    };
+    this.setDepthCallback = function(callback) {
+        this.depthCallback = callback;
+    };
+    this.setRawDepthCallback = function(callback) {
+        this.rawDepthCallback = callback;
+    };
+    this.setInfraredCallback = function(callback) {
+        this.infraredCallback = callback;
+    };
+    this.setLeInfraredCallback = function(callback) {
+        this.leInfraredCallback = callback;
+    };
+    this.setBodiesCallback = function(callback) {
+        this.bodiesCallback = callback;
+    };
+    this.setTrackedBodiesCallback = function(callback) {
+        this.trackedBodiesCallback = callback;
+    };
+    this.setKeyCallback = function(callback) {
+        this.keyCallback = callback;
+    };
+    this.setDepthKeyCallback = function(callback) {
+        this.depthKeyCallback = callback;
+    };
+    this.setRGBDCallback = function(callback) {
+        this.rgbdCallback = callback;
+    };
+    this.setFhCallback = function(callback) {
+        this.fhCallback = callback;
+    };
+    this.setMultiFrameCallback = function(callback) {
+        this.multiFrameCallback = callback;
+    };
+    this.getJoints = function(callback) {
+        let jointCallback = callback;
+        if (whichKinect === "azure") {
+            let joints = this.body.skeleton.joints;
+            for(let i = 0; i < joints.length; i++){
+                let joint = joints[i];
+                jointCallback(joint);
+            }
+        } else // for kinect windows
+        for(let jointType in this.body.joints){
+            let joint = this.body.joints[jointType];
+            jointCallback(joint);
+        }
+    };
+    this.getHands = function(callback) {
+        let handCallback = callback;
+        let leftHand;
+        let rightHand;
+        let leftHandState;
+        let rightHandState;
+        if (whichKinect === "azure") {
+            leftHand = this.body.skeleton.joints[8];
+            rightHand = this.body.skeleton.joints[15];
+            leftHandState = null; // azure kinect doesn't track handstates
+            rightHandState = null; // azure kinect doesn't track handstates
+        } else {
+            // for kinect windows
+            leftHand = this.body.joints[7];
+            rightHand = this.body.joints[11];
+            leftHandState = this._getHandState(this.body.leftHandState);
+            rightHandState = this._getHandState(this.body.rightHandState);
+        }
+        let hands = {
+            leftHand: leftHand,
+            rightHand: rightHand,
+            leftHandState: leftHandState,
+            rightHandState: rightHandState
+        };
+        handCallback(hands);
+    };
+    this.startRecord = function() {
+        console.log("Starting record");
+        this._record();
+    };
+    this.stopRecord = function() {
+        console.log("Ending record");
+        this._record();
+    };
+    this.startServerRecord = function() {
+        console.log("Starting recording on your server");
+        this._sendToPeer("record", "start");
+    };
+    this.stopServerRecord = function() {
+        console.log("Ending recording on your server");
+        this._sendToPeer("record", "stop");
+    };
+    // Private functions //
+    this._setKinect = function(kinectType) {
+        whichKinect = kinectType;
+        this._setCanvasDimensions(kinectType);
+    };
+    this._setKinectOnServer = function(kinectType) {
+        this._sendToPeer("setkinect", kinectType);
+    };
+    this._setCanvasDimensions = function(kinectType) {
+        if (kinectType === "azure") {
+            colorwidth = AZURECOLORWIDTH;
+            colorheight = AZURECOLORHEIGHT;
+            depthwidth = AZUREDEPTHWIDTH;
+            depthheight = AZUREDEPTHHEIGHT;
+            rawdepthwidth = AZURERAWWIDTH;
+            rawdepthheight = AZURERAWHEIGHT;
+            rgbdwidth = AZURERGBDWIDTH;
+            rgbdheight = AZURERGBDHEIGHT;
+        } else if (kinectType === "windows") {
+            colorwidth = WINDOWSCOLORWIDTH;
+            colorheight = WINDOWSCOLORHEIGHT;
+            depthwidth = WINDOWSDEPTHWIDTH;
+            depthheight = WINDOWSDEPTHHEIGHT;
+            rawdepthwidth = WINDOWSRAWWIDTH;
+            rawdepthheight = WINDOWSRAWHEIGHT;
+        }
+    };
+    // Change feed on user input
+    this._setFeed = function(feed) {
+        var dataToSend = null;
+        this.feed = feed;
+        dataToSend = {
+            feed: this.feed
+        };
+        // Reset multiframe
+        multiFrame = false;
+        this._sendToPeer("feed", dataToSend);
+    };
+    // Send data to peer
+    this._sendToPeer = function(evt, data) {
+        var dataToSend = {
+            event: evt,
+            data: data
+        };
+        // If connection not ready, wait for connection
+        // but allow "setkinect message to pass"
+        if (!ready && dataToSend.event !== "setkinect") {
+            holdInitFeed = dataToSend;
+            return;
+        }
+        connection.send(dataToSend);
+    };
+    // Choose callback for image-based frames
+    this._chooseCallback = function(frame) {
+        switch(frame){
+            case "color":
+                this.colorCallback(this.img);
+                break;
+            case "depth":
+                this.depthCallback(this.img);
+                break;
+            case "infrared":
+                this.infraredCallback(this.img);
+                break;
+            case "LEinfrared":
+                this.leInfraredCallback(this.img);
+                break;
+            case "key":
+                this.keyCallback(this.img);
+                break;
+            case "depthkey":
+                this.depthKeyCallback(this.img);
+                break;
+            case "rgbd":
+                this.rgbdCallback(this.img);
+                break;
+        }
+    };
+    // Make handstate more readable
+    this._getHandState = function(handState) {
+        switch(handState){
+            case 0:
+                return "unknown";
+            case 1:
+                return "notTracked";
+            case 2:
+                return "open";
+            case 3:
+                return "closed";
+            case 4:
+                return "lasso";
+        }
+    };
+    this._processRawDepth = function(data) {
+        let imageData;
+        let processedData = [];
+        hiddenImage.src = data;
+        imageData = hiddenContext.getImageData(0, 0, hiddenContext.canvas.width, hiddenContext.canvas.height);
+        for(let i = 0; i < imageData.data.length; i += 4){
+            let depth = imageData.data[i + 1] << 8 | imageData.data[i]; //get uint16 data from buffer
+            processedData.push(depth);
+        }
+        return processedData;
+    };
+    // Toggle Recording
+    this._record = function() {
+        if (!doRecord) {
+            // If no feed started, send warning and return
+            if (multiFrame === false && this.feed === null || this.feed === "stop-all") {
+                console.warn("Record does not work until a feed is started");
+                return;
+            }
+            let framesToRecord = [];
+            // How many recorders needed
+            if (multiFrame) for(let i = 0; i < currentFrames.length; i++)framesToRecord.push(currentFrames[i]);
+            else framesToRecord.push(this.feed);
+            // Create one media recorder for each feed
+            for(let j = 0; j < framesToRecord.length; j++)mediaRecorders.push(this._createMediaRecorder(framesToRecord[j]));
+            recordStartTime = Date.now();
+            doRecord = true;
+        } else {
+            doRecord = false;
+            // Stop all mediarecorders and remove them from array
+            for(let k = mediaRecorders.length - 1; k >= 0; k--){
+                mediaRecorders[k].stop();
+                mediaRecorders.splice(k, 1);
+            }
+        }
+    };
+    this._drawImageToCanvas = function(frame, img) {
+        let tempContext;
+        // Look through media recorders for the correct canvas to draw to
+        for(let k = 0; k < mediaRecorders.length; k++){
+            let id = mediaRecorders[k].canvas.id;
+            if (id.indexOf(frame) >= 0) tempContext = mediaRecorders[k].canvas.getContext("2d");
+        }
+        // Draw to the appropriate canvas
+        tempContext.clearRect(0, 0, tempContext.canvas.width, tempContext.canvas.height);
+        tempContext.drawImage(img, 0, 0);
+    };
+    this._createMediaRecorder = function(frame) {
+        let newMediaRecorder;
+        // Create hidden canvas to draw to
+        let newHiddenCanvas = document.createElement("canvas");
+        newHiddenCanvas.setAttribute("id", frame + Date.now());
+        if (frame == "color" || frame == "key") {
+            newHiddenCanvas.width = colorwidth;
+            newHiddenCanvas.height = colorheight;
+        } else {
+            newHiddenCanvas.width = depthwidth;
+            newHiddenCanvas.height = depthheight;
+        }
+        let newHiddenContext = hiddenCanvas.getContext("2d");
+        newHiddenContext.fillRect(0, 0, newHiddenCanvas.width, newHiddenCanvas.height);
+        // Add canvas to hidden div
+        myDiv.appendChild(newHiddenCanvas);
+        // Create media recorder, add canvas to recorder
+        newMediaRecorder = new MediaRecorder(newHiddenCanvas.captureStream());
+        newMediaRecorder.canvas = newHiddenCanvas;
+        let mediaChunks = [];
+        newMediaRecorder.onstop = (function(e) {
+            // If skeleton data is being tracked, write out the body frames to JSON
+            if (frame == "body" || frame == "skeleton") {
+                let blobJson = new Blob([
+                    JSON.stringify(bodyChunks)
+                ], {
+                    type: "application/json"
+                });
+                let jsonUrl = URL.createObjectURL(blobJson);
+                let a2 = document.createElement("a");
+                document.body.appendChild(a2);
+                a2.style = "display: none";
+                a2.href = jsonUrl;
+                a2.download = frame + Date.now() + ".json";
+                a2.click();
+                window.URL.revokeObjectURL(jsonUrl);
+                // Reset body chunks
+                bodyChunks.length = 0;
+            // If raw depth data tracked, write out to JSON
+            } else if (frame == "raw-depth") {
+                let blobJsonRd = new Blob([
+                    JSON.stringify(rawDepthChunks)
+                ], {
+                    type: "application/json"
+                });
+                let jsonRdUrl = URL.createObjectURL(blobJsonRd);
+                let a3 = document.createElement("a");
+                document.body.appendChild(a3);
+                a3.style = "display: none";
+                a3.href = jsonRdUrl;
+                a3.download = frame + Date.now() + ".json";
+                a3.click();
+                window.URL.revokeObjectURL(jsonRdUrl);
+                // Reset body chunks
+                rawDepthChunks.length = 0;
+            // If video display the video on the page
+            } else {
+                // The video as a blob
+                let blobVideo = new Blob(mediaChunks, {
+                    type: "video/webm"
+                });
+                // Draw video to screen
+                // let videoElement = document.createElement('video');
+                // videoElement.setAttribute("id", Date.now());
+                // videoElement.controls = true;
+                // document.body.appendChild(videoElement);
+                // videoElement.src = window.URL.createObjectURL(blobVideo);
+                // Download the video
+                let url = URL.createObjectURL(blobVideo);
+                let a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                a.href = url;
+                a.download = frame + Date.now() + ".webm";
+                a.click();
+                window.URL.revokeObjectURL(url);
+                // Reset media chunks
+                mediaChunks.length = 0;
+            }
+        }).bind(this);
+        // When video data is available
+        newMediaRecorder.ondataavailable = function(e) {
+            mediaChunks.push(e.data);
+        };
+        // Start recording
+        newMediaRecorder.start();
+        return newMediaRecorder;
+    };
+    this._countFPS = function(event) {
+        // use event to count only specific frames
+        if (event === "frame") {
+            if (timer === false) {
+                timer = true;
+                timeCounter = Date.now();
+            }
+            if (Date.now() > timeCounter + 1000) {
+                console.log("resetting. last count: ", sendCounter);
+                timer = false;
+                sendCounter = 0;
+            } else sendCounter++; // count how many times we send in 1 second
+        }
+    };
+    this._roughSizeOfObject = function(object) {
+        let objectList = [];
+        let stack = [
+            object
+        ];
+        let bytes = 0;
+        while(stack.length){
+            let value = stack.pop();
+            if (typeof value === "boolean") bytes += 4;
+            else if (typeof value === "string") bytes += value.length * 2;
+            else if (typeof value === "number") bytes += 8;
+            else if (typeof value === "object" && objectList.indexOf(value) === -1) {
+                objectList.push(value);
+                for(let i in value)stack.push(value[i]);
+            }
+        }
+        return bytes;
+    };
 };
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
+window.Kinectron = $436ce2f67319af2a$var$Kinectron;
 
-},{}]},["czMM4","ft3H0"], "ft3H0", "parcelRequiredf6d")
-
+})();
 //# sourceMappingURL=kinectron-client.js.map
