@@ -1,8 +1,9 @@
 {
   "name": "kinectron-server",
   "version": "0.3.9",
+  "type": "module",
   "description": "A realtime peer server for Kinect 2 and Azure Kinect.",
-  "main": "main.js",
+  "main": "./main/main.js",
   "scripts": {
     "start": "electron .",
     "build": "node .\\node_modules\\kinect2\\tools\\electronbuild.js --target=1.4.13 --arch=x64",
@@ -13,10 +14,10 @@
     "url": "https://github.com/kinectron/kinectron/tree/master/app"
   },
   "keywords": [
-    "kinect2",
+    "kinect azure",
     "peer",
-    "peerjs",
-    "server"
+    "simple-peer",
+    "peer to peer"
   ],
   "author": "Lisa Jamhoury and Shawn Van Every",
   "license": "MIT",
@@ -25,9 +26,11 @@
     "electron": "^32.1.2",
     "electron-packager": "^17.1.2",
     "kinect-azure": "0.4.0",
-    "kinect2": "^0.3.0",
     "ngrok": "^5.0.0-beta.2",
     "os": "^0.1.2",
     "peer": "^0.5.3"
+  },
+  "devDependencies": {
+    "electron-reload": "^2.0.0-alpha.1"
   }
 }
