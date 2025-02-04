@@ -3,7 +3,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
   margin: 0;
-  padding: 32px;
+  padding: 16px;
   background-color: #f8f9fa;
   color: #212529;
   line-height: 1.5;
@@ -101,6 +101,12 @@ body {
   margin-bottom: 24px;
 }
 
+/* Kinect Start Button */
+#start-kinect {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
 #start-kinect input[type='button'] {
   background-color: #1daad8;
   color: white;
@@ -111,9 +117,7 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: 16px;
-  width: 100%;
-  max-width: 200px;
+  width: auto;
 }
 
 #start-kinect input[type='button']:hover {
@@ -126,15 +130,38 @@ body {
   transform: translateY(1px);
 }
 
+/* Stream Options */
+#single-frame {
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+#single-frame p {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #495057;
+  line-height: 1.4;
+}
+
+#options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .frame-option {
-  padding: 8px 16px;
-  margin: 4px;
+  padding: 10px 16px;
   border: 1px solid #dee2e6;
   background-color: white;
   cursor: pointer;
   border-radius: 4px;
   font-size: 14px;
   transition: all 0.2s ease;
+  min-width: 100px;
+  text-align: center;
 }
 
 .frame-option:hover {
@@ -146,9 +173,31 @@ body {
   color: #1daad8;
 }
 
-.azure-option:hover {
+.azure-option:hover,
+.azure-option:active,
+.azure-option.active {
   background-color: #1daad8;
-  color: white;
+  color: white !important;
+}
+
+/* Additional Controls */
+#record-control,
+#api-calls {
+  background-color: white;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+#record-control p,
+#api-calls p {
+  margin: 0;
+  font-size: 14px;
+  color: #495057;
 }
 
 /* Feed Display */
@@ -160,28 +209,41 @@ body {
 }
 
 #feed-images h4 {
-  margin: 0 0 16px 0;
-  font-size: 1.25rem;
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #212529;
 }
 
+#feed-canvases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
 #feed-canvases > div {
   display: none;
-  margin-bottom: 24px;
+  margin-bottom: 0;
+  min-width: 0; /* Allows proper sizing in grid */
 }
 
 #feed-canvases h5 {
   margin: 0 0 8px 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: #495057;
 }
 
-canvas {
+canvas,
+img {
   border: 1px solid #dee2e6;
   border-radius: 4px;
   margin: 0;
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 #inputCanvas {
@@ -191,7 +253,24 @@ canvas {
 /* Additional Controls */
 #additional-controls {
   display: none;
-  margin-top: 16px;
+}
+
+#choose-frame {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+#options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+#single-frame p {
+  margin: 0 16px 0 0;
 }
 
 /* Checkbox Styling */
@@ -207,20 +286,32 @@ canvas {
 
 /* Record Control */
 #record-control {
-  margin-top: 16px;
-  padding: 16px;
+  padding: 8px;
   background-color: #f8f9fa;
   border-radius: 4px;
   border: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#record-control p {
+  margin: 0;
 }
 
 /* API Calls Section */
 #api-calls {
-  margin-top: 16px;
-  padding: 16px;
+  padding: 8px;
   background-color: #f8f9fa;
   border-radius: 4px;
   border: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#api-calls p {
+  margin: 0;
 }
 
 /* Status Colors */

@@ -72,20 +72,93 @@ export class StreamManager {
   }
 
   /**
-   * Handle multi-stream request
+   * Start multiple streams sequentially
+   * NOTE: This functionality is currently not working and under development.
+   * Known issues:
+   * 1. Camera initialization in multiframe mode
+   * 2. Frame callback management
+   * 3. Resource cleanup
+   * 4. Kinect Azure SDK multiframe requirements
+   *
+   * This feature has been temporarily disabled in the UI.
+   * Future work needed:
+   * - Review Kinect Azure SDK documentation for multiframe support
+   * - Add detailed logging for camera state transitions
+   * - Implement proper camera state verification
+   * - Consider alternative approaches to multiframe streaming
+   *
+   * @private
+   * @param {string[]} streams Array of stream types to start
+   * @param {Electron.IpcMainInvokeEvent} event
+   * @returns {Promise<boolean>} Success status
+   */
+  async startMultipleStreams(streams, event) {
+    try {
+      await this.stopAllStreams();
+      // Wait a bit to avoid ThreadSafeFunction error
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Create frame callbacks for each stream first
+      streams.forEach((stream) => {
+        const handler = this.getHandler(stream);
+        if (handler) {
+          handler.setMultiFrameMode(true);
+          handler.createFrameCallback(event);
+        }
+      });
+
+      // Start all cameras first
+      let success = true;
+      for (const stream of streams) {
+        const handler = this.getHandler(stream);
+        if (!handler) {
+          console.error(`No handler found for stream: ${stream}`);
+          success = false;
+          break;
+        }
+
+        const streamSuccess = await handler.startStream();
+        if (!streamSuccess) {
+          console.error(`Failed to start stream: ${stream}`);
+          success = false;
+          break;
+        }
+        this.activeStreams.add(stream);
+        // Small delay between starting streams
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      if (!success) {
+        await this.stopAllStreams();
+        return false;
+      }
+
+      // Start listening for all streams at once
+      const multiFrameCallback = (data) => {
+        streams.forEach((stream) => {
+          const handler = this.getHandler(stream);
+          if (handler && handler.frameCallback) {
+            handler.frameCallback(data);
+          }
+        });
+      };
+
+      this.kinectController.startListening(multiFrameCallback);
+      return true;
+    } catch (error) {
+      console.error('Error starting multiple streams:', error);
+      await this.stopAllStreams();
+      return false;
+    }
+  }
+
+  /**
+   * Handle multi-stream request from peer
    * @private
    * @param {string[]} streams
    */
   async handleMultiStreamRequest(streams) {
-    try {
-      await this.stopAllStreams();
-      const startPromises = streams.map((stream) =>
-        this.startStream(stream),
-      );
-      await Promise.all(startPromises);
-    } catch (error) {
-      console.error('Error handling multi-stream request:', error);
-    }
+    await this.startMultipleStreams(streams);
   }
 
   /**
@@ -118,6 +191,11 @@ export class StreamManager {
       }
     });
 
+    // Setup multi-stream handler
+    ipcMain.handle('start-multi-stream', async (event, streams) => {
+      return this.startMultipleStreams(streams, event);
+    });
+
     // Initialize all stream handlers with both kinectController and peerManager
     const handlers = [
       { type: 'color', Handler: ColorStreamHandler },
@@ -145,7 +223,10 @@ export class StreamManager {
    * @returns {BaseStreamHandler|undefined} The stream handler
    */
   getHandler(streamType) {
-    return this.handlers.get(streamType);
+    // Map 'body' to 'skeleton' since that's how the handler is registered
+    const mappedType =
+      streamType === 'body' ? 'skeleton' : streamType;
+    return this.handlers.get(mappedType);
   }
 
   /**
@@ -205,6 +286,11 @@ export class StreamManager {
    * @returns {Promise<void>}
    */
   async stopAllStreams() {
+    // Reset multiframe mode for all handlers
+    Array.from(this.handlers.values()).forEach((handler) => {
+      handler.setMultiFrameMode(false);
+    });
+
     const stopPromises = Array.from(this.activeStreams).map(
       (streamType) => this.stopStream(streamType),
     );
@@ -220,6 +306,7 @@ export class StreamManager {
     await this.stopAllStreams();
     // Remove IPC handlers
     ipcMain.removeHandler('stop-stream');
+    ipcMain.removeHandler('start-multi-stream');
     // Clear all handlers
     this.handlers.clear();
   }

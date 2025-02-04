@@ -8,10 +8,25 @@ import { KinectOptions } from '../kinectController.js';
  * Handles body tracking stream operations and IPC communication
  */
 export class BodyStreamHandler extends BaseStreamHandler {
-  constructor(kinectController) {
-    super(kinectController);
+  constructor(kinectController, peerManager) {
+    super(kinectController, peerManager);
     this.processor = new BodyFrameProcessor();
     this.frameCallback = null;
+  }
+
+  /**
+   * Create frame callback for processing body frames
+   * @param {Electron.IpcMainInvokeEvent} event
+   */
+  createFrameCallback(event) {
+    this.frameCallback = (data) => {
+      if (data.bodyFrame && data.bodyFrame.numBodies > 0) {
+        const processedData = this.processFrame(data.bodyFrame);
+        if (processedData) {
+          event.sender.send('body-frame', processedData);
+        }
+      }
+    };
   }
 
   /**
@@ -22,17 +37,10 @@ export class BodyStreamHandler extends BaseStreamHandler {
       try {
         const success = await this.startStream();
         if (success) {
-          // Store callback removal function for cleanup
-          this.frameCallback = (data) => {
-            if (data.bodyFrame && data.bodyFrame.numBodies > 0) {
-              const processedData = this.processFrame(data.bodyFrame);
-              if (processedData) {
-                event.sender.send('body-frame', processedData);
-              }
-            }
-          };
-
-          this.kinectController.startListening(this.frameCallback);
+          this.createFrameCallback(event);
+          if (!this.isMultiFrame) {
+            this.kinectController.startListening(this.frameCallback);
+          }
         }
         return success;
       } catch (error) {

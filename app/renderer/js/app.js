@@ -182,40 +182,67 @@ class KinectronApp {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
-    // Start each selected stream
-    let success = true;
-    for (const streamType of selectedStreams) {
-      try {
-        switch (streamType) {
-          case 'color':
-            success = success && (await this.startColorStream());
-            break;
-          case 'depth':
-            success = success && (await this.startDepthStream());
-            break;
-          case 'raw-depth':
-            success = success && (await this.startRawDepthStream());
-            break;
-          case 'body':
-            success = success && (await this.startBodyTracking());
-            break;
+    try {
+      // Initialize canvas dimensions for each stream
+      selectedStreams.forEach((streamType) => {
+        const canvas = document.getElementById(
+          `${streamType === 'body' ? 'skeleton' : streamType}-canvas`,
+        );
+        if (canvas) {
+          switch (streamType) {
+            case 'color':
+              canvas.width = 1280 / 2;
+              canvas.height = 720 / 2;
+              break;
+            case 'depth':
+            case 'body':
+              canvas.width = 640;
+              canvas.height = 576;
+              break;
+            case 'raw-depth':
+              canvas.width = 320;
+              canvas.height = 288;
+              break;
+          }
         }
+      });
 
-        if (success) {
+      const success = await window.kinectron.startMultiStream(
+        selectedStreams,
+      );
+      if (success) {
+        // Show all selected stream canvases
+        selectedStreams.forEach((streamType) => {
           this.toggleFeedDiv(
             streamType === 'body' ? 'skeleton' : streamType,
             'block',
           );
-        }
-      } catch (error) {
-        console.error(`Error starting ${streamType} stream:`, error);
-        success = false;
-      }
-    }
+        });
 
-    if (success) {
-      this.currentStream = 'multi';
-      this.updateButtonState('multi', true);
+        this.currentStream = 'multi';
+        this.updateButtonState('multi', true);
+
+        // Set up cleanup functions for each stream
+        selectedStreams.forEach((streamType) => {
+          const cleanupName =
+            streamType === 'body' ? 'skeleton' : streamType;
+          const frameType =
+            streamType === 'body'
+              ? 'Body'
+              : streamType.charAt(0).toUpperCase() +
+                streamType.slice(1);
+          const eventName = `on${frameType}Frame`;
+
+          const cleanup = window.kinectron[eventName]((frameData) => {
+            const processMethod = `process${frameType}Frame`;
+            this[processMethod](frameData);
+          });
+
+          this.cleanupFunctions.set(cleanupName, cleanup);
+        });
+      }
+    } catch (error) {
+      console.error('Error starting multi-stream:', error);
     }
   }
 
@@ -691,9 +718,13 @@ class KinectronApp {
   updateButtonState(buttonId, active) {
     const button = document.getElementById(buttonId);
     if (button) {
-      button.style.background = active
-        ? BUTTON_ACTIVE_COLOR
-        : BUTTON_INACTIVE_COLOR;
+      if (active) {
+        button.style.background = BUTTON_ACTIVE_COLOR;
+        button.style.color = '#fff';
+      } else {
+        button.style.background = BUTTON_INACTIVE_COLOR;
+        button.style.color = BUTTON_ACTIVE_COLOR;
+      }
     }
   }
 

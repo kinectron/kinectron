@@ -8,10 +8,25 @@ import { KinectOptions } from '../kinectController.js';
  * Handles raw depth stream operations and IPC communication
  */
 export class RawDepthStreamHandler extends BaseStreamHandler {
-  constructor(kinectController) {
-    super(kinectController);
+  constructor(kinectController, peerManager) {
+    super(kinectController, peerManager);
     this.processor = new RawDepthFrameProcessor();
     this.frameCallback = null;
+  }
+
+  /**
+   * Create frame callback for processing raw depth frames
+   * @param {Electron.IpcMainInvokeEvent} event
+   */
+  createFrameCallback(event) {
+    this.frameCallback = (data) => {
+      if (data.depthImageFrame) {
+        const processedData = this.processFrame(data.depthImageFrame);
+        if (processedData) {
+          event.sender.send('raw-depth-frame', processedData);
+        }
+      }
+    };
   }
 
   /**
@@ -22,19 +37,10 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
       try {
         const success = await this.startStream();
         if (success) {
-          // Store callback removal function for cleanup
-          this.frameCallback = (data) => {
-            if (data.depthImageFrame) {
-              const processedData = this.processFrame(
-                data.depthImageFrame,
-              );
-              if (processedData) {
-                event.sender.send('raw-depth-frame', processedData);
-              }
-            }
-          };
-
-          this.kinectController.startListening(this.frameCallback);
+          this.createFrameCallback(event);
+          if (!this.isMultiFrame) {
+            this.kinectController.startListening(this.frameCallback);
+          }
         }
         return success;
       } catch (error) {

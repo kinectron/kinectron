@@ -21,6 +21,25 @@ export class BaseStreamHandler {
     this.isActive = false;
     this.frameCount = 0;
     this.lastFrameTime = 0;
+    this.isMultiFrame = false;
+    this.frameCallback = null;
+  }
+
+  /**
+   * Set whether this handler is being used in multiframe mode
+   * @param {boolean} isMulti Whether this handler is in multiframe mode
+   */
+  setMultiFrameMode(isMulti) {
+    this.isMultiFrame = isMulti;
+  }
+
+  /**
+   * Create frame callback for processing frames
+   * @param {Electron.IpcMainInvokeEvent} event
+   */
+  createFrameCallback(event) {
+    // Derived classes should implement this
+    throw new Error('Must implement createFrameCallback');
   }
 
   /**

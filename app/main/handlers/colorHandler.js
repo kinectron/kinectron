@@ -22,33 +22,41 @@ export class ColorStreamHandler extends BaseStreamHandler {
       try {
         const success = await this.startStream();
         if (success) {
-          // Store callback removal function for cleanup
-          this.frameCallback = (data) => {
-            if (data.colorImageFrame) {
-              const processedData = this.processFrame(
-                data.colorImageFrame,
-              );
-              if (processedData) {
-                // Send to renderer process via IPC
-                event.sender.send('color-frame', processedData);
-
-                // Broadcast to peers
-                const framePackage = this.createDataPackage('frame', {
-                  name: 'color',
-                  imagedata: processedData.imagedata,
-                });
-                this.broadcastFrame('frame', framePackage, true);
-              }
-            }
-          };
-
-          this.kinectController.startListening(this.frameCallback);
+          // Create frame callback
+          this.createFrameCallback(event);
+          // Start listening if not in multiframe mode
+          if (!this.isMultiFrame) {
+            this.kinectController.startListening(this.frameCallback);
+          }
         }
         return success;
       } catch (error) {
         return this.handleError(error, 'starting color stream');
       }
     });
+  }
+
+  /**
+   * Create frame callback for processing color frames
+   * @param {Electron.IpcMainInvokeEvent} event
+   */
+  createFrameCallback(event) {
+    this.frameCallback = (data) => {
+      if (data.colorImageFrame) {
+        const processedData = this.processFrame(data.colorImageFrame);
+        if (processedData) {
+          // Send to renderer process via IPC
+          event.sender.send('color-frame', processedData);
+
+          // Broadcast to peers
+          const framePackage = this.createDataPackage('frame', {
+            name: 'color',
+            imagedata: processedData.imagedata,
+          });
+          this.broadcastFrame('frame', framePackage, true);
+        }
+      }
+    };
   }
 
   /**

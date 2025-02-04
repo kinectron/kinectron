@@ -19,6 +19,8 @@ contextBridge.exposeInMainWorld('kinectron', {
   startRGBDStream: () => ipcRenderer.invoke('start-rgbd-stream'),
   stopStream: (streamType) =>
     ipcRenderer.invoke('stop-stream', streamType),
+  startMultiStream: (streams) =>
+    ipcRenderer.invoke('start-multi-stream', streams),
 
   // Body Tracking
   startBodyTracking: () => ipcRenderer.invoke('start-body-tracking'),
