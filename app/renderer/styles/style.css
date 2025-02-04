@@ -1,263 +1,242 @@
-html {
-  font-family: 'courier', 'Arial', sans-serif;
-  text-transform: uppercase;
+/* Modern Clean Design */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
+  margin: 0;
+  padding: 32px;
+  background-color: #f8f9fa;
+  color: #212529;
+  line-height: 1.5;
 }
 
-input,
-#custom-file-upload {
-  border: 1px solid black;
-  background: white;
-  color: black;
-  font-family: 'courier', 'Arial', sans-serif;
+/* Status Section */
+#ip-display {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+}
+
+#peer-status h3,
+#public-access h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 16px 0;
+}
+
+#connection-details {
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+}
+
+#connection-details p {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.highlight {
+  background-color: #f1f3f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 0.9em;
+  color: #495057;
+}
+
+/* Public Access Section */
+#public-access {
+  margin-top: 24px;
+}
+
+#ngrok-setup {
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+}
+
+#ngrok-setup input[type='text'] {
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 8px;
   font-size: 14px;
-  font-weight: bold;
-  text-transform: uppercase;
-  padding: 5px 20px;
-  float: left;
-  display: inline-block;
+}
+
+#ngrok-setup p {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Control Buttons */
+.control-button {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  padding: 8px 16px;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
 }
 
-input[type='file'] {
-  display: none;
+.control-button:hover {
+  background-color: #f8f9fa;
+  border-color: #ced4da;
 }
 
-#custom-file-upload:hover,
-input[type='button']:hover,
-input[type='button']:active {
-  background: #1daad8;
-}
-
-#startngrok {
-  padding: 10px 30px;
-  margin-top: 10px;
-}
-
-#ngrokAuthToken {
-  width: 195px;
-}
-
-#ngrokaddress {
-  display: none;
-}
-
-div.intro {
-  font-weight: bold;
-  margin-bottom: 1em;
-  margin-top: 0.5em;
-}
-
-.intro p {
-  margin-bottom: 0.5em;
-}
-
-span.highlight {
-  text-transform: none;
-  background: #d87c1d;
-  font-size: 2em;
-}
-
-input#newpeerid {
-  width: 100px;
-}
-
-input::-webkit-input-placeholder,
-input[type='text'] {
-  text-transform: none;
-}
-
-input.dimensions {
-  width: 40px;
-}
-
-#imagesize span {
-  float: left;
-  padding-top: 5px;
-}
-
-#imagesize span,
-#imagesize input {
-  margin-right: 10px;
-  margin-bottom: 10px;
-}
-
-#newpeercreated {
-  display: none;
-}
-
-#toggle-advanced {
-  text-transform: none;
-}
-
-#ip-display {
-  margin-bottom: 2em;
-}
-
+/* Stream Controls */
 #controls {
-  background-color: #f7f8fa;
-  padding: 20px;
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
 }
 
-#multi-frame {
-  display: none;
-}
-
-/* #controls div {
-  margin-bottom: 20px;
-} */
-
-#additional-controls {
-  display: none;
-}
-
-#controls div.clear-class {
-  margin-bottom: 0;
-}
-
-#single-frame-btn {
+#start-kinect input[type='button'] {
   background-color: #1daad8;
-}
-
-input[type='checkbox'] {
-  float: none;
-}
-
-/* .styleCheckBox */
-.styleCheckBox {
-  float: left;
-  width: 100px;
-  position: relative;
-  margin-right: 20px;
-  line-height: 20px;
-}
-.styleCheckBox label {
-  width: 20px;
-  height: 20px;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: #fcfff4;
-  text-indent: 30px;
-  border: 1px solid black;
-}
-.styleCheckBox label:after {
-  content: '';
-  width: 9px;
-  height: 5px;
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  border: 3px solid #333;
-  border-top: none;
-  border-right: none;
-  background: transparent;
-  opacity: 0;
-  -webkit-transform: rotate(-45deg);
-  transform: rotate(-45deg);
+  transition: all 0.2s ease;
+  margin-bottom: 16px;
+  width: 100%;
+  max-width: 200px;
 }
 
-.styleCheckBox input[type='checkbox'] {
-  visibility: hidden;
-}
-.styleCheckBox input[type='checkbox']:checked + label:after {
-  opacity: 1;
+#start-kinect input[type='button']:hover {
+  background-color: #1795bd;
+  box-shadow: 0 2px 4px rgba(29, 170, 216, 0.2);
 }
 
-.label-text {
-  margin-right: 35px;
-}
-/* end .styleCheckBox */
-
-h1,
-#ip-display {
-  margin-left: 20px;
+#start-kinect input[type='button']:active {
+  background-color: #1684a8;
+  transform: translateY(1px);
 }
 
-div#choose-frame {
-  margin-bottom: 40px;
+.frame-option {
+  padding: 8px 16px;
+  margin: 4px;
+  border: 1px solid #dee2e6;
+  background-color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s ease;
 }
 
-div.multi-warning {
+.frame-option:hover {
+  background-color: #f8f9fa;
+}
+
+.azure-option {
+  border-color: #1daad8;
+  color: #1daad8;
+}
+
+.azure-option:hover {
+  background-color: #1daad8;
+  color: white;
+}
+
+/* Feed Display */
+#feed-images {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+#feed-images h4 {
+  margin: 0 0 16px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+#feed-canvases > div {
   display: none;
+  margin-bottom: 24px;
 }
-.multi-warning p {
+
+#feed-canvases h5 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+canvas {
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  margin: 0;
 }
 
 #inputCanvas {
   display: none;
 }
-#feed-images {
-  display: block; /* Changed from none to block */
-}
 
-/* Individual feed divs will be controlled by JavaScript */
-#feed-canvases div {
-  display: none; /* Initial state, JavaScript will show specific feeds */
-}
-
-/* Key feed container styling */
-#key-div,
-#depth-key-div {
-  padding: 10px;
-}
-
-/* Canvas and image styling */
-canvas,
-#color-img {
-  border: 1px solid #ccc;
-  margin: 10px;
-  background: #f5f5f5;
-}
-
-/* Key canvas needs transparent background */
-#key-canvas,
-#depth-key-canvas {
-  background: transparent;
-}
-
-/* Hide color image since we're using canvas for color feed */
-#color-img {
+/* Additional Controls */
+#additional-controls {
   display: none;
+  margin-top: 16px;
 }
 
-/* Ensure color canvas is visible */
-#color-canvas {
-  display: block;
+/* Checkbox Styling */
+.styleCheckBox {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
 }
 
-/* Slider */
-
-.slidecontainer {
-  width: 317px; /* Width of the outside container */
+.styleCheckBox input[type='checkbox'] {
+  margin-right: 8px;
 }
 
-/* The slider itself */
-.slider {
-  -webkit-appearance: none; /* Override default CSS styles */
-  appearance: none;
-  width: 100%; /* Full-width */
-  height: 16px; /* Specified height */
-  background: #fff; /* Grey background */
-  outline: none; /* Remove outline */
-  -webkit-transition: 0.2s; /* 0.2 seconds transition on hover */
-  transition: opacity 0.2s;
-  border: 1px solid black;
+/* Record Control */
+#record-control {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
 }
 
-/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none; /* Override default look */
-  appearance: none;
-  width: 16px; /* Set a specific slider handle width */
-  height: 16px; /* Slider handle height */
-  background: #1daad8; /* Green background */
-  cursor: pointer; /* Cursor on hover */
+/* API Calls Section */
+#api-calls {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
 }
 
-.slider::-moz-range-thumb {
-  width: 16px; /* Set a specific slider handle width */
-  height: 16px; /* Slider handle height */
-  background: #1daad8; /* Green background */
-  cursor: pointer; /* Cursor on hover */
+/* Status Colors */
+#server-status.connected {
+  color: #40c057;
+}
+
+#server-status.disconnected {
+  color: #fa5252;
+}
+
+#server-status.error {
+  color: #fa5252;
+}
+
+/* Utility */
+.clear-class {
+  clear: both;
 }

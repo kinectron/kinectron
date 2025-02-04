@@ -4,12 +4,11 @@
 <head>
 
   <title>Kinectron</title>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script type="module">
     import { initializeUI } from './js/app.js';
     initializeUI();
   </script>
-
-  <!-- <script src="assets/js/peerjsv110.noerror.js"></script> -->
   <link rel="stylesheet" href="./styles/style.css">
 </head>
 
@@ -17,27 +16,24 @@
 
   <div class="intro">
     <div id="ip-display">
-      <div id="connectionopen">
-        <div id="localaddress">
-          <p>Your Local Address is <br>
-            <span class='highlight' id="ipaddress">xxxx</span>
-          </p>
-        </div>
-        <div id='publicaddress'>
-          <p>Your Public Address is <br><br>
-            <input type="text" placeholder="Add ngrok auth token" id="ngrokAuthToken"><br><br>
-            <input type="button" class="" id="startngrok" value="Create Public Address">
-
-            <span class='highlight' id="ngrokaddress">xxxx</span>
-          </p>
+      <div id="peer-status">
+        <h3>Peer Connection Status</h3>
+        <div id="connection-details">
+          <p>Server Status: <span class="highlight" id="server-status">Disconnected</span></p>
+          <p>Local Address: <span class="highlight" id="ipaddress">xxxx</span></p>
+          <p>Peer ID: <span class="highlight" id="peerid">xxxx</span></p>
+          <p>Port: <span class="highlight" id="port">xxxx</span></p>
+          <p>Connected Peers: <span class="highlight" id="peer-count">0</span></p>
         </div>
       </div>
-      <div class="clear-class" style="clear:both"></div>
 
-      <div id="newpeercreated">
-        <p>You created a new peer server. Your network details are: <br /><br />Peer ID: <span class='highlight'
-            id="peerid">xxxx</span> IP Address: <span class='highlight' id="newipaddress">xxxx</span> Port: <span
-            class="highlight" id="port">xxxx</span><br /><br /></p>
+      <div id="public-access">
+        <h3>Public Access</h3>
+        <div id="ngrok-setup">
+          <input type="text" placeholder="Add ngrok auth token" id="ngrokAuthToken">
+          <input type="button" class="control-button" id="startngrok" value="Create Public Address">
+          <p>Public Address: <span class="highlight" id="ngrokaddress">xxxx</span></p>
+        </div>
       </div>
     </div>
     <div id="controls">
@@ -101,7 +97,6 @@
       </div><!-- additional-controls -->
     </div>
     <div id="feed-images">
-      <canvas id="inputCanvas" width="1920" height="1080"></canvas>
       <h4>Feed output to peer</h4>
       <div id="feed-canvases">
         <div id="color-div">

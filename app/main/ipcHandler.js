@@ -1,6 +1,7 @@
 // main/ipcHandler.js
-import { ipcMain } from 'electron';
+import { ipcMain, BrowserWindow } from 'electron';
 import { StreamManager } from './managers/streamManager.js';
+import { networkInterfaces } from 'os';
 
 export class IpcHandler {
   constructor(kinectController, peerManager) {
@@ -49,10 +50,32 @@ export class IpcHandler {
 
     // Peer connection management
     ipcMain.handle('get-peer-status', () => {
+      const interfaces = networkInterfaces();
+      let ipAddresses = [];
+
+      Object.keys(interfaces).forEach(function (ifname) {
+        // Only use Ethernet or Wi-Fi interfaces
+        if (ifname !== 'Ethernet' && ifname !== 'Wi-Fi') {
+          return;
+        }
+
+        interfaces[ifname].forEach(function (iface) {
+          if ('IPv4' !== iface.family || iface.internal !== false) {
+            // Skip internal and non-IPv4 addresses
+            return;
+          }
+          ipAddresses.push(iface.address);
+        });
+      });
+
+      const localAddress = ipAddresses[0] || 'Not available';
+
       return {
-        id: this.peerManager.peer?.id,
+        id: this.peerManager.peer?.id || 'kinectron',
         isConnected: this.peerManager.isConnected,
         connectionCount: this.peerManager.connections.size,
+        address: localAddress,
+        port: this.peerManager.config.port,
       };
     });
 
@@ -72,6 +95,14 @@ export class IpcHandler {
   // Peer event handlers
   handlePeerReady(data) {
     console.log('Peer connection ready:', data);
+    this.sendToRenderer('peer-ready', {
+      peer: {
+        id: this.peerManager.peer?.id || 'kinectron',
+        options: {
+          port: this.peerManager.config.port,
+        },
+      },
+    });
   }
 
   handlePeerConnection(connection) {
@@ -83,9 +114,30 @@ export class IpcHandler {
       data: { kinect: 'azure' }, // We only support Azure now
     };
     connection.send(kinectStatus);
+
+    // Notify renderer of new connection
+    this.sendToRenderer('peer-connection', { connection });
   }
 
   handlePeerError(error) {
     console.error('Peer connection error:', error);
+    this.sendToRenderer('peer-error', error);
+  }
+
+  /**
+   * Helper method to send events to the renderer process
+   * @private
+   */
+  sendToRenderer(channel, data) {
+    try {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window) => {
+        if (!window.isDestroyed()) {
+          window.webContents.send(channel, data);
+        }
+      });
+    } catch (error) {
+      console.error('Error sending to renderer:', error);
+    }
   }
 }

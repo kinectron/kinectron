@@ -3,11 +3,90 @@
 const BUTTON_INACTIVE_COLOR = '#fff';
 const BUTTON_ACTIVE_COLOR = '#1daad8';
 
+import { PeerConnectionController } from './peer/peerConnectionController.js';
+
 class KinectronApp {
   constructor() {
     this.cleanupFunctions = new Map();
     this.currentStream = null;
+    this.peerController = new PeerConnectionController();
     this.setupUIListeners();
+    this.setupPeerListeners();
+  }
+
+  /**
+   * Set up peer connection event listeners
+   * @private
+   */
+  setupPeerListeners() {
+    // Update UI when peer server is ready
+    this.peerController.on(
+      this.peerController.EVENTS.READY,
+      (data) => {
+        document.getElementById('server-status').textContent =
+          'Connected';
+        document.getElementById('peerid').textContent = data.peer.id;
+        document.getElementById('port').textContent =
+          data.peer.options.port;
+        this.updatePeerCount();
+      },
+    );
+
+    // Update UI when a peer connects
+    this.peerController.on(
+      this.peerController.EVENTS.CONNECTION,
+      () => {
+        this.updatePeerCount();
+      },
+    );
+
+    // Update UI when a peer disconnects
+    this.peerController.on(
+      this.peerController.EVENTS.DISCONNECTION,
+      () => {
+        this.updatePeerCount();
+      },
+    );
+
+    // Handle peer errors
+    this.peerController.on(
+      this.peerController.EVENTS.ERROR,
+      (error) => {
+        document.getElementById('server-status').textContent =
+          'Error';
+        console.error('Peer error:', error);
+      },
+    );
+
+    // Get initial peer status
+    this.updatePeerStatus();
+  }
+
+  /**
+   * Update the peer connection count display
+   * @private
+   */
+  updatePeerCount() {
+    const count = this.peerController.connections.size;
+    document.getElementById('peer-count').textContent =
+      count.toString();
+  }
+
+  /**
+   * Update the peer status display
+   * @private
+   */
+  async updatePeerStatus() {
+    try {
+      const status = await this.peerController.getStatus();
+      document.getElementById('ipaddress').textContent =
+        status.address || 'Not available';
+      document.getElementById('server-status').textContent =
+        status.connected ? 'Connected' : 'Disconnected';
+    } catch (error) {
+      console.error('Failed to get peer status:', error);
+      document.getElementById('server-status').textContent = 'Error';
+    }
   }
 
   setupUIListeners() {
@@ -40,6 +119,14 @@ class KinectronApp {
       }
     });
 
+    // Multiframe controls
+    const multiButton = document.getElementById('multi');
+    if (multiButton) {
+      multiButton.addEventListener('click', () =>
+        this.handleMultiFrame(),
+      );
+    }
+
     // Recording control
     const recordButton = document.getElementById('record');
     if (recordButton) {
@@ -69,6 +156,66 @@ class KinectronApp {
       }
     } catch (error) {
       console.error('Error initializing Kinect:', error);
+    }
+  }
+
+  /**
+   * Handle multiframe streaming
+   * @private
+   */
+  async handleMultiFrame() {
+    // Get all checked checkboxes
+    const checkboxes = document.querySelectorAll('.cb-multi:checked');
+    const selectedStreams = Array.from(checkboxes).map(
+      (cb) => cb.value,
+    );
+
+    if (selectedStreams.length === 0) {
+      console.log('No streams selected for multiframe');
+      return;
+    }
+
+    // Stop current stream if any
+    if (this.currentStream) {
+      await this.stopCurrentStream();
+      // Wait 500ms to avoid ThreadSafeFunction error when switching feeds
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    // Start each selected stream
+    let success = true;
+    for (const streamType of selectedStreams) {
+      try {
+        switch (streamType) {
+          case 'color':
+            success = success && (await this.startColorStream());
+            break;
+          case 'depth':
+            success = success && (await this.startDepthStream());
+            break;
+          case 'raw-depth':
+            success = success && (await this.startRawDepthStream());
+            break;
+          case 'body':
+            success = success && (await this.startBodyTracking());
+            break;
+        }
+
+        if (success) {
+          this.toggleFeedDiv(
+            streamType === 'body' ? 'skeleton' : streamType,
+            'block',
+          );
+        }
+      } catch (error) {
+        console.error(`Error starting ${streamType} stream:`, error);
+        success = false;
+      }
+    }
+
+    if (success) {
+      this.currentStream = 'multi';
+      this.updateButtonState('multi', true);
     }
   }
 
@@ -576,8 +723,9 @@ class KinectronApp {
 
     try {
       await window.kinectron.closeKinect();
+      this.peerController.cleanup();
     } catch (error) {
-      console.error('Error closing Kinect:', error);
+      console.error('Error during cleanup:', error);
     }
   }
 }
