@@ -94,4 +94,38 @@ contextBridge.exposeInMainWorld('kinectron', {
     return () =>
       ipcRenderer.removeListener('kinect-error', subscription);
   },
+
+  // Peer Connection Methods
+  getPeerStatus: () => ipcRenderer.invoke('get-peer-status'),
+  updatePeerConfig: (config) =>
+    ipcRenderer.invoke('update-peer-config', config),
+
+  // Peer Connection Events
+  onPeerConnection: (callback) => {
+    const subscription = (event, data) => callback(data);
+    ipcRenderer.on('peer-connection', subscription);
+    return () =>
+      ipcRenderer.removeListener('peer-connection', subscription);
+  },
+
+  onPeerDisconnection: (callback) => {
+    const subscription = (event, data) => callback(data);
+    ipcRenderer.on('peer-disconnection', subscription);
+    return () =>
+      ipcRenderer.removeListener('peer-disconnection', subscription);
+  },
+
+  onPeerError: (callback) => {
+    const subscription = (event, error) => callback(error);
+    ipcRenderer.on('peer-error', subscription);
+    return () =>
+      ipcRenderer.removeListener('peer-error', subscription);
+  },
+
+  onPeerReady: (callback) => {
+    const subscription = (event, data) => callback(data);
+    ipcRenderer.on('peer-ready', subscription);
+    return () =>
+      ipcRenderer.removeListener('peer-ready', subscription);
+  },
 });

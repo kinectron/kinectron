@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 
 import { KinectController } from './kinectController.js';
 import { IpcHandler } from './ipcHandler.js';
+import { PeerConnectionManager } from './managers/peerConnectionManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,7 +22,8 @@ electronReload(dirname(__dirname), {
 });
 
 const kinectController = new KinectController();
-const ipcHandler = new IpcHandler(kinectController);
+const peerManager = new PeerConnectionManager();
+const ipcHandler = new IpcHandler(kinectController, peerManager);
 
 function createWindow() {
   const preloadPath = path.join(
@@ -51,14 +53,45 @@ function createWindow() {
   win.openDevTools();
 }
 
-app.whenReady().then(() => {
-  createWindow();
-  ipcHandler.initialize();
-});
+app
+  .whenReady()
+  .then(async () => {
+    try {
+      console.log('Starting Kinectron...');
+
+      // Create application window
+      createWindow();
+
+      // Initialize peer server
+      console.log('Initializing peer server...');
+      await peerManager.initialize();
+
+      // Initialize IPC handler
+      ipcHandler.initialize();
+
+      console.log('Kinectron startup complete ✓');
+    } catch (error) {
+      console.error('Error during startup:', error);
+      app.quit();
+    }
+  })
+  .catch((error) => {
+    console.error('Failed to start application:', error);
+    app.quit();
+  });
 
 // Clean up on app quit
 app.on('before-quit', async () => {
-  await kinectController.close();
+  console.log('Shutting down Kinectron...');
+  try {
+    await Promise.all([
+      kinectController.close(),
+      peerManager.close(),
+    ]);
+    console.log('Shutdown complete');
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+  }
 });
 
 // Handle window behavior on different platforms

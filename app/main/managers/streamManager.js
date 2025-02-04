@@ -14,11 +14,89 @@ import { RGBDStreamHandler } from '../handlers/rgbdHandler.js';
 export class StreamManager {
   /**
    * @param {import('../kinectController.js').KinectController} kinectController
+   * @param {import('./peerConnectionManager.js').PeerConnectionManager} peerManager
    */
-  constructor(kinectController) {
+  constructor(kinectController, peerManager) {
     this.kinectController = kinectController;
+    this.peerManager = peerManager;
     this.handlers = new Map();
     this.activeStreams = new Set();
+
+    // Listen for peer connection events
+    this.peerManager.on('data', this.handlePeerData.bind(this));
+    this.peerManager.on(
+      'connectionClosed',
+      this.handlePeerDisconnect.bind(this),
+    );
+  }
+
+  /**
+   * Handle incoming peer data
+   * @private
+   * @param {{ connection: any, data: { event: string, data: any } }} eventData
+   */
+  handlePeerData({ connection, data }) {
+    try {
+      const { event, data: payload } = data;
+
+      switch (event) {
+        case 'feed':
+          this.handleFeedRequest(payload);
+          break;
+        case 'multi':
+          this.handleMultiStreamRequest(payload);
+          break;
+        default:
+          console.warn('Unknown peer event:', event);
+      }
+    } catch (error) {
+      console.error('Error handling peer data:', error);
+    }
+  }
+
+  /**
+   * Handle peer feed request
+   * @private
+   * @param {{ feed: string }} payload
+   */
+  async handleFeedRequest(payload) {
+    try {
+      if (payload.feed === 'stop-all') {
+        await this.stopAllStreams();
+      } else {
+        await this.startStream(payload.feed);
+      }
+    } catch (error) {
+      console.error('Error handling feed request:', error);
+    }
+  }
+
+  /**
+   * Handle multi-stream request
+   * @private
+   * @param {string[]} streams
+   */
+  async handleMultiStreamRequest(streams) {
+    try {
+      await this.stopAllStreams();
+      const startPromises = streams.map((stream) =>
+        this.startStream(stream),
+      );
+      await Promise.all(startPromises);
+    } catch (error) {
+      console.error('Error handling multi-stream request:', error);
+    }
+  }
+
+  /**
+   * Handle peer disconnect
+   * @private
+   */
+  async handlePeerDisconnect() {
+    if (this.peerManager.connections.size === 0) {
+      // Stop all streams if no peers are connected
+      await this.stopAllStreams();
+    }
   }
 
   /**
@@ -40,48 +118,25 @@ export class StreamManager {
       }
     });
 
-    // Initialize color stream handler
-    const colorHandler = new ColorStreamHandler(
-      this.kinectController,
-    );
-    this.handlers.set('color', colorHandler);
-    colorHandler.setupHandler();
+    // Initialize all stream handlers with both kinectController and peerManager
+    const handlers = [
+      { type: 'color', Handler: ColorStreamHandler },
+      { type: 'depth', Handler: DepthStreamHandler },
+      { type: 'raw-depth', Handler: RawDepthStreamHandler },
+      { type: 'skeleton', Handler: BodyStreamHandler },
+      { type: 'key', Handler: KeyStreamHandler },
+      { type: 'depth-key', Handler: DepthKeyStreamHandler },
+      { type: 'rgbd', Handler: RGBDStreamHandler },
+    ];
 
-    // Initialize depth stream handler
-    const depthHandler = new DepthStreamHandler(
-      this.kinectController,
-    );
-    this.handlers.set('depth', depthHandler);
-    depthHandler.setupHandler();
-
-    // Initialize raw depth stream handler
-    const rawDepthHandler = new RawDepthStreamHandler(
-      this.kinectController,
-    );
-    this.handlers.set('raw-depth', rawDepthHandler);
-    rawDepthHandler.setupHandler();
-
-    // Initialize body tracking handler
-    const bodyHandler = new BodyStreamHandler(this.kinectController);
-    this.handlers.set('skeleton', bodyHandler);
-    bodyHandler.setupHandler();
-
-    // Initialize key stream handler
-    const keyHandler = new KeyStreamHandler(this.kinectController);
-    this.handlers.set('key', keyHandler);
-    keyHandler.setupHandler();
-
-    // Initialize depth key stream handler
-    const depthKeyHandler = new DepthKeyStreamHandler(
-      this.kinectController,
-    );
-    this.handlers.set('depth-key', depthKeyHandler);
-    depthKeyHandler.setupHandler();
-
-    // Initialize RGBD stream handler
-    const rgbdHandler = new RGBDStreamHandler(this.kinectController);
-    this.handlers.set('rgbd', rgbdHandler);
-    rgbdHandler.setupHandler();
+    handlers.forEach(({ type, Handler }) => {
+      const handler = new Handler(
+        this.kinectController,
+        this.peerManager,
+      );
+      this.handlers.set(type, handler);
+      handler.setupHandler();
+    });
   }
 
   /**

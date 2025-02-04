@@ -28,7 +28,7 @@
     "kinect-azure": "0.4.0",
     "ngrok": "^5.0.0-beta.2",
     "os": "^0.1.2",
-    "peer": "^0.5.3"
+    "peer": "^1.0.2"
   },
   "devDependencies": {
     "electron-reload": "^2.0.0-alpha.1"

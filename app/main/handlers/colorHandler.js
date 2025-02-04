@@ -8,8 +8,8 @@ import { KinectOptions } from '../kinectController.js';
  * Handles color stream operations and IPC communication
  */
 export class ColorStreamHandler extends BaseStreamHandler {
-  constructor(kinectController) {
-    super(kinectController);
+  constructor(kinectController, peerManager) {
+    super(kinectController, peerManager);
     this.processor = new ColorFrameProcessor();
     this.frameCallback = null;
   }
@@ -29,7 +29,15 @@ export class ColorStreamHandler extends BaseStreamHandler {
                 data.colorImageFrame,
               );
               if (processedData) {
+                // Send to renderer process via IPC
                 event.sender.send('color-frame', processedData);
+
+                // Broadcast to peers
+                const framePackage = this.createDataPackage('frame', {
+                  name: 'color',
+                  imagedata: processedData.imagedata,
+                });
+                this.broadcastFrame('frame', framePackage, true);
               }
             }
           };
@@ -93,6 +101,14 @@ export class ColorStreamHandler extends BaseStreamHandler {
       }
       await this.kinectController.stopCameras();
       this.isActive = false;
+
+      // Notify peers that stream has stopped
+      if (this.peerManager.isConnected) {
+        this.peerManager.broadcast('feed', {
+          feed: 'stop',
+          type: 'color',
+        });
+      }
     } catch (error) {
       this.handleError(error, 'stopping color stream');
     }

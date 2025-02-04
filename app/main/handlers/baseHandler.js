@@ -8,15 +8,65 @@ import { ipcMain } from 'electron';
 export class BaseStreamHandler {
   /**
    * @param {import('../kinectController.js').KinectController} kinectController
+   * @param {import('../managers/peerConnectionManager.js').PeerConnectionManager} peerManager
    */
-  constructor(kinectController) {
+  constructor(kinectController, peerManager) {
     if (new.target === BaseStreamHandler) {
       throw new Error(
         'Cannot instantiate BaseStreamHandler directly',
       );
     }
     this.kinectController = kinectController;
+    this.peerManager = peerManager;
     this.isActive = false;
+    this.frameCount = 0;
+    this.lastFrameTime = 0;
+  }
+
+  /**
+   * Broadcast frame data to all connected peers
+   * @protected
+   * @param {string} event Event name for the frame type
+   * @param {*} data Frame data to broadcast
+   * @param {boolean} [lossy=false] Whether to use lossy transmission
+   */
+  broadcastFrame(event, data, lossy = false) {
+    if (
+      !this.peerManager.isConnected ||
+      this.peerManager.connections.size === 0
+    ) {
+      return; // No peers connected, skip broadcasting
+    }
+
+    try {
+      // Calculate FPS for debugging
+      const now = Date.now();
+      if (now - this.lastFrameTime >= 1000) {
+        console.debug(`${event} FPS:`, this.frameCount);
+        this.frameCount = 0;
+        this.lastFrameTime = now;
+      }
+      this.frameCount++;
+
+      this.peerManager.broadcast(event, data, lossy);
+    } catch (error) {
+      this.handleError(error, 'broadcasting frame');
+    }
+  }
+
+  /**
+   * Create a data package for broadcasting
+   * @protected
+   * @param {string} name Frame type name
+   * @param {*} data Frame data
+   * @returns {{ name: string, data: *, timestamp: number }} Packaged data
+   */
+  createDataPackage(name, data) {
+    return {
+      name,
+      data,
+      timestamp: Date.now(),
+    };
   }
 
   /**
@@ -97,6 +147,16 @@ export class BaseStreamHandler {
       `Error in ${this.constructor.name} during ${operation}:`,
       error,
     );
+
+    // Emit error event through peer manager if available
+    if (this.peerManager) {
+      this.peerManager.emit('error', {
+        source: this.constructor.name,
+        operation,
+        error: error.message,
+      });
+    }
+
     throw error;
   }
 }
