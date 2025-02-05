@@ -30,6 +30,18 @@ contextBridge.exposeInMainWorld('kinectron', {
     ipcRenderer.invoke('start-recording', options),
   stopRecording: () => ipcRenderer.invoke('stop-recording'),
 
+  // Ngrok Controls
+  startNgrok: (authToken) =>
+    ipcRenderer.invoke('start-ngrok', authToken),
+  stopNgrok: () => ipcRenderer.invoke('stop-ngrok'),
+  getNgrokStatus: () => ipcRenderer.invoke('get-ngrok-status'),
+  onNgrokStatusChange: (callback) => {
+    const subscription = (event, status) => callback(status);
+    ipcRenderer.on('ngrok-status-change', subscription);
+    return () =>
+      ipcRenderer.removeListener('ngrok-status-change', subscription);
+  },
+
   // Frame Listeners
   onColorFrame: (callback) => {
     const subscription = (event, data) => callback(data);

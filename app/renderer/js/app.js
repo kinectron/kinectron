@@ -12,6 +12,118 @@ class KinectronApp {
     this.peerController = new PeerConnectionController();
     this.setupUIListeners();
     this.setupPeerListeners();
+    this.setupNgrokListeners();
+  }
+
+  /**
+   * Set up ngrok event listeners and UI handlers
+   * @private
+   */
+  setupNgrokListeners() {
+    // Listen for ngrok status changes
+    window.kinectron.onNgrokStatusChange((status) => {
+      this.updateNgrokUI(status);
+    });
+
+    // Add click listener to ngrok button
+    const ngrokButton = document.getElementById('startngrok');
+    if (ngrokButton) {
+      ngrokButton.addEventListener('click', () => this.handleNgrok());
+    }
+
+    // Get initial ngrok status
+    this.updateNgrokStatus();
+  }
+
+  /**
+   * Handle ngrok connection/disconnection
+   * @private
+   */
+  async handleNgrok() {
+    const ngrokButton = document.getElementById('startngrok');
+    const authTokenInput = document.getElementById('ngrokAuthToken');
+    const ngrokAddress = document.getElementById('ngrokaddress');
+
+    try {
+      const status = await window.kinectron.getNgrokStatus();
+
+      if (!status.isConnected) {
+        const authToken = authTokenInput.value.trim();
+        if (!authToken) {
+          alert(
+            'You need to add an ngrok auth token to create a public address. See ngrok.com or Kinectron documentation for more information.',
+          );
+          return;
+        }
+
+        if (
+          confirm(
+            'Creating a public address will open a secure public tunnel to your computer at port 9001 over https using ngrok. ' +
+              'Learn more at ngrok.com. While this developer thinks this is a pretty nifty solution to getting your Kinectron ' +
+              'server up on the internet, it could open you up to security threats. The risks are probably relatively low, but ' +
+              'proceed at your own risk (and/or consider contributing to Kinectron to make it more secure (・ω・)b).',
+          )
+        ) {
+          try {
+            const url = await window.kinectron.startNgrok(authToken);
+            console.log('Created public address at', url);
+            authTokenInput.value = ''; // Clear token for security
+          } catch (error) {
+            console.error('Failed to start ngrok:', error);
+            alert(
+              'Failed to create public address. Please check your auth token and try again.',
+            );
+          }
+        } else {
+          console.log('No public address created.');
+        }
+      } else {
+        try {
+          await window.kinectron.stopNgrok();
+          console.log('Stopped ngrok connection');
+        } catch (error) {
+          console.error('Failed to stop ngrok:', error);
+          alert('Failed to stop public address.');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling ngrok:', error);
+    }
+  }
+
+  /**
+   * Update ngrok UI elements based on connection status
+   * @private
+   */
+  updateNgrokUI(status) {
+    const ngrokButton = document.getElementById('startngrok');
+    const ngrokAddress = document.getElementById('ngrokaddress');
+    const authTokenInput = document.getElementById('ngrokAuthToken');
+
+    if (status.isConnected) {
+      ngrokButton.style.display = 'none';
+      ngrokAddress.style.display = 'inline';
+      ngrokAddress.textContent = status.url.replace('https://', '');
+      authTokenInput.value = ''; // Clear token for security
+    } else {
+      ngrokButton.style.display = 'inline';
+      ngrokButton.value = 'Create Public Address';
+      ngrokAddress.style.display = 'none';
+      ngrokAddress.textContent = 'xxxx';
+    }
+  }
+
+  /**
+   * Get and display current ngrok status
+   * @private
+   */
+  async updateNgrokStatus() {
+    try {
+      const status = await window.kinectron.getNgrokStatus();
+      this.updateNgrokUI(status);
+    } catch (error) {
+      console.error('Failed to get ngrok status:', error);
+    }
   }
 
   /**
@@ -78,7 +190,7 @@ class KinectronApp {
    */
   async updatePeerStatus() {
     try {
-      const status = await this.peerController.getStatus();
+      const status = await window.kinectron.getPeerStatus();
       document.getElementById('ipaddress').textContent =
         status.address || 'Not available';
       document.getElementById('server-status').textContent =
@@ -159,10 +271,6 @@ class KinectronApp {
     }
   }
 
-  /**
-   * Handle multiframe streaming
-   * @private
-   */
   async handleMultiFrame() {
     // Get all checked checkboxes
     const checkboxes = document.querySelectorAll('.cb-multi:checked');
@@ -702,7 +810,6 @@ class KinectronApp {
     }
   }
 
-  // Optional: Add helper method for canvas setup
   setupCanvas(canvasId, width, height) {
     const canvas = document.getElementById(canvasId);
     if (canvas) {
@@ -712,8 +819,6 @@ class KinectronApp {
     }
     return null;
   }
-
-  // ... Similar implementations for other stream types ...
 
   updateButtonState(buttonId, active) {
     const button = document.getElementById(buttonId);
@@ -743,8 +848,6 @@ class KinectronApp {
     }
   }
 
-  // Additional utility methods...
-
   async cleanup() {
     await this.stopCurrentStream();
     for (const [_, cleanup] of this.cleanupFunctions) {
@@ -753,6 +856,12 @@ class KinectronApp {
     this.cleanupFunctions.clear();
 
     try {
+      // Stop ngrok if it's running
+      const ngrokStatus = await window.kinectron.getNgrokStatus();
+      if (ngrokStatus.isConnected) {
+        await window.kinectron.stopNgrok();
+      }
+
       await window.kinectron.closeKinect();
       this.peerController.cleanup();
     } catch (error) {
