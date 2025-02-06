@@ -14,12 +14,8 @@ export class IpcHandler {
     );
     this.ngrokManager = new NgrokManager();
 
-    // Setup peer event handlers
+    // Setup peer server event handlers
     this.peerManager.on('ready', this.handlePeerReady.bind(this));
-    this.peerManager.on(
-      'connection',
-      this.handlePeerConnection.bind(this),
-    );
     this.peerManager.on('error', this.handlePeerError.bind(this));
   }
 
@@ -106,11 +102,11 @@ export class IpcHandler {
       const localAddress = ipAddresses[0] || 'Not available';
 
       return {
-        id: this.peerManager.peer?.id || 'kinectron',
-        isConnected: this.peerManager.isConnected,
-        connectionCount: this.peerManager.connections.size,
+        id: 'kinectron',
+        isConnected: this.peerManager.server !== null,
+        connectionCount: 0, // Connection count now managed by renderer
         address: localAddress,
-        port: this.peerManager.config.port,
+        port: 9001,
       };
     });
 
@@ -129,33 +125,22 @@ export class IpcHandler {
 
   // Peer event handlers
   handlePeerReady(data) {
-    console.log('Peer connection ready:', data);
+    console.log('Peer server ready:', data);
     this.sendToRenderer('peer-ready', {
       peer: {
-        id: this.peerManager.peer?.id || 'kinectron',
+        id: 'kinectron',
         options: {
-          port: this.peerManager.config.port,
+          host: 'localhost',
+          port: 9001,
+          path: '/',
+          secure: false,
         },
       },
     });
   }
 
-  handlePeerConnection(connection) {
-    console.log('New peer connection:', connection.peer);
-
-    // Send current Kinect status to new peer
-    const kinectStatus = {
-      event: 'ready',
-      data: { kinect: 'azure' }, // We only support Azure now
-    };
-    connection.send(kinectStatus);
-
-    // Notify renderer of new connection
-    this.sendToRenderer('peer-connection', { connection });
-  }
-
   handlePeerError(error) {
-    console.error('Peer connection error:', error);
+    console.error('Peer server error:', error);
     this.sendToRenderer('peer-error', error);
   }
 

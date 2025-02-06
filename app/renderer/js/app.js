@@ -3,13 +3,14 @@
 const BUTTON_INACTIVE_COLOR = '#fff';
 const BUTTON_ACTIVE_COLOR = '#1daad8';
 
-import { PeerConnectionController } from './peer/peerConnectionController.js';
+import { PeerController } from './peer/peerController.js';
 
 class KinectronApp {
   constructor() {
     this.cleanupFunctions = new Map();
     this.currentStream = null;
-    this.peerController = new PeerConnectionController();
+    this.peerController = new PeerController();
+    this.peerController.initialize();
     this.setupUIListeners();
     this.setupPeerListeners();
     this.setupNgrokListeners();

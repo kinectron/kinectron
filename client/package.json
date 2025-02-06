@@ -5,16 +5,14 @@
   "bin": {
     "kinectron-client": "kinectron-client.js"
   },
-  "dependencies": {
-    "peerjs": "1.1.0"
-  },
   "devDependencies": {
-    "parcel": "^2.12.0",
+    "parcel": "^2.13.3",
     "process": "^0.11.10"
   },
   "scripts": {
-    "start": "parcel watch src/kinectron-client.js",
-    "build": "parcel build src/kinectron-client.js --no-optimize"
+    "start": "parcel watch src/index.js",
+    "build": "parcel build src/index.js --no-optimize",
+    "test": "parcel serve test.html --open"
   },
   "repository": {
     "type": "git",
@@ -25,5 +23,8 @@
     "peerjs"
   ],
   "author": "Lisa Jamhoury and Shawn Van Every",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "peerjs": "^1.5.2"
+  }
 }

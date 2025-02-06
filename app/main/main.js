@@ -12,6 +12,18 @@ import { KinectController } from './kinectController.js';
 import { IpcHandler } from './ipcHandler.js';
 import { PeerConnectionManager } from './managers/peerConnectionManager.js';
 
+// Set development environment for detailed error messages
+process.env.NODE_ENV = 'development';
+
+// Redirect uncaught exceptions to console instead of showing dialog boxes
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled Rejection:', error);
+});
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
