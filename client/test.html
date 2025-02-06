@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinectron Client Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        #status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+        }
+
+        .error {
+            background-color: #ffebee !important;
+            color: #c62828;
+        }
+
+        .success {
+            background-color: #e8f5e9 !important;
+            color: #2e7d32;
+        }
+
+        .interface-test {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Kinectron Client Test</h1>
+
+    <div class="interface-test">
+        <h2>Modern Interface Test</h2>
+        <div id="modern-status">Status: Initializing...</div>
+        <pre id="modern-details"></pre>
+        <div>
+            <button id="modern-reconnect" disabled>Reconnect</button>
+            <button id="modern-disconnect">Disconnect</button>
+        </div>
+    </div>
+
+    <div class="interface-test">
+        <h2>Legacy Interface Test</h2>
+        <div id="legacy-status">Status: Initializing...</div>
+        <pre id="legacy-details"></pre>
+        <div>
+            <button id="legacy-start-color">Start Color</button>
+            <button id="legacy-stop">Stop All</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PeerConnection, ModernKinectron, DEFAULT_PEER_CONFIG } from './src/index.js';
+
+        // Modern Interface Setup
+        const modernStatus = document.getElementById('modern-status');
+        const modernDetails = document.getElementById('modern-details');
+        const modernReconnect = document.getElementById('modern-reconnect');
+        const modernDisconnect = document.getElementById('modern-disconnect');
+        let activePeer = null;
+
+        function updateModernStatus(message, isError = false, isSuccess = false) {
+            modernStatus.textContent = 'Status: ' + message;
+            modernStatus.className = isError ? 'error' : (isSuccess ? 'success' : '');
+        }
+
+        function updateModernDetails(details) {
+            modernDetails.textContent = typeof details === 'string'
+                ? details
+                : JSON.stringify(details, null, 2);
+        }
+
+        function initializeModernPeer() {
+            activePeer = new PeerConnection(DEFAULT_PEER_CONFIG);
+
+            activePeer.on('ready', (data) => {
+                updateModernStatus(`Connected to peer: kinectron`, false, true);
+                updateModernDetails({
+                    status: 'connected',
+                    peerId: 'kinectron',
+                    timestamp: data.timestamp
+                });
+                modernReconnect.disabled = true;
+                modernDisconnect.disabled = false;
+            });
+
+            activePeer.on('error', (error) => {
+                updateModernStatus(`Error: ${error.message}`, true);
+                updateModernDetails({
+                    status: 'error',
+                    error: error.message,
+                    details: error.details,
+                    timestamp: new Date().toISOString()
+                });
+                modernReconnect.disabled = false;
+                modernDisconnect.disabled = true;
+            });
+
+            return activePeer;
+        }
+
+        // Legacy Interface Setup
+        const legacyStatus = document.getElementById('legacy-status');
+        const legacyDetails = document.getElementById('legacy-details');
+        const legacyStartColor = document.getElementById('legacy-start-color');
+        const legacyStop = document.getElementById('legacy-stop');
+        let kinectron = null;
+
+        function updateLegacyStatus(message, isError = false, isSuccess = false) {
+            legacyStatus.textContent = 'Status: ' + message;
+            legacyStatus.className = isError ? 'error' : (isSuccess ? 'success' : '');
+        }
+
+        function updateLegacyDetails(details) {
+            legacyDetails.textContent = typeof details === 'string'
+                ? details
+                : JSON.stringify(details, null, 2);
+        }
+
+        function initializeLegacy() {
+            kinectron = new ModernKinectron(DEFAULT_PEER_CONFIG);
+
+            kinectron.on('ready', (data) => {
+                updateLegacyStatus(`Connected to peer: kinectron`, false, true);
+                updateLegacyDetails({
+                    status: 'connected',
+                    peerId: 'kinectron',
+                    timestamp: data.timestamp
+                });
+            });
+
+            kinectron.on('error', (error) => {
+                updateLegacyStatus(`Error: ${error.message}`, true);
+                updateLegacyDetails({
+                    status: 'error',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            });
+
+            kinectron.on('frame', (frame) => {
+                updateLegacyDetails({
+                    status: 'received frame',
+                    timestamp: new Date().toISOString()
+                });
+            });
+        }
+
+        // Initialize both interfaces
+        initializeModernPeer();
+        initializeLegacy();
+
+        // Modern Interface Event Handlers
+        modernReconnect.addEventListener('click', () => {
+            if (activePeer) {
+                activePeer.close();
+            }
+            updateModernStatus('Reconnecting...');
+            updateModernDetails('Initializing new connection...');
+            initializeModernPeer();
+        });
+
+        modernDisconnect.addEventListener('click', () => {
+            if (activePeer) {
+                activePeer.close();
+                updateModernStatus('Disconnected', false, false);
+                updateModernDetails('Connection closed by user');
+                modernReconnect.disabled = false;
+                modernDisconnect.disabled = true;
+            }
+        });
+
+        // Legacy Interface Event Handlers
+        legacyStartColor.addEventListener('click', () => {
+            kinectron.startColor();
+            updateLegacyStatus('Starting color feed...', false, false);
+        });
+
+        legacyStop.addEventListener('click', () => {
+            kinectron.stopAll();
+            updateLegacyStatus('Stopped all feeds', false, false);
+        });
+
+        // Clean up on page unload
+        window.addEventListener('unload', () => {
+            if (activePeer) {
+                activePeer.close();
+            }
+            if (kinectron) {
+                kinectron.close();
+            }
+        });
+    </script>
+</body>
+
+</html>
