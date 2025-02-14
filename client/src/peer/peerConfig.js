@@ -24,6 +24,7 @@ function validateNgrokUrl(url) {
  * @property {number|string} port - The port number for the peer server
  * @property {string} path - The path for the peer server
  * @property {boolean} [secure] - Whether to use secure connection
+ * @property {string} [role] - Role identifier for the connection (e.g., 'modern-test', 'legacy-test')
  */
 
 /**
@@ -31,10 +32,12 @@ function validateNgrokUrl(url) {
  * @type {PeerNetworkConfig}
  */
 export const DEFAULT_PEER_CONFIG = {
-  host: 'localhost',
+  host: '127.0.0.1',
   port: 9001,
   path: '/',
+  secure: false,
   debug: 3, // Enable detailed logging
+  role: 'default', // Default role identifier
   // For local connections, we don't need STUN/TURN servers
   // This matches the original kinectron implementation
   config: {
@@ -66,6 +69,11 @@ export function processPeerConfig(config) {
         port: '443',
         path: '/',
         secure: true,
+        debug: 3,
+        config: {
+          iceServers: [],
+          sdpSemantics: 'unified-plan',
+        },
       };
     } catch (error) {
       // Add connection context to validation errors

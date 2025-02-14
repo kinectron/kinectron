@@ -143,7 +143,19 @@
         }
 
         function initializeModernPeer() {
-            activePeer = new PeerConnection(DEFAULT_PEER_CONFIG);
+            const config = {
+                host: '127.0.0.1',
+                port: 9001,
+                path: '/',
+                secure: false,
+                debug: 3,
+                role: 'modern-test',
+                config: {
+                    iceServers: [],
+                    sdpSemantics: 'unified-plan'
+                }
+            };
+            activePeer = new PeerConnection(config);
 
             activePeer.on('ready', (data) => {
                 updateModernStatus(`Connected to peer: kinectron`, false, true);
@@ -190,7 +202,19 @@
         }
 
         function initializeLegacy() {
-            kinectron = new ModernKinectron(DEFAULT_PEER_CONFIG);
+            const config = {
+                host: '127.0.0.1',
+                port: 9001,
+                path: '/',
+                secure: false,
+                debug: 3,
+                role: 'legacy-test',
+                config: {
+                    iceServers: [],
+                    sdpSemantics: 'unified-plan'
+                }
+            };
+            kinectron = new ModernKinectron(config);
 
             kinectron.on('ready', (data) => {
                 updateLegacyStatus(`Connected to peer: kinectron`, false, true);
@@ -311,7 +335,13 @@
             }
 
             try {
-                ngrokPeer = new PeerConnection(url);
+                ngrokPeer = new PeerConnection({
+                    host: url,
+                    port: '443',
+                    path: '/',
+                    secure: true,
+                    role: 'ngrok-test'
+                });
 
                 ngrokPeer.on('ready', (data) => {
                     updateNgrokStatus(`Connected via ngrok: ${url}`, false, true);

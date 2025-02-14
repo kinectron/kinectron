@@ -1,12 +1,15 @@
 import { PeerConnection } from './peer/peerConnection.js';
+import { NgrokClientState } from './peer/ngrokState.js';
 
 export class Kinectron {
   constructor(networkConfig) {
     this.peer = new PeerConnection(networkConfig);
     this.messageHandlers = new Map();
+    this.state = null;
 
     // Set up event handlers
     this.peer.on('ready', (data) => {
+      this.state = data.state;
       const handler = this.messageHandlers.get('ready');
       if (handler) handler(data);
     });
@@ -14,6 +17,19 @@ export class Kinectron {
     this.peer.on('error', (error) => {
       const handler = this.messageHandlers.get('error');
       if (handler) handler(error);
+    });
+
+    // Handle state changes
+    this.peer.on('stateChange', (data) => {
+      this.state = data.to;
+      const handler = this.messageHandlers.get('stateChange');
+      if (handler) handler(data);
+    });
+
+    // Handle metrics updates
+    this.peer.on('metrics', (data) => {
+      const handler = this.messageHandlers.get('metrics');
+      if (handler) handler(data);
     });
 
     // Handle incoming data
@@ -29,8 +45,22 @@ export class Kinectron {
     this.messageHandlers.set(event, callback);
   }
 
+  // Get current state
+  getState() {
+    return this.peer.getState();
+  }
+
+  // Check if connected
+  isConnected() {
+    return this.state === NgrokClientState.STATES.CONNECTED;
+  }
+
   // Send data to peer
   send(event, data) {
+    if (!this.isConnected()) {
+      console.warn('Cannot send data: not connected');
+      return;
+    }
     this.peer.send(event, data);
   }
 
@@ -100,5 +130,6 @@ export class Kinectron {
   close() {
     this.peer.close();
     this.messageHandlers.clear();
+    this.state = null;
   }
 }

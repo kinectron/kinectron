@@ -1,16 +1,9 @@
 import Peer from 'peerjs';
 import { DEFAULT_PEER_ID, processPeerConfig } from './peerConfig.js';
+import { NgrokClientState, NgrokClientError } from './ngrokState.js';
 
 /**
  * @typedef {import('./peerConfig.js').PeerNetworkConfig} PeerNetworkConfig
- */
-
-/**
- * @typedef {Object} ConnectionState
- * @property {boolean} isConnected - Whether peer is connected
- * @property {number} connectionAttempts - Number of connection attempts
- * @property {number} queuedMessages - Number of messages in queue
- * @property {string} serverState - Current state of the peer server
  */
 
 /**
@@ -31,23 +24,11 @@ export class PeerConnection {
     /** @private */
     this.config = processPeerConfig(networkConfig);
     /** @private */
-    this.isConnected = false;
-    /** @private */
     this.messageHandlers = new Map();
     /** @private */
     this.messageQueue = [];
     /** @private */
     this.maxQueueSize = 100;
-    /** @private */
-    this.connectionAttempts = 0;
-    /** @private */
-    this.maxConnectionAttempts = 3;
-    /** @private */
-    this.reconnectDelay = 1000;
-    /** @private */
-    this.maxReconnectDelay = 5000;
-    /** @private */
-    this.serverState = 'disconnected';
     /** @private */
     this.lastPingTime = 0;
     /** @private */
@@ -56,6 +37,24 @@ export class PeerConnection {
     this.healthCheckInterval = null;
     /** @private */
     this.clientId = this.generateClientId();
+    /** @private */
+    this.state = new NgrokClientState();
+
+    // Forward state events to message handlers
+    this.state.on('stateChange', (data) => {
+      const handler = this.messageHandlers.get('stateChange');
+      if (handler) handler(data);
+    });
+
+    this.state.on('error', (data) => {
+      const handler = this.messageHandlers.get('error');
+      if (handler) handler(data);
+    });
+
+    this.state.on('metrics', (data) => {
+      const handler = this.messageHandlers.get('metrics');
+      if (handler) handler(data);
+    });
 
     this.initialize();
   }
@@ -66,30 +65,22 @@ export class PeerConnection {
    * @returns {string} Client ID
    */
   generateClientId() {
-    // Try to get stored client ID
-    const storedId = localStorage.getItem('kinectron_client_id');
-    if (storedId) {
-      return storedId;
-    }
-
-    // Generate new ID if none exists
-    const newId = `client-${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem('kinectron_client_id', newId);
-    return newId;
+    // Generate unique ID for each instance
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 5);
+    const prefix = this.config.host?.includes('ngrok')
+      ? 'ngrok'
+      : 'local';
+    const role = this.config.role || 'default';
+    return `${prefix}-${role}-${timestamp}-${random}`;
   }
 
   /**
    * Get current connection state
-   * @returns {ConnectionState} Current state information
+   * @returns {Object} Current state information
    */
   getState() {
-    return {
-      isConnected: this.isConnected,
-      connectionAttempts: this.connectionAttempts,
-      queuedMessages: this.messageQueue.length,
-      serverState: this.serverState,
-      clientId: this.clientId,
-    };
+    return this.state.getMetadata();
   }
 
   /**
@@ -105,21 +96,48 @@ export class PeerConnection {
 
       console.log('Initializing peer with config:', this.config);
 
+      // Check if this is an ngrok connection
+      const isNgrok =
+        typeof this.config.host === 'string' &&
+        this.config.host.includes('ngrok');
+
+      if (isNgrok) {
+        // Set state to validating for ngrok connections
+        this.state.setState(NgrokClientState.STATES.VALIDATING);
+
+        // Validate ngrok URL format
+        if (!this.config.host.includes('ngrok-free.app')) {
+          throw new NgrokClientError('Invalid ngrok URL format', {
+            url: this.config.host,
+            reason: 'URL must include ngrok-free.app domain',
+          });
+        }
+      }
+
       // Create peer instance with consistent ID
       this.peer = new Peer(this.clientId, {
         ...this.config,
         // Basic reliability options
         reliable: true,
         retries: 2,
-        timeout: 5000,
+        timeout: isNgrok ? 5000 : 3000,
         debug: 3,
       });
+
+      // Move to connecting state (skip validation for local connections)
+      if (!isNgrok) {
+        this.state.setState(NgrokClientState.STATES.CONNECTING);
+      }
 
       this.setupPeerEventHandlers();
       this.startHealthCheck();
     } catch (error) {
       console.error('Peer initialization error:', error);
       this.handleError(error);
+      this.state.setState(NgrokClientState.STATES.ERROR, {
+        error: error.message,
+        context: 'initialization',
+      });
     }
   }
 
@@ -130,20 +148,16 @@ export class PeerConnection {
   setupPeerEventHandlers() {
     this.peer.on('open', (id) => {
       console.log('My peer ID is:', id);
-      this.connectionAttempts = 0;
-      this.serverState = 'connected';
+      // Already in CONNECTING state, proceed with connection
       this.connect();
     });
 
     this.peer.on('error', (error) => {
       console.error('Peer connection error:', error);
-      this.isConnected = false;
-      this.serverState = 'error';
 
       // Handle ID taken error by generating new ID
       if (error.type === 'unavailable-id') {
         console.log('Client ID taken, generating new ID');
-        localStorage.removeItem('kinectron_client_id');
         this.clientId = this.generateClientId();
         this._cleanup(false);
         this.initialize();
@@ -151,6 +165,12 @@ export class PeerConnection {
       }
 
       this.handleError(error);
+
+      // Set error state
+      this.state.setState(NgrokClientState.STATES.ERROR, {
+        error: error.message,
+        type: error.type,
+      });
 
       // Attempt reconnection if appropriate
       if (this.shouldAttemptReconnection(error)) {
@@ -160,8 +180,9 @@ export class PeerConnection {
 
     this.peer.on('disconnected', () => {
       console.log('Peer disconnected from server');
-      this.isConnected = false;
-      this.serverState = 'disconnected';
+      this.state.setState(NgrokClientState.STATES.DISCONNECTED, {
+        reason: 'peer_disconnected',
+      });
       this._handleReconnection({ type: 'disconnected' });
     });
   }
@@ -181,14 +202,20 @@ export class PeerConnection {
 
     // Start health check
     this.healthCheckInterval = setInterval(() => {
-      if (this.isConnected && this.connection) {
+      if (
+        this.state.getState() === NgrokClientState.STATES.CONNECTED &&
+        this.connection
+      ) {
         this.checkConnectionHealth();
       }
     }, 10000);
 
     // Start ping interval
     this.pingInterval = setInterval(() => {
-      if (this.isConnected && this.connection?.open) {
+      if (
+        this.state.getState() === NgrokClientState.STATES.CONNECTED &&
+        this.connection?.open
+      ) {
         this.sendPing();
       }
     }, 5000);
@@ -212,6 +239,12 @@ export class PeerConnection {
       console.warn('No ping response, connection may be dead');
       await this.handleConnectionFailure();
     }
+
+    // Update connection metrics
+    this.state.updateMetrics({
+      latency: timeSinceLastPing,
+      timestamp: new Date(),
+    });
   }
 
   /**
@@ -234,7 +267,6 @@ export class PeerConnection {
    * @private
    */
   async handleConnectionFailure() {
-    this.isConnected = false;
     if (this.connection) {
       try {
         this.connection.close();
@@ -243,6 +275,11 @@ export class PeerConnection {
       }
       this.connection = null;
     }
+
+    this.state.setState(NgrokClientState.STATES.RECONNECTING, {
+      reason: 'connection_failure',
+      timestamp: new Date(),
+    });
 
     await this._handleReconnection({ type: 'connection_failure' });
   }
@@ -253,6 +290,14 @@ export class PeerConnection {
    * @param {Error} error - The error that occurred
    */
   handleError(error) {
+    // Record error in state
+    this.state.recordError(error, {
+      type: error.type || 'server-error',
+      state: this.state.getState(),
+      timestamp: new Date().toISOString(),
+    });
+
+    // Forward to message handler
     const handler = this.messageHandlers.get('error');
     if (handler) {
       const errorInfo = {
@@ -260,7 +305,7 @@ export class PeerConnection {
         error: this._getErrorMessage(error),
         details: {
           type: error.type || 'server-error',
-          state: this.getState(),
+          state: this.state.getState(),
           timestamp: new Date().toISOString(),
         },
       };
@@ -312,7 +357,7 @@ export class PeerConnection {
       return false;
     }
 
-    return this.connectionAttempts < this.maxConnectionAttempts;
+    return this.state.getMetadata().metrics.reconnects.count < 3;
   }
 
   /**
@@ -320,17 +365,15 @@ export class PeerConnection {
    * @private
    */
   _setConnectionTimeout() {
-    const timeoutDuration = 5000; // 5 second timeout
+    const timeoutDuration = 15000; // 15 second timeout for ngrok connections
 
     setTimeout(() => {
-      if (!this.isConnected) {
-        console.log(
-          `Connection attempt ${
-            this.connectionAttempts + 1
-          } timed out`,
-        );
+      if (
+        this.state.getState() !== NgrokClientState.STATES.CONNECTED
+      ) {
+        console.log('Connection attempt timed out');
 
-        if (this.connectionAttempts < this.maxConnectionAttempts) {
+        if (this.shouldAttemptReconnection({ type: 'timeout' })) {
           this._handleReconnection({ type: 'timeout' });
         } else {
           this.handleError({
@@ -348,62 +391,51 @@ export class PeerConnection {
    * @param {Error} error - The error that triggered reconnection
    */
   async _handleReconnection(error) {
-    // Reset attempts if we haven't tried in a while
-    const timeSinceLastAttempt =
-      Date.now() - (this._lastReconnectAttempt || 0);
-    if (timeSinceLastAttempt > 30000) {
-      // 30 seconds
-      this.connectionAttempts = 0;
-    }
-
-    this.connectionAttempts++;
-    this._lastReconnectAttempt = Date.now();
+    // Update state to reconnecting
+    this.state.setState(NgrokClientState.STATES.RECONNECTING, {
+      error: error.message,
+      attempt: this.state.getMetadata().metrics.reconnects.count + 1,
+    });
 
     // Use exponential backoff with jitter
     const baseDelay = Math.min(
-      this.reconnectDelay *
-        Math.pow(1.5, this.connectionAttempts - 1),
-      this.maxReconnectDelay,
+      2000 *
+        Math.pow(
+          1.5,
+          this.state.getMetadata().metrics.reconnects.count,
+        ),
+      15000,
     );
-    // Add jitter (±20% of base delay)
     const jitter = baseDelay * 0.2 * (Math.random() * 2 - 1);
-    const delay = Math.max(this.reconnectDelay, baseDelay + jitter);
-
-    // Notify about reconnection attempt
-    const handler = this.messageHandlers.get('reconnecting');
-    if (handler) {
-      handler({
-        attempt: this.connectionAttempts,
-        maxAttempts: this.maxConnectionAttempts,
-        delay,
-        error: this._getErrorMessage(error),
-        nextAttemptIn: delay,
-      });
-    }
+    const delay = Math.max(2000, baseDelay + jitter);
 
     console.log(
-      `Attempting reconnection ${this.connectionAttempts} of ${
-        this.maxConnectionAttempts
-      } in ${Math.round(delay)}ms`,
+      `Attempting reconnection ${
+        this.state.getMetadata().metrics.reconnects.count + 1
+      } of 3 in ${Math.round(delay)}ms`,
     );
 
     // Wait for delay
     await new Promise((resolve) => setTimeout(resolve, delay));
 
-    if (!this.isConnected) {
+    if (
+      this.state.getState() === NgrokClientState.STATES.RECONNECTING
+    ) {
       console.log('Attempting to reconnect...');
 
       // Clean up existing resources
       await this._cleanup(false);
 
       // Only try to reconnect if we haven't exceeded max attempts
-      if (this.connectionAttempts < this.maxConnectionAttempts) {
+      if (this.shouldAttemptReconnection(error)) {
+        // Move back to connecting state
+        this.state.setState(NgrokClientState.STATES.CONNECTING);
         this.initialize();
       } else {
         console.log('Max reconnection attempts reached');
-        this.handleError({
+        this.state.setState(NgrokClientState.STATES.ERROR, {
+          error: 'Maximum reconnection attempts reached',
           type: 'max_retries',
-          message: 'Maximum reconnection attempts reached',
         });
       }
     }
@@ -484,9 +516,12 @@ export class PeerConnection {
   setupConnectionHandlers() {
     this.connection.on('open', () => {
       console.log('Connected to peer:', this.targetPeerId);
-      this.isConnected = true;
-      this.connectionAttempts = 0;
-      this.serverState = 'connected';
+
+      // Update state
+      this.state.setState(NgrokClientState.STATES.CONNECTED, {
+        peerId: this.targetPeerId,
+        timestamp: new Date(),
+      });
 
       // Process any queued messages
       this.processMessageQueue();
@@ -497,7 +532,7 @@ export class PeerConnection {
         handler({
           status: 'connected',
           peerId: this.targetPeerId,
-          state: this.getState(),
+          state: this.state.getState(),
           timestamp: new Date().toISOString(),
         });
       }
@@ -506,6 +541,9 @@ export class PeerConnection {
     this.connection.on('data', (data) => {
       if (data.event === 'pong') {
         this.lastPingTime = Date.now();
+        // Update latency metrics
+        const latency = Date.now() - data.data.timestamp;
+        this.state.updateMetrics({ latency });
         return;
       }
       console.log('Received data from peer:', data);
@@ -514,18 +552,22 @@ export class PeerConnection {
 
     this.connection.on('close', () => {
       console.log('Peer connection closed');
-      this.isConnected = false;
-      this.serverState = 'disconnected';
 
       if (!this._isClosing) {
+        this.state.setState(NgrokClientState.STATES.DISCONNECTED, {
+          reason: 'connection_closed',
+        });
         this._handleReconnection({ type: 'connection_closed' });
       }
     });
 
     this.connection.on('error', (error) => {
       console.error('Data connection error:', error);
-      this.isConnected = false;
-      this.serverState = 'error';
+
+      this.state.setState(NgrokClientState.STATES.ERROR, {
+        error: error.message,
+        type: error.type,
+      });
 
       this.handleError(error);
       this._handleReconnection(error);
@@ -546,7 +588,7 @@ export class PeerConnection {
         handler({
           ...data.data,
           timestamp: Date.now(),
-          state: this.getState(),
+          state: this.state.getState(),
         });
       }
     } catch (error) {
@@ -564,7 +606,10 @@ export class PeerConnection {
    * @private
    */
   async processMessageQueue() {
-    while (this.messageQueue.length > 0 && this.isConnected) {
+    while (
+      this.messageQueue.length > 0 &&
+      this.state.getState() === NgrokClientState.STATES.CONNECTED
+    ) {
       const message = this.messageQueue.shift();
       try {
         await this.send(message.event, message.data);
@@ -572,7 +617,8 @@ export class PeerConnection {
         console.error('Failed to send queued message:', error);
         // Re-queue message if connection is still open
         if (
-          this.isConnected &&
+          this.state.getState() ===
+            NgrokClientState.STATES.CONNECTED &&
           this.messageQueue.length < this.maxQueueSize
         ) {
           this.messageQueue.push(message);
@@ -601,7 +647,10 @@ export class PeerConnection {
    */
   async send(event, data) {
     return new Promise((resolve, reject) => {
-      if (!this.isConnected || !this.connection?.open) {
+      if (
+        this.state.getState() !== NgrokClientState.STATES.CONNECTED ||
+        !this.connection?.open
+      ) {
         // Queue message if not connected
         if (this.messageQueue.length < this.maxQueueSize) {
           this.messageQueue.push({ event, data });
@@ -650,12 +699,9 @@ export class PeerConnection {
     // Clean up resources
     await this._cleanup(true);
 
-    // Clear state
-    this.isConnected = false;
-    this.serverState = 'closed';
+    // Reset state
+    this.state.reset();
     this.messageQueue = [];
-    this.connectionAttempts = 0;
-    this._lastReconnectAttempt = 0;
     this._isClosing = false;
   }
 
@@ -664,6 +710,9 @@ export class PeerConnection {
    * @returns {boolean} Connection status
    */
   isConnected() {
-    return this.isConnected && this.connection?.open;
+    return (
+      this.state.getState() === NgrokClientState.STATES.CONNECTED &&
+      this.connection?.open
+    );
   }
 }
