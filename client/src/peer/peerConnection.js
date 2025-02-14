@@ -41,11 +41,11 @@ export class PeerConnection {
     /** @private */
     this.connectionAttempts = 0;
     /** @private */
-    this.maxConnectionAttempts = 5;
+    this.maxConnectionAttempts = 3;
     /** @private */
     this.reconnectDelay = 1000;
     /** @private */
-    this.maxReconnectDelay = 8000;
+    this.maxReconnectDelay = 5000;
     /** @private */
     this.serverState = 'disconnected';
     /** @private */
@@ -108,11 +108,11 @@ export class PeerConnection {
       // Create peer instance with consistent ID
       this.peer = new Peer(this.clientId, {
         ...this.config,
-        // Add reliability options
+        // Basic reliability options
         reliable: true,
-        retries: 3,
-        timeout: 10000,
-        pingInterval: 5000,
+        retries: 2,
+        timeout: 5000,
+        debug: 3,
       });
 
       this.setupPeerEventHandlers();

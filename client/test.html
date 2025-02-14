@@ -83,6 +83,18 @@
     </div>
 
     <div class="interface-test">
+        <h2>Ngrok Connection Test</h2>
+        <div>
+            <input type="text" id="ngrok-url" placeholder="Enter ngrok URL"
+                style="padding: 8px; margin-right: 5px; width: 300px;">
+            <button id="ngrok-connect">Connect</button>
+            <button id="ngrok-disconnect" disabled>Disconnect</button>
+        </div>
+        <div id="ngrok-status">Status: Not connected</div>
+        <pre id="ngrok-details"></pre>
+    </div>
+
+    <div class="interface-test">
         <h2>Legacy Interface Test</h2>
         <div id="legacy-status">Status: Initializing...</div>
         <pre id="legacy-details"></pre>
@@ -224,8 +236,124 @@
             updateLegacyStatus('Stopped all feeds', false, false);
         });
 
+        // Ngrok Interface Setup
+        const ngrokUrl = document.getElementById('ngrok-url');
+        const ngrokConnect = document.getElementById('ngrok-connect');
+        const ngrokDisconnect = document.getElementById('ngrok-disconnect');
+        const ngrokStatus = document.getElementById('ngrok-status');
+        const ngrokDetails = document.getElementById('ngrok-details');
+        let ngrokPeer = null;
+
+        function updateNgrokStatus(message, isError = false, isSuccess = false) {
+            ngrokStatus.textContent = 'Status: ' + message;
+            ngrokStatus.className = isError ? 'error' : (isSuccess ? 'success' : '');
+        }
+
+        function updateNgrokDetails(details) {
+            ngrokDetails.textContent = typeof details === 'string'
+                ? details
+                : JSON.stringify(details, null, 2);
+        }
+
+        function validateNgrokUrl(url) {
+            return url.includes('ngrok');
+        }
+
+        function initializeNgrokPeer(url) {
+            if (ngrokPeer) {
+                ngrokPeer.close();
+            }
+
+            ngrokPeer = new PeerConnection(url);
+
+            ngrokPeer.on('ready', (data) => {
+                updateNgrokStatus(`Connected via ngrok: ${url}`, false, true);
+                updateNgrokDetails({
+                    status: 'connected',
+                    peerId: 'kinectron',
+                    url: url,
+                    timestamp: data.timestamp,
+                    connectionType: 'ngrok',
+                    secure: url.startsWith('https'),
+                    retryAttempts: ngrokPeer.connectionAttempts,
+                    maxRetries: ngrokPeer.maxConnectionAttempts,
+                    serverState: ngrokPeer.serverState
+                });
+                ngrokConnect.disabled = true;
+                ngrokDisconnect.disabled = false;
+                ngrokUrl.disabled = true;
+            });
+
+            // Listen for reconnection attempts
+            ngrokPeer.on('reconnecting', (data) => {
+                updateNgrokStatus(`Reconnecting... Attempt ${data.attempt} of ${data.maxAttempts}`, false, false);
+                updateNgrokDetails({
+                    status: 'reconnecting',
+                    attempt: data.attempt,
+                    maxAttempts: data.maxAttempts,
+                    nextAttemptIn: Math.round(data.delay),
+                    error: data.error,
+                    timestamp: new Date().toISOString()
+                });
+            });
+
+            ngrokPeer.on('error', (error) => {
+                const status = error.details?.type === 'max_retries'
+                    ? `Max retries (${ngrokPeer.maxConnectionAttempts}) reached. Please check the ngrok URL and try again.`
+                    : `Error: ${error.message}`;
+
+                updateNgrokStatus(status, true);
+                updateNgrokDetails({
+                    status: 'error',
+                    error: error.message,
+                    details: error.details,
+                    retryAttempts: ngrokPeer.connectionAttempts,
+                    maxRetries: ngrokPeer.maxConnectionAttempts,
+                    timestamp: new Date().toISOString()
+                });
+                ngrokConnect.disabled = false;
+                ngrokDisconnect.disabled = true;
+                ngrokUrl.disabled = false;
+            });
+
+            return ngrokPeer;
+        }
+
+        // Ngrok Interface Event Handlers
+        ngrokConnect.addEventListener('click', () => {
+            const url = ngrokUrl.value.trim();
+
+            if (!url) {
+                updateNgrokStatus('Error: Please enter an ngrok URL', true);
+                return;
+            }
+
+            if (!validateNgrokUrl(url)) {
+                updateNgrokStatus('Error: Invalid ngrok URL format. URL should include "ngrok"', true);
+                return;
+            }
+
+            updateNgrokStatus('Connecting via ngrok...');
+            updateNgrokDetails('Initializing ngrok connection...');
+            initializeNgrokPeer(url);
+        });
+
+        ngrokDisconnect.addEventListener('click', () => {
+            if (ngrokPeer) {
+                ngrokPeer.close();
+                updateNgrokStatus('Disconnected', false, false);
+                updateNgrokDetails('Ngrok connection closed by user');
+                ngrokConnect.disabled = false;
+                ngrokDisconnect.disabled = true;
+                ngrokUrl.disabled = false;
+            }
+        });
+
         // Clean up on page unload
         window.addEventListener('unload', () => {
+            if (ngrokPeer) {
+                ngrokPeer.close();
+            }
             if (activePeer) {
                 activePeer.close();
             }

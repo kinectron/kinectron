@@ -37,7 +37,7 @@ export const DEFAULT_PEER_ID = 'kinectron';
 export function processPeerConfig(config) {
   if (!config) return DEFAULT_PEER_CONFIG;
 
-  // Handle ngrok addresses
+  // Handle ngrok addresses (simplified to match original implementation)
   if (typeof config === 'string' && config.includes('ngrok')) {
     return {
       host: config,

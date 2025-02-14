@@ -82,6 +82,17 @@ button:hover:not(:disabled) {
     </div>
 
     <div class="interface-test">
+        <h2>Ngrok Connection Test</h2>
+        <div>
+            <input type="text" id="ngrok-url" placeholder="Enter ngrok URL" style="width: 300px; margin-right: 5px; padding: 8px">
+            <button id="ngrok-connect">Connect</button>
+            <button id="ngrok-disconnect" disabled="">Disconnect</button>
+        </div>
+        <div id="ngrok-status">Status: Not connected</div>
+        <pre id="ngrok-details"></pre>
+    </div>
+
+    <div class="interface-test">
         <h2>Legacy Interface Test</h2>
         <div id="legacy-status">Status: Initializing...</div>
         <pre id="legacy-details"></pre>
@@ -235,14 +246,14 @@ button:hover:not(:disabled) {
       this[globalName] = mainExports;
     }
   }
-})({"lYePL":[function(require,module,exports,__globalThis) {
+})({"5riBY":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
 var HMR_USE_SSE = false;
-module.bundle.HMR_BUNDLE_ID = "74d2147f82288982";
+module.bundle.HMR_BUNDLE_ID = "207ab9b4ea114e3e";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -688,7 +699,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     }
 }
 
-},{}],"dHL4n":[function(require,module,exports,__globalThis) {
+},{}],"bmQXI":[function(require,module,exports,__globalThis) {
 var _indexJs = require("./src/index.js");
 // Modern Interface Setup
 const modernStatus = document.getElementById('modern-status');
@@ -794,8 +805,100 @@ legacyStop.addEventListener('click', ()=>{
     kinectron.stopAll();
     updateLegacyStatus('Stopped all feeds', false, false);
 });
+// Ngrok Interface Setup
+const ngrokUrl = document.getElementById('ngrok-url');
+const ngrokConnect = document.getElementById('ngrok-connect');
+const ngrokDisconnect = document.getElementById('ngrok-disconnect');
+const ngrokStatus = document.getElementById('ngrok-status');
+const ngrokDetails = document.getElementById('ngrok-details');
+let ngrokPeer = null;
+function updateNgrokStatus(message, isError = false, isSuccess = false) {
+    ngrokStatus.textContent = 'Status: ' + message;
+    ngrokStatus.className = isError ? 'error' : isSuccess ? 'success' : '';
+}
+function updateNgrokDetails(details) {
+    ngrokDetails.textContent = typeof details === 'string' ? details : JSON.stringify(details, null, 2);
+}
+function validateNgrokUrl(url) {
+    return url.includes('ngrok');
+}
+function initializeNgrokPeer(url) {
+    if (ngrokPeer) ngrokPeer.close();
+    ngrokPeer = new (0, _indexJs.PeerConnection)(url);
+    ngrokPeer.on('ready', (data)=>{
+        updateNgrokStatus(`Connected via ngrok: ${url}`, false, true);
+        updateNgrokDetails({
+            status: 'connected',
+            peerId: 'kinectron',
+            url: url,
+            timestamp: data.timestamp,
+            connectionType: 'ngrok',
+            secure: url.startsWith('https'),
+            retryAttempts: ngrokPeer.connectionAttempts,
+            maxRetries: ngrokPeer.maxConnectionAttempts,
+            serverState: ngrokPeer.serverState
+        });
+        ngrokConnect.disabled = true;
+        ngrokDisconnect.disabled = false;
+        ngrokUrl.disabled = true;
+    });
+    // Listen for reconnection attempts
+    ngrokPeer.on('reconnecting', (data)=>{
+        updateNgrokStatus(`Reconnecting... Attempt ${data.attempt} of ${data.maxAttempts}`, false, false);
+        updateNgrokDetails({
+            status: 'reconnecting',
+            attempt: data.attempt,
+            maxAttempts: data.maxAttempts,
+            nextAttemptIn: Math.round(data.delay),
+            error: data.error,
+            timestamp: new Date().toISOString()
+        });
+    });
+    ngrokPeer.on('error', (error)=>{
+        const status = error.details?.type === 'max_retries' ? `Max retries (${ngrokPeer.maxConnectionAttempts}) reached. Please check the ngrok URL and try again.` : `Error: ${error.message}`;
+        updateNgrokStatus(status, true);
+        updateNgrokDetails({
+            status: 'error',
+            error: error.message,
+            details: error.details,
+            retryAttempts: ngrokPeer.connectionAttempts,
+            maxRetries: ngrokPeer.maxConnectionAttempts,
+            timestamp: new Date().toISOString()
+        });
+        ngrokConnect.disabled = false;
+        ngrokDisconnect.disabled = true;
+        ngrokUrl.disabled = false;
+    });
+    return ngrokPeer;
+}
+// Ngrok Interface Event Handlers
+ngrokConnect.addEventListener('click', ()=>{
+    const url = ngrokUrl.value.trim();
+    if (!url) {
+        updateNgrokStatus('Error: Please enter an ngrok URL', true);
+        return;
+    }
+    if (!validateNgrokUrl(url)) {
+        updateNgrokStatus('Error: Invalid ngrok URL format. URL should include "ngrok"', true);
+        return;
+    }
+    updateNgrokStatus('Connecting via ngrok...');
+    updateNgrokDetails('Initializing ngrok connection...');
+    initializeNgrokPeer(url);
+});
+ngrokDisconnect.addEventListener('click', ()=>{
+    if (ngrokPeer) {
+        ngrokPeer.close();
+        updateNgrokStatus('Disconnected', false, false);
+        updateNgrokDetails('Ngrok connection closed by user');
+        ngrokConnect.disabled = false;
+        ngrokDisconnect.disabled = true;
+        ngrokUrl.disabled = false;
+    }
+});
 // Clean up on page unload
 window.addEventListener('unload', ()=>{
+    if (ngrokPeer) ngrokPeer.close();
     if (activePeer) activePeer.close();
     if (kinectron) kinectron.close();
 });
@@ -901,7 +1004,7 @@ console.log('You are running Kinectron API version 0.3.9');
 // For backward compatibility, also attach to window
 if (typeof window !== 'undefined') window.Kinectron = Kinectron;
 
-},{"./peer/peerConnection.js":"1H7n3","./peer/peerConfig.js":"iPajw","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./kinectron-modern.js":"iYYl9"}],"1H7n3":[function(require,module,exports,__globalThis) {
+},{"./peer/peerConnection.js":"1H7n3","./peer/peerConfig.js":"iPajw","./kinectron-modern.js":"iYYl9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1H7n3":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -932,9 +1035,9 @@ class PeerConnection {
         /** @private */ this.messageQueue = [];
         /** @private */ this.maxQueueSize = 100;
         /** @private */ this.connectionAttempts = 0;
-        /** @private */ this.maxConnectionAttempts = 5;
+        /** @private */ this.maxConnectionAttempts = 3;
         /** @private */ this.reconnectDelay = 1000;
-        /** @private */ this.maxReconnectDelay = 8000;
+        /** @private */ this.maxReconnectDelay = 5000;
         /** @private */ this.serverState = 'disconnected';
         /** @private */ this.lastPingTime = 0;
         /** @private */ this.pingInterval = null;
@@ -980,11 +1083,11 @@ class PeerConnection {
             // Create peer instance with consistent ID
             this.peer = new (0, _peerjsDefault.default)(this.clientId, {
                 ...this.config,
-                // Add reliability options
+                // Basic reliability options
                 reliable: true,
-                retries: 3,
-                timeout: 10000,
-                pingInterval: 5000
+                retries: 2,
+                timeout: 5000,
+                debug: 3
             });
             this.setupPeerEventHandlers();
             this.startHealthCheck();
@@ -11163,7 +11266,7 @@ const DEFAULT_PEER_CONFIG = {
 const DEFAULT_PEER_ID = 'kinectron';
 function processPeerConfig(config) {
     if (!config) return DEFAULT_PEER_CONFIG;
-    // Handle ngrok addresses
+    // Handle ngrok addresses (simplified to match original implementation)
     if (typeof config === 'string' && config.includes('ngrok')) return {
         host: config,
         port: '443',
@@ -11275,7 +11378,7 @@ class Kinectron {
     }
 }
 
-},{"./peer/peerConnection.js":"1H7n3","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["lYePL","dHL4n"], "dHL4n", "parcelRequire94c2")
+},{"./peer/peerConnection.js":"1H7n3","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["5riBY","bmQXI"], "bmQXI", "parcelRequire94c2")
 
 </script>
 </body>
