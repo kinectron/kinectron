@@ -1,3 +1,23 @@
+import { NgrokValidationError, NgrokErrorCodes } from './errors.js';
+
+/**
+ * Validates a ngrok URL format
+ * @param {string} url - The URL to validate
+ * @throws {NgrokValidationError} If URL is invalid
+ */
+function validateNgrokUrl(url) {
+  if (!url.includes('ngrok-free.app')) {
+    throw new NgrokValidationError(
+      NgrokErrorCodes.INVALID_URL.message,
+      {
+        code: NgrokErrorCodes.INVALID_URL.code,
+        url,
+        reason: 'URL must include ngrok-free.app domain',
+      },
+    );
+  }
+}
+
 /**
  * @typedef {Object} PeerNetworkConfig
  * @property {string} host - The host address for the peer server
@@ -37,14 +57,24 @@ export const DEFAULT_PEER_ID = 'kinectron';
 export function processPeerConfig(config) {
   if (!config) return DEFAULT_PEER_CONFIG;
 
-  // Handle ngrok addresses (simplified to match original implementation)
+  // Handle ngrok addresses
   if (typeof config === 'string' && config.includes('ngrok')) {
-    return {
-      host: config,
-      port: '443',
-      path: '/',
-      secure: true,
-    };
+    try {
+      validateNgrokUrl(config);
+      return {
+        host: config,
+        port: '443',
+        path: '/',
+        secure: true,
+      };
+    } catch (error) {
+      // Add connection context to validation errors
+      if (error instanceof NgrokValidationError) {
+        error.details.context = 'peer_config_validation';
+        error.details.timestamp = new Date().toISOString();
+      }
+      throw error;
+    }
   }
 
   // Handle IP addresses or custom configs

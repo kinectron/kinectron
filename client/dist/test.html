@@ -65,6 +65,22 @@ button:disabled {
 button:hover:not(:disabled) {
   background: #f0f0f0;
 }
+
+.troubleshooting {
+  background: #fff3e0;
+  border-radius: 4px;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.troubleshooting ul {
+  margin: 5px 0;
+  padding-left: 20px;
+}
+
+.troubleshooting li {
+  margin: 5px 0;
+}
 </style>
 </head>
 
@@ -701,6 +717,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"bmQXI":[function(require,module,exports,__globalThis) {
 var _indexJs = require("./src/index.js");
+var _errorsJs = require("./src/peer/errors.js");
 // Modern Interface Setup
 const modernStatus = document.getElementById('modern-status');
 const modernDetails = document.getElementById('modern-details');
@@ -816,75 +833,108 @@ function updateNgrokStatus(message, isError = false, isSuccess = false) {
     ngrokStatus.textContent = 'Status: ' + message;
     ngrokStatus.className = isError ? 'error' : isSuccess ? 'success' : '';
 }
-function updateNgrokDetails(details) {
-    ngrokDetails.textContent = typeof details === 'string' ? details : JSON.stringify(details, null, 2);
+function formatErrorDetails(error) {
+    const details = {
+        name: error.name,
+        message: error.message,
+        code: error.details?.code,
+        timestamp: error.timestamp,
+        ...error.details
+    };
+    return details;
 }
-function validateNgrokUrl(url) {
-    return url.includes('ngrok');
+function updateNgrokDetails(details) {
+    // If it's an error object, format it specially
+    if (details instanceof Error) {
+        const formattedDetails = formatErrorDetails(details);
+        ngrokDetails.innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${formattedDetails.message}
+                        ${formattedDetails.code ? `<br><strong>Code:</strong> ${formattedDetails.code}` : ''}
+                        
+                        <div class="troubleshooting">
+                            <strong>Troubleshooting Steps:</strong>
+                            <ul>
+                                ${details.troubleshooting?.map((tip)=>`<li>${tip}</li>`).join('') || ''}
+                            </ul>
+                        </div>
+                        
+                        <strong>Technical Details:</strong>
+                        <pre>${JSON.stringify(formattedDetails, null, 2)}</pre>
+                    </div>
+                `;
+    } else ngrokDetails.textContent = typeof details === 'string' ? details : JSON.stringify(details, null, 2);
 }
 function initializeNgrokPeer(url) {
     if (ngrokPeer) ngrokPeer.close();
-    ngrokPeer = new (0, _indexJs.PeerConnection)(url);
-    ngrokPeer.on('ready', (data)=>{
-        updateNgrokStatus(`Connected via ngrok: ${url}`, false, true);
-        updateNgrokDetails({
-            status: 'connected',
-            peerId: 'kinectron',
-            url: url,
-            timestamp: data.timestamp,
-            connectionType: 'ngrok',
-            secure: url.startsWith('https'),
-            retryAttempts: ngrokPeer.connectionAttempts,
-            maxRetries: ngrokPeer.maxConnectionAttempts,
-            serverState: ngrokPeer.serverState
+    try {
+        ngrokPeer = new (0, _indexJs.PeerConnection)(url);
+        ngrokPeer.on('ready', (data)=>{
+            updateNgrokStatus(`Connected via ngrok: ${url}`, false, true);
+            updateNgrokDetails({
+                status: 'connected',
+                peerId: 'kinectron',
+                url: url,
+                timestamp: data.timestamp,
+                connectionType: 'ngrok',
+                secure: url.startsWith('https'),
+                retryAttempts: ngrokPeer.connectionAttempts,
+                maxRetries: ngrokPeer.maxConnectionAttempts,
+                serverState: ngrokPeer.serverState
+            });
+            ngrokConnect.disabled = true;
+            ngrokDisconnect.disabled = false;
+            ngrokUrl.disabled = true;
         });
-        ngrokConnect.disabled = true;
-        ngrokDisconnect.disabled = false;
-        ngrokUrl.disabled = true;
-    });
-    // Listen for reconnection attempts
-    ngrokPeer.on('reconnecting', (data)=>{
-        updateNgrokStatus(`Reconnecting... Attempt ${data.attempt} of ${data.maxAttempts}`, false, false);
-        updateNgrokDetails({
-            status: 'reconnecting',
-            attempt: data.attempt,
-            maxAttempts: data.maxAttempts,
-            nextAttemptIn: Math.round(data.delay),
-            error: data.error,
-            timestamp: new Date().toISOString()
+        // Listen for reconnection attempts
+        ngrokPeer.on('reconnecting', (data)=>{
+            updateNgrokStatus(`Reconnecting... Attempt ${data.attempt} of ${data.maxAttempts}`, false, false);
+            updateNgrokDetails({
+                status: 'reconnecting',
+                attempt: data.attempt,
+                maxAttempts: data.maxAttempts,
+                nextAttemptIn: Math.round(data.delay),
+                error: data.error,
+                timestamp: new Date().toISOString()
+            });
         });
-    });
-    ngrokPeer.on('error', (error)=>{
-        const status = error.details?.type === 'max_retries' ? `Max retries (${ngrokPeer.maxConnectionAttempts}) reached. Please check the ngrok URL and try again.` : `Error: ${error.message}`;
-        updateNgrokStatus(status, true);
-        updateNgrokDetails({
-            status: 'error',
-            error: error.message,
-            details: error.details,
-            retryAttempts: ngrokPeer.connectionAttempts,
-            maxRetries: ngrokPeer.maxConnectionAttempts,
-            timestamp: new Date().toISOString()
+        ngrokPeer.on('error', (error)=>{
+            updateNgrokStatus(error.message, true);
+            updateNgrokDetails(error);
+            ngrokConnect.disabled = false;
+            ngrokDisconnect.disabled = true;
+            ngrokUrl.disabled = false;
         });
+        return ngrokPeer;
+    } catch (error) {
+        updateNgrokStatus(error.message, true);
+        updateNgrokDetails(error);
         ngrokConnect.disabled = false;
         ngrokDisconnect.disabled = true;
         ngrokUrl.disabled = false;
-    });
-    return ngrokPeer;
+        throw error;
+    }
 }
 // Ngrok Interface Event Handlers
 ngrokConnect.addEventListener('click', ()=>{
     const url = ngrokUrl.value.trim();
     if (!url) {
-        updateNgrokStatus('Error: Please enter an ngrok URL', true);
+        const error = new (0, _errorsJs.NgrokValidationError)('Please enter an ngrok URL', {
+            code: 'NGROK_000',
+            reason: 'Empty URL'
+        });
+        updateNgrokStatus(error.message, true);
+        updateNgrokDetails(error);
         return;
     }
-    if (!validateNgrokUrl(url)) {
-        updateNgrokStatus('Error: Invalid ngrok URL format. URL should include "ngrok"', true);
-        return;
+    try {
+        updateNgrokStatus('Connecting via ngrok...');
+        updateNgrokDetails('Initializing ngrok connection...');
+        initializeNgrokPeer(url);
+    } catch (error) {
+        // Error handling is done in initializeNgrokPeer
+        console.error('Failed to initialize ngrok peer:', error);
     }
-    updateNgrokStatus('Connecting via ngrok...');
-    updateNgrokDetails('Initializing ngrok connection...');
-    initializeNgrokPeer(url);
 });
 ngrokDisconnect.addEventListener('click', ()=>{
     if (ngrokPeer) {
@@ -903,7 +953,7 @@ window.addEventListener('unload', ()=>{
     if (kinectron) kinectron.close();
 });
 
-},{"./src/index.js":"8lqZg"}],"8lqZg":[function(require,module,exports,__globalThis) {
+},{"./src/index.js":"8lqZg","./src/peer/errors.js":"iCCCO"}],"8lqZg":[function(require,module,exports,__globalThis) {
 /**
  * @fileoverview Main entry point for the Kinectron client library
  * @version 0.3.9
@@ -11233,16 +11283,7 @@ var Encoder = /** @class */ function() {
 }();
 
 },{"./utils/utf8.mjs":"boCqR","./ExtensionCodec.mjs":"5G6eb","./utils/int.mjs":"R0W7N","./utils/typedArrays.mjs":"haKoZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"iPajw":[function(require,module,exports,__globalThis) {
-/**
- * @typedef {Object} PeerNetworkConfig
- * @property {string} host - The host address for the peer server
- * @property {number|string} port - The port number for the peer server
- * @property {string} path - The path for the peer server
- * @property {boolean} [secure] - Whether to use secure connection
- */ /**
- * Default peer network configuration
- * @type {PeerNetworkConfig}
- */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "DEFAULT_PEER_CONFIG", ()=>DEFAULT_PEER_CONFIG);
 parcelHelpers.export(exports, "DEFAULT_PEER_ID", ()=>DEFAULT_PEER_ID);
@@ -11251,6 +11292,18 @@ parcelHelpers.export(exports, "DEFAULT_PEER_ID", ()=>DEFAULT_PEER_ID);
  * @param {Object} config - User provided network configuration
  * @returns {PeerNetworkConfig} Processed network configuration
  */ parcelHelpers.export(exports, "processPeerConfig", ()=>processPeerConfig);
+var _errorsJs = require("./errors.js");
+/**
+ * Validates a ngrok URL format
+ * @param {string} url - The URL to validate
+ * @throws {NgrokValidationError} If URL is invalid
+ */ function validateNgrokUrl(url) {
+    if (!url.includes('ngrok-free.app')) throw new (0, _errorsJs.NgrokValidationError)((0, _errorsJs.NgrokErrorCodes).INVALID_URL.message, {
+        code: (0, _errorsJs.NgrokErrorCodes).INVALID_URL.code,
+        url,
+        reason: 'URL must include ngrok-free.app domain'
+    });
+}
 const DEFAULT_PEER_CONFIG = {
     host: 'localhost',
     port: 9001,
@@ -11266,13 +11319,23 @@ const DEFAULT_PEER_CONFIG = {
 const DEFAULT_PEER_ID = 'kinectron';
 function processPeerConfig(config) {
     if (!config) return DEFAULT_PEER_CONFIG;
-    // Handle ngrok addresses (simplified to match original implementation)
-    if (typeof config === 'string' && config.includes('ngrok')) return {
-        host: config,
-        port: '443',
-        path: '/',
-        secure: true
-    };
+    // Handle ngrok addresses
+    if (typeof config === 'string' && config.includes('ngrok')) try {
+        validateNgrokUrl(config);
+        return {
+            host: config,
+            port: '443',
+            path: '/',
+            secure: true
+        };
+    } catch (error) {
+        // Add connection context to validation errors
+        if (error instanceof (0, _errorsJs.NgrokValidationError)) {
+            error.details.context = 'peer_config_validation';
+            error.details.timestamp = new Date().toISOString();
+        }
+        throw error;
+    }
     // Handle IP addresses or custom configs
     if (typeof config === 'string') return {
         ...DEFAULT_PEER_CONFIG,
@@ -11284,6 +11347,105 @@ function processPeerConfig(config) {
         ...config
     };
 }
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./errors.js":"iCCCO"}],"iCCCO":[function(require,module,exports,__globalThis) {
+/**
+ * Base class for ngrok-related errors
+ */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "NgrokError", ()=>NgrokError);
+/**
+ * Error for ngrok connection failures
+ */ parcelHelpers.export(exports, "NgrokConnectionError", ()=>NgrokConnectionError);
+/**
+ * Error for ngrok connection timeouts
+ */ parcelHelpers.export(exports, "NgrokTimeoutError", ()=>NgrokTimeoutError);
+/**
+ * Error for invalid ngrok configuration or URLs
+ */ parcelHelpers.export(exports, "NgrokValidationError", ()=>NgrokValidationError);
+parcelHelpers.export(exports, "NgrokErrorCodes", ()=>NgrokErrorCodes);
+class NgrokError extends Error {
+    /**
+   * @param {string} message - Error message
+   * @param {Object} details - Additional error details
+   */ constructor(message, details = {}){
+        super(message);
+        this.name = 'NgrokError';
+        this.details = details;
+        this.timestamp = new Date().toISOString();
+        this.troubleshooting = [
+            'Verify the ngrok tunnel is running',
+            'Check if the ngrok URL is correct',
+            'Ensure the Kinectron application is running'
+        ];
+    }
+}
+class NgrokConnectionError extends NgrokError {
+    constructor(message, details = {}){
+        super(message, {
+            ...details,
+            type: 'connection_error'
+        });
+        this.name = 'NgrokConnectionError';
+        this.troubleshooting = [
+            'Check if the ngrok tunnel is still active',
+            'Verify your internet connection',
+            'Try restarting the ngrok tunnel',
+            'Ensure no firewall is blocking the connection'
+        ];
+    }
+}
+class NgrokTimeoutError extends NgrokError {
+    constructor(message, details = {}){
+        super(message, {
+            ...details,
+            type: 'timeout_error'
+        });
+        this.name = 'NgrokTimeoutError';
+        this.troubleshooting = [
+            'The connection attempt timed out',
+            'Check your internet connection speed',
+            'Verify the Kinectron server is running',
+            'Try increasing the connection timeout'
+        ];
+    }
+}
+class NgrokValidationError extends NgrokError {
+    constructor(message, details = {}){
+        super(message, {
+            ...details,
+            type: 'validation_error'
+        });
+        this.name = 'NgrokValidationError';
+        this.troubleshooting = [
+            'Ensure the URL includes "ngrok-free.app"',
+            'Copy the URL directly from the Kinectron application',
+            'Make sure to include the full domain name'
+        ];
+    }
+}
+const NgrokErrorCodes = {
+    INVALID_URL: {
+        code: 'NGROK_001',
+        message: 'Invalid ngrok URL format'
+    },
+    CONNECTION_FAILED: {
+        code: 'NGROK_002',
+        message: 'Failed to establish ngrok connection'
+    },
+    CONNECTION_TIMEOUT: {
+        code: 'NGROK_003',
+        message: 'Connection attempt timed out'
+    },
+    TUNNEL_CLOSED: {
+        code: 'NGROK_004',
+        message: 'Ngrok tunnel was closed'
+    },
+    SERVER_UNREACHABLE: {
+        code: 'NGROK_005',
+        message: 'Unable to reach Kinectron server'
+    }
+};
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"iYYl9":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
