@@ -9,11 +9,64 @@ class KinectronApp {
   constructor() {
     this.cleanupFunctions = new Map();
     this.currentStream = null;
+
+    // Create a local ipc interface for peer controller to use
+    this.ipc = {
+      send: (channel, data) => {
+        if (window.electron && window.electron.ipcRenderer) {
+          window.electron.ipcRenderer.send(channel, data);
+        } else {
+          console.error('IPC renderer not available');
+        }
+      },
+    };
+
+    // Create and initialize peer controller
     this.peerController = new PeerController();
+    this.peerController.ipc = this.ipc;
     this.peerController.initialize();
+
+    // Listen for feed change events
+    this.peerController.on(
+      'feed-change',
+      this.handleFeedChange.bind(this),
+    );
+
     this.setupUIListeners();
     this.setupPeerListeners();
     this.setupNgrokListeners();
+  }
+
+  /**
+   * Handle feed change events from peer connections
+   * @private
+   * @param {Object} data - Feed change data
+   */
+  handleFeedChange(data) {
+    console.log(
+      `Feed changed to ${data.feed} for connection ${data.connection.peer}`,
+    );
+
+    // Update UI to reflect active feed
+    if (data.feed === 'stop-all') {
+      // Reset all button states
+      const feedButtons = [
+        'color',
+        'depth',
+        'raw-depth',
+        'skeleton',
+        'key',
+        'depth-key',
+        'rgbd',
+      ];
+      feedButtons.forEach((btn) =>
+        this.updateButtonState(btn, false),
+      );
+    } else {
+      // Update button state for the active feed
+      const buttonId = data.feed === 'body' ? 'skeleton' : data.feed;
+      this.updateButtonState(buttonId, true);
+    }
   }
 
   /**
@@ -168,6 +221,27 @@ class KinectronApp {
         document.getElementById('server-status').textContent =
           'Error';
         console.error('Peer error:', error);
+      },
+    );
+
+    // Listen for Kinect initialization events from API
+    this.peerController.on(
+      this.peerController.EVENTS.KINECT_INITIALIZED,
+      (data) => {
+        console.log(
+          'Received Kinect initialization event from API:',
+          data,
+        );
+        if (data.success) {
+          console.log('Kinect initialized successfully via API');
+          this.enableStreamControls(true);
+          this.updateButtonState('start-kinect-azure', true);
+        } else {
+          console.error(
+            'Failed to initialize Kinect via API:',
+            data.error,
+          );
+        }
       },
     );
 

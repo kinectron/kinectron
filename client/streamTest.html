@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinectron Stream Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        #defaultCanvas0 {
+            border: 1px solid #ccc;
+        }
+
+        #stats {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .stat-item {
+            margin: 5px 0;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="controls">
+        <button onclick="initializeKinect()">Initialize Kinect</button>
+        <button onclick="startColorStream()" disabled id="startColorBtn">Start Color Stream</button>
+        <button onclick="stopStream()" disabled id="stopStreamBtn">Stop Stream</button>
+    </div>
+    <div id="canvas-container"></div>
+    <div id="stats">
+        <div id="connectionStatus" class="stat-item">Connection Status: Disconnected</div>
+        <div id="streamStatus" class="stat-item">Stream Status: Inactive</div>
+        <div id="frameRate" class="stat-item">Frame Rate: 0 fps</div>
+        <div id="resolution" class="stat-item">Resolution: -</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+    <script type="module">
+        import { Kinectron } from './src/kinectron-modern.js';
+        window.Kinectron = Kinectron;
+    </script>
+    <script>
+        // Constants
+        const AZURE_COLOR_WIDTH = 1280;
+        const AZURE_COLOR_HEIGHT = 720;
+        const DISPLAY_SCALE = 0.5;
+
+        // Global variables
+        let kinectron = null;
+        let frameCount = 0;
+        let lastFrameTime = 0;
+        let frameRates = [];
+        let lastFrameTimestamp = 0;
+        let frameLatencies = [];
+        let isStreamActive = false;
+
+        function setup() {
+            // Create canvas
+            const canvas = createCanvas(AZURE_COLOR_WIDTH * DISPLAY_SCALE, AZURE_COLOR_HEIGHT * DISPLAY_SCALE);
+            canvas.parent('canvas-container');
+            pixelDensity(1);
+            background(255);
+
+            // Initialize Kinectron
+            kinectron = new Kinectron({
+                host: '127.0.0.1',
+                port: 9001,
+                path: '/'
+            });
+
+            // Connection status handling
+            kinectron.on('ready', () => {
+                document.getElementById('connectionStatus').innerHTML =
+                    '<span class="success">Connection Status: Connected</span>';
+            });
+
+            kinectron.on('error', (error) => {
+                document.getElementById('connectionStatus').innerHTML =
+                    `<span class="error">Connection Status: Error - ${error.error || error.message}</span>`;
+                console.error('Connection error:', error);
+            });
+
+            // Connect to server
+            kinectron.peer.connect();
+
+            // Start frame rate calculation
+            setInterval(calculateMetrics, 1000);
+        }
+
+        function draw() {
+            // Update frame rate display from p5.js
+            const p5FrameRate = frameRate().toFixed(0);
+            document.getElementById('frameRate').textContent =
+                `Frame Rate: ${p5FrameRate} fps (p5.js) / ${calculateAverageFrameRate().toFixed(1)} fps (actual)`;
+
+            // Draw frame count in corner if stream is active
+            if (isStreamActive) {
+                fill(0);
+                textSize(14);
+                text(`Frames: ${frameCount}`, 10, 20);
+            }
+        }
+
+        // Calculate metrics
+        function calculateMetrics() {
+            if (!isStreamActive) return;
+
+            // Calculate average latency
+            if (frameLatencies.length > 0) {
+                const avgLatency = frameLatencies.reduce((a, b) => a + b, 0) / frameLatencies.length;
+                document.getElementById('resolution').textContent =
+                    `Resolution: ${AZURE_COLOR_WIDTH}x${AZURE_COLOR_HEIGHT} (displayed at ${width}x${height}) | Avg Latency: ${avgLatency.toFixed(1)}ms`;
+
+                // Reset latencies array
+                frameLatencies = [];
+            }
+        }
+
+        // Calculate average frame rate
+        function calculateAverageFrameRate() {
+            if (frameRates.length === 0) return 0;
+            return frameRates.reduce((a, b) => a + b, 0) / frameRates.length;
+        }
+
+        // Initialize Kinect
+        window.initializeKinect = async function () {
+            document.getElementById('streamStatus').textContent = 'Initializing Kinect...';
+
+            try {
+                // Initialize Kinect on the server using Promise-based approach
+                const result = await kinectron.initKinect();
+
+                console.log('Kinect initialization result:', result);
+
+                if (result.success) {
+                    document.getElementById('streamStatus').innerHTML =
+                        '<span class="success">Kinect Initialized Successfully</span>';
+                    document.getElementById('startColorBtn').disabled = false;
+                    document.getElementById('stopStreamBtn').disabled = false;
+                } else {
+                    document.getElementById('streamStatus').innerHTML =
+                        `<span class="error">Kinect Initialization Failed: ${result.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                console.error('Error initializing Kinect:', error);
+                document.getElementById('streamStatus').innerHTML =
+                    `<span class="error">Kinect Initialization Failed: ${error.message || 'Unknown error'}</span>`;
+            }
+        }
+
+        // Start color stream
+        window.startColorStream = function () {
+            document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
+            frameCount = 0;
+            lastFrameTime = Date.now();
+            frameRates = [];
+            frameLatencies = [];
+            isStreamActive = true;
+
+            kinectron.startColor((frame) => {
+                // Update stream status
+                document.getElementById('streamStatus').innerHTML =
+                    '<span class="success">Stream Status: Active</span>';
+
+                // Calculate frame metrics
+                frameCount++;
+                const now = Date.now();
+
+                // Calculate frame rate every second
+                if (now - lastFrameTime >= 1000) {
+                    const fps = frameCount / ((now - lastFrameTime) / 1000);
+                    frameRates.push(fps);
+                    if (frameRates.length > 10) frameRates.shift(); // Keep last 10 readings
+                    frameCount = 0;
+                    lastFrameTime = now;
+                }
+
+                // Calculate frame latency
+                if (frame.timestamp) {
+                    const latency = now - frame.timestamp;
+                    frameLatencies.push(latency);
+                }
+
+                // Track last frame timestamp for jitter calculation
+                lastFrameTimestamp = now;
+
+                // Use p5.js loadImage to handle the frame data
+                loadImage(frame.src, (loadedImage) => {
+                    // Clear canvas
+                    background(255);
+                    // Draw the image
+                    image(loadedImage, 0, 0, width, height);
+                });
+            });
+        }
+
+        // Stop all streams
+        window.stopStream = function () {
+            kinectron.stopAll();
+            document.getElementById('streamStatus').textContent = 'Stream Status: Inactive';
+            document.getElementById('frameRate').textContent = 'Frame Rate: 0 fps';
+            document.getElementById('resolution').textContent = 'Resolution: -';
+            background(255);
+            isStreamActive = false;
+        }
+    </script>
+</body>
+
+</html>

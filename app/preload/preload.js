@@ -1,6 +1,25 @@
 // preload/preload.js
 const { contextBridge, ipcRenderer } = require('electron');
 
+// Expose electron object with ipcRenderer for direct IPC communication
+contextBridge.exposeInMainWorld('electron', {
+  ipcRenderer: {
+    send: (channel, data) => {
+      // Whitelist channels for security
+      const validChannels = [
+        'peer-feed-request',
+        'peer-multi-request',
+        'peer-connection-status',
+        'initialize-kinect',
+      ];
+
+      if (validChannels.includes(channel)) {
+        ipcRenderer.send(channel, data);
+      }
+    },
+  },
+});
+
 // Expose protected methods and constants that allow the renderer process to use
 // specific IPC channels via a 'kinectron' global variable
 contextBridge.exposeInMainWorld('kinectron', {

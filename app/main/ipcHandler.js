@@ -54,16 +54,58 @@ export class IpcHandler {
     });
 
     // Kinect initialization and cleanup
-    ipcMain.handle('initialize-kinect', async () => {
+    ipcMain.handle('initialize-kinect', async (event, data) => {
+      console.log(
+        'IpcHandler: Received initialize-kinect request',
+        data,
+      );
+
       try {
+        console.log(
+          'IpcHandler: Calling kinectController.initialize()',
+        );
         const success = this.kinectController.initialize();
+        console.log(
+          'IpcHandler: kinectController.initialize() returned:',
+          success,
+        );
+
         if (success) {
+          console.log('IpcHandler: Initializing stream handlers');
           // Initialize stream handlers after Kinect is ready
           this.streamManager.initialize();
+          console.log('IpcHandler: Stream handlers initialized');
+
+          // Broadcast success to all connected clients
+          console.log('IpcHandler: Broadcasting success to clients');
+          this.peerManager.broadcast('kinectInitialized', {
+            success: true,
+          });
+        } else {
+          console.warn('IpcHandler: Kinect initialization failed');
+          // Broadcast failure to all connected clients
+          console.log('IpcHandler: Broadcasting failure to clients');
+          this.peerManager.broadcast('kinectInitialized', {
+            success: false,
+            error: 'Failed to initialize Kinect',
+          });
         }
+
+        console.log('IpcHandler: Returning success value:', success);
         return success;
       } catch (error) {
-        console.error('Kinect initialization error:', error);
+        console.error(
+          'IpcHandler: Kinect initialization error:',
+          error,
+        );
+
+        // Broadcast error to all connected clients
+        console.log('IpcHandler: Broadcasting error to clients');
+        this.peerManager.broadcast('kinectInitialized', {
+          success: false,
+          error: error.message || 'Unknown error',
+        });
+
         throw error;
       }
     });
@@ -76,6 +118,28 @@ export class IpcHandler {
       } catch (error) {
         console.error('Error closing Kinect:', error);
         throw error;
+      }
+    });
+
+    // Handle Kinect initialization from renderer (using handle method above)
+
+    // Handle peer feed requests from renderer
+    ipcMain.on('peer-feed-request', (event, data) => {
+      try {
+        if (data && data.feed) {
+          console.log(
+            `Received feed request: ${data.feed} from connection: ${data.connection}`,
+          );
+
+          // Forward to stream manager
+          if (data.feed === 'stop-all') {
+            this.streamManager.stopAllStreams();
+          } else {
+            this.streamManager.startStream(data.feed);
+          }
+        }
+      } catch (error) {
+        console.error('Error handling peer feed request:', error);
       }
     });
 

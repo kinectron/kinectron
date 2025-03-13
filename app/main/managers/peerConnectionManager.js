@@ -275,6 +275,117 @@ export class PeerConnectionManager extends EventEmitter {
   }
 
   /**
+   * Broadcast a message to all connected clients
+   * @param {string} event - The event name
+   * @param {any} data - The data to send
+   */
+  broadcast(event, data) {
+    console.log('PeerConnectionManager: Broadcasting event:', event);
+
+    if (!this.server) {
+      console.warn(
+        'PeerConnectionManager: Cannot broadcast - server not running',
+      );
+      return;
+    }
+
+    // Check if _clients exists and is a Map
+    if (
+      !this.server._clients ||
+      typeof this.server._clients.forEach !== 'function'
+    ) {
+      console.warn(
+        'PeerConnectionManager: Cannot broadcast - no clients collection or invalid format',
+      );
+      return;
+    }
+
+    if (this.connectionQueue.size === 0) {
+      console.warn(
+        'PeerConnectionManager: Cannot broadcast - no clients in connection queue',
+      );
+      return;
+    }
+
+    console.log(
+      'PeerConnectionManager: Connection queue size:',
+      this.connectionQueue.size,
+    );
+    console.log(
+      'PeerConnectionManager: Clients in server:',
+      this.server._clients.size,
+    );
+
+    const message = {
+      event,
+      data,
+      timestamp: Date.now(),
+    };
+
+    try {
+      let sentCount = 0;
+      // Get all connected clients
+      this.server._clients.forEach((client, clientId) => {
+        if (!this.connectionQueue.has(clientId)) {
+          console.warn(
+            `PeerConnectionManager: Client ${clientId} not in connection queue, skipping`,
+          );
+          return;
+        }
+
+        console.log(
+          'PeerConnectionManager: Attempting to send to client:',
+          clientId,
+        );
+
+        if (!client) {
+          console.warn(
+            `PeerConnectionManager: Client ${clientId} not found in server clients`,
+          );
+          return;
+        }
+
+        if (!client.socket) {
+          console.warn(
+            `PeerConnectionManager: Client ${clientId} has no socket`,
+          );
+          return;
+        }
+
+        if (!client.socket.connected) {
+          console.warn(
+            `PeerConnectionManager: Client ${clientId} socket not connected`,
+          );
+          return;
+        }
+
+        try {
+          // Send message to each client
+          client.socket.send(JSON.stringify(message));
+          console.log(
+            `PeerConnectionManager: Successfully sent message to client ${clientId}`,
+          );
+          sentCount++;
+        } catch (err) {
+          console.warn(
+            `PeerConnectionManager: Failed to send message to client ${clientId}:`,
+            err,
+          );
+        }
+      });
+
+      console.log(
+        `PeerConnectionManager: Broadcast complete. Sent to ${sentCount}/${this.connectionQueue.size} clients`,
+      );
+    } catch (error) {
+      console.error(
+        'PeerConnectionManager: Error broadcasting message:',
+        error,
+      );
+    }
+  }
+
+  /**
    * Close the peer server and clean up resources
    */
   async close() {

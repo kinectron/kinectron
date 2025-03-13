@@ -32,6 +32,8 @@ export class PeerController {
       SERVER_STATE: 'serverState',
       QUEUE_FULL: 'queueFull',
       RECONNECTING: 'reconnecting',
+      FEED_CHANGE: 'feed-change',
+      KINECT_INITIALIZED: 'kinectInitialized',
     };
   }
 
@@ -335,6 +337,107 @@ export class PeerController {
           // Handle kinect type setting
           break;
 
+        case 'initkinect':
+          // Initialize Kinect
+          console.log(
+            'PeerController: Received initkinect event from client',
+          );
+          if (window.kinectron) {
+            console.log(
+              'PeerController: Using window.kinectron.initializeKinect()',
+            );
+            // Use the kinectron API to initialize the Kinect
+            // This uses the invoke/handle pattern which returns a Promise with the result
+            window.kinectron
+              .initializeKinect()
+              .then((success) => {
+                console.log(
+                  'PeerController: Kinect initialization result:',
+                  success,
+                );
+
+                // Check if the Kinect is actually initialized
+                if (success) {
+                  console.log(
+                    'PeerController: Kinect reported successful initialization',
+                  );
+
+                  // Emit an event for the app to listen to
+                  this.emit(this.EVENTS.KINECT_INITIALIZED, {
+                    success: true,
+                    error: null,
+                  });
+                } else {
+                  console.warn(
+                    'PeerController: Kinect reported failed initialization',
+                  );
+
+                  // Emit an event for the app to listen to
+                  this.emit(this.EVENTS.KINECT_INITIALIZED, {
+                    success: false,
+                    error: 'Failed to initialize Kinect',
+                  });
+                }
+
+                // Send the result back to the client
+                console.log(
+                  'PeerController: Sending result back to client',
+                );
+                conn.send({
+                  event: 'kinectInitialized',
+                  data: {
+                    success: success,
+                    error: success
+                      ? null
+                      : 'Failed to initialize Kinect',
+                  },
+                });
+              })
+              .catch((error) => {
+                console.error(
+                  'PeerController: Error initializing Kinect:',
+                  error,
+                );
+                // Send error back to client
+                console.log(
+                  'PeerController: Sending error back to client',
+                );
+                conn.send({
+                  event: 'kinectInitialized',
+                  data: {
+                    success: false,
+                    error:
+                      error.message ||
+                      'Unknown error initializing Kinect',
+                  },
+                });
+              });
+          } else if (this.ipc) {
+            console.log(
+              'PeerController: Falling back to IPC interface',
+            );
+            // Fallback to using the provided IPC interface
+            this.ipc.send('initialize-kinect', {
+              connection: conn.peer,
+            });
+          } else {
+            console.error(
+              'PeerController: Kinectron API not available for Kinect initialization',
+            );
+            // Send error back to client
+            console.log(
+              'PeerController: Sending error back to client',
+            );
+            conn.send({
+              event: 'kinectInitialized',
+              data: {
+                success: false,
+                error: 'Kinectron API not available',
+              },
+            });
+          }
+          break;
+
         case 'initfeed':
           if (data.data?.feed) {
             // Initialize feed
@@ -343,7 +446,26 @@ export class PeerController {
 
         case 'feed':
           if (data.data?.feed) {
-            // Change feed
+            // Forward feed request to main process
+            if (window.electron && window.electron.ipcRenderer) {
+              window.electron.ipcRenderer.send('peer-feed-request', {
+                feed: data.data.feed,
+                connection: conn.peer,
+              });
+            } else if (this.ipc) {
+              this.ipc.send('peer-feed-request', {
+                feed: data.data.feed,
+                connection: conn.peer,
+              });
+            } else {
+              console.error('IPC interface not available');
+            }
+
+            // Emit event for feed change
+            this.emit('feed-change', {
+              connection: conn,
+              feed: data.data.feed,
+            });
           }
           break;
 
@@ -365,6 +487,15 @@ export class PeerController {
             event: 'pong',
             data: { timestamp: Date.now() },
           });
+          break;
+
+        case 'kinectInitialized':
+          // Handle Kinect initialization response
+          console.log(
+            'Received Kinect initialization response:',
+            data.data,
+          );
+          this.emit(this.EVENTS.KINECT_INITIALIZED, data.data);
           break;
 
         default:

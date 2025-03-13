@@ -12,7 +12,8 @@
   "scripts": {
     "start": "parcel watch src/index.js",
     "build": "parcel build src/index.js --no-optimize",
-    "test": "parcel serve test.html --open"
+    "test": "parcel serve test.html --open",
+    "test:stream": "parcel serve streamTest.html --open"
   },
   "repository": {
     "type": "git",
