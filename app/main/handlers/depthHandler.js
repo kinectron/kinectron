@@ -38,6 +38,14 @@ export class DepthStreamHandler extends BaseStreamHandler {
    * Set up IPC handlers for depth stream
    */
   setupHandler() {
+    // Check if handler is already registered
+    if (ipcMain.listenerCount('start-depth-stream') > 0) {
+      console.log(
+        'Handler for start-depth-stream already registered',
+      );
+      return;
+    }
+
     ipcMain.handle('start-depth-stream', async (event) => {
       try {
         const success = await this.startStream();

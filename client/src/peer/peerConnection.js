@@ -121,7 +121,7 @@ export class PeerConnection {
         reliable: true,
         retries: 2,
         timeout: isNgrok ? 5000 : 3000,
-        debug: 3,
+        debug: 0, // Reduced from 3 to 0 to suppress verbose logs
       });
 
       // Move to connecting state (skip validation for local connections)
@@ -583,6 +583,7 @@ export class PeerConnection {
    */
   handleIncomingData(data) {
     try {
+      // First, try to find a specific handler for this event
       const handler = this.messageHandlers.get(data.event);
       if (handler) {
         handler({
@@ -590,6 +591,13 @@ export class PeerConnection {
           timestamp: Date.now(),
           state: this.state.getState(),
         });
+      } else {
+        // If no specific handler is found, forward the event to the data handler
+        // This ensures all events are forwarded to the Kinectron class
+        const dataHandler = this.messageHandlers.get('data');
+        if (dataHandler) {
+          dataHandler(data);
+        }
       }
     } catch (error) {
       console.error('Error handling incoming data:', error);

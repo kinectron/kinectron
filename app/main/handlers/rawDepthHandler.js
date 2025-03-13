@@ -33,6 +33,14 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
    * Set up IPC handlers for raw depth stream
    */
   setupHandler() {
+    // Check if handler is already registered
+    if (ipcMain.listenerCount('start-raw-depth-stream') > 0) {
+      console.log(
+        'Handler for start-raw-depth-stream already registered',
+      );
+      return;
+    }
+
     ipcMain.handle('start-raw-depth-stream', async (event) => {
       try {
         const success = await this.startStream();

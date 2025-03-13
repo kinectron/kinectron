@@ -19,6 +19,12 @@ export class RGBDStreamHandler extends BaseStreamHandler {
    * Set up IPC handlers for RGBD stream
    */
   setupHandler() {
+    // Check if handler is already registered
+    if (ipcMain.listenerCount('start-rgbd-stream') > 0) {
+      console.log('Handler for start-rgbd-stream already registered');
+      return;
+    }
+
     ipcMain.handle('start-rgbd-stream', async (event) => {
       try {
         const success = await this.startStream();

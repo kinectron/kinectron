@@ -33,6 +33,14 @@ export class BodyStreamHandler extends BaseStreamHandler {
    * Set up IPC handlers for body tracking stream
    */
   setupHandler() {
+    // Check if handler is already registered
+    if (ipcMain.listenerCount('start-body-tracking') > 0) {
+      console.log(
+        'Handler for start-body-tracking already registered',
+      );
+      return;
+    }
+
     ipcMain.handle('start-body-tracking', async (event) => {
       try {
         const success = await this.startStream();

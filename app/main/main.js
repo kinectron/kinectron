@@ -62,7 +62,11 @@ function createWindow() {
     'index.html',
   );
   win.loadFile(indexPath);
-  win.openDevTools();
+
+  // Ensure devtools always opens by waiting for the window to load completely
+  win.webContents.on('did-finish-load', () => {
+    win.openDevTools();
+  });
 }
 
 app

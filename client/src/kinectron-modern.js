@@ -36,7 +36,9 @@ export class Kinectron {
     this.peer.on('data', (data) => {
       const { event, data: eventData } = data;
       const handler = this.messageHandlers.get(event);
-      if (handler) handler(eventData);
+      if (handler) {
+        handler(eventData);
+      }
     });
   }
 
@@ -77,13 +79,37 @@ export class Kinectron {
     const initPromise = new Promise((resolve, reject) => {
       // Set up a one-time handler for the initialization response
       const handler = (data) => {
-        if (data.success) {
-          resolve(data);
+        // Normalize the success value to handle nested structure
+        let isSuccess = false;
+        if (
+          data.success &&
+          typeof data.success === 'object' &&
+          data.success.success === true
+        ) {
+          isSuccess = true;
+        } else if (
+          typeof data.success === 'boolean' &&
+          data.success === true
+        ) {
+          isSuccess = true;
+        }
+
+        // Create a normalized result object
+        const normalizedResult = {
+          success: isSuccess,
+          alreadyInitialized: !!data.alreadyInitialized,
+          error: data.error || null,
+          rawData: data, // Include the original data for debugging
+        };
+
+        if (isSuccess || data.alreadyInitialized) {
+          resolve(normalizedResult);
         } else {
           reject(
             new Error(data.error || 'Failed to initialize Kinect'),
           );
         }
+
         // Remove the handler after it's been called
         this.messageHandlers.delete('kinectInitialized');
       };

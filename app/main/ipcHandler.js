@@ -64,13 +64,13 @@ export class IpcHandler {
         console.log(
           'IpcHandler: Calling kinectController.initialize()',
         );
-        const success = this.kinectController.initialize();
+        const result = this.kinectController.initialize();
         console.log(
           'IpcHandler: kinectController.initialize() returned:',
-          success,
+          result,
         );
 
-        if (success) {
+        if (result.success) {
           console.log('IpcHandler: Initializing stream handlers');
           // Initialize stream handlers after Kinect is ready
           this.streamManager.initialize();
@@ -81,18 +81,27 @@ export class IpcHandler {
           this.peerManager.broadcast('kinectInitialized', {
             success: true,
           });
+        } else if (result.alreadyInitialized) {
+          console.log('IpcHandler: Kinect is already initialized');
+
+          // Broadcast specific message to clients
+          this.peerManager.broadcast('kinectInitialized', {
+            success: false,
+            error: 'Kinect is already initialized',
+            alreadyInitialized: true,
+          });
         } else {
           console.warn('IpcHandler: Kinect initialization failed');
           // Broadcast failure to all connected clients
           console.log('IpcHandler: Broadcasting failure to clients');
           this.peerManager.broadcast('kinectInitialized', {
             success: false,
-            error: 'Failed to initialize Kinect',
+            error: result.error || 'Failed to initialize Kinect',
           });
         }
 
-        console.log('IpcHandler: Returning success value:', success);
-        return success;
+        console.log('IpcHandler: Returning result:', result);
+        return result;
       } catch (error) {
         console.error(
           'IpcHandler: Kinect initialization error:',

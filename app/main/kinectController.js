@@ -72,6 +72,14 @@ export class KinectController {
 
   initialize() {
     try {
+      // Check if Kinect is already initialized
+      if (this.kinect) {
+        console.log(
+          'KinectController: Kinect is already initialized',
+        );
+        return { success: false, alreadyInitialized: true };
+      }
+
       console.log(
         'KinectController: Creating new KinectAzure instance',
       );
@@ -89,16 +97,19 @@ export class KinectController {
         console.log(
           'KinectController: Kinect initialized successfully',
         );
+        return { success: true };
       } else {
         console.warn(
           'KinectController: kinect.open() returned false',
         );
+        return {
+          success: false,
+          error: 'Failed to open Kinect device',
+        };
       }
-
-      return result;
     } catch (error) {
       console.error('Failed to initialize Kinect:', error);
-      return false;
+      return { success: false, error: error.message };
     }
   }
 

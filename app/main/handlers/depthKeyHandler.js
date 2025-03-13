@@ -18,6 +18,14 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
    * Set up IPC handlers for depth key stream
    */
   setupHandler() {
+    // Check if handler is already registered
+    if (ipcMain.listenerCount('start-depth-key-stream') > 0) {
+      console.log(
+        'Handler for start-depth-key-stream already registered',
+      );
+      return;
+    }
+
     ipcMain.handle('start-depth-key-stream', async (event) => {
       try {
         const success = await this.startStream();

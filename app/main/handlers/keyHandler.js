@@ -18,6 +18,12 @@ export class KeyStreamHandler extends BaseStreamHandler {
    * Set up IPC handlers for key stream
    */
   setupHandler() {
+    // Check if handler is already registered
+    if (ipcMain.listenerCount('start-key-stream') > 0) {
+      console.log('Handler for start-key-stream already registered');
+      return;
+    }
+
     ipcMain.handle('start-key-stream', async (event) => {
       try {
         const success = await this.startStream();

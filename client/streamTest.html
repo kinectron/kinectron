@@ -49,6 +49,16 @@
         <div id="resolution" class="stat-item">Resolution: -</div>
     </div>
 
+    <!-- Debug Panel -->
+    <div id="debugPanel" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; background-color: #f5f5f5;">
+        <h3>Debug Panel</h3>
+        <div id="debugInfo"></div>
+        <div>
+            <button onclick="forceEnableButtons()">Force Enable Buttons</button>
+            <button onclick="clearDebugInfo()">Clear Debug Info</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
     <script type="module">
         import { Kinectron } from './src/kinectron-modern.js';
@@ -87,12 +97,53 @@
             kinectron.on('ready', () => {
                 document.getElementById('connectionStatus').innerHTML =
                     '<span class="success">Connection Status: Connected</span>';
+                addDebugInfo('Peer connection ready');
             });
 
             kinectron.on('error', (error) => {
                 document.getElementById('connectionStatus').innerHTML =
                     `<span class="error">Connection Status: Error - ${error.error || error.message}</span>`;
                 console.error('Connection error:', error);
+                addDebugInfo(`Connection error: ${error.error || error.message}`);
+            });
+
+            // Direct event listener for kinectInitialized as a backup approach
+            kinectron.on('kinectInitialized', (data) => {
+                addDebugInfo(`Direct kinectInitialized event received: ${JSON.stringify(data)}`);
+
+                // Log button states before update
+                const startBtnBefore = document.getElementById('startColorBtn').disabled;
+                const stopBtnBefore = document.getElementById('stopStreamBtn').disabled;
+                addDebugInfo(`Button states before: startColorBtn=${startBtnBefore}, stopStreamBtn=${stopBtnBefore}`);
+
+                // Normalize the success value to handle nested structure
+                let isSuccess = false;
+                if (data.success && typeof data.success === 'object' && data.success.success === true) {
+                    isSuccess = true;
+                } else if (typeof data.success === 'boolean' && data.success === true) {
+                    isSuccess = true;
+                }
+
+                // Enable buttons if successful
+                if (isSuccess || data.alreadyInitialized) {
+                    document.getElementById('startColorBtn').disabled = false;
+                    document.getElementById('stopStreamBtn').disabled = false;
+                    document.getElementById('streamStatus').innerHTML =
+                        '<span class="success">Kinect Initialized via Direct Event</span>';
+                    addDebugInfo('Kinect initialized successfully via direct event');
+                } else {
+                    addDebugInfo(`Kinect initialization had issues: ${data.error || 'Unknown error'}`);
+                }
+
+                // Log button states after update
+                const startBtnAfter = document.getElementById('startColorBtn').disabled;
+                const stopBtnAfter = document.getElementById('stopStreamBtn').disabled;
+                addDebugInfo(`Button states after: startColorBtn=${startBtnAfter}, stopStreamBtn=${stopBtnAfter}`);
+            });
+
+            // Add a data event listener to capture all peer messages
+            kinectron.on('data', (data) => {
+                addDebugInfo(`Raw data event received: ${JSON.stringify(data)}`);
             });
 
             // Connect to server
@@ -137,27 +188,72 @@
             return frameRates.reduce((a, b) => a + b, 0) / frameRates.length;
         }
 
+        // Debug functions
+        function addDebugInfo(message) {
+            const debugInfo = document.getElementById('debugInfo');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.innerHTML = `<strong>${timestamp}</strong>: ${message}`;
+            debugInfo.appendChild(entry);
+
+            // Scroll to bottom
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+        }
+
+        function forceEnableButtons() {
+            document.getElementById('startColorBtn').disabled = false;
+            document.getElementById('stopStreamBtn').disabled = false;
+            addDebugInfo('Buttons forcibly enabled');
+        }
+
+        function clearDebugInfo() {
+            document.getElementById('debugInfo').innerHTML = '';
+        }
+
         // Initialize Kinect
         window.initializeKinect = async function () {
             document.getElementById('streamStatus').textContent = 'Initializing Kinect...';
+            addDebugInfo('Initializing Kinect...');
 
             try {
                 // Initialize Kinect on the server using Promise-based approach
+                addDebugInfo('Calling kinectron.initKinect()');
                 const result = await kinectron.initKinect();
 
-                console.log('Kinect initialization result:', result);
+                addDebugInfo(`Kinect initialization result: ${JSON.stringify(result)}`);
 
-                if (result.success) {
+                // Log button states before update
+                const startBtnBefore = document.getElementById('startColorBtn').disabled;
+                const stopBtnBefore = document.getElementById('stopStreamBtn').disabled;
+                addDebugInfo(`Button states before update: startColorBtn=${startBtnBefore}, stopStreamBtn=${stopBtnBefore}`);
+
+                // Check for success in the normalized result
+                if (result.success || result.alreadyInitialized) {
+                    addDebugInfo('Kinect initialized successfully - enabling buttons');
                     document.getElementById('streamStatus').innerHTML =
-                        '<span class="success">Kinect Initialized Successfully</span>';
+                        `<span class="success">Kinect ${result.alreadyInitialized ? 'Already' : ''} Initialized Successfully</span>`;
+
+                    // Enable the buttons
                     document.getElementById('startColorBtn').disabled = false;
                     document.getElementById('stopStreamBtn').disabled = false;
                 } else {
+                    addDebugInfo(`Kinect initialization failed: ${result.error || 'Unknown error'}`);
                     document.getElementById('streamStatus').innerHTML =
                         `<span class="error">Kinect Initialization Failed: ${result.error || 'Unknown error'}</span>`;
                 }
+
+                // Log button states after update
+                const startBtnAfter = document.getElementById('startColorBtn').disabled;
+                const stopBtnAfter = document.getElementById('stopStreamBtn').disabled;
+                addDebugInfo(`Button states after update: startColorBtn=${startBtnAfter}, stopStreamBtn=${stopBtnAfter}`);
+
+                // Try to force enable buttons if they're still disabled
+                if (startBtnAfter || stopBtnAfter) {
+                    addDebugInfo('Buttons still disabled after update, forcing enable...');
+                    forceEnableButtons();
+                }
             } catch (error) {
-                console.error('Error initializing Kinect:', error);
+                addDebugInfo(`Error initializing Kinect: ${error.message || 'Unknown error'}`);
                 document.getElementById('streamStatus').innerHTML =
                     `<span class="error">Kinect Initialization Failed: ${error.message || 'Unknown error'}</span>`;
             }

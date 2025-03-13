@@ -18,6 +18,14 @@ export class ColorStreamHandler extends BaseStreamHandler {
    * Set up IPC handlers for color stream
    */
   setupHandler() {
+    // Check if handler is already registered
+    if (ipcMain.listenerCount('start-color-stream') > 0) {
+      console.log(
+        'Handler for start-color-stream already registered',
+      );
+      return;
+    }
+
     ipcMain.handle('start-color-stream', async (event) => {
       try {
         const success = await this.startStream();
@@ -51,7 +59,7 @@ export class ColorStreamHandler extends BaseStreamHandler {
           // Broadcast to peers
           const framePackage = this.createDataPackage('frame', {
             name: 'color',
-            imagedata: processedData.imagedata,
+            imagedata: processedData.imageData, // Use imageData from processedData
           });
           this.broadcastFrame('frame', framePackage, true);
         }
