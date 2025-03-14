@@ -41,7 +41,15 @@ export class PeerController {
       window.electron.ipcRenderer.on(
         'broadcast-to-peers',
         (message) => {
+          console.log(
+            'PeerController: Received broadcast-to-peers event:',
+            message,
+          );
           if (message && message.event && message.data) {
+            console.log(
+              'PeerController: Broadcasting to peers:',
+              message.event,
+            );
             this.broadcast(
               message.event,
               message.data,
@@ -431,13 +439,26 @@ export class PeerController {
 
         case 'feed':
           if (data.data?.feed) {
+            console.log(
+              'PeerController: Received feed event:',
+              data.data.feed,
+              'from connection:',
+              conn.peer,
+            );
+
             // Forward feed request to main process
             if (window.electron && window.electron.ipcRenderer) {
+              console.log(
+                'PeerController: Forwarding feed request to main process via electron.ipcRenderer',
+              );
               window.electron.ipcRenderer.send('peer-feed-request', {
                 feed: data.data.feed,
                 connection: conn.peer,
               });
             } else if (this.ipc) {
+              console.log(
+                'PeerController: Forwarding feed request to main process via this.ipc',
+              );
               this.ipc.send('peer-feed-request', {
                 feed: data.data.feed,
                 connection: conn.peer,
@@ -449,6 +470,10 @@ export class PeerController {
             }
 
             // Emit event for feed change
+            console.log(
+              'PeerController: Emitting feed-change event for',
+              data.data.feed,
+            );
             this.emit('feed-change', {
               connection: conn,
               feed: data.data.feed,

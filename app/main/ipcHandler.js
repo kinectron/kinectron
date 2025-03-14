@@ -135,9 +135,14 @@ export class IpcHandler {
     // Handle peer feed requests from renderer
     ipcMain.on('peer-feed-request', (event, data) => {
       try {
+        console.log(
+          'IpcHandler: Received peer-feed-request event:',
+          data,
+        );
+
         if (data && data.feed) {
           console.log(
-            `IpcHandler: Received feed request: ${data.feed} from connection: ${data.connection}`,
+            `IpcHandler: Processing feed request: ${data.feed} from connection: ${data.connection}`,
           );
 
           // Forward to stream manager
@@ -146,10 +151,57 @@ export class IpcHandler {
             this.streamManager.stopAllStreams();
           } else {
             console.log(`IpcHandler: Starting stream: ${data.feed}`);
-            this.streamManager.startStream(data.feed);
+
+            // Add detailed logging for depth stream specifically
+            if (data.feed === 'depth') {
+              console.log(
+                'IpcHandler: DEPTH STREAM REQUESTED - Adding extra logging',
+              );
+              console.log(
+                'IpcHandler: Current stream manager state:',
+                {
+                  activeStreams: this.streamManager.activeStreams
+                    ? Array.from(this.streamManager.activeStreams)
+                    : 'none',
+                  hasDepthHandler:
+                    !!this.streamManager.getHandler('depth'),
+                },
+              );
+            }
+
+            const success = this.streamManager.startStream(data.feed);
             console.log(
-              `IpcHandler: Stream ${data.feed} start request forwarded to stream manager`,
+              `IpcHandler: Stream ${data.feed} start request forwarded to stream manager, result: ${success}`,
             );
+
+            // Register a one-time listener for depth frames to verify they're being sent
+            if (data.feed === 'depth') {
+              let frameCount = 0;
+              const depthFrameListener = (frameData) => {
+                frameCount++;
+                console.log(
+                  `IpcHandler: Depth frame #${frameCount} received from main process, sending to renderer`,
+                );
+                if (frameCount >= 5) {
+                  // Remove listener after 5 frames to avoid console spam
+                  ipcMain.removeListener(
+                    'depth-frame',
+                    depthFrameListener,
+                  );
+                }
+              };
+
+              // Listen for depth frames being sent to renderer
+              ipcMain.on('depth-frame', depthFrameListener);
+
+              // Remove listener after 10 seconds regardless
+              setTimeout(() => {
+                ipcMain.removeListener(
+                  'depth-frame',
+                  depthFrameListener,
+                );
+              }, 10000);
+            }
           }
         } else {
           console.warn(

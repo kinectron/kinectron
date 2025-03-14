@@ -43,50 +43,93 @@ class KinectronApp {
    * @param {Object} data - Feed change data
    */
   handleFeedChange(data) {
-    console.log(
-      `Feed changed to ${data.feed} for connection ${data.connection.peer}`,
-    );
+    try {
+      // Extract only the necessary data to avoid circular references
+      const feedType = data.feed;
+      const connectionId = data.connection?.peer || 'unknown';
 
-    // Update UI to reflect active feed
-    if (data.feed === 'stop-all') {
-      // Reset all button states
-      const feedButtons = [
-        'color',
-        'depth',
-        'raw-depth',
-        'skeleton',
-        'key',
-        'depth-key',
-        'rgbd',
-      ];
-      feedButtons.forEach((btn) =>
-        this.updateButtonState(btn, false),
+      console.log(
+        `Feed changed to ${feedType} for connection ${connectionId}`,
+      );
+      console.log(
+        'handleFeedChange data:',
+        JSON.stringify({
+          feed: feedType,
+          connectionId: connectionId,
+          timestamp: data.timestamp,
+        }),
       );
 
-      // Stop current stream if any
-      if (this.currentStream) {
-        this.stopCurrentStream();
-      }
-    } else {
-      // Update button state for the active feed
-      const buttonId = data.feed === 'body' ? 'skeleton' : data.feed;
-      this.updateButtonState(buttonId, true);
-
-      // Start the stream if it's not already active
-      if (this.currentStream !== data.feed) {
-        console.log(`Starting ${data.feed} stream via API`);
+      // Update UI to reflect active feed
+      if (feedType === 'stop-all') {
+        console.log('Handling stop-all feed request');
+        // Reset all button states
+        const feedButtons = [
+          'color',
+          'depth',
+          'raw-depth',
+          'skeleton',
+          'key',
+          'depth-key',
+          'rgbd',
+        ];
+        feedButtons.forEach((btn) => {
+          console.log(`Resetting button state for ${btn}`);
+          this.updateButtonState(btn, false);
+        });
 
         // Stop current stream if any
         if (this.currentStream) {
-          this.stopCurrentStream().then(() => {
-            // Wait 500ms to avoid ThreadSafeFunction error when switching feeds
-            setTimeout(() => {
-              this.startStreamFromFeed(data.feed);
-            }, 500);
-          });
-        } else {
-          this.startStreamFromFeed(data.feed);
+          console.log(
+            `Stopping current stream: ${this.currentStream}`,
+          );
+          this.stopCurrentStream();
         }
+      } else {
+        // Update button state for the active feed
+        const buttonId = feedType === 'body' ? 'skeleton' : feedType;
+        console.log(
+          `Updating button state for ${buttonId} to active`,
+        );
+        this.updateButtonState(buttonId, true);
+
+        // Start the stream if it's not already active
+        if (this.currentStream !== feedType) {
+          console.log(`Starting ${feedType} stream via API`);
+
+          // Stop current stream if any
+          if (this.currentStream) {
+            console.log(
+              `Stopping current stream ${this.currentStream} before starting ${feedType}`,
+            );
+            this.stopCurrentStream().then(() => {
+              // Wait 500ms to avoid ThreadSafeFunction error when switching feeds
+              console.log(
+                `Waiting 500ms before starting ${feedType}`,
+              );
+              setTimeout(() => {
+                console.log(`Now starting ${feedType} after delay`);
+                this.startStreamFromFeed(feedType);
+              }, 500);
+            });
+          } else {
+            console.log(
+              `No current stream active, starting ${feedType} immediately`,
+            );
+            this.startStreamFromFeed(feedType);
+          }
+        } else {
+          console.log(
+            `Stream ${feedType} is already active, not starting again`,
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error in handleFeedChange:', error);
+      // Try to continue with the feed change even if logging failed
+      const feedType = data.feed;
+      if (feedType && feedType !== 'stop-all') {
+        this.startStreamFromFeed(feedType);
       }
     }
   }
@@ -686,19 +729,39 @@ class KinectronApp {
   }
 
   async startDepthStream() {
+    console.log('startDepthStream called');
     try {
       const canvas = document.getElementById('depth-canvas');
       if (canvas) {
         canvas.width = 640; // Azure Kinect depth width
         canvas.height = 576; // Azure Kinect depth height
+        console.log(
+          'Depth canvas dimensions set:',
+          canvas.width,
+          'x',
+          canvas.height,
+        );
+      } else {
+        console.error('Depth canvas element not found!');
       }
 
+      console.log('Calling window.kinectron.startDepthStream()');
       const success = await window.kinectron.startDepthStream();
+      console.log(
+        'window.kinectron.startDepthStream() returned:',
+        success,
+      );
+
       if (success) {
+        console.log('Setting up onDepthFrame callback');
         const cleanup = window.kinectron.onDepthFrame((frameData) => {
+          console.log('onDepthFrame callback received frame data');
           this.processDepthFrame(frameData);
         });
+        console.log('Callback registered, storing cleanup function');
         this.cleanupFunctions.set('depth', cleanup);
+      } else {
+        console.error('Failed to start depth stream');
       }
       return success;
     } catch (error) {
@@ -708,17 +771,118 @@ class KinectronApp {
   }
 
   processDepthFrame(frameData) {
+    console.log(
+      'APP: processDepthFrame called with data:',
+      frameData,
+    );
+    console.log(
+      'APP: Frame data structure:',
+      frameData
+        ? `name=${frameData.name}, has imagedata=${
+            !!frameData.imagedata || !!frameData.imageData
+          }`
+        : 'null',
+    );
+
     const canvas = document.getElementById('depth-canvas');
-    if (!canvas) return;
+    if (!canvas) {
+      console.error('APP: Depth canvas not found');
+      return;
+    }
+    console.log(
+      'APP: Found depth canvas with dimensions:',
+      canvas.width,
+      'x',
+      canvas.height,
+    );
 
     const context = canvas.getContext('2d');
-    if (frameData.imageData && frameData.imageData.data) {
-      const imageData = new ImageData(
-        new Uint8ClampedArray(frameData.imageData.data),
-        frameData.imageData.width,
-        frameData.imageData.height,
+    if (!context) {
+      console.error(
+        'APP: Could not get 2D context from depth canvas',
       );
-      context.putImageData(imageData, 0, 0);
+      return;
+    }
+
+    // Check for the new frame data structure (from peer connection)
+    const imageData = frameData.imagedata || frameData.imageData;
+
+    if (imageData) {
+      console.log(
+        'APP: Depth frame has imageData, dimensions:',
+        imageData.width,
+        'x',
+        imageData.height,
+        'data type:',
+        typeof imageData.data,
+        'data length:',
+        typeof imageData.data === 'string'
+          ? imageData.data.substring(0, 50) + '...'
+          : imageData.data
+          ? imageData.data.length
+          : 'null',
+      );
+
+      try {
+        // Check if data is a string (data URL)
+        if (typeof imageData.data === 'string') {
+          console.log('APP: Depth frame data is a string (data URL)');
+          // Create an image from the data URL
+          const img = new Image();
+
+          img.onload = () => {
+            console.log(
+              'APP: Depth image loaded successfully, drawing to canvas',
+              img.width,
+              'x',
+              img.height,
+            );
+            // Clear the canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            // Draw the image to the canvas
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            console.log('APP: Image drawn to canvas');
+          };
+
+          img.onerror = (err) => {
+            console.error('APP: Error loading depth image:', err);
+            console.error(
+              'APP: Data URL starts with:',
+              imageData.data.substring(0, 50) + '...',
+            );
+          };
+
+          console.log('APP: Setting image src to data URL');
+          img.src = imageData.data;
+          console.log('APP: Image src set');
+        } else {
+          console.log(
+            'APP: Processing raw pixel data for depth frame',
+          );
+          // Original code for handling raw pixel data
+          const imgData = new ImageData(
+            new Uint8ClampedArray(imageData.data),
+            imageData.width,
+            imageData.height,
+          );
+          context.putImageData(imgData, 0, 0);
+          console.log('APP: Raw pixel data drawn to canvas');
+        }
+      } catch (error) {
+        console.error('APP: Error drawing depth frame:', error);
+        console.error('APP: Frame data type:', typeof imageData.data);
+        if (typeof imageData.data === 'string') {
+          console.error(
+            'APP: Data URL starts with:',
+            imageData.data.substring(0, 50) + '...',
+          );
+        }
+      }
+    } else {
+      console.error(
+        'APP: Depth frame missing image data:',
+        frameData,
+      );
     }
   }
 

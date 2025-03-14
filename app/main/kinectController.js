@@ -160,14 +160,56 @@ export class KinectController {
   }
 
   startDepthCamera(options = {}) {
+    console.log(
+      'KinectController: startDepthCamera called with options:',
+      options,
+    );
     try {
-      this.kinect.startCameras({
+      const depthOptions = {
         ...KinectOptions.DEPTH,
         ...options,
-      });
+      };
+
+      console.log(
+        'KinectController: Starting depth camera with options:',
+        depthOptions,
+      );
+
+      // Check if cameras are already running
+      try {
+        console.log(
+          'KinectController: Stopping cameras first to ensure clean start',
+        );
+        this.kinect.stopCameras();
+        console.log('KinectController: Cameras stopped successfully');
+      } catch (stopError) {
+        console.warn(
+          'KinectController: Error stopping cameras (may be normal if not started):',
+          stopError,
+        );
+      }
+
+      // Start the cameras
+      this.kinect.startCameras(depthOptions);
+      console.log(
+        'KinectController: Depth camera started successfully',
+      );
+
+      // Get depth mode range for debugging
+      const depthRange = this.kinect.getDepthModeRange(
+        depthOptions.depth_mode,
+      );
+      console.log(
+        'KinectController: Depth range for current mode:',
+        depthRange,
+      );
+
       return true;
     } catch (error) {
-      console.error('Failed to start depth camera:', error);
+      console.error(
+        'KinectController: Failed to start depth camera:',
+        error,
+      );
       return false;
     }
   }
@@ -278,11 +320,66 @@ export class KinectController {
     }
 
     try {
+      console.log(
+        'KinectController: Starting to listen for Kinect frames',
+      );
+
+      // Create a frame counter for debugging
+      let frameCount = 0;
+      let lastLogTime = Date.now();
+      let depthFrameCount = 0;
+      let colorFrameCount = 0;
+
       this.isListening = true;
       this.kinect.startListening((data) => {
-        // Call the original callback without logging every frame
+        // Log frame statistics every second
+        const now = Date.now();
+        frameCount++;
+
+        // Track frame types
+        if (data.depthImageFrame) {
+          depthFrameCount++;
+        }
+        if (data.colorImageFrame) {
+          colorFrameCount++;
+        }
+
+        // Log frame statistics every second
+        if (now - lastLogTime >= 1000) {
+          console.log(
+            `KinectController: Received ${frameCount} frames in the last second (${depthFrameCount} depth, ${colorFrameCount} color)`,
+          );
+
+          // Log depth frame details occasionally
+          if (depthFrameCount > 0 && data.depthImageFrame) {
+            console.log(
+              'KinectController: Sample depth frame details:',
+              {
+                width: data.depthImageFrame.width_pixels,
+                height: data.depthImageFrame.height_pixels,
+                format: data.depthImageFrame.format,
+                bufferSize: data.depthImageFrame.buffer
+                  ? data.depthImageFrame.buffer.byteLength
+                  : 'N/A',
+                timestamp: data.depthImageFrame.timestamp_usec,
+              },
+            );
+          }
+
+          // Reset counters
+          frameCount = 0;
+          depthFrameCount = 0;
+          colorFrameCount = 0;
+          lastLogTime = now;
+        }
+
+        // Call the original callback
         callback(data);
       });
+
+      console.log(
+        'KinectController: Successfully started listening for Kinect frames',
+      );
       return true;
     } catch (error) {
       console.error(

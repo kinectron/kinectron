@@ -39,6 +39,7 @@
     <div id="controls">
         <button onclick="initializeKinect()">Initialize Kinect</button>
         <button onclick="startColorStream()" disabled id="startColorBtn">Start Color Stream</button>
+        <button onclick="startDepthStream()" disabled id="startDepthBtn">Start Depth Stream</button>
         <button onclick="stopStream()" disabled id="stopStreamBtn">Stop Stream</button>
     </div>
     <div id="canvas-container"></div>
@@ -68,6 +69,8 @@
         // Constants
         const AZURE_COLOR_WIDTH = 1280;
         const AZURE_COLOR_HEIGHT = 720;
+        const AZURE_DEPTH_WIDTH = 640;
+        const AZURE_DEPTH_HEIGHT = 576;
         const DISPLAY_SCALE = 0.5;
 
         // Global variables
@@ -127,6 +130,7 @@
                 // Enable buttons if successful
                 if (isSuccess || data.alreadyInitialized) {
                     document.getElementById('startColorBtn').disabled = false;
+                    document.getElementById('startDepthBtn').disabled = false;
                     document.getElementById('stopStreamBtn').disabled = false;
                     document.getElementById('streamStatus').innerHTML =
                         '<span class="success">Kinect Initialized via Direct Event</span>';
@@ -175,7 +179,7 @@
             if (frameLatencies.length > 0) {
                 const avgLatency = frameLatencies.reduce((a, b) => a + b, 0) / frameLatencies.length;
                 document.getElementById('resolution').textContent =
-                    `Resolution: ${AZURE_COLOR_WIDTH}x${AZURE_COLOR_HEIGHT} (displayed at ${width}x${height}) | Avg Latency: ${avgLatency.toFixed(1)}ms`;
+                    `Resolution: ${width * 2}x${height * 2} (displayed at ${width}x${height}) | Avg Latency: ${avgLatency.toFixed(1)}ms`;
 
                 // Reset latencies array
                 frameLatencies = [];
@@ -202,6 +206,7 @@
 
         function forceEnableButtons() {
             document.getElementById('startColorBtn').disabled = false;
+            document.getElementById('startDepthBtn').disabled = false;
             document.getElementById('stopStreamBtn').disabled = false;
             addDebugInfo('Buttons forcibly enabled');
         }
@@ -235,6 +240,7 @@
 
                     // Enable the buttons
                     document.getElementById('startColorBtn').disabled = false;
+                    document.getElementById('startDepthBtn').disabled = false;
                     document.getElementById('stopStreamBtn').disabled = false;
                 } else {
                     addDebugInfo(`Kinect initialization failed: ${result.error || 'Unknown error'}`);
@@ -274,7 +280,7 @@
 
                 // Update stream status
                 document.getElementById('streamStatus').innerHTML =
-                    '<span class="success">Stream Status: Active</span>';
+                    '<span class="success">Stream Status: Active (Color)</span>';
 
                 // Calculate frame metrics
                 frameCount++;
@@ -307,6 +313,74 @@
                     image(loadedImage, 0, 0, width, height);
                     addDebugInfo(`Image drawn to canvas: ${loadedImage.width}x${loadedImage.height}`);
                 });
+            });
+        }
+
+        // Start depth stream
+        window.startDepthStream = function () {
+            document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
+            frameCount = 0;
+            lastFrameTime = Date.now();
+            frameRates = [];
+            frameLatencies = [];
+            isStreamActive = true;
+
+            // Resize canvas for depth stream
+            resizeCanvas(AZURE_DEPTH_WIDTH * DISPLAY_SCALE, AZURE_DEPTH_HEIGHT * DISPLAY_SCALE);
+            background(255);
+
+            addDebugInfo('Calling kinectron.startDepth()');
+            kinectron.startDepth((frame) => {
+                // Log frame data for debugging
+                addDebugInfo(`Received depth frame: width=${frame.width}, height=${frame.height}, timestamp=${frame.timestamp}`);
+                addDebugInfo(`Frame src type: ${typeof frame.src}, starts with: ${frame.src ? frame.src.substring(0, 30) + '...' : 'undefined'}`);
+                addDebugInfo(`Frame raw data: ${JSON.stringify(frame.raw).substring(0, 100)}...`);
+
+                // Update stream status
+                document.getElementById('streamStatus').innerHTML =
+                    '<span class="success">Stream Status: Active (Depth)</span>';
+
+                // Calculate frame metrics
+                frameCount++;
+                const now = Date.now();
+
+                // Calculate frame rate every second
+                if (now - lastFrameTime >= 1000) {
+                    const fps = frameCount / ((now - lastFrameTime) / 1000);
+                    frameRates.push(fps);
+                    if (frameRates.length > 10) frameRates.shift(); // Keep last 10 readings
+                    frameCount = 0;
+                    lastFrameTime = now;
+                }
+
+                // Calculate frame latency
+                if (frame.timestamp) {
+                    const latency = now - frame.timestamp;
+                    frameLatencies.push(latency);
+                    addDebugInfo(`Frame latency: ${latency}ms`);
+                }
+
+                // Track last frame timestamp for jitter calculation
+                lastFrameTimestamp = now;
+
+                // Use p5.js loadImage to handle the frame data
+                if (frame.src) {
+                    addDebugInfo('Loading image from frame.src');
+                    loadImage(frame.src,
+                        (loadedImage) => {
+                            // Clear canvas
+                            background(255);
+                            // Draw the image
+                            image(loadedImage, 0, 0, width, height);
+                            addDebugInfo(`Image drawn to canvas: ${loadedImage.width}x${loadedImage.height}`);
+                        },
+                        (err) => {
+                            addDebugInfo(`Error loading image: ${err}`);
+                        }
+                    );
+                } else {
+                    addDebugInfo('No frame.src available to load image');
+                }
             });
         }
 

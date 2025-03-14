@@ -51,6 +51,8 @@ export class BaseStreamHandler {
    */
   broadcastFrame(event, data, lossy = false) {
     try {
+      console.log(`BaseStreamHandler: Broadcasting ${event} frame`);
+
       // Calculate FPS for debugging
       const now = Date.now();
       if (now - this.lastFrameTime >= 1000) {
@@ -60,13 +62,34 @@ export class BaseStreamHandler {
       }
       this.frameCount++;
 
+      // Log frame data structure
+      console.log(
+        `BaseStreamHandler: Frame data structure:`,
+        data ? `name=${data.name}, has data=${!!data.data}` : 'null',
+      );
+
+      if (data && data.data && data.data.name === 'depth') {
+        console.log(
+          `BaseStreamHandler: Broadcasting depth frame with dimensions:`,
+          data.data.imagedata
+            ? `${data.data.imagedata.width}x${data.data.imagedata.height}`
+            : 'unknown',
+        );
+      }
+
       // Use both methods to broadcast the frame data
       // 1. Use the PeerConnectionManager's broadcast method
+      console.log(
+        `BaseStreamHandler: Broadcasting via PeerConnectionManager`,
+      );
       this.peerManager.broadcast(event, data, lossy);
 
       // 2. Use the IPC channel to broadcast to the renderer process
       // This will allow the renderer process to broadcast to its peer connections
       try {
+        console.log(
+          `BaseStreamHandler: Broadcasting via IPC to renderer process`,
+        );
         // Import BrowserWindow using ES modules
         import('electron')
           .then(({ BrowserWindow }) => {
@@ -80,6 +103,9 @@ export class BaseStreamHandler {
                 });
               }
             });
+            console.log(
+              `BaseStreamHandler: Successfully sent to ${windows.length} windows`,
+            );
           })
           .catch((error) => {
             console.error(
