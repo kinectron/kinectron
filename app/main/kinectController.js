@@ -332,39 +332,17 @@ export class KinectController {
 
       this.isListening = true;
       this.kinect.startListening((data) => {
-        // Log frame statistics every second
-        const now = Date.now();
+        // Track frame types for statistics
         frameCount++;
+        if (data.depthImageFrame) depthFrameCount++;
+        if (data.colorImageFrame) colorFrameCount++;
 
-        // Track frame types
-        if (data.depthImageFrame) {
-          depthFrameCount++;
-        }
-        if (data.colorImageFrame) {
-          colorFrameCount++;
-        }
-
-        // Log frame statistics every second
-        if (now - lastLogTime >= 1000) {
+        // Log frame statistics every 5 seconds
+        const now = Date.now();
+        if (now - lastLogTime >= 5000) {
           console.log(
-            `KinectController: Received ${frameCount} frames in the last second (${depthFrameCount} depth, ${colorFrameCount} color)`,
+            `KinectController: Frame stats (5s): ${frameCount} total (${depthFrameCount} depth, ${colorFrameCount} color)`,
           );
-
-          // Log depth frame details occasionally
-          if (depthFrameCount > 0 && data.depthImageFrame) {
-            console.log(
-              'KinectController: Sample depth frame details:',
-              {
-                width: data.depthImageFrame.width_pixels,
-                height: data.depthImageFrame.height_pixels,
-                format: data.depthImageFrame.format,
-                bufferSize: data.depthImageFrame.buffer
-                  ? data.depthImageFrame.buffer.byteLength
-                  : 'N/A',
-                timestamp: data.depthImageFrame.timestamp_usec,
-              },
-            );
-          }
 
           // Reset counters
           frameCount = 0;

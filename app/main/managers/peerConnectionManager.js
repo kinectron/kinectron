@@ -335,19 +335,11 @@ export class PeerConnectionManager extends EventEmitter {
    * @param {boolean} [lossy=false] - Whether to use lossy transmission
    */
   broadcast(event, data, lossy = false) {
-    console.log(
-      `PeerConnectionManager: Broadcasting ${event} event to peers`,
-    );
-
     // Check if we have any connections to broadcast to
     if (
       this.peer_connections.length === 0 &&
       this.connectionQueue.size === 0
     ) {
-      console.log(
-        'PeerConnectionManager: No connections to broadcast to',
-      );
-
       // Emit the event to the renderer process via IPC
       this.emit('broadcast', { event, data, lossy });
       return;
@@ -359,22 +351,11 @@ export class PeerConnectionManager extends EventEmitter {
       timestamp: Date.now(),
     };
 
-    console.log(
-      `PeerConnectionManager: Message prepared for broadcast:`,
-      `event=${event}, has data=${!!data}, timestamp=${
-        message.timestamp
-      }`,
-    );
-
     try {
       let sentCount = 0;
 
       // Iterate through our direct list of peer connections
       if (this.peer_connections.length > 0) {
-        console.log(
-          `PeerConnectionManager: Broadcasting to ${this.peer_connections.length} direct connections`,
-        );
-
         this.peer_connections.forEach((connection, index) => {
           try {
             // Check if there is still data in the buffer before adding more information to it.
@@ -390,19 +371,11 @@ export class PeerConnectionManager extends EventEmitter {
             connection.send(message);
             sentCount++;
           } catch (err) {
-            console.error(
-              `PeerConnectionManager: Error sending to connection at index ${index}:`,
-              err,
-            );
-
             // Remove dead connections
             if (
               err.message.includes('not connected') ||
               err.message.includes('closed')
             ) {
-              console.log(
-                `PeerConnectionManager: Removing dead connection at index ${index}`,
-              );
               this.peer_connections.splice(index, 1);
             }
           }
@@ -411,14 +384,14 @@ export class PeerConnectionManager extends EventEmitter {
 
       // Also emit the event to the renderer process via IPC
       // This ensures the event is broadcast to peers connected via the renderer process
-      console.log(
-        `PeerConnectionManager: Emitting broadcast event to renderer process`,
-      );
       this.emit('broadcast', { event, data, lossy });
 
-      console.log(
-        `PeerConnectionManager: Broadcast complete, sent to ${sentCount} direct connections`,
-      );
+      // Log only for important events or errors
+      if (event === 'kinectInitialized' || event === 'error') {
+        console.log(
+          `PeerConnectionManager: Broadcast ${event} to ${sentCount} direct connections and renderer`,
+        );
+      }
     } catch (error) {
       console.error(
         'PeerConnectionManager: Error broadcasting message:',

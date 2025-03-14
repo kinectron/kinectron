@@ -41,15 +41,17 @@ export class PeerController {
       window.electron.ipcRenderer.on(
         'broadcast-to-peers',
         (message) => {
-          console.log(
-            'PeerController: Received broadcast-to-peers event:',
-            message,
-          );
           if (message && message.event && message.data) {
-            console.log(
-              'PeerController: Broadcasting to peers:',
-              message.event,
-            );
+            // Only log for important events
+            if (
+              message.event === 'kinectInitialized' ||
+              message.event === 'error'
+            ) {
+              console.log(
+                `PeerController: Broadcasting ${message.event} event to peers`,
+              );
+            }
+
             this.broadcast(
               message.event,
               message.data,
