@@ -263,8 +263,6 @@ export class KinectController {
   }
 
   startListening(callback) {
-    console.log('KinectController: startListening called');
-
     if (this.isListening) {
       console.warn(
         'KinectController: Already listening for Kinect data',
@@ -280,30 +278,11 @@ export class KinectController {
     }
 
     try {
-      console.log('KinectController: Setting isListening to true');
       this.isListening = true;
-
-      console.log(
-        'KinectController: Calling kinect.startListening with callback',
-      );
       this.kinect.startListening((data) => {
-        console.log(
-          'KinectController: Received frame from Kinect:',
-          'has colorImageFrame=',
-          !!data.colorImageFrame,
-          'has depthImageFrame=',
-          !!data.depthImageFrame,
-          'has bodyFrame=',
-          !!data.bodyFrame,
-        );
-
-        // Call the original callback
+        // Call the original callback without logging every frame
         callback(data);
       });
-
-      console.log(
-        'KinectController: kinect.startListening called successfully',
-      );
       return true;
     } catch (error) {
       console.error(

@@ -51,10 +51,6 @@ export class BaseStreamHandler {
    */
   broadcastFrame(event, data, lossy = false) {
     try {
-      console.log(
-        `BaseStreamHandler: Broadcasting ${event} event to peers`,
-      );
-
       // Calculate FPS for debugging
       const now = Date.now();
       if (now - this.lastFrameTime >= 1000) {
@@ -63,19 +59,6 @@ export class BaseStreamHandler {
         this.lastFrameTime = now;
       }
       this.frameCount++;
-
-      // Log data structure before broadcasting
-      if (event === 'frame') {
-        console.log(
-          'BaseStreamHandler: Frame data structure:',
-          'name=',
-          data.name,
-          'data.name=',
-          data.data?.name,
-          'has imagedata=',
-          !!data.data?.imagedata,
-        );
-      }
 
       // Use both methods to broadcast the frame data
       // 1. Use the PeerConnectionManager's broadcast method
@@ -90,9 +73,6 @@ export class BaseStreamHandler {
             const windows = BrowserWindow.getAllWindows();
             windows.forEach((window) => {
               if (!window.isDestroyed()) {
-                console.log(
-                  'BaseStreamHandler: Sending frame to renderer process via IPC',
-                );
                 window.webContents.send('broadcast-to-peers', {
                   event,
                   data,
@@ -113,10 +93,6 @@ export class BaseStreamHandler {
           error,
         );
       }
-
-      console.log(
-        `BaseStreamHandler: Broadcast of ${event} event completed`,
-      );
     } catch (error) {
       console.error(
         'BaseStreamHandler: Error broadcasting frame:',
@@ -134,33 +110,11 @@ export class BaseStreamHandler {
    * @returns {{ name: string, data: *, timestamp: number }} Packaged data
    */
   createDataPackage(name, data) {
-    console.log(
-      'BaseStreamHandler: Creating data package:',
-      'name=',
-      name,
-      'data.name=',
-      data?.name,
-      'has imagedata=',
-      !!data?.imagedata,
-    );
-
     const pkg = {
       name,
       data,
       timestamp: Date.now(),
     };
-
-    console.log(
-      'BaseStreamHandler: Created package structure:',
-      'name=',
-      pkg.name,
-      'data.name=',
-      pkg.data?.name,
-      'has imagedata=',
-      !!pkg.data?.imagedata,
-      'timestamp=',
-      pkg.timestamp,
-    );
 
     return pkg;
   }

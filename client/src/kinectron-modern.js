@@ -34,13 +34,10 @@ export class Kinectron {
 
     // Handle incoming data
     this.peer.on('data', (data) => {
-      console.log('Kinectron: Received data event:', data);
       const { event, data: eventData } = data;
-      console.log('Kinectron: Processing event:', event);
-
       const handler = this.messageHandlers.get(event);
+
       if (handler) {
-        console.log('Kinectron: Found handler for event:', event);
         handler(eventData);
       } else {
         console.warn('Kinectron: No handler found for event:', event);
@@ -150,50 +147,14 @@ export class Kinectron {
 
   // Start feed methods
   startColor(callback) {
-    console.log(
-      'Kinectron: startColor called with callback:',
-      !!callback,
-    );
     if (callback) {
       // Set up frame handler to process color frames
       this.messageHandlers.set('frame', (data) => {
-        console.log(
-          'Kinectron: Received frame event with data:',
-          'event=',
-          data.event,
-          'data=',
-          data.data,
-        );
-
         // Extract the actual frame data
         const frameData = data.data || data;
-        console.log(
-          'Kinectron: Extracted frame data:',
-          'name=',
-          frameData.name,
-          'has imagedata=',
-          !!frameData.imagedata,
-          'timestamp=',
-          frameData.timestamp,
-        );
 
         // Only process frames with name 'color'
         if (frameData.name === 'color' && frameData.imagedata) {
-          console.log(
-            'Kinectron: Processing color frame with dimensions:',
-            frameData.imagedata.width,
-            'x',
-            frameData.imagedata.height,
-            'data type=',
-            typeof frameData.imagedata.data,
-            'is array=',
-            Array.isArray(frameData.imagedata.data),
-            'is Uint8Array=',
-            frameData.imagedata.data instanceof Uint8Array,
-            'data length=',
-            frameData.imagedata.data.length,
-          );
-
           // Create a canvas to convert image data to a data URL
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
@@ -202,31 +163,17 @@ export class Kinectron {
           canvas.width = width;
           canvas.height = height;
 
-          console.log(
-            'Kinectron: Created canvas with dimensions:',
-            width,
-            'x',
-            height,
-          );
-
           try {
             // Check if data is a string (data URL)
             if (typeof frameData.imagedata.data === 'string') {
-              console.log(
-                'Kinectron: Detected data URL format, using Image API',
-              );
-
               // Create an image from the data URL
               const img = new Image();
               img.onload = () => {
                 // Draw the image to the canvas
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Convert to data URL for easy display (or use the original)
+                // Use the original data URL
                 const src = frameData.imagedata.data;
-                console.log(
-                  'Kinectron: Successfully drew image from data URL',
-                );
 
                 // Call the user callback with processed frame
                 callback({
@@ -261,11 +208,6 @@ export class Kinectron {
               return;
             } else {
               // Original code for handling raw pixel data
-              console.log(
-                'Kinectron: Creating ImageData from raw data, length:',
-                frameData.imagedata.data.length,
-              );
-
               // Ensure we have a Uint8ClampedArray
               let pixelData;
               if (
@@ -289,16 +231,6 @@ export class Kinectron {
                 );
               }
 
-              console.log(
-                'Kinectron: Created pixel data:',
-                'type=',
-                typeof pixelData,
-                'is Uint8ClampedArray=',
-                pixelData instanceof Uint8ClampedArray,
-                'length=',
-                pixelData.length,
-              );
-
               const imgData = new ImageData(pixelData, width, height);
 
               // Put the image data on the canvas
@@ -306,9 +238,6 @@ export class Kinectron {
 
               // Convert to data URL for easy display
               const src = canvas.toDataURL('image/jpeg');
-              console.log(
-                'Kinectron: Successfully created data URL from image data',
-              );
 
               // Call the user callback with processed frame
               callback({
@@ -340,7 +269,6 @@ export class Kinectron {
         }
       });
     }
-    console.log('Kinectron: Sending feed request for color');
     this.send('feed', { feed: 'color' });
   }
 

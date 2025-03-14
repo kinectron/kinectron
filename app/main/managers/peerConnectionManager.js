@@ -335,37 +335,8 @@ export class PeerConnectionManager extends EventEmitter {
    * @param {boolean} [lossy=false] - Whether to use lossy transmission
    */
   broadcast(event, data, lossy = false) {
-    console.log('PeerConnectionManager: Broadcasting event:', event);
-
     if (this.peer_connections.length === 0) {
-      console.warn(
-        'PeerConnectionManager: No peer connections to broadcast to',
-      );
       return;
-    }
-
-    // Log data structure for frame events
-    if (event === 'frame') {
-      console.log(
-        'PeerConnectionManager: Frame data structure:',
-        'name=',
-        data.name,
-        'data.name=',
-        data.data?.name,
-        'has imagedata=',
-        !!data.data?.imagedata,
-      );
-
-      if (data.data?.imagedata) {
-        console.log(
-          'PeerConnectionManager: ImageData dimensions:',
-          data.data.imagedata.width,
-          'x',
-          data.data.imagedata.height,
-          'data length:',
-          data.data.imagedata.data?.length || 'undefined',
-        );
-      }
     }
 
     const message = {
@@ -373,11 +344,6 @@ export class PeerConnectionManager extends EventEmitter {
       data,
       timestamp: Date.now(),
     };
-
-    console.log(
-      'PeerConnectionManager: Message to broadcast:',
-      message,
-    );
 
     try {
       let sentCount = 0;
@@ -392,42 +358,21 @@ export class PeerConnectionManager extends EventEmitter {
             connection.dataChannel &&
             connection.dataChannel.bufferedAmount > 0
           ) {
-            console.log(
-              `PeerConnectionManager: Skipping connection ${index} due to buffer`,
-            );
             return;
           }
 
-          console.log(
-            `PeerConnectionManager: Sending to connection ${index}`,
-          );
           connection.send(message);
-          console.log(
-            `PeerConnectionManager: Successfully sent to connection ${index}`,
-          );
           sentCount++;
         } catch (err) {
-          console.warn(
-            `PeerConnectionManager: Failed to send to connection ${index}:`,
-            err,
-          );
-
           // Remove dead connections
           if (
             err.message.includes('not connected') ||
             err.message.includes('closed')
           ) {
-            console.log(
-              `PeerConnectionManager: Removing dead connection ${index}`,
-            );
             this.peer_connections.splice(index, 1);
           }
         }
       });
-
-      console.log(
-        `PeerConnectionManager: Broadcast complete. Sent to ${sentCount}/${this.peer_connections.length} connections`,
-      );
     } catch (error) {
       console.error(
         'PeerConnectionManager: Error broadcasting message:',

@@ -23,41 +23,20 @@ export class ColorStreamHandler extends BaseStreamHandler {
   setupHandler() {
     // Check if handler is already registered
     if (ipcMain.listenerCount('start-color-stream') > 0) {
-      console.log(
-        'Handler for start-color-stream already registered',
-      );
       return;
     }
 
-    console.log(
-      'ColorStreamHandler: Setting up IPC handler for start-color-stream',
-    );
-
     ipcMain.handle('start-color-stream', async (event) => {
-      console.log(
-        'ColorStreamHandler: Received start-color-stream request',
-      );
       try {
-        console.log('ColorStreamHandler: Calling startStream()');
         const success = await this.startStream();
-        console.log(
-          'ColorStreamHandler: startStream() returned:',
-          success,
-        );
 
         if (success) {
-          console.log('ColorStreamHandler: Creating frame callback');
           // Create frame callback
           this.createFrameCallback(event);
-          console.log('ColorStreamHandler: Frame callback created');
 
           // Start listening if not in multiframe mode
           if (!this.isMultiFrame) {
-            console.log(
-              'ColorStreamHandler: Starting listening for frames',
-            );
             this.kinectController.startListening(this.frameCallback);
-            console.log('ColorStreamHandler: Listening started');
           }
         }
         return success;
@@ -76,58 +55,11 @@ export class ColorStreamHandler extends BaseStreamHandler {
    * @param {Electron.IpcMainInvokeEvent} event
    */
   createFrameCallback(event) {
-    console.log(
-      'ColorStreamHandler: Creating frame callback with event:',
-      event,
-    );
-    console.log('ColorStreamHandler: Event sender:', event.sender);
-
     this.frameCallback = (data) => {
-      console.log(
-        'ColorStreamHandler: Frame callback called with data:',
-        'has data=',
-        !!data,
-        'has colorImageFrame=',
-        data && !!data.colorImageFrame,
-      );
-
       if (data && data.colorImageFrame) {
-        console.log(
-          'ColorStreamHandler: Received color frame from Kinect',
-          'colorImageFrame size=',
-          data.colorImageFrame.length || 'unknown',
-        );
-
         const processedData = this.processFrame(data.colorImageFrame);
-        console.log(
-          'ColorStreamHandler: Process frame returned:',
-          'processedData=',
-          !!processedData,
-          'has imageData=',
-          processedData && !!processedData.imageData,
-        );
 
         if (processedData && processedData.imageData) {
-          console.log(
-            'ColorStreamHandler: Processed color frame successfully',
-            'data type=',
-            typeof processedData.imageData.data,
-            'is array=',
-            Array.isArray(processedData.imageData.data),
-            'is Uint8Array=',
-            processedData.imageData.data instanceof Uint8Array,
-            'is Uint8ClampedArray=',
-            processedData.imageData.data instanceof Uint8ClampedArray,
-          );
-          console.log(
-            'ColorStreamHandler: ImageData dimensions:',
-            processedData.imageData.width,
-            'x',
-            processedData.imageData.height,
-            'data length=',
-            processedData.imageData.data.length,
-          );
-
           // Process the image with Sharp
           // First, create a raw RGB buffer from the RGBA data
           const width = processedData.imageData.width;
@@ -153,11 +85,6 @@ export class ColorStreamHandler extends BaseStreamHandler {
                 'base64',
               )}`;
 
-              console.log(
-                'ColorStreamHandler: Converted image data to data URL, length:',
-                dataUrl.length,
-              );
-
               // Create a properly structured frame package with compressed data
               // Structure imagedata as an object with data property to match client expectations
               const frameData = {
@@ -170,48 +97,15 @@ export class ColorStreamHandler extends BaseStreamHandler {
                 timestamp: Date.now(),
               };
 
-              console.log(
-                'ColorStreamHandler: Created frame data:',
-                'name=',
-                frameData.name,
-                'width=',
-                frameData.imagedata.width,
-                'height=',
-                frameData.imagedata.height,
-                'data URL length=',
-                dataUrl.length,
-              );
-
-              // Send to renderer process via IPC
-              console.log(
-                'ColorStreamHandler: Sending frame to renderer process via IPC with channel "color-frame"',
-              );
-
               // Send the frame data to renderer
               event.sender.send('color-frame', frameData);
-              console.log(
-                'ColorStreamHandler: Sent frame to renderer process via IPC',
-              );
 
               // Broadcast to peers with the same compressed data
               const framePackage = this.createDataPackage(
                 'frame',
                 frameData,
               );
-              console.log(
-                'ColorStreamHandler: Created frame package for peers:',
-                'name=',
-                framePackage.name,
-                'has imagedata=',
-                !!framePackage.data.imagedata,
-                'timestamp=',
-                framePackage.timestamp,
-              );
-
               this.broadcastFrame('frame', framePackage, true);
-              console.log(
-                'ColorStreamHandler: Broadcasted frame to peers',
-              );
             })
             .catch((err) => {
               console.error(
@@ -232,10 +126,6 @@ export class ColorStreamHandler extends BaseStreamHandler {
         );
       }
     };
-
-    console.log(
-      'ColorStreamHandler: Frame callback created successfully',
-    );
   }
 
   /**

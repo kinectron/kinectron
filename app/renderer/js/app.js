@@ -622,8 +622,6 @@ class KinectronApp {
   }
 
   processColorFrame(frameData) {
-    console.log('Processing color frame:', frameData);
-
     const canvas = document.getElementById('color-canvas');
     if (!canvas) {
       console.error('Color canvas not found');
@@ -636,16 +634,6 @@ class KinectronApp {
     const imageData = frameData.imagedata || frameData.imageData;
 
     if (imageData) {
-      console.log(
-        'Color frame has image data:',
-        'width=',
-        imageData.width,
-        'height=',
-        imageData.height,
-        'data length=',
-        imageData.data ? imageData.data.length : 'N/A',
-      );
-
       try {
         // Check if data is a string (data URL)
         if (typeof imageData.data === 'string') {
@@ -656,9 +644,6 @@ class KinectronApp {
             context.clearRect(0, 0, canvas.width, canvas.height);
             // Draw the image to the canvas
             context.drawImage(img, 0, 0, canvas.width, canvas.height);
-            console.log(
-              'Successfully drew image to canvas from data URL',
-            );
           };
           img.src = imageData.data;
         } else {
@@ -675,9 +660,6 @@ class KinectronApp {
             imageData.height,
           );
           tempContext.putImageData(imgData, 0, 0);
-          console.log(
-            'Successfully created temporary canvas with image data',
-          );
 
           // Clear the target canvas
           context.clearRect(0, 0, canvas.width, canvas.height);
@@ -694,7 +676,6 @@ class KinectronApp {
             canvas.width,
             canvas.height,
           );
-          console.log('Successfully drew image to canvas');
         }
       } catch (error) {
         console.error('Error drawing color frame:', error);
