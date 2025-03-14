@@ -62,10 +62,85 @@ class KinectronApp {
       feedButtons.forEach((btn) =>
         this.updateButtonState(btn, false),
       );
+
+      // Stop current stream if any
+      if (this.currentStream) {
+        this.stopCurrentStream();
+      }
     } else {
       // Update button state for the active feed
       const buttonId = data.feed === 'body' ? 'skeleton' : data.feed;
       this.updateButtonState(buttonId, true);
+
+      // Start the stream if it's not already active
+      if (this.currentStream !== data.feed) {
+        console.log(`Starting ${data.feed} stream via API`);
+
+        // Stop current stream if any
+        if (this.currentStream) {
+          this.stopCurrentStream().then(() => {
+            // Wait 500ms to avoid ThreadSafeFunction error when switching feeds
+            setTimeout(() => {
+              this.startStreamFromFeed(data.feed);
+            }, 500);
+          });
+        } else {
+          this.startStreamFromFeed(data.feed);
+        }
+      }
+    }
+  }
+
+  /**
+   * Start a stream based on the feed type
+   * @private
+   * @param {string} feedType - The type of feed to start
+   */
+  async startStreamFromFeed(feedType) {
+    try {
+      let success = false;
+      switch (feedType) {
+        case 'color':
+          success = await this.startColorStream();
+          break;
+        case 'depth':
+          success = await this.startDepthStream();
+          break;
+        case 'raw-depth':
+          success = await this.startRawDepthStream();
+          break;
+        case 'body':
+          success = await this.startBodyTracking();
+          break;
+        case 'skeleton':
+          success = await this.startBodyTracking();
+          break;
+        case 'key':
+          success = await this.startKeyStream();
+          break;
+        case 'depth-key':
+          success = await this.startDepthKeyStream();
+          break;
+        case 'rgbd':
+          success = await this.startRGBDStream();
+          break;
+      }
+
+      if (success) {
+        this.currentStream =
+          feedType === 'body' ? 'skeleton' : feedType;
+        this.toggleFeedDiv(this.currentStream, 'block');
+        console.log(
+          `Successfully started ${feedType} stream via API`,
+        );
+      } else {
+        console.error(`Failed to start ${feedType} stream via API`);
+      }
+    } catch (error) {
+      console.error(
+        `Error starting ${feedType} stream via API:`,
+        error,
+      );
     }
   }
 
@@ -503,6 +578,7 @@ class KinectronApp {
   }
 
   async startColorStream() {
+    console.log('startColorStream called');
     try {
       // Set up canvas with correct dimensions before starting stream
       const canvas = document.getElementById('color-canvas');
@@ -510,14 +586,33 @@ class KinectronApp {
         // Color image is reduced by half for efficiency
         canvas.width = 1280 / 2; // Azure Kinect color width
         canvas.height = 720 / 2; // Azure Kinect color height
+        console.log(
+          'Canvas dimensions set:',
+          canvas.width,
+          'x',
+          canvas.height,
+        );
+      } else {
+        console.error('Color canvas element not found!');
       }
 
+      console.log('Calling window.kinectron.startColorStream()');
       const success = await window.kinectron.startColorStream();
+      console.log(
+        'window.kinectron.startColorStream() returned:',
+        success,
+      );
+
       if (success) {
+        console.log('Setting up onColorFrame callback');
         const cleanup = window.kinectron.onColorFrame((frameData) => {
+          console.log('onColorFrame callback received frame data');
           this.processColorFrame(frameData);
         });
+        console.log('Callback registered, storing cleanup function');
         this.cleanupFunctions.set('color', cleanup);
+      } else {
+        console.error('Failed to start color stream');
       }
       return success;
     } catch (error) {
@@ -527,44 +622,85 @@ class KinectronApp {
   }
 
   processColorFrame(frameData) {
+    console.log('Processing color frame:', frameData);
+
     const canvas = document.getElementById('color-canvas');
-    if (!canvas) return;
+    if (!canvas) {
+      console.error('Color canvas not found');
+      return;
+    }
 
     const context = canvas.getContext('2d');
-    if (frameData.imageData && frameData.imageData.data) {
+
+    // Check for the new frame data structure (from peer connection)
+    const imageData = frameData.imagedata || frameData.imageData;
+
+    if (imageData) {
+      console.log(
+        'Color frame has image data:',
+        'width=',
+        imageData.width,
+        'height=',
+        imageData.height,
+        'data length=',
+        imageData.data ? imageData.data.length : 'N/A',
+      );
+
       try {
-        // Create a temporary canvas to hold the full-size image
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = frameData.imageData.width;
-        tempCanvas.height = frameData.imageData.height;
-        const tempContext = tempCanvas.getContext('2d');
+        // Check if data is a string (data URL)
+        if (typeof imageData.data === 'string') {
+          // Create an image from the data URL
+          const img = new Image();
+          img.onload = () => {
+            // Clear the canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            // Draw the image to the canvas
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            console.log(
+              'Successfully drew image to canvas from data URL',
+            );
+          };
+          img.src = imageData.data;
+        } else {
+          // Original code for handling raw pixel data
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = imageData.width;
+          tempCanvas.height = imageData.height;
+          const tempContext = tempCanvas.getContext('2d');
 
-        // Draw the full-size image to the temporary canvas
-        const imageData = new ImageData(
-          new Uint8ClampedArray(frameData.imageData.data),
-          frameData.imageData.width,
-          frameData.imageData.height,
-        );
-        tempContext.putImageData(imageData, 0, 0);
+          // Draw the full-size image to the temporary canvas
+          const imgData = new ImageData(
+            new Uint8ClampedArray(imageData.data),
+            imageData.width,
+            imageData.height,
+          );
+          tempContext.putImageData(imgData, 0, 0);
+          console.log(
+            'Successfully created temporary canvas with image data',
+          );
 
-        // Clear the target canvas
-        context.clearRect(0, 0, canvas.width, canvas.height);
+          // Clear the target canvas
+          context.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw the scaled image from the temporary canvas to the target canvas
-        context.drawImage(
-          tempCanvas,
-          0,
-          0,
-          frameData.imageData.width,
-          frameData.imageData.height,
-          0,
-          0,
-          canvas.width,
-          canvas.height,
-        );
+          // Draw the scaled image from the temporary canvas to the target canvas
+          context.drawImage(
+            tempCanvas,
+            0,
+            0,
+            imageData.width,
+            imageData.height,
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+          );
+          console.log('Successfully drew image to canvas');
+        }
       } catch (error) {
         console.error('Error drawing color frame:', error);
       }
+    } else {
+      console.error('Color frame missing image data:', frameData);
     }
   }
 
@@ -909,10 +1045,30 @@ class KinectronApp {
   }
 
   toggleFeedDiv(streamType, display) {
+    console.log(
+      `toggleFeedDiv called for ${streamType} with display=${display}`,
+    );
     const divId = streamType === 'skeleton' ? 'skeleton' : streamType;
     const feedDiv = document.getElementById(`${divId}-div`);
+    console.log(`Looking for element with ID: ${divId}-div`);
+
     if (feedDiv) {
+      console.log(
+        `Found feed div for ${streamType}, setting display to ${display}`,
+      );
       feedDiv.style.display = display;
+
+      // Also check if the canvas exists
+      const canvas = document.getElementById(`${divId}-canvas`);
+      if (canvas) {
+        console.log(
+          `Found canvas for ${streamType}, dimensions: ${canvas.width}x${canvas.height}`,
+        );
+      } else {
+        console.error(`Canvas not found for ${streamType}`);
+      }
+    } else {
+      console.error(`Feed div not found for ${streamType}`);
     }
   }
 

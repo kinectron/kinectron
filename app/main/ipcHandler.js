@@ -137,18 +137,31 @@ export class IpcHandler {
       try {
         if (data && data.feed) {
           console.log(
-            `Received feed request: ${data.feed} from connection: ${data.connection}`,
+            `IpcHandler: Received feed request: ${data.feed} from connection: ${data.connection}`,
           );
 
           // Forward to stream manager
           if (data.feed === 'stop-all') {
+            console.log('IpcHandler: Stopping all streams');
             this.streamManager.stopAllStreams();
           } else {
+            console.log(`IpcHandler: Starting stream: ${data.feed}`);
             this.streamManager.startStream(data.feed);
+            console.log(
+              `IpcHandler: Stream ${data.feed} start request forwarded to stream manager`,
+            );
           }
+        } else {
+          console.warn(
+            'IpcHandler: Received invalid peer feed request:',
+            data,
+          );
         }
       } catch (error) {
-        console.error('Error handling peer feed request:', error);
+        console.error(
+          'IpcHandler: Error handling peer feed request:',
+          error,
+        );
       }
     });
 

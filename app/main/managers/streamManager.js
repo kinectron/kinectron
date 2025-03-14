@@ -245,21 +245,47 @@ export class StreamManager {
    * @returns {Promise<boolean>} Success status
    */
   async startStream(streamType) {
+    console.log(`StreamManager: Starting stream: ${streamType}`);
     try {
       const handler = this.getHandler(streamType);
       if (!handler) {
+        console.error(
+          `StreamManager: No handler found for stream type: ${streamType}`,
+        );
         throw new Error(
           `No handler found for stream type: ${streamType}`,
         );
       }
 
+      console.log(
+        `StreamManager: Found handler for ${streamType}, calling startStream()`,
+      );
       const success = await handler.startStream();
+      console.log(
+        `StreamManager: Handler.startStream() returned: ${success}`,
+      );
+
       if (success) {
         this.activeStreams.add(streamType);
+        console.log(
+          `StreamManager: Added ${streamType} to active streams`,
+        );
+        console.log(
+          `StreamManager: Active streams: ${Array.from(
+            this.activeStreams,
+          ).join(', ')}`,
+        );
+      } else {
+        console.warn(
+          `StreamManager: Failed to start ${streamType} stream`,
+        );
       }
       return success;
     } catch (error) {
-      console.error(`Error starting ${streamType} stream:`, error);
+      console.error(
+        `StreamManager: Error starting ${streamType} stream:`,
+        error,
+      );
       return false;
     }
   }

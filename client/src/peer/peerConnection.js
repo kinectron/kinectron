@@ -583,20 +583,41 @@ export class PeerConnection {
    */
   handleIncomingData(data) {
     try {
+      console.log(
+        'PeerConnection: Received event:',
+        data.event,
+        'with data:',
+        data.data,
+      );
+
       // First, try to find a specific handler for this event
       const handler = this.messageHandlers.get(data.event);
       if (handler) {
+        console.log(
+          'PeerConnection: Found specific handler for event:',
+          data.event,
+        );
         handler({
           ...data.data,
           timestamp: Date.now(),
           state: this.state.getState(),
         });
       } else {
+        console.log(
+          'PeerConnection: No specific handler for event:',
+          data.event,
+          'forwarding to data handler',
+        );
         // If no specific handler is found, forward the event to the data handler
         // This ensures all events are forwarded to the Kinectron class
         const dataHandler = this.messageHandlers.get('data');
         if (dataHandler) {
           dataHandler(data);
+        } else {
+          console.warn(
+            'PeerConnection: No data handler found for event:',
+            data.event,
+          );
         }
       }
     } catch (error) {

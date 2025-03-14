@@ -3,6 +3,9 @@ import { ipcMain } from 'electron';
 import { BaseStreamHandler } from './baseHandler.js';
 import { ColorFrameProcessor } from '../processors/colorProcessor.js';
 import { KinectOptions } from '../kinectController.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const sharp = require('sharp');
 
 /**
  * Handles color stream operations and IPC communication
@@ -26,19 +29,43 @@ export class ColorStreamHandler extends BaseStreamHandler {
       return;
     }
 
+    console.log(
+      'ColorStreamHandler: Setting up IPC handler for start-color-stream',
+    );
+
     ipcMain.handle('start-color-stream', async (event) => {
+      console.log(
+        'ColorStreamHandler: Received start-color-stream request',
+      );
       try {
+        console.log('ColorStreamHandler: Calling startStream()');
         const success = await this.startStream();
+        console.log(
+          'ColorStreamHandler: startStream() returned:',
+          success,
+        );
+
         if (success) {
+          console.log('ColorStreamHandler: Creating frame callback');
           // Create frame callback
           this.createFrameCallback(event);
+          console.log('ColorStreamHandler: Frame callback created');
+
           // Start listening if not in multiframe mode
           if (!this.isMultiFrame) {
+            console.log(
+              'ColorStreamHandler: Starting listening for frames',
+            );
             this.kinectController.startListening(this.frameCallback);
+            console.log('ColorStreamHandler: Listening started');
           }
         }
         return success;
       } catch (error) {
+        console.error(
+          'ColorStreamHandler: Error in start-color-stream handler:',
+          error,
+        );
         return this.handleError(error, 'starting color stream');
       }
     });
@@ -49,22 +76,166 @@ export class ColorStreamHandler extends BaseStreamHandler {
    * @param {Electron.IpcMainInvokeEvent} event
    */
   createFrameCallback(event) {
-    this.frameCallback = (data) => {
-      if (data.colorImageFrame) {
-        const processedData = this.processFrame(data.colorImageFrame);
-        if (processedData) {
-          // Send to renderer process via IPC
-          event.sender.send('color-frame', processedData);
+    console.log(
+      'ColorStreamHandler: Creating frame callback with event:',
+      event,
+    );
+    console.log('ColorStreamHandler: Event sender:', event.sender);
 
-          // Broadcast to peers
-          const framePackage = this.createDataPackage('frame', {
-            name: 'color',
-            imagedata: processedData.imageData, // Use imageData from processedData
-          });
-          this.broadcastFrame('frame', framePackage, true);
+    this.frameCallback = (data) => {
+      console.log(
+        'ColorStreamHandler: Frame callback called with data:',
+        'has data=',
+        !!data,
+        'has colorImageFrame=',
+        data && !!data.colorImageFrame,
+      );
+
+      if (data && data.colorImageFrame) {
+        console.log(
+          'ColorStreamHandler: Received color frame from Kinect',
+          'colorImageFrame size=',
+          data.colorImageFrame.length || 'unknown',
+        );
+
+        const processedData = this.processFrame(data.colorImageFrame);
+        console.log(
+          'ColorStreamHandler: Process frame returned:',
+          'processedData=',
+          !!processedData,
+          'has imageData=',
+          processedData && !!processedData.imageData,
+        );
+
+        if (processedData && processedData.imageData) {
+          console.log(
+            'ColorStreamHandler: Processed color frame successfully',
+            'data type=',
+            typeof processedData.imageData.data,
+            'is array=',
+            Array.isArray(processedData.imageData.data),
+            'is Uint8Array=',
+            processedData.imageData.data instanceof Uint8Array,
+            'is Uint8ClampedArray=',
+            processedData.imageData.data instanceof Uint8ClampedArray,
+          );
+          console.log(
+            'ColorStreamHandler: ImageData dimensions:',
+            processedData.imageData.width,
+            'x',
+            processedData.imageData.height,
+            'data length=',
+            processedData.imageData.data.length,
+          );
+
+          // Process the image with Sharp
+          // First, create a raw RGB buffer from the RGBA data
+          const width = processedData.imageData.width;
+          const height = processedData.imageData.height;
+          const rgba = Buffer.from(
+            processedData.imageData.data.buffer,
+          );
+
+          // Use Sharp to resize and compress the image
+          sharp(rgba, {
+            raw: {
+              width: width,
+              height: height,
+              channels: 4, // RGBA
+            },
+          })
+            .resize(Math.floor(width / 2), Math.floor(height / 2)) // Resize to half dimensions
+            .webp({ quality: 70 }) // Convert to WebP with 70% quality
+            .toBuffer()
+            .then((compressedBuffer) => {
+              // Convert to data URL
+              const dataUrl = `data:image/webp;base64,${compressedBuffer.toString(
+                'base64',
+              )}`;
+
+              console.log(
+                'ColorStreamHandler: Converted image data to data URL, length:',
+                dataUrl.length,
+              );
+
+              // Create a properly structured frame package with compressed data
+              // Structure imagedata as an object with data property to match client expectations
+              const frameData = {
+                name: 'color',
+                imagedata: {
+                  data: dataUrl,
+                  width: Math.floor(width / 2),
+                  height: Math.floor(height / 2),
+                },
+                timestamp: Date.now(),
+              };
+
+              console.log(
+                'ColorStreamHandler: Created frame data:',
+                'name=',
+                frameData.name,
+                'width=',
+                frameData.imagedata.width,
+                'height=',
+                frameData.imagedata.height,
+                'data URL length=',
+                dataUrl.length,
+              );
+
+              // Send to renderer process via IPC
+              console.log(
+                'ColorStreamHandler: Sending frame to renderer process via IPC with channel "color-frame"',
+              );
+
+              // Send the frame data to renderer
+              event.sender.send('color-frame', frameData);
+              console.log(
+                'ColorStreamHandler: Sent frame to renderer process via IPC',
+              );
+
+              // Broadcast to peers with the same compressed data
+              const framePackage = this.createDataPackage(
+                'frame',
+                frameData,
+              );
+              console.log(
+                'ColorStreamHandler: Created frame package for peers:',
+                'name=',
+                framePackage.name,
+                'has imagedata=',
+                !!framePackage.data.imagedata,
+                'timestamp=',
+                framePackage.timestamp,
+              );
+
+              this.broadcastFrame('frame', framePackage, true);
+              console.log(
+                'ColorStreamHandler: Broadcasted frame to peers',
+              );
+            })
+            .catch((err) => {
+              console.error(
+                'ColorStreamHandler: Error processing image with Sharp:',
+                err,
+              );
+            });
+
+          // Processing is now handled in the Sharp promise chain
+        } else {
+          console.error(
+            'ColorStreamHandler: Failed to process color frame, processedData is null or missing imageData',
+          );
         }
+      } else {
+        console.warn(
+          'ColorStreamHandler: Received frame callback without colorImageFrame',
+        );
       }
     };
+
+    console.log(
+      'ColorStreamHandler: Frame callback created successfully',
+    );
   }
 
   /**

@@ -34,10 +34,16 @@ export class Kinectron {
 
     // Handle incoming data
     this.peer.on('data', (data) => {
+      console.log('Kinectron: Received data event:', data);
       const { event, data: eventData } = data;
+      console.log('Kinectron: Processing event:', event);
+
       const handler = this.messageHandlers.get(event);
       if (handler) {
+        console.log('Kinectron: Found handler for event:', event);
         handler(eventData);
+      } else {
+        console.warn('Kinectron: No handler found for event:', event);
       }
     });
   }
@@ -144,43 +150,197 @@ export class Kinectron {
 
   // Start feed methods
   startColor(callback) {
+    console.log(
+      'Kinectron: startColor called with callback:',
+      !!callback,
+    );
     if (callback) {
       // Set up frame handler to process color frames
       this.messageHandlers.set('frame', (data) => {
+        console.log(
+          'Kinectron: Received frame event with data:',
+          'event=',
+          data.event,
+          'data=',
+          data.data,
+        );
+
+        // Extract the actual frame data
+        const frameData = data.data || data;
+        console.log(
+          'Kinectron: Extracted frame data:',
+          'name=',
+          frameData.name,
+          'has imagedata=',
+          !!frameData.imagedata,
+          'timestamp=',
+          frameData.timestamp,
+        );
+
         // Only process frames with name 'color'
-        if (data.name === 'color' && data.imagedata) {
+        if (frameData.name === 'color' && frameData.imagedata) {
+          console.log(
+            'Kinectron: Processing color frame with dimensions:',
+            frameData.imagedata.width,
+            'x',
+            frameData.imagedata.height,
+            'data type=',
+            typeof frameData.imagedata.data,
+            'is array=',
+            Array.isArray(frameData.imagedata.data),
+            'is Uint8Array=',
+            frameData.imagedata.data instanceof Uint8Array,
+            'data length=',
+            frameData.imagedata.data.length,
+          );
+
           // Create a canvas to convert image data to a data URL
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          const { width, height } = data.imagedata;
+          const { width, height } = frameData.imagedata;
 
           canvas.width = width;
           canvas.height = height;
 
-          // Create ImageData object from the raw data
-          const imgData = new ImageData(
-            new Uint8ClampedArray(data.imagedata.data),
+          console.log(
+            'Kinectron: Created canvas with dimensions:',
             width,
+            'x',
             height,
           );
 
-          // Put the image data on the canvas
-          ctx.putImageData(imgData, 0, 0);
+          try {
+            // Check if data is a string (data URL)
+            if (typeof frameData.imagedata.data === 'string') {
+              console.log(
+                'Kinectron: Detected data URL format, using Image API',
+              );
 
-          // Convert to data URL for easy display
-          const src = canvas.toDataURL('image/jpeg');
+              // Create an image from the data URL
+              const img = new Image();
+              img.onload = () => {
+                // Draw the image to the canvas
+                ctx.drawImage(img, 0, 0, width, height);
 
-          // Call the user callback with processed frame
-          callback({
-            src,
-            width,
-            height,
-            raw: data.imagedata,
-            timestamp: data.timestamp || Date.now(),
-          });
+                // Convert to data URL for easy display (or use the original)
+                const src = frameData.imagedata.data;
+                console.log(
+                  'Kinectron: Successfully drew image from data URL',
+                );
+
+                // Call the user callback with processed frame
+                callback({
+                  src,
+                  width,
+                  height,
+                  raw: frameData.imagedata,
+                  timestamp: frameData.timestamp || Date.now(),
+                });
+              };
+
+              // Set error handler
+              img.onerror = (err) => {
+                console.error(
+                  'Kinectron: Error loading image from data URL:',
+                  err,
+                );
+                // Try to call callback anyway with the raw data
+                callback({
+                  src: frameData.imagedata.data,
+                  width,
+                  height,
+                  raw: frameData.imagedata,
+                  timestamp: frameData.timestamp || Date.now(),
+                });
+              };
+
+              // Start loading the image
+              img.src = frameData.imagedata.data;
+
+              // Return early - callback will be called from onload handler
+              return;
+            } else {
+              // Original code for handling raw pixel data
+              console.log(
+                'Kinectron: Creating ImageData from raw data, length:',
+                frameData.imagedata.data.length,
+              );
+
+              // Ensure we have a Uint8ClampedArray
+              let pixelData;
+              if (
+                frameData.imagedata.data instanceof Uint8ClampedArray
+              ) {
+                pixelData = frameData.imagedata.data;
+              } else if (
+                frameData.imagedata.data instanceof Uint8Array
+              ) {
+                pixelData = new Uint8ClampedArray(
+                  frameData.imagedata.data,
+                );
+              } else if (Array.isArray(frameData.imagedata.data)) {
+                pixelData = new Uint8ClampedArray(
+                  frameData.imagedata.data,
+                );
+              } else {
+                // Handle case where data is an object (e.g., from JSON)
+                pixelData = new Uint8ClampedArray(
+                  Object.values(frameData.imagedata.data),
+                );
+              }
+
+              console.log(
+                'Kinectron: Created pixel data:',
+                'type=',
+                typeof pixelData,
+                'is Uint8ClampedArray=',
+                pixelData instanceof Uint8ClampedArray,
+                'length=',
+                pixelData.length,
+              );
+
+              const imgData = new ImageData(pixelData, width, height);
+
+              // Put the image data on the canvas
+              ctx.putImageData(imgData, 0, 0);
+
+              // Convert to data URL for easy display
+              const src = canvas.toDataURL('image/jpeg');
+              console.log(
+                'Kinectron: Successfully created data URL from image data',
+              );
+
+              // Call the user callback with processed frame
+              callback({
+                src,
+                width,
+                height,
+                raw: frameData.imagedata,
+                timestamp: frameData.timestamp || Date.now(),
+              });
+            }
+          } catch (error) {
+            console.error(
+              'Kinectron: Error processing color frame:',
+              error,
+            );
+            console.error(
+              'Kinectron: Frame data:',
+              frameData.imagedata,
+            );
+          }
+        } else {
+          console.warn(
+            "Kinectron: Received frame event but it's not a valid color frame:",
+            'name=',
+            frameData.name,
+            'has imagedata=',
+            !!frameData.imagedata,
+          );
         }
       });
     }
+    console.log('Kinectron: Sending feed request for color');
     this.send('feed', { feed: 'color' });
   }
 

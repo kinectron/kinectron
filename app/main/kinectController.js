@@ -114,14 +114,47 @@ export class KinectController {
   }
 
   startColorCamera(options = {}) {
+    console.log(
+      'KinectController: startColorCamera called with options:',
+      options,
+    );
     try {
-      this.kinect.startCameras({
+      const cameraOptions = {
         ...KinectOptions.COLOR,
         ...options,
-      });
+      };
+
+      console.log(
+        'KinectController: Starting cameras with options:',
+        cameraOptions,
+      );
+
+      // Check if cameras are already running
+      try {
+        console.log(
+          'KinectController: Stopping cameras first to ensure clean start',
+        );
+        this.kinect.stopCameras();
+        console.log('KinectController: Cameras stopped successfully');
+      } catch (stopError) {
+        console.warn(
+          'KinectController: Error stopping cameras (may be normal if not started):',
+          stopError,
+        );
+      }
+
+      // Start the cameras
+      this.kinect.startCameras(cameraOptions);
+      console.log(
+        'KinectController: Color cameras started successfully',
+      );
+
       return true;
     } catch (error) {
-      console.error('Failed to start color camera:', error);
+      console.error(
+        'KinectController: Failed to start color camera:',
+        error,
+      );
       return false;
     }
   }
@@ -230,17 +263,53 @@ export class KinectController {
   }
 
   startListening(callback) {
+    console.log('KinectController: startListening called');
+
     if (this.isListening) {
-      console.warn('Already listening for Kinect data');
+      console.warn(
+        'KinectController: Already listening for Kinect data',
+      );
+      return false;
+    }
+
+    if (!callback) {
+      console.error(
+        'KinectController: No callback provided to startListening',
+      );
       return false;
     }
 
     try {
+      console.log('KinectController: Setting isListening to true');
       this.isListening = true;
-      this.kinect.startListening(callback);
+
+      console.log(
+        'KinectController: Calling kinect.startListening with callback',
+      );
+      this.kinect.startListening((data) => {
+        console.log(
+          'KinectController: Received frame from Kinect:',
+          'has colorImageFrame=',
+          !!data.colorImageFrame,
+          'has depthImageFrame=',
+          !!data.depthImageFrame,
+          'has bodyFrame=',
+          !!data.bodyFrame,
+        );
+
+        // Call the original callback
+        callback(data);
+      });
+
+      console.log(
+        'KinectController: kinect.startListening called successfully',
+      );
       return true;
     } catch (error) {
-      console.error('Failed to start listening:', error);
+      console.error(
+        'KinectController: Failed to start listening:',
+        error,
+      );
       this.isListening = false;
       return false;
     }

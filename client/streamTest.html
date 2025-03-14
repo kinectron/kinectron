@@ -269,6 +269,9 @@
             isStreamActive = true;
 
             kinectron.startColor((frame) => {
+                // Log frame data for debugging
+                addDebugInfo(`Received color frame: width=${frame.width}, height=${frame.height}, timestamp=${frame.timestamp}`);
+
                 // Update stream status
                 document.getElementById('streamStatus').innerHTML =
                     '<span class="success">Stream Status: Active</span>';
@@ -290,6 +293,7 @@
                 if (frame.timestamp) {
                     const latency = now - frame.timestamp;
                     frameLatencies.push(latency);
+                    addDebugInfo(`Frame latency: ${latency}ms`);
                 }
 
                 // Track last frame timestamp for jitter calculation
@@ -301,6 +305,7 @@
                     background(255);
                     // Draw the image
                     image(loadedImage, 0, 0, width, height);
+                    addDebugInfo(`Image drawn to canvas: ${loadedImage.width}x${loadedImage.height}`);
                 });
             });
         }

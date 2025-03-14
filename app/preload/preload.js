@@ -17,6 +17,27 @@ contextBridge.exposeInMainWorld('electron', {
         ipcRenderer.send(channel, data);
       }
     },
+    on: (channel, callback) => {
+      // Whitelist channels for security
+      const validChannels = ['broadcast-to-peers'];
+
+      if (validChannels.includes(channel)) {
+        // Wrap the callback to avoid exposing the event object directly
+        const subscription = (event, message) => {
+          if (message) {
+            callback(message);
+          } else {
+            console.error(
+              'Invalid message received in IPC channel:',
+              channel,
+            );
+          }
+        };
+        ipcRenderer.on(channel, subscription);
+        return () =>
+          ipcRenderer.removeListener(channel, subscription);
+      }
+    },
   },
 });
 

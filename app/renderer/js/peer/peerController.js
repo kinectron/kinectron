@@ -35,6 +35,31 @@ export class PeerController {
       FEED_CHANGE: 'feed-change',
       KINECT_INITIALIZED: 'kinectInitialized',
     };
+
+    // Set up IPC listener for broadcast-to-peers events
+    if (window.electron && window.electron.ipcRenderer) {
+      window.electron.ipcRenderer.on(
+        'broadcast-to-peers',
+        (message) => {
+          console.log(
+            'PeerController: Received broadcast-to-peers event:',
+            message,
+          );
+          if (message && message.event && message.data) {
+            this.broadcast(
+              message.event,
+              message.data,
+              message.lossy || false,
+            );
+          } else {
+            console.error(
+              'PeerController: Invalid message format:',
+              message,
+            );
+          }
+        },
+      );
+    }
   }
 
   /**
@@ -446,26 +471,47 @@ export class PeerController {
 
         case 'feed':
           if (data.data?.feed) {
+            console.log(
+              'PeerController: Received feed request:',
+              data.data.feed,
+              'from client:',
+              conn.peer,
+            );
+
             // Forward feed request to main process
             if (window.electron && window.electron.ipcRenderer) {
+              console.log(
+                'PeerController: Forwarding feed request to main process via window.electron.ipcRenderer',
+              );
               window.electron.ipcRenderer.send('peer-feed-request', {
                 feed: data.data.feed,
                 connection: conn.peer,
               });
             } else if (this.ipc) {
+              console.log(
+                'PeerController: Forwarding feed request to main process via this.ipc',
+              );
               this.ipc.send('peer-feed-request', {
                 feed: data.data.feed,
                 connection: conn.peer,
               });
             } else {
-              console.error('IPC interface not available');
+              console.error(
+                'PeerController: IPC interface not available',
+              );
             }
 
             // Emit event for feed change
+            console.log('PeerController: Emitting feed-change event');
             this.emit('feed-change', {
               connection: conn,
               feed: data.data.feed,
             });
+          } else {
+            console.warn(
+              'PeerController: Received feed event with invalid data:',
+              data,
+            );
           }
           break;
 

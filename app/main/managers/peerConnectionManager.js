@@ -29,6 +29,7 @@ export class PeerConnectionManager extends EventEmitter {
     this.maxRestartAttempts = 3;
     this.connectionQueue = new Set();
     this.maxConnections = 50; // Increased from 10 to handle more connections
+    this.peer_connections = []; // Direct list of peer connections like in the old code
   }
 
   /**
@@ -123,6 +124,59 @@ export class PeerConnectionManager extends EventEmitter {
     this.server.on('error', async (error) => {
       await this.handleServerError(error);
     });
+
+    // Manually add existing connections to the queue
+    // This is a workaround for the issue where the connection event is not fired
+    // for connections that are already established when the server is created
+    setTimeout(() => {
+      if (this.server && this.server._clients) {
+        console.log(
+          'PeerConnectionManager: Checking for existing connections',
+        );
+        if (this.server._clients instanceof Map) {
+          for (const [
+            clientId,
+            client,
+          ] of this.server._clients.entries()) {
+            if (client && client.socket && client.socket.connected) {
+              console.log(
+                'PeerConnectionManager: Found existing connection:',
+                clientId,
+              );
+              this.connectionQueue.add(clientId);
+              this.emit('connection', { clientId });
+            }
+          }
+        } else if (typeof this.server._clients === 'object') {
+          for (const clientId in this.server._clients) {
+            if (
+              Object.prototype.hasOwnProperty.call(
+                this.server._clients,
+                clientId,
+              )
+            ) {
+              const client = this.server._clients[clientId];
+              if (
+                client &&
+                client.socket &&
+                client.socket.connected
+              ) {
+                console.log(
+                  'PeerConnectionManager: Found existing connection:',
+                  clientId,
+                );
+                this.connectionQueue.add(clientId);
+                this.emit('connection', { clientId });
+              }
+            }
+          }
+        }
+        console.log(
+          'PeerConnectionManager: Connection queue after check:',
+          Array.from(this.connectionQueue),
+        );
+      }
+    }, 1000);
   }
 
   /**
@@ -278,43 +332,41 @@ export class PeerConnectionManager extends EventEmitter {
    * Broadcast a message to all connected clients
    * @param {string} event - The event name
    * @param {any} data - The data to send
+   * @param {boolean} [lossy=false] - Whether to use lossy transmission
    */
-  broadcast(event, data) {
+  broadcast(event, data, lossy = false) {
     console.log('PeerConnectionManager: Broadcasting event:', event);
 
-    if (!this.server) {
+    if (this.peer_connections.length === 0) {
       console.warn(
-        'PeerConnectionManager: Cannot broadcast - server not running',
+        'PeerConnectionManager: No peer connections to broadcast to',
       );
       return;
     }
 
-    // Check if _clients exists and is a Map
-    if (
-      !this.server._clients ||
-      typeof this.server._clients.forEach !== 'function'
-    ) {
-      console.warn(
-        'PeerConnectionManager: Cannot broadcast - no clients collection or invalid format',
+    // Log data structure for frame events
+    if (event === 'frame') {
+      console.log(
+        'PeerConnectionManager: Frame data structure:',
+        'name=',
+        data.name,
+        'data.name=',
+        data.data?.name,
+        'has imagedata=',
+        !!data.data?.imagedata,
       );
-      return;
-    }
 
-    if (this.connectionQueue.size === 0) {
-      console.warn(
-        'PeerConnectionManager: Cannot broadcast - no clients in connection queue',
-      );
-      return;
+      if (data.data?.imagedata) {
+        console.log(
+          'PeerConnectionManager: ImageData dimensions:',
+          data.data.imagedata.width,
+          'x',
+          data.data.imagedata.height,
+          'data length:',
+          data.data.imagedata.data?.length || 'undefined',
+        );
+      }
     }
-
-    console.log(
-      'PeerConnectionManager: Connection queue size:',
-      this.connectionQueue.size,
-    );
-    console.log(
-      'PeerConnectionManager: Clients in server:',
-      this.server._clients.size,
-    );
 
     const message = {
       event,
@@ -322,60 +374,59 @@ export class PeerConnectionManager extends EventEmitter {
       timestamp: Date.now(),
     };
 
+    console.log(
+      'PeerConnectionManager: Message to broadcast:',
+      message,
+    );
+
     try {
       let sentCount = 0;
-      // Get all connected clients
-      this.server._clients.forEach((client, clientId) => {
-        if (!this.connectionQueue.has(clientId)) {
-          console.warn(
-            `PeerConnectionManager: Client ${clientId} not in connection queue, skipping`,
-          );
-          return;
-        }
 
-        console.log(
-          'PeerConnectionManager: Attempting to send to client:',
-          clientId,
-        );
-
-        if (!client) {
-          console.warn(
-            `PeerConnectionManager: Client ${clientId} not found in server clients`,
-          );
-          return;
-        }
-
-        if (!client.socket) {
-          console.warn(
-            `PeerConnectionManager: Client ${clientId} has no socket`,
-          );
-          return;
-        }
-
-        if (!client.socket.connected) {
-          console.warn(
-            `PeerConnectionManager: Client ${clientId} socket not connected`,
-          );
-          return;
-        }
-
+      // Iterate through our direct list of peer connections
+      this.peer_connections.forEach((connection, index) => {
         try {
-          // Send message to each client
-          client.socket.send(JSON.stringify(message));
+          // Check if there is still data in the buffer before adding more information to it.
+          // This prevents bandwidth issues from causing latency.
+          if (
+            lossy &&
+            connection.dataChannel &&
+            connection.dataChannel.bufferedAmount > 0
+          ) {
+            console.log(
+              `PeerConnectionManager: Skipping connection ${index} due to buffer`,
+            );
+            return;
+          }
+
           console.log(
-            `PeerConnectionManager: Successfully sent message to client ${clientId}`,
+            `PeerConnectionManager: Sending to connection ${index}`,
+          );
+          connection.send(message);
+          console.log(
+            `PeerConnectionManager: Successfully sent to connection ${index}`,
           );
           sentCount++;
         } catch (err) {
           console.warn(
-            `PeerConnectionManager: Failed to send message to client ${clientId}:`,
+            `PeerConnectionManager: Failed to send to connection ${index}:`,
             err,
           );
+
+          // Remove dead connections
+          if (
+            err.message.includes('not connected') ||
+            err.message.includes('closed')
+          ) {
+            console.log(
+              `PeerConnectionManager: Removing dead connection ${index}`,
+            );
+            this.peer_connections.splice(index, 1);
+          }
         }
       });
 
       console.log(
-        `PeerConnectionManager: Broadcast complete. Sent to ${sentCount}/${this.connectionQueue.size} clients`,
+        `PeerConnectionManager: Broadcast complete. Sent to ${sentCount}/${this.peer_connections.length} connections`,
       );
     } catch (error) {
       console.error(
