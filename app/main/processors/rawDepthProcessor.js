@@ -12,35 +12,125 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
    * @returns {Object} Processed raw depth frame data
    */
   processFrame(frame) {
+    console.log('RawDepthProcessor: Processing raw depth frame');
     try {
       if (!frame?.imageData?.buffer) {
+        console.error(
+          'RawDepthProcessor: Invalid frame data - missing buffer',
+        );
+        console.error(
+          'RawDepthProcessor: Frame structure:',
+          frame ? `has imageData=${!!frame.imageData}` : 'null',
+        );
         throw new Error('Invalid frame data');
       }
 
-      const depthData = new Uint16Array(frame.imageData.buffer);
-      const processedData = new Uint8ClampedArray(
-        depthData.length * 4,
+      console.log(
+        'RawDepthProcessor: Frame buffer size:',
+        frame.imageData.buffer.byteLength,
+      );
+      console.log(
+        'RawDepthProcessor: Creating Uint16Array from buffer',
       );
 
+      const depthData = new Uint16Array(frame.imageData.buffer);
+      console.log(
+        'RawDepthProcessor: Depth data array created, length:',
+        depthData.length,
+      );
+
+      // Log some sample depth values for debugging
+      const sampleValues = [];
+      for (let i = 0; i < Math.min(5, depthData.length); i++) {
+        sampleValues.push(depthData[i]);
+      }
+      console.log(
+        'RawDepthProcessor: Sample depth values:',
+        sampleValues,
+      );
+
+      // Keep original dimensions
+      const width = KinectConstants.RAW_DEPTH.WIDTH;
+      const height = KinectConstants.RAW_DEPTH.HEIGHT;
+
+      console.log(
+        'RawDepthProcessor: Using original dimensions:',
+        width,
+        'x',
+        height,
+      );
+
+      // Create RGBA data for rendering and transmission
+      // Each pixel uses 4 bytes (R,G,B,A)
+      console.log('RawDepthProcessor: Creating RGBA data');
+      const processedData = new Uint8ClampedArray(width * height * 4);
+
+      // Track min/max values for debugging
+      let minDepth = Number.MAX_VALUE;
+      let maxDepth = 0;
+      let validPixels = 0;
+      let invalidPixels = 0;
+
+      console.log('RawDepthProcessor: Processing depth data');
+
+      // Process each pixel
       for (let i = 0; i < depthData.length; i++) {
         const depth = depthData[i];
         const index = i * 4;
 
+        // Track statistics
+        if (depth > 0) {
+          minDepth = Math.min(minDepth, depth);
+          maxDepth = Math.max(maxDepth, depth);
+          validPixels++;
+        } else {
+          invalidPixels++;
+        }
+
         // Store 16-bit depth value in R and G channels (8 bits each)
-        processedData[index] = depth & 0xff; // Lower 8 bits
-        processedData[index + 1] = depth >> 8; // Upper 8 bits
-        processedData[index + 2] = 0; // Not used
-        processedData[index + 3] = 255; // Alpha
+        processedData[index] = depth & 0xff; // Lower 8 bits in R
+        processedData[index + 1] = depth >> 8; // Upper 8 bits in G
+        processedData[index + 2] = 0; // B channel not used
+        processedData[index + 3] = 255; // Alpha channel (fully opaque)
       }
 
-      return {
+      console.log('RawDepthProcessor: Depth statistics:', {
+        minDepth: minDepth === Number.MAX_VALUE ? 'none' : minDepth,
+        maxDepth,
+        validPixels,
+        invalidPixels,
+        totalPixels: width * height,
+      });
+
+      const result = {
         imageData: {
           data: processedData,
-          width: KinectConstants.RAW_DEPTH.WIDTH,
-          height: KinectConstants.RAW_DEPTH.HEIGHT,
+          width: width,
+          height: height,
         },
       };
+
+      console.log(
+        'RawDepthProcessor: Returning processed frame with dimensions:',
+        result.imageData.width,
+        'x',
+        result.imageData.height,
+      );
+      console.log(
+        'RawDepthProcessor: Processed data type:',
+        Object.prototype.toString.call(result.imageData.data),
+      );
+      console.log(
+        'RawDepthProcessor: Processed data length:',
+        result.imageData.data.length,
+      );
+
+      return result;
     } catch (error) {
+      console.error(
+        'RawDepthProcessor: Error processing frame:',
+        error,
+      );
       return this.handleError(error, 'raw depth frame processing');
     }
   }

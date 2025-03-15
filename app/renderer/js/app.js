@@ -887,41 +887,180 @@ class KinectronApp {
   }
 
   async startRawDepthStream() {
+    console.log('APP: startRawDepthStream called');
     try {
       const canvas = document.getElementById('raw-depth-canvas');
       if (canvas) {
         canvas.width = 320; // Azure Kinect raw depth width
         canvas.height = 288; // Azure Kinect raw depth height
+        console.log(
+          'APP: Raw depth canvas dimensions set:',
+          canvas.width,
+          'x',
+          canvas.height,
+        );
+      } else {
+        console.error('APP: Raw depth canvas element not found!');
       }
 
+      console.log(
+        'APP: Calling window.kinectron.startRawDepthStream()',
+      );
       const success = await window.kinectron.startRawDepthStream();
+      console.log(
+        'APP: window.kinectron.startRawDepthStream() returned:',
+        success,
+      );
+
       if (success) {
+        console.log('APP: Setting up onRawDepthFrame callback');
         const cleanup = window.kinectron.onRawDepthFrame(
           (frameData) => {
+            console.log(
+              'APP: onRawDepthFrame callback received frame data:',
+              frameData
+                ? `has rawDepthData=${!!frameData.rawDepthData}, timestamp=${
+                    frameData.timestamp
+                  }`
+                : 'null',
+            );
+
+            if (frameData && frameData.rawDepthData) {
+              console.log(
+                'APP: Raw depth data type:',
+                Object.prototype.toString.call(
+                  frameData.rawDepthData,
+                ),
+              );
+              console.log(
+                'APP: Raw depth data length:',
+                frameData.rawDepthData.length,
+              );
+
+              // Log sample values for debugging
+              const sampleValues = [];
+              for (
+                let i = 0;
+                i < Math.min(20, frameData.rawDepthData.length);
+                i += 4
+              ) {
+                sampleValues.push({
+                  r: frameData.rawDepthData[i],
+                  g: frameData.rawDepthData[i + 1],
+                  b: frameData.rawDepthData[i + 2],
+                  a: frameData.rawDepthData[i + 3],
+                });
+              }
+              console.log(
+                'APP: Sample raw depth values:',
+                sampleValues,
+              );
+            }
+
             this.processRawDepthFrame(frameData);
           },
         );
+        console.log(
+          'APP: Callback registered, storing cleanup function',
+        );
         this.cleanupFunctions.set('raw-depth', cleanup);
+      } else {
+        console.error('APP: Failed to start raw depth stream');
       }
       return success;
     } catch (error) {
-      console.error('Error starting raw depth stream:', error);
+      console.error('APP: Error starting raw depth stream:', error);
       return false;
     }
   }
 
   processRawDepthFrame(frameData) {
+    console.log(
+      'APP: processRawDepthFrame called with data:',
+      frameData,
+    );
+    console.log(
+      'APP: Frame data structure:',
+      frameData ? `has imageData=${!!frameData.imageData}` : 'null',
+    );
+
     const canvas = document.getElementById('raw-depth-canvas');
-    if (!canvas) return;
+    if (!canvas) {
+      console.error('APP: Raw depth canvas not found');
+      return;
+    }
+    console.log(
+      'APP: Found raw depth canvas with dimensions:',
+      canvas.width,
+      'x',
+      canvas.height,
+    );
 
     const context = canvas.getContext('2d');
+    if (!context) {
+      console.error(
+        'APP: Could not get 2D context from raw depth canvas',
+      );
+      return;
+    }
+
     if (frameData.imageData && frameData.imageData.data) {
-      const imageData = new ImageData(
-        new Uint8ClampedArray(frameData.imageData.data),
+      console.log(
+        'APP: Raw depth frame has imageData, dimensions:',
         frameData.imageData.width,
+        'x',
         frameData.imageData.height,
       );
-      context.putImageData(imageData, 0, 0);
+      console.log(
+        'APP: Raw depth data type:',
+        Object.prototype.toString.call(frameData.imageData.data),
+      );
+      console.log(
+        'APP: Raw depth data length:',
+        frameData.imageData.data.length,
+      );
+
+      try {
+        console.log('APP: Creating ImageData from raw depth data');
+        const imageData = new ImageData(
+          new Uint8ClampedArray(frameData.imageData.data),
+          frameData.imageData.width,
+          frameData.imageData.height,
+        );
+        console.log('APP: ImageData created successfully');
+
+        // Log some sample pixel values for debugging
+        const samplePixels = [];
+        for (
+          let i = 0;
+          i < Math.min(5, imageData.data.length);
+          i += 4
+        ) {
+          samplePixels.push({
+            r: imageData.data[i],
+            g: imageData.data[i + 1],
+            b: imageData.data[i + 2],
+            a: imageData.data[i + 3],
+          });
+        }
+        console.log('APP: Sample pixel values:', samplePixels);
+
+        console.log('APP: Drawing raw depth image to canvas');
+        context.putImageData(imageData, 0, 0);
+        console.log('APP: Raw depth image drawn to canvas');
+      } catch (error) {
+        console.error('APP: Error drawing raw depth frame:', error);
+        console.error(
+          'APP: Frame data type:',
+          Object.prototype.toString.call(frameData.imageData.data),
+        );
+        console.error(
+          'APP: Frame data length:',
+          frameData.imageData.data.length,
+        );
+      }
+    } else {
+      console.error('APP: Raw depth frame missing image data');
     }
   }
 

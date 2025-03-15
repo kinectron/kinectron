@@ -40,6 +40,7 @@
         <button onclick="initializeKinect()">Initialize Kinect</button>
         <button onclick="startColorStream()" disabled id="startColorBtn">Start Color Stream</button>
         <button onclick="startDepthStream()" disabled id="startDepthBtn">Start Depth Stream</button>
+        <button onclick="startRawDepthStream()" disabled id="startRawDepthBtn">Start Raw Depth Stream</button>
         <button onclick="stopStream()" disabled id="stopStreamBtn">Stop Stream</button>
     </div>
     <div id="canvas-container"></div>
@@ -131,6 +132,7 @@
                 if (isSuccess || data.alreadyInitialized) {
                     document.getElementById('startColorBtn').disabled = false;
                     document.getElementById('startDepthBtn').disabled = false;
+                    document.getElementById('startRawDepthBtn').disabled = false;
                     document.getElementById('stopStreamBtn').disabled = false;
                     document.getElementById('streamStatus').innerHTML =
                         '<span class="success">Kinect Initialized via Direct Event</span>';
@@ -207,6 +209,7 @@
         function forceEnableButtons() {
             document.getElementById('startColorBtn').disabled = false;
             document.getElementById('startDepthBtn').disabled = false;
+            document.getElementById('startRawDepthBtn').disabled = false;
             document.getElementById('stopStreamBtn').disabled = false;
             addDebugInfo('Buttons forcibly enabled');
         }
@@ -241,6 +244,7 @@
                     // Enable the buttons
                     document.getElementById('startColorBtn').disabled = false;
                     document.getElementById('startDepthBtn').disabled = false;
+                    document.getElementById('startRawDepthBtn').disabled = false;
                     document.getElementById('stopStreamBtn').disabled = false;
                 } else {
                     addDebugInfo(`Kinect initialization failed: ${result.error || 'Unknown error'}`);
@@ -380,6 +384,135 @@
                     );
                 } else {
                     addDebugInfo('No frame.src available to load image');
+                }
+            });
+        }
+
+        // Start raw depth stream
+        window.startRawDepthStream = function () {
+            document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
+            frameCount = 0;
+            lastFrameTime = Date.now();
+            frameRates = [];
+            frameLatencies = [];
+            isStreamActive = true;
+
+            // Constants for raw depth
+            const AZURE_RAW_DEPTH_WIDTH = 320;
+            const AZURE_RAW_DEPTH_HEIGHT = 288;
+
+            // Resize canvas for raw depth stream
+            resizeCanvas(AZURE_RAW_DEPTH_WIDTH * DISPLAY_SCALE, AZURE_RAW_DEPTH_HEIGHT * DISPLAY_SCALE);
+            background(255);
+
+            addDebugInfo('Calling kinectron.startRawDepth()');
+            kinectron.startRawDepth((frame) => {
+                // Log frame data for debugging
+                addDebugInfo(`Received raw depth frame: timestamp=${frame.timestamp}`);
+                addDebugInfo(`Raw depth data: ${JSON.stringify(frame).substring(0, 100)}...`);
+
+                // Update stream status
+                document.getElementById('streamStatus').innerHTML =
+                    '<span class="success">Stream Status: Active (Raw Depth)</span>';
+
+                // Calculate frame metrics
+                frameCount++;
+                const now = Date.now();
+
+                // Calculate frame rate every second
+                if (now - lastFrameTime >= 1000) {
+                    const fps = frameCount / ((now - lastFrameTime) / 1000);
+                    frameRates.push(fps);
+                    if (frameRates.length > 10) frameRates.shift(); // Keep last 10 readings
+                    frameCount = 0;
+                    lastFrameTime = now;
+                }
+
+                // Calculate frame latency
+                if (frame.timestamp) {
+                    const latency = now - frame.timestamp;
+                    frameLatencies.push(latency);
+                    addDebugInfo(`Frame latency: ${latency}ms`);
+                }
+
+                // Track last frame timestamp for jitter calculation
+                lastFrameTimestamp = now;
+
+                // Process raw depth data
+                if (frame.src) {
+                    // If we have a data URL, use it directly
+                    loadImage(frame.src,
+                        (loadedImage) => {
+                            // Clear canvas
+                            background(255);
+                            // Draw the image
+                            image(loadedImage, 0, 0, width, height);
+                            addDebugInfo(`Raw depth image drawn to canvas: ${loadedImage.width}x${loadedImage.height}`);
+                        },
+                        (err) => {
+                            addDebugInfo(`Error loading raw depth image: ${err}`);
+                        }
+                    );
+                } else if (frame.rawDepthData) {
+                    // If we have raw depth data, create a visualization
+                    addDebugInfo('Processing raw depth data array');
+                    addDebugInfo(`Raw depth data type: ${Object.prototype.toString.call(frame.rawDepthData)}`);
+                    addDebugInfo(`Raw depth data length: ${frame.rawDepthData.length}`);
+
+                    // Log sample values for debugging
+                    const sampleValues = [];
+                    for (let i = 0; i < Math.min(20, frame.rawDepthData.length); i += 4) {
+                        sampleValues.push({
+                            r: frame.rawDepthData[i],
+                            g: frame.rawDepthData[i + 1],
+                            b: frame.rawDepthData[i + 2],
+                            a: frame.rawDepthData[i + 3]
+                        });
+                    }
+                    addDebugInfo(`Sample raw depth values: ${JSON.stringify(sampleValues)}`);
+
+                    // Get dimensions from frame or use defaults
+                    const rawDepthWidth = frame.width || AZURE_RAW_DEPTH_WIDTH;
+                    const rawDepthHeight = frame.height || AZURE_RAW_DEPTH_HEIGHT;
+                    addDebugInfo(`Using dimensions: ${rawDepthWidth}x${rawDepthHeight}`);
+
+                    // Create a p5.js image to display the raw depth data
+                    let img = createImage(rawDepthWidth, rawDepthHeight);
+                    img.loadPixels();
+
+                    // Check if the data is already in RGBA format (4 bytes per pixel)
+                    if (frame.rawDepthData.length === rawDepthWidth * rawDepthHeight * 4) {
+                        addDebugInfo('Raw depth data appears to be in RGBA format');
+
+                        // Copy the RGBA data directly
+                        for (let i = 0; i < frame.rawDepthData.length; i++) {
+                            img.pixels[i] = frame.rawDepthData[i];
+                        }
+                    } else {
+                        addDebugInfo('Raw depth data appears to be in depth value format');
+
+                        // Process each pixel in the raw depth data
+                        for (let i = 0; i < frame.rawDepthData.length; i++) {
+                            const depthValue = frame.rawDepthData[i];
+                            // Map depth value to grayscale (0-255)
+                            const normalizedValue = map(depthValue, 0, 5000, 255, 0);
+
+                            // Set pixel color (grayscale)
+                            img.pixels[i * 4] = normalizedValue;     // R
+                            img.pixels[i * 4 + 1] = normalizedValue; // G
+                            img.pixels[i * 4 + 2] = normalizedValue; // B
+                            img.pixels[i * 4 + 3] = 255;             // A
+                        }
+                    }
+
+                    img.updatePixels();
+
+                    // Clear canvas and draw the image
+                    background(255);
+                    image(img, 0, 0, width, height);
+                    addDebugInfo('Raw depth visualization created from data array');
+                } else {
+                    addDebugInfo('No usable raw depth data available');
                 }
             });
         }

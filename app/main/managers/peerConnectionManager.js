@@ -335,14 +335,75 @@ export class PeerConnectionManager extends EventEmitter {
    * @param {boolean} [lossy=false] - Whether to use lossy transmission
    */
   broadcast(event, data, lossy = false) {
-    // Check if we have any connections to broadcast to
+    // Always emit the event to the renderer process via IPC first
+    // This is critical for ensuring events are forwarded even when there are no direct connections
+    console.log(
+      `PeerConnectionManager: Emitting ${event} event to renderer process`,
+    );
+    this.emit('broadcast', { event, data, lossy });
+
+    // Check if we have any direct connections to broadcast to
     if (
       this.peer_connections.length === 0 &&
       this.connectionQueue.size === 0
     ) {
-      // Emit the event to the renderer process via IPC
-      this.emit('broadcast', { event, data, lossy });
+      console.log(
+        `PeerConnectionManager: No direct connections to broadcast to, renderer notification complete`,
+      );
       return;
+    }
+
+    console.log(
+      `PeerConnectionManager: Broadcasting ${event} event to ${this.peer_connections.length} direct connections`,
+    );
+
+    // Special handling for rawDepth events
+    if (event === 'rawDepth') {
+      console.log(
+        `PeerConnectionManager: Broadcasting rawDepth event with data:`,
+        data
+          ? `has data=${!!data.data}, timestamp=${data.timestamp}`
+          : 'null',
+      );
+
+      if (data && data.data) {
+        console.log(
+          `PeerConnectionManager: rawDepth data dimensions:`,
+          `width=${data.data.width}, height=${data.data.height}`,
+        );
+        console.log(
+          `PeerConnectionManager: rawDepth data type:`,
+          Object.prototype.toString.call(data.data.rawDepthData),
+        );
+        console.log(
+          `PeerConnectionManager: rawDepth data length:`,
+          data.data.rawDepthData
+            ? data.data.rawDepthData.length
+            : 'unknown',
+        );
+
+        // Log sample values from the raw depth data
+        if (data.data.rawDepthData) {
+          const rawDepthArray = data.data.rawDepthData;
+          const sampleValues = [];
+          for (
+            let i = 0;
+            i < Math.min(20, rawDepthArray.length);
+            i += 4
+          ) {
+            sampleValues.push({
+              r: rawDepthArray[i],
+              g: rawDepthArray[i + 1],
+              b: rawDepthArray[i + 2],
+              a: rawDepthArray[i + 3],
+            });
+          }
+          console.log(
+            `PeerConnectionManager: Sample rawDepth values:`,
+            sampleValues,
+          );
+        }
+      }
     }
 
     const message = {
@@ -365,33 +426,39 @@ export class PeerConnectionManager extends EventEmitter {
               connection.dataChannel &&
               connection.dataChannel.bufferedAmount > 0
             ) {
+              console.log(
+                `PeerConnectionManager: Skipping connection ${index} due to buffered data`,
+              );
               return;
             }
 
+            console.log(
+              `PeerConnectionManager: Sending ${event} event to connection ${index}`,
+            );
             connection.send(message);
             sentCount++;
           } catch (err) {
+            console.error(
+              `PeerConnectionManager: Error sending to connection ${index}:`,
+              err,
+            );
             // Remove dead connections
             if (
               err.message.includes('not connected') ||
               err.message.includes('closed')
             ) {
+              console.log(
+                `PeerConnectionManager: Removing dead connection ${index}`,
+              );
               this.peer_connections.splice(index, 1);
             }
           }
         });
       }
 
-      // Also emit the event to the renderer process via IPC
-      // This ensures the event is broadcast to peers connected via the renderer process
-      this.emit('broadcast', { event, data, lossy });
-
-      // Log only for important events or errors
-      if (event === 'kinectInitialized' || event === 'error') {
-        console.log(
-          `PeerConnectionManager: Broadcast ${event} to ${sentCount} direct connections and renderer`,
-        );
-      }
+      console.log(
+        `PeerConnectionManager: Broadcast ${event} to ${sentCount} direct connections and renderer`,
+      );
     } catch (error) {
       console.error(
         'PeerConnectionManager: Error broadcasting message:',

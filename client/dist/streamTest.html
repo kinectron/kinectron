@@ -39,6 +39,7 @@
         <button onclick="initializeKinect()">Initialize Kinect</button>
         <button onclick="startColorStream()" disabled="" id="startColorBtn">Start Color Stream</button>
         <button onclick="startDepthStream()" disabled="" id="startDepthBtn">Start Depth Stream</button>
+        <button onclick="startRawDepthStream()" disabled="" id="startRawDepthBtn">Start Raw Depth Stream</button>
         <button onclick="stopStream()" disabled="" id="stopStreamBtn">Stop Stream</button>
     </div>
     <div id="canvas-container"></div>
@@ -204,14 +205,14 @@
       this[globalName] = mainExports;
     }
   }
-})({"27OUr":[function(require,module,exports,__globalThis) {
+})({"by9NM":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
 var HMR_USE_SSE = false;
-module.bundle.HMR_BUNDLE_ID = "0cbfc525cf6fc88c";
+module.bundle.HMR_BUNDLE_ID = "b2bd563cf8ef2763";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -657,7 +658,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     }
 }
 
-},{}],"gdlrq":[function(require,module,exports,__globalThis) {
+},{}],"6J9ox":[function(require,module,exports,__globalThis) {
 var _kinectronModernJs = require("./src/kinectron-modern.js");
 window.Kinectron = (0, _kinectronModernJs.Kinectron);
 
@@ -695,14 +696,29 @@ class Kinectron {
         });
         // Handle incoming data
         this.peer.on('data', (data)=>{
+            console.log('Kinectron: Received data event:', data);
             const { event, data: eventData } = data;
             const handler = this.messageHandlers.get(event);
-            if (handler) handler(eventData);
-            else console.warn('Kinectron: No handler found for event:', event);
+            if (handler) {
+                console.log('Kinectron: Found handler for event:', event);
+                handler(eventData);
+            } else {
+                console.warn('Kinectron: No handler found for event:', event);
+                // Special handling for rawDepth events
+                if (event === 'rawDepth') {
+                    console.log('Kinectron: Handling rawDepth event without registered handler');
+                    const rawDepthHandler = this.messageHandlers.get('rawDepth');
+                    if (rawDepthHandler) {
+                        console.log('Kinectron: Found rawDepth handler, calling it');
+                        rawDepthHandler(eventData);
+                    } else console.error('Kinectron: No rawDepth handler registered');
+                }
+            }
         });
     }
     // Event registration
     on(event, callback) {
+        console.log('Kinectron: Registering handler for event:', event);
         this.messageHandlers.set(event, callback);
     }
     // Get current state
@@ -943,19 +959,145 @@ class Kinectron {
             feed: 'depth'
         });
     }
+    /**
+   * Process raw depth data from a data URL
+   * @param {string} dataUrl - The data URL containing the raw depth image
+   * @param {number} width - The width of the depth image
+   * @param {number} height - The height of the depth image
+   * @returns {Promise<number[]>} - A promise that resolves to an array of depth values
+   */ async processRawDepth(dataUrl, width, height) {
+        console.log('Kinectron: Processing raw depth data from data URL');
+        try {
+            // Create a blob from the data URL
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+            // Create an ImageBitmap
+            console.log('Kinectron: Creating ImageBitmap from blob');
+            const imageBitmap = await createImageBitmap(blob);
+            // Draw to an OffscreenCanvas
+            console.log('Kinectron: Drawing to OffscreenCanvas');
+            const canvas = new OffscreenCanvas(width, height);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(imageBitmap, 0, 0);
+            // Get the image data
+            console.log('Kinectron: Getting image data');
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const processedData = [];
+            // Extract depth values from R and G channels
+            console.log('Kinectron: Extracting depth values');
+            for(let i = 0; i < imageData.data.length; i += 4){
+                // Reconstruct 16-bit depth value from R and G channels
+                const depth = imageData.data[i + 1] << 8 | imageData.data[i];
+                processedData.push(depth);
+            }
+            console.log('Kinectron: Depth data extracted, length:', processedData.length);
+            // Log some sample depth values for debugging
+            const sampleValues = [];
+            for(let i = 0; i < Math.min(5, processedData.length); i++)sampleValues.push(processedData[i]);
+            console.log('Kinectron: Sample depth values:', sampleValues);
+            return processedData;
+        } catch (error) {
+            console.error('Kinectron: Error processing raw depth data:', error);
+            throw error;
+        }
+    }
+    /**
+   * Create a visualization of the depth data
+   * @param {number[]} depthData - Array of depth values
+   * @param {number} width - Width of the depth image
+   * @param {number} height - Height of the depth image
+   * @returns {string} - Data URL of the visualization
+   */ createDepthVisualization(depthData, width, height) {
+        console.log('Kinectron: Creating depth visualization');
+        // Create a canvas for visualization
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        // Create image data
+        const imgData = ctx.createImageData(width, height);
+        // Find min/max depth for normalization
+        let minDepth = Number.MAX_VALUE;
+        let maxDepth = 0;
+        for(let i = 0; i < depthData.length; i++)if (depthData[i] > 0) {
+            minDepth = Math.min(minDepth, depthData[i]);
+            maxDepth = Math.max(maxDepth, depthData[i]);
+        }
+        // Default range if no valid depths found
+        if (minDepth === Number.MAX_VALUE) {
+            minDepth = 0;
+            maxDepth = 5000; // Typical max depth in mm
+        }
+        // Normalize and visualize
+        for(let i = 0; i < depthData.length; i++){
+            const depth = depthData[i];
+            const index = i * 4;
+            if (depth > 0) {
+                // Normalize to 0-255 range
+                const normalizedDepth = Math.floor(255 * (1 - (depth - minDepth) / (maxDepth - minDepth)));
+                // Grayscale visualization
+                imgData.data[index] = normalizedDepth;
+                imgData.data[index + 1] = normalizedDepth;
+                imgData.data[index + 2] = normalizedDepth;
+                imgData.data[index + 3] = 255; // Alpha
+            } else {
+                // No depth data (black with alpha)
+                imgData.data[index] = 0;
+                imgData.data[index + 1] = 0;
+                imgData.data[index + 2] = 0;
+                imgData.data[index + 3] = 255;
+            }
+        }
+        // Draw the image data
+        ctx.putImageData(imgData, 0, 0);
+        // Convert to data URL
+        return canvas.toDataURL('image/jpeg');
+    }
     startRawDepth(callback) {
-        if (callback) // Set up handler to process raw depth frames
-        this.messageHandlers.set('rawDepth', (data)=>{
-            if (data && data.rawDepthData) // Raw depth data is already in a usable format (array of depth values)
-            // Just add timestamp and pass it through
-            callback({
-                ...data,
-                timestamp: data.timestamp || Date.now()
+        console.log('Kinectron: startRawDepth called');
+        if (callback) {
+            console.log('Kinectron: Setting up handler for rawDepth events');
+            // Set up handler to process raw depth frames
+            this.messageHandlers.set('rawDepth', async (data)=>{
+                console.log('Kinectron: Received rawDepth event with data:', data ? `has imagedata=${!!data.imagedata}, timestamp=${data.timestamp}` : 'null');
+                if (data && data.imagedata) {
+                    console.log('Kinectron: Raw depth data received, dimensions:', `width=${data.width}, height=${data.height}`);
+                    console.log('Kinectron: Data URL length:', data.imagedata.length);
+                    try {
+                        // Process the raw depth data using our modern approach
+                        const depthValues = await this.processRawDepth(data.imagedata, data.width, data.height);
+                        // Create a visualization for display
+                        const src = this.createDepthVisualization(depthValues, data.width, data.height);
+                        // Call the user callback with processed frame
+                        console.log('Kinectron: Calling user callback with processed frame');
+                        callback({
+                            src,
+                            width: data.width,
+                            height: data.height,
+                            rawDepthData: depthValues,
+                            timestamp: data.timestamp || Date.now()
+                        });
+                        console.log('Kinectron: User callback called successfully');
+                    } catch (error) {
+                        console.error('Kinectron: Error processing raw depth data:', error);
+                        // Still try to call the callback with basic information
+                        console.log('Kinectron: Calling user callback with basic data due to error');
+                        callback({
+                            width: data.width,
+                            height: data.height,
+                            timestamp: data.timestamp || Date.now(),
+                            error: error.message
+                        });
+                    }
+                } else console.warn('Kinectron: Received rawDepth event but no valid data');
             });
-        });
+            console.log('Kinectron: rawDepth event handler registered');
+        } else console.warn('Kinectron: No callback provided for raw depth stream');
+        console.log('Kinectron: Sending raw-depth feed request');
         this.send('feed', {
             feed: 'raw-depth'
         });
+        console.log('Kinectron: Raw depth feed request sent');
     }
     startBodies(callback) {
         if (callback) // Set up handler to process body tracking frames
@@ -1159,8 +1301,111 @@ class Kinectron {
             feed: 'stop-all'
         });
     }
+    // Frame callback registration methods
+    onColorFrame(callback) {
+        console.log('Kinectron: Registering onColorFrame callback');
+        const handler = (data)=>{
+            console.log('Kinectron: onColorFrame handler called with data');
+            callback(data);
+        };
+        this.messageHandlers.set('frame', handler);
+        // Return cleanup function
+        return ()=>{
+            console.log('Kinectron: Cleaning up onColorFrame handler');
+            this.messageHandlers.delete('frame');
+        };
+    }
+    onDepthFrame(callback) {
+        console.log('Kinectron: Registering onDepthFrame callback');
+        const handler = (data)=>{
+            console.log('Kinectron: onDepthFrame handler called with data');
+            callback(data);
+        };
+        this.messageHandlers.set('frame', handler);
+        // Return cleanup function
+        return ()=>{
+            console.log('Kinectron: Cleaning up onDepthFrame handler');
+            this.messageHandlers.delete('frame');
+        };
+    }
+    onRawDepthFrame(callback) {
+        console.log('Kinectron: Registering onRawDepthFrame callback');
+        const handler = (data)=>{
+            console.log('Kinectron: onRawDepthFrame handler called with data:', data ? `has rawDepthData=${!!data.rawDepthData}` : 'null');
+            callback(data);
+        };
+        this.messageHandlers.set('rawDepth', handler);
+        // Return cleanup function
+        return ()=>{
+            console.log('Kinectron: Cleaning up onRawDepthFrame handler');
+            this.messageHandlers.delete('rawDepth');
+        };
+    }
+    onBodyFrame(callback) {
+        console.log('Kinectron: Registering onBodyFrame callback');
+        const handler = (data)=>{
+            console.log('Kinectron: onBodyFrame handler called with data');
+            callback(data);
+        };
+        this.messageHandlers.set('bodyFrame', handler);
+        // Return cleanup function
+        return ()=>{
+            console.log('Kinectron: Cleaning up onBodyFrame handler');
+            this.messageHandlers.delete('bodyFrame');
+        };
+    }
+    onKeyFrame(callback) {
+        console.log('Kinectron: Registering onKeyFrame callback');
+        const handler = (data)=>{
+            console.log('Kinectron: onKeyFrame handler called with data');
+            callback(data);
+        };
+        this.messageHandlers.set('frame', handler);
+        // Return cleanup function
+        return ()=>{
+            console.log('Kinectron: Cleaning up onKeyFrame handler');
+            this.messageHandlers.delete('frame');
+        };
+    }
+    onDepthKeyFrame(callback) {
+        console.log('Kinectron: Registering onDepthKeyFrame callback');
+        const handler = (data)=>{
+            console.log('Kinectron: onDepthKeyFrame handler called with data');
+            callback(data);
+        };
+        this.messageHandlers.set('depthKey', handler);
+        // Return cleanup function
+        return ()=>{
+            console.log('Kinectron: Cleaning up onDepthKeyFrame handler');
+            this.messageHandlers.delete('depthKey');
+        };
+    }
+    onRGBDFrame(callback) {
+        console.log('Kinectron: Registering onRGBDFrame callback');
+        const handler = (data)=>{
+            console.log('Kinectron: onRGBDFrame handler called with data');
+            callback(data);
+        };
+        this.messageHandlers.set('frame', handler);
+        // Return cleanup function
+        return ()=>{
+            console.log('Kinectron: Cleaning up onRGBDFrame handler');
+            this.messageHandlers.delete('frame');
+        };
+    }
+    // Ngrok status change callback
+    onNgrokStatusChange(callback) {
+        console.log('Kinectron: Registering onNgrokStatusChange callback');
+        this.messageHandlers.set('ngrokStatus', callback);
+        // Return cleanup function
+        return ()=>{
+            console.log('Kinectron: Cleaning up onNgrokStatusChange handler');
+            this.messageHandlers.delete('ngrokStatus');
+        };
+    }
     // Clean up
     close() {
+        console.log('Kinectron: Closing connection and cleaning up resources');
         this.peer.close();
         this.messageHandlers.clear();
         this.state = null;
@@ -1621,23 +1866,92 @@ class PeerConnection {
    * @param {*} data.data - Event data
    */ handleIncomingData(data) {
         try {
-            console.log('PeerConnection: Received event:', data.event, 'with data:', data.data);
+            // Track frame statistics
+            if (!this._frameStats) this._frameStats = {
+                frameCount: 0,
+                lastLogTime: Date.now(),
+                rawDepthFrameCount: 0,
+                eventCounts: {}
+            };
+            // Increment frame counter
+            this._frameStats.frameCount++;
+            // Track event type counts
+            if (!this._frameStats.eventCounts[data.event]) this._frameStats.eventCounts[data.event] = 0;
+            this._frameStats.eventCounts[data.event]++;
+            console.log(`PeerConnection: Received event: ${data.event} (frame #${this._frameStats.frameCount})`, 'with data:', data.data);
+            // Special handling for rawDepth events
+            if (data.event === 'rawDepth') {
+                this._frameStats.rawDepthFrameCount++;
+                console.log(`PeerConnection: Special handling for rawDepth event (frame #${this._frameStats.frameCount}, rawDepth #${this._frameStats.rawDepthFrameCount})`);
+                console.log('PeerConnection: rawDepth data structure:', data.data ? `has data=${!!data.data.rawDepthData}, timestamp=${data.timestamp}` : 'null');
+                if (data.data && data.data.rawDepthData) {
+                    console.log('PeerConnection: rawDepth data dimensions:', `width=${data.data.width}, height=${data.data.height}`);
+                    console.log('PeerConnection: rawDepth data type:', Object.prototype.toString.call(data.data.rawDepthData));
+                    console.log('PeerConnection: rawDepth data length:', data.data.rawDepthData.length);
+                    // Log sample values for debugging
+                    const sampleValues = [];
+                    for(let i = 0; i < Math.min(20, data.data.rawDepthData.length); i += 4)sampleValues.push({
+                        r: data.data.rawDepthData[i],
+                        g: data.data.rawDepthData[i + 1],
+                        b: data.data.rawDepthData[i + 2],
+                        a: data.data.rawDepthData[i + 3]
+                    });
+                    console.log('PeerConnection: Sample rawDepth values:', sampleValues);
+                }
+                const rawDepthHandler = this.messageHandlers.get('rawDepth');
+                if (rawDepthHandler) {
+                    console.log(`PeerConnection: Found rawDepth handler, calling it directly (frame #${this._frameStats.rawDepthFrameCount})`);
+                    // Pass the raw depth data directly to the handler
+                    rawDepthHandler({
+                        rawDepthData: data.data.rawDepthData,
+                        width: data.data.width,
+                        height: data.data.height,
+                        timestamp: data.timestamp || Date.now(),
+                        state: this.state.getState()
+                    });
+                    console.log(`PeerConnection: rawDepth handler called successfully (frame #${this._frameStats.rawDepthFrameCount})`);
+                    // Log statistics every 5 seconds
+                    const now = Date.now();
+                    if (now - this._frameStats.lastLogTime >= 5000) {
+                        console.log(`PeerConnection: Frame stats (5s): ${this._frameStats.frameCount} total events, ${this._frameStats.rawDepthFrameCount} rawDepth events, event counts:`, this._frameStats.eventCounts);
+                        // Reset counters
+                        this._frameStats.frameCount = 0;
+                        this._frameStats.rawDepthFrameCount = 0;
+                        this._frameStats.eventCounts = {};
+                        this._frameStats.lastLogTime = now;
+                    }
+                    return;
+                } else console.error(`PeerConnection: No rawDepth handler found! (frame #${this._frameStats.rawDepthFrameCount})`);
+            }
             // First, try to find a specific handler for this event
             const handler = this.messageHandlers.get(data.event);
             if (handler) {
-                console.log('PeerConnection: Found specific handler for event:', data.event);
+                console.log(`PeerConnection: Found specific handler for event: ${data.event} (frame #${this._frameStats.frameCount})`);
                 handler({
                     ...data.data,
                     timestamp: Date.now(),
                     state: this.state.getState()
                 });
+                console.log(`PeerConnection: Handler for ${data.event} called successfully (frame #${this._frameStats.frameCount})`);
             } else {
-                console.log('PeerConnection: No specific handler for event:', data.event, 'forwarding to data handler');
+                console.log(`PeerConnection: No specific handler for event: ${data.event} (frame #${this._frameStats.frameCount}), forwarding to data handler`);
                 // If no specific handler is found, forward the event to the data handler
                 // This ensures all events are forwarded to the Kinectron class
                 const dataHandler = this.messageHandlers.get('data');
-                if (dataHandler) dataHandler(data);
-                else console.warn('PeerConnection: No data handler found for event:', data.event);
+                if (dataHandler) {
+                    dataHandler(data);
+                    console.log(`PeerConnection: Data handler called for ${data.event} (frame #${this._frameStats.frameCount})`);
+                } else console.warn(`PeerConnection: No data handler found for event: ${data.event} (frame #${this._frameStats.frameCount})`);
+            }
+            // Log statistics every 5 seconds
+            const now = Date.now();
+            if (now - this._frameStats.lastLogTime >= 5000) {
+                console.log(`PeerConnection: Frame stats (5s): ${this._frameStats.frameCount} total events, ${this._frameStats.rawDepthFrameCount} rawDepth events, event counts:`, this._frameStats.eventCounts);
+                // Reset counters
+                this._frameStats.frameCount = 0;
+                this._frameStats.rawDepthFrameCount = 0;
+                this._frameStats.eventCounts = {};
+                this._frameStats.lastLogTime = now;
             }
         } catch (error) {
             console.error('Error handling incoming data:', error);
@@ -11878,7 +12192,7 @@ class NgrokClientState {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["27OUr","gdlrq"], "gdlrq", "parcelRequire94c2")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["by9NM","6J9ox"], "6J9ox", "parcelRequire94c2")
 
 </script>
     <script>// Constants
@@ -11932,6 +12246,7 @@ function setup() {
         if (isSuccess || data.alreadyInitialized) {
             document.getElementById('startColorBtn').disabled = false;
             document.getElementById('startDepthBtn').disabled = false;
+            document.getElementById('startRawDepthBtn').disabled = false;
             document.getElementById('stopStreamBtn').disabled = false;
             document.getElementById('streamStatus').innerHTML = '<span class="success">Kinect Initialized via Direct Event</span>';
             addDebugInfo('Kinect initialized successfully via direct event');
@@ -11990,6 +12305,7 @@ function addDebugInfo(message) {
 function forceEnableButtons() {
     document.getElementById('startColorBtn').disabled = false;
     document.getElementById('startDepthBtn').disabled = false;
+    document.getElementById('startRawDepthBtn').disabled = false;
     document.getElementById('stopStreamBtn').disabled = false;
     addDebugInfo('Buttons forcibly enabled');
 }
@@ -12016,6 +12332,7 @@ window.initializeKinect = async function() {
             // Enable the buttons
             document.getElementById('startColorBtn').disabled = false;
             document.getElementById('startDepthBtn').disabled = false;
+            document.getElementById('startRawDepthBtn').disabled = false;
             document.getElementById('stopStreamBtn').disabled = false;
         } else {
             addDebugInfo(`Kinect initialization failed: ${result.error || 'Unknown error'}`);
@@ -12128,6 +12445,105 @@ window.startDepthStream = function() {
                 addDebugInfo(`Error loading image: ${err}`);
             });
         } else addDebugInfo('No frame.src available to load image');
+    });
+};
+// Start raw depth stream
+window.startRawDepthStream = function() {
+    document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
+    frameCount = 0;
+    lastFrameTime = Date.now();
+    frameRates = [];
+    frameLatencies = [];
+    isStreamActive = true;
+    // Constants for raw depth
+    const AZURE_RAW_DEPTH_WIDTH = 320;
+    const AZURE_RAW_DEPTH_HEIGHT = 288;
+    // Resize canvas for raw depth stream
+    resizeCanvas(AZURE_RAW_DEPTH_WIDTH * DISPLAY_SCALE, AZURE_RAW_DEPTH_HEIGHT * DISPLAY_SCALE);
+    background(255);
+    addDebugInfo('Calling kinectron.startRawDepth()');
+    kinectron.startRawDepth((frame)=>{
+        // Log frame data for debugging
+        addDebugInfo(`Received raw depth frame: timestamp=${frame.timestamp}`);
+        addDebugInfo(`Raw depth data: ${JSON.stringify(frame).substring(0, 100)}...`);
+        // Update stream status
+        document.getElementById('streamStatus').innerHTML = '<span class="success">Stream Status: Active (Raw Depth)</span>';
+        // Calculate frame metrics
+        frameCount++;
+        const now = Date.now();
+        // Calculate frame rate every second
+        if (now - lastFrameTime >= 1000) {
+            const fps = frameCount / ((now - lastFrameTime) / 1000);
+            frameRates.push(fps);
+            if (frameRates.length > 10) frameRates.shift(); // Keep last 10 readings
+            frameCount = 0;
+            lastFrameTime = now;
+        }
+        // Calculate frame latency
+        if (frame.timestamp) {
+            const latency = now - frame.timestamp;
+            frameLatencies.push(latency);
+            addDebugInfo(`Frame latency: ${latency}ms`);
+        }
+        // Track last frame timestamp for jitter calculation
+        lastFrameTimestamp = now;
+        // Process raw depth data
+        if (frame.src) // If we have a data URL, use it directly
+        loadImage(frame.src, (loadedImage)=>{
+            // Clear canvas
+            background(255);
+            // Draw the image
+            image(loadedImage, 0, 0, width, height);
+            addDebugInfo(`Raw depth image drawn to canvas: ${loadedImage.width}x${loadedImage.height}`);
+        }, (err)=>{
+            addDebugInfo(`Error loading raw depth image: ${err}`);
+        });
+        else if (frame.rawDepthData) {
+            // If we have raw depth data, create a visualization
+            addDebugInfo('Processing raw depth data array');
+            addDebugInfo(`Raw depth data type: ${Object.prototype.toString.call(frame.rawDepthData)}`);
+            addDebugInfo(`Raw depth data length: ${frame.rawDepthData.length}`);
+            // Log sample values for debugging
+            const sampleValues = [];
+            for(let i = 0; i < Math.min(20, frame.rawDepthData.length); i += 4)sampleValues.push({
+                r: frame.rawDepthData[i],
+                g: frame.rawDepthData[i + 1],
+                b: frame.rawDepthData[i + 2],
+                a: frame.rawDepthData[i + 3]
+            });
+            addDebugInfo(`Sample raw depth values: ${JSON.stringify(sampleValues)}`);
+            // Get dimensions from frame or use defaults
+            const rawDepthWidth = frame.width || AZURE_RAW_DEPTH_WIDTH;
+            const rawDepthHeight = frame.height || AZURE_RAW_DEPTH_HEIGHT;
+            addDebugInfo(`Using dimensions: ${rawDepthWidth}x${rawDepthHeight}`);
+            // Create a p5.js image to display the raw depth data
+            let img = createImage(rawDepthWidth, rawDepthHeight);
+            img.loadPixels();
+            // Check if the data is already in RGBA format (4 bytes per pixel)
+            if (frame.rawDepthData.length === rawDepthWidth * rawDepthHeight * 4) {
+                addDebugInfo('Raw depth data appears to be in RGBA format');
+                // Copy the RGBA data directly
+                for(let i = 0; i < frame.rawDepthData.length; i++)img.pixels[i] = frame.rawDepthData[i];
+            } else {
+                addDebugInfo('Raw depth data appears to be in depth value format');
+                // Process each pixel in the raw depth data
+                for(let i = 0; i < frame.rawDepthData.length; i++){
+                    const depthValue = frame.rawDepthData[i];
+                    // Map depth value to grayscale (0-255)
+                    const normalizedValue = map(depthValue, 0, 5000, 255, 0);
+                    // Set pixel color (grayscale)
+                    img.pixels[i * 4] = normalizedValue; // R
+                    img.pixels[i * 4 + 1] = normalizedValue; // G
+                    img.pixels[i * 4 + 2] = normalizedValue; // B
+                    img.pixels[i * 4 + 3] = 255; // A
+                }
+            }
+            img.updatePixels();
+            // Clear canvas and draw the image
+            background(255);
+            image(img, 0, 0, width, height);
+            addDebugInfo('Raw depth visualization created from data array');
+        } else addDebugInfo('No usable raw depth data available');
     });
 };
 // Stop all streams

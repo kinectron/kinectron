@@ -247,6 +247,13 @@ export class StreamManager {
   async startStream(streamType) {
     console.log(`StreamManager: Starting stream: ${streamType}`);
     try {
+      // Special logging for raw-depth stream
+      if (streamType === 'raw-depth') {
+        console.log(
+          `StreamManager: Processing raw-depth stream request`,
+        );
+      }
+
       const handler = this.getHandler(streamType);
       if (!handler) {
         console.error(
@@ -258,8 +265,10 @@ export class StreamManager {
       }
 
       console.log(
-        `StreamManager: Found handler for ${streamType}, calling startStream()`,
+        `StreamManager: Found handler for ${streamType}, handler type: ${handler.constructor.name}`,
       );
+      console.log(`StreamManager: Calling startStream() on handler`);
+
       const success = await handler.startStream();
       console.log(
         `StreamManager: Handler.startStream() returned: ${success}`,
@@ -275,6 +284,13 @@ export class StreamManager {
             this.activeStreams,
           ).join(', ')}`,
         );
+
+        // Special logging for raw-depth stream
+        if (streamType === 'raw-depth') {
+          console.log(
+            `StreamManager: Raw depth stream started successfully`,
+          );
+        }
       } else {
         console.warn(
           `StreamManager: Failed to start ${streamType} stream`,

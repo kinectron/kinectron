@@ -38,25 +38,127 @@ export class PeerController {
 
     // Set up IPC listener for broadcast-to-peers events
     if (window.electron && window.electron.ipcRenderer) {
+      console.log(
+        'PeerController: Setting up broadcast-to-peers listener',
+      );
+
+      // Track frame statistics
+      let frameCount = 0;
+      let lastLogTime = Date.now();
+      let rawDepthFrameCount = 0;
+
       window.electron.ipcRenderer.on(
         'broadcast-to-peers',
         (message) => {
+          // Increment frame counter for all events
+          frameCount++;
+
           if (message && message.event && message.data) {
-            // Only log for important events
-            if (
-              message.event === 'kinectInitialized' ||
-              message.event === 'error'
-            ) {
+            // Enhanced logging for all events to help with debugging
+            console.log(
+              `PeerController: Received broadcast-to-peers for event: ${message.event} (frame #${frameCount})`,
+            );
+
+            // Special handling for rawDepth events
+            if (message.event === 'rawDepth') {
+              rawDepthFrameCount++;
               console.log(
-                `PeerController: Broadcasting ${message.event} event to peers`,
+                `PeerController: Received rawDepth event from main process (frame #${frameCount}, rawDepth #${rawDepthFrameCount})`,
               );
+              console.log(
+                `PeerController: rawDepth data details:`,
+                message.data
+                  ? `has data=${!!message.data.data}, timestamp=${
+                      message.data.timestamp
+                    }`
+                  : 'null',
+              );
+
+              if (message.data && message.data.data) {
+                console.log(
+                  `PeerController: rawDepth data dimensions:`,
+                  `width=${message.data.data.width}, height=${message.data.data.height}`,
+                );
+                console.log(
+                  `PeerController: rawDepth data type:`,
+                  Object.prototype.toString.call(
+                    message.data.data.rawDepthData,
+                  ),
+                );
+                console.log(
+                  `PeerController: rawDepth data length:`,
+                  message.data.data.rawDepthData
+                    ? message.data.data.rawDepthData.length
+                    : 'unknown',
+                );
+
+                // Log sample values from the raw depth data
+                if (message.data.data.rawDepthData) {
+                  const rawDepthArray =
+                    message.data.data.rawDepthData;
+                  const sampleValues = [];
+                  for (
+                    let i = 0;
+                    i < Math.min(20, rawDepthArray.length);
+                    i += 4
+                  ) {
+                    sampleValues.push({
+                      r: rawDepthArray[i],
+                      g: rawDepthArray[i + 1],
+                      b: rawDepthArray[i + 2],
+                      a: rawDepthArray[i + 3],
+                    });
+                  }
+                  console.log(
+                    `PeerController: Sample rawDepth values:`,
+                    sampleValues,
+                  );
+                }
+              }
+
+              // Create a simplified data structure for broadcasting to clients
+              // This is critical for ensuring the client receives the data in the expected format
+              const simplifiedData = {
+                rawDepthData: message.data.data.rawDepthData,
+                width: message.data.data.width,
+                height: message.data.data.height,
+                timestamp: message.data.timestamp || Date.now(),
+              };
+
+              console.log(
+                `PeerController: Broadcasting simplified rawDepth data to clients:`,
+                `width=${simplifiedData.width}, height=${simplifiedData.height}, timestamp=${simplifiedData.timestamp}`,
+              );
+
+              // Override the message data with the simplified structure
+              message.data = simplifiedData;
             }
 
+            // Broadcast the event to all connected peers
+            console.log(
+              `PeerController: Broadcasting ${message.event} event to ${this.connections.size} peers (frame #${frameCount})`,
+            );
             this.broadcast(
               message.event,
               message.data,
               message.lossy || false,
             );
+            console.log(
+              `PeerController: Broadcast of ${message.event} complete (frame #${frameCount})`,
+            );
+
+            // Log statistics every 5 seconds
+            const now = Date.now();
+            if (now - lastLogTime >= 5000) {
+              console.log(
+                `PeerController: Frame stats (5s): ${frameCount} total events, ${rawDepthFrameCount} rawDepth events`,
+              );
+
+              // Reset counters
+              frameCount = 0;
+              rawDepthFrameCount = 0;
+              lastLogTime = now;
+            }
           } else {
             console.error(
               'PeerController: Invalid message format:',
@@ -64,6 +166,14 @@ export class PeerController {
             );
           }
         },
+      );
+
+      console.log(
+        'PeerController: broadcast-to-peers listener setup complete',
+      );
+    } else {
+      console.error(
+        'PeerController: window.electron.ipcRenderer not available for broadcast-to-peers',
       );
     }
   }
@@ -511,6 +621,62 @@ export class PeerController {
         case 'kinectInitialized':
           // Handle Kinect initialization response
           this.emit(this.EVENTS.KINECT_INITIALIZED, data.data);
+          break;
+
+        case 'rawDepth':
+          // Handle raw depth frame data
+          console.log(
+            'PeerController: Received rawDepth event, forwarding to client',
+          );
+
+          // Log detailed information about the raw depth data
+          console.log(
+            'PeerController: rawDepth data details:',
+            data.data
+              ? `has rawDepthData=${!!data.data
+                  .rawDepthData}, width=${data.data.width}, height=${
+                  data.data.height
+                }`
+              : 'null',
+          );
+
+          if (data.data && data.data.rawDepthData) {
+            console.log(
+              'PeerController: rawDepth data type:',
+              Object.prototype.toString.call(data.data.rawDepthData),
+            );
+            console.log(
+              'PeerController: rawDepth data length:',
+              data.data.rawDepthData.length,
+            );
+
+            // Log sample values from the raw depth data
+            const rawDepthArray = data.data.rawDepthData;
+            const sampleValues = [];
+            for (
+              let i = 0;
+              i < Math.min(20, rawDepthArray.length);
+              i += 4
+            ) {
+              sampleValues.push({
+                r: rawDepthArray[i],
+                g: rawDepthArray[i + 1],
+                b: rawDepthArray[i + 2],
+                a: rawDepthArray[i + 3],
+              });
+            }
+            console.log(
+              'PeerController: Sample rawDepth values:',
+              sampleValues,
+            );
+          }
+
+          // Forward the raw depth data to any registered handlers
+          console.log(
+            'PeerController: Broadcasting rawDepth event to clients',
+          );
+          this.broadcast('rawDepth', data.data, true);
+          console.log('PeerController: rawDepth broadcast complete');
           break;
 
         default:

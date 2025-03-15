@@ -215,14 +215,56 @@ export class KinectController {
   }
 
   startRawDepthCamera(options = {}) {
+    console.log(
+      'KinectController: startRawDepthCamera called with options:',
+      options,
+    );
     try {
-      this.kinect.startCameras({
+      const rawDepthOptions = {
         ...KinectOptions.RAW_DEPTH,
         ...options,
-      });
+      };
+
+      console.log(
+        'KinectController: Starting raw depth camera with options:',
+        rawDepthOptions,
+      );
+
+      // Check if cameras are already running
+      try {
+        console.log(
+          'KinectController: Stopping cameras first to ensure clean start',
+        );
+        this.kinect.stopCameras();
+        console.log('KinectController: Cameras stopped successfully');
+      } catch (stopError) {
+        console.warn(
+          'KinectController: Error stopping cameras (may be normal if not started):',
+          stopError,
+        );
+      }
+
+      // Start the cameras
+      this.kinect.startCameras(rawDepthOptions);
+      console.log(
+        'KinectController: Raw depth camera started successfully',
+      );
+
+      // Get depth mode range for debugging
+      const depthRange = this.kinect.getDepthModeRange(
+        rawDepthOptions.depth_mode,
+      );
+      console.log(
+        'KinectController: Depth range for current mode:',
+        depthRange,
+      );
+
       return true;
     } catch (error) {
-      console.error('Failed to start raw depth camera:', error);
+      console.error(
+        'KinectController: Failed to start raw depth camera:',
+        error,
+      );
       return false;
     }
   }
@@ -329,25 +371,91 @@ export class KinectController {
       let lastLogTime = Date.now();
       let depthFrameCount = 0;
       let colorFrameCount = 0;
+      let rawDepthFrameCount = 0;
 
       this.isListening = true;
       this.kinect.startListening((data) => {
         // Track frame types for statistics
         frameCount++;
-        if (data.depthImageFrame) depthFrameCount++;
-        if (data.colorImageFrame) colorFrameCount++;
+
+        // Log detailed frame data for debugging
+        console.log(
+          'KinectController: Received frame data:',
+          data
+            ? `has depthImageFrame=${!!data.depthImageFrame}, has colorImageFrame=${!!data.colorImageFrame}`
+            : 'null',
+        );
+
+        if (data.depthImageFrame) {
+          depthFrameCount++;
+          console.log(
+            'KinectController: Depth frame received with dimensions:',
+            data.depthImageFrame.width_pixels,
+            'x',
+            data.depthImageFrame.height_pixels,
+          );
+          console.log(
+            'KinectController: Depth frame buffer size:',
+            data.depthImageFrame.imageData?.buffer?.byteLength ||
+              'unknown',
+          );
+        }
+
+        if (data.colorImageFrame) {
+          colorFrameCount++;
+          console.log(
+            'KinectController: Color frame received with dimensions:',
+            data.colorImageFrame.width_pixels,
+            'x',
+            data.colorImageFrame.height_pixels,
+          );
+        }
+
+        // Check for raw depth data specifically
+        if (
+          data.depthImageFrame &&
+          data.depthImageFrame.format === 1
+        ) {
+          // DEPTH16
+          rawDepthFrameCount++;
+          console.log(
+            'KinectController: Raw depth frame detected (DEPTH16 format)',
+          );
+          console.log(
+            'KinectController: Raw depth frame dimensions:',
+            data.depthImageFrame.width_pixels,
+            'x',
+            data.depthImageFrame.height_pixels,
+          );
+
+          // Log sample depth values for debugging
+          if (data.depthImageFrame.imageData?.buffer) {
+            const depthData = new Uint16Array(
+              data.depthImageFrame.imageData.buffer,
+            );
+            const sampleValues = [];
+            for (let i = 0; i < Math.min(5, depthData.length); i++) {
+              sampleValues.push(depthData[i]);
+            }
+            console.log(
+              'KinectController: Sample depth values:',
+              sampleValues,
+            );
+          }
+        }
 
         // Log frame statistics every 5 seconds
         const now = Date.now();
         if (now - lastLogTime >= 5000) {
           console.log(
-            `KinectController: Frame stats (5s): ${frameCount} total (${depthFrameCount} depth, ${colorFrameCount} color)`,
+            `KinectController: Frame stats (5s): ${frameCount} total (${depthFrameCount} depth, ${colorFrameCount} color, ${rawDepthFrameCount} raw depth)`,
           );
 
           // Reset counters
           frameCount = 0;
           depthFrameCount = 0;
           colorFrameCount = 0;
+          rawDepthFrameCount = 0;
           lastLogTime = now;
         }
 

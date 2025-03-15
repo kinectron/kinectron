@@ -583,42 +583,167 @@ export class PeerConnection {
    */
   handleIncomingData(data) {
     try {
+      // Track frame statistics
+      if (!this._frameStats) {
+        this._frameStats = {
+          frameCount: 0,
+          lastLogTime: Date.now(),
+          rawDepthFrameCount: 0,
+          eventCounts: {},
+        };
+      }
+
+      // Increment frame counter
+      this._frameStats.frameCount++;
+
+      // Track event type counts
+      if (!this._frameStats.eventCounts[data.event]) {
+        this._frameStats.eventCounts[data.event] = 0;
+      }
+      this._frameStats.eventCounts[data.event]++;
+
       console.log(
-        'PeerConnection: Received event:',
-        data.event,
+        `PeerConnection: Received event: ${data.event} (frame #${this._frameStats.frameCount})`,
         'with data:',
         data.data,
       );
+
+      // Special handling for rawDepth events
+      if (data.event === 'rawDepth') {
+        this._frameStats.rawDepthFrameCount++;
+        console.log(
+          `PeerConnection: Special handling for rawDepth event (frame #${this._frameStats.frameCount}, rawDepth #${this._frameStats.rawDepthFrameCount})`,
+        );
+        console.log(
+          'PeerConnection: rawDepth data structure:',
+          data.data
+            ? `has data=${!!data.data.rawDepthData}, timestamp=${
+                data.timestamp
+              }`
+            : 'null',
+        );
+
+        if (data.data && data.data.rawDepthData) {
+          console.log(
+            'PeerConnection: rawDepth data dimensions:',
+            `width=${data.data.width}, height=${data.data.height}`,
+          );
+          console.log(
+            'PeerConnection: rawDepth data type:',
+            Object.prototype.toString.call(data.data.rawDepthData),
+          );
+          console.log(
+            'PeerConnection: rawDepth data length:',
+            data.data.rawDepthData.length,
+          );
+
+          // Log sample values for debugging
+          const sampleValues = [];
+          for (
+            let i = 0;
+            i < Math.min(20, data.data.rawDepthData.length);
+            i += 4
+          ) {
+            sampleValues.push({
+              r: data.data.rawDepthData[i],
+              g: data.data.rawDepthData[i + 1],
+              b: data.data.rawDepthData[i + 2],
+              a: data.data.rawDepthData[i + 3],
+            });
+          }
+          console.log(
+            'PeerConnection: Sample rawDepth values:',
+            sampleValues,
+          );
+        }
+
+        const rawDepthHandler = this.messageHandlers.get('rawDepth');
+        if (rawDepthHandler) {
+          console.log(
+            `PeerConnection: Found rawDepth handler, calling it directly (frame #${this._frameStats.rawDepthFrameCount})`,
+          );
+
+          // Pass the raw depth data directly to the handler
+          rawDepthHandler({
+            rawDepthData: data.data.rawDepthData,
+            width: data.data.width,
+            height: data.data.height,
+            timestamp: data.timestamp || Date.now(),
+            state: this.state.getState(),
+          });
+          console.log(
+            `PeerConnection: rawDepth handler called successfully (frame #${this._frameStats.rawDepthFrameCount})`,
+          );
+
+          // Log statistics every 5 seconds
+          const now = Date.now();
+          if (now - this._frameStats.lastLogTime >= 5000) {
+            console.log(
+              `PeerConnection: Frame stats (5s): ${this._frameStats.frameCount} total events, ${this._frameStats.rawDepthFrameCount} rawDepth events, event counts:`,
+              this._frameStats.eventCounts,
+            );
+
+            // Reset counters
+            this._frameStats.frameCount = 0;
+            this._frameStats.rawDepthFrameCount = 0;
+            this._frameStats.eventCounts = {};
+            this._frameStats.lastLogTime = now;
+          }
+
+          return;
+        } else {
+          console.error(
+            `PeerConnection: No rawDepth handler found! (frame #${this._frameStats.rawDepthFrameCount})`,
+          );
+        }
+      }
 
       // First, try to find a specific handler for this event
       const handler = this.messageHandlers.get(data.event);
       if (handler) {
         console.log(
-          'PeerConnection: Found specific handler for event:',
-          data.event,
+          `PeerConnection: Found specific handler for event: ${data.event} (frame #${this._frameStats.frameCount})`,
         );
         handler({
           ...data.data,
           timestamp: Date.now(),
           state: this.state.getState(),
         });
+        console.log(
+          `PeerConnection: Handler for ${data.event} called successfully (frame #${this._frameStats.frameCount})`,
+        );
       } else {
         console.log(
-          'PeerConnection: No specific handler for event:',
-          data.event,
-          'forwarding to data handler',
+          `PeerConnection: No specific handler for event: ${data.event} (frame #${this._frameStats.frameCount}), forwarding to data handler`,
         );
         // If no specific handler is found, forward the event to the data handler
         // This ensures all events are forwarded to the Kinectron class
         const dataHandler = this.messageHandlers.get('data');
         if (dataHandler) {
           dataHandler(data);
+          console.log(
+            `PeerConnection: Data handler called for ${data.event} (frame #${this._frameStats.frameCount})`,
+          );
         } else {
           console.warn(
-            'PeerConnection: No data handler found for event:',
-            data.event,
+            `PeerConnection: No data handler found for event: ${data.event} (frame #${this._frameStats.frameCount})`,
           );
         }
+      }
+
+      // Log statistics every 5 seconds
+      const now = Date.now();
+      if (now - this._frameStats.lastLogTime >= 5000) {
+        console.log(
+          `PeerConnection: Frame stats (5s): ${this._frameStats.frameCount} total events, ${this._frameStats.rawDepthFrameCount} rawDepth events, event counts:`,
+          this._frameStats.eventCounts,
+        );
+
+        // Reset counters
+        this._frameStats.frameCount = 0;
+        this._frameStats.rawDepthFrameCount = 0;
+        this._frameStats.eventCounts = {};
+        this._frameStats.lastLogTime = now;
       }
     } catch (error) {
       console.error('Error handling incoming data:', error);

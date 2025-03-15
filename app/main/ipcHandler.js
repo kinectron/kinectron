@@ -140,6 +140,13 @@ export class IpcHandler {
             `IpcHandler: Received feed request: ${data.feed} from connection: ${data.connection}`,
           );
 
+          // Special logging for raw-depth feed
+          if (data.feed === 'raw-depth') {
+            console.log(
+              `IpcHandler: Processing raw-depth feed request from connection: ${data.connection}`,
+            );
+          }
+
           // Forward to stream manager
           if (data.feed === 'stop-all') {
             console.log('IpcHandler: Stopping all streams');
@@ -147,13 +154,30 @@ export class IpcHandler {
           } else {
             console.log(`IpcHandler: Starting stream: ${data.feed}`);
 
-            const success = this.streamManager.startStream(data.feed);
+            // Use await to properly handle the promise
+            this.streamManager
+              .startStream(data.feed)
+              .then((success) => {
+                console.log(
+                  `IpcHandler: Stream manager returned: ${success} for ${data.feed} stream`,
+                );
 
-            if (!success) {
-              console.warn(
-                `IpcHandler: Failed to start ${data.feed} stream`,
-              );
-            }
+                if (!success) {
+                  console.warn(
+                    `IpcHandler: Failed to start ${data.feed} stream`,
+                  );
+                } else if (data.feed === 'raw-depth') {
+                  console.log(
+                    `IpcHandler: Raw depth stream started successfully`,
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error(
+                  `IpcHandler: Error starting ${data.feed} stream:`,
+                  error,
+                );
+              });
           }
         } else {
           console.warn(

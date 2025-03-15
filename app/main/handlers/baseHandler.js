@@ -68,13 +68,50 @@ export class BaseStreamHandler {
         data ? `name=${data.name}, has data=${!!data.data}` : 'null',
       );
 
-      if (data && data.data && data.data.name === 'depth') {
-        console.log(
-          `BaseStreamHandler: Broadcasting depth frame with dimensions:`,
-          data.data.imagedata
-            ? `${data.data.imagedata.width}x${data.data.imagedata.height}`
-            : 'unknown',
-        );
+      // Special logging for different frame types
+      if (data && data.data) {
+        if (data.name === 'depth' && data.data.imagedata) {
+          console.log(
+            `BaseStreamHandler: Broadcasting depth frame with dimensions:`,
+            `${data.data.imagedata.width}x${data.data.imagedata.height}`,
+          );
+        } else if (
+          data.name === 'rawDepth' &&
+          data.data.rawDepthData
+        ) {
+          console.log(
+            `BaseStreamHandler: Broadcasting rawDepth frame with dimensions:`,
+            `${data.data.width}x${data.data.height}`,
+          );
+          console.log(
+            `BaseStreamHandler: rawDepth data type:`,
+            Object.prototype.toString.call(data.data.rawDepthData),
+          );
+          console.log(
+            `BaseStreamHandler: rawDepth data length:`,
+            data.data.rawDepthData.length,
+          );
+
+          // Log sample values from the raw depth data
+          const rawDepthArray = data.data.rawDepthData;
+          const sampleValues = [];
+          for (
+            let i = 0;
+            i < Math.min(20, rawDepthArray.length);
+            i += 4
+          ) {
+            sampleValues.push({
+              r: rawDepthArray[i],
+              g: rawDepthArray[i + 1],
+              b: rawDepthArray[i + 2],
+              a: rawDepthArray[i + 3],
+            });
+          }
+          console.log(
+            `BaseStreamHandler: Sample rawDepth values:`,
+            sampleValues,
+          );
+        }
       }
 
       // Use both methods to broadcast the frame data
@@ -83,6 +120,9 @@ export class BaseStreamHandler {
         `BaseStreamHandler: Broadcasting via PeerConnectionManager`,
       );
       this.peerManager.broadcast(event, data, lossy);
+      console.log(
+        `BaseStreamHandler: PeerConnectionManager.broadcast called with event=${event}, lossy=${lossy}`,
+      );
 
       // 2. Use the IPC channel to broadcast to the renderer process
       // This will allow the renderer process to broadcast to its peer connections

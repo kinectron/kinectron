@@ -34,19 +34,41 @@ export class Kinectron {
 
     // Handle incoming data
     this.peer.on('data', (data) => {
+      console.log('Kinectron: Received data event:', data);
       const { event, data: eventData } = data;
       const handler = this.messageHandlers.get(event);
 
       if (handler) {
+        console.log('Kinectron: Found handler for event:', event);
         handler(eventData);
       } else {
         console.warn('Kinectron: No handler found for event:', event);
+
+        // Special handling for rawDepth events
+        if (event === 'rawDepth') {
+          console.log(
+            'Kinectron: Handling rawDepth event without registered handler',
+          );
+          const rawDepthHandler =
+            this.messageHandlers.get('rawDepth');
+          if (rawDepthHandler) {
+            console.log(
+              'Kinectron: Found rawDepth handler, calling it',
+            );
+            rawDepthHandler(eventData);
+          } else {
+            console.error(
+              'Kinectron: No rawDepth handler registered',
+            );
+          }
+        }
       }
     });
   }
 
   // Event registration
   on(event, callback) {
+    console.log('Kinectron: Registering handler for event:', event);
     this.messageHandlers.set(event, callback);
   }
 
@@ -435,21 +457,226 @@ export class Kinectron {
     this.send('feed', { feed: 'depth' });
   }
 
+  /**
+   * Process raw depth data from a data URL
+   * @param {string} dataUrl - The data URL containing the raw depth image
+   * @param {number} width - The width of the depth image
+   * @param {number} height - The height of the depth image
+   * @returns {Promise<number[]>} - A promise that resolves to an array of depth values
+   */
+  async processRawDepth(dataUrl, width, height) {
+    console.log('Kinectron: Processing raw depth data from data URL');
+
+    try {
+      // Create a blob from the data URL
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+
+      // Create an ImageBitmap
+      console.log('Kinectron: Creating ImageBitmap from blob');
+      const imageBitmap = await createImageBitmap(blob);
+
+      // Draw to an OffscreenCanvas
+      console.log('Kinectron: Drawing to OffscreenCanvas');
+      const canvas = new OffscreenCanvas(width, height);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imageBitmap, 0, 0);
+
+      // Get the image data
+      console.log('Kinectron: Getting image data');
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const processedData = [];
+
+      // Extract depth values from R and G channels
+      console.log('Kinectron: Extracting depth values');
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        // Reconstruct 16-bit depth value from R and G channels
+        const depth =
+          (imageData.data[i + 1] << 8) | imageData.data[i];
+        processedData.push(depth);
+      }
+
+      console.log(
+        'Kinectron: Depth data extracted, length:',
+        processedData.length,
+      );
+
+      // Log some sample depth values for debugging
+      const sampleValues = [];
+      for (let i = 0; i < Math.min(5, processedData.length); i++) {
+        sampleValues.push(processedData[i]);
+      }
+      console.log('Kinectron: Sample depth values:', sampleValues);
+
+      return processedData;
+    } catch (error) {
+      console.error(
+        'Kinectron: Error processing raw depth data:',
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Create a visualization of the depth data
+   * @param {number[]} depthData - Array of depth values
+   * @param {number} width - Width of the depth image
+   * @param {number} height - Height of the depth image
+   * @returns {string} - Data URL of the visualization
+   */
+  createDepthVisualization(depthData, width, height) {
+    console.log('Kinectron: Creating depth visualization');
+
+    // Create a canvas for visualization
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    // Create image data
+    const imgData = ctx.createImageData(width, height);
+
+    // Find min/max depth for normalization
+    let minDepth = Number.MAX_VALUE;
+    let maxDepth = 0;
+
+    for (let i = 0; i < depthData.length; i++) {
+      if (depthData[i] > 0) {
+        minDepth = Math.min(minDepth, depthData[i]);
+        maxDepth = Math.max(maxDepth, depthData[i]);
+      }
+    }
+
+    // Default range if no valid depths found
+    if (minDepth === Number.MAX_VALUE) {
+      minDepth = 0;
+      maxDepth = 5000; // Typical max depth in mm
+    }
+
+    // Normalize and visualize
+    for (let i = 0; i < depthData.length; i++) {
+      const depth = depthData[i];
+      const index = i * 4;
+
+      if (depth > 0) {
+        // Normalize to 0-255 range
+        const normalizedDepth = Math.floor(
+          255 * (1 - (depth - minDepth) / (maxDepth - minDepth)),
+        );
+
+        // Grayscale visualization
+        imgData.data[index] = normalizedDepth;
+        imgData.data[index + 1] = normalizedDepth;
+        imgData.data[index + 2] = normalizedDepth;
+        imgData.data[index + 3] = 255; // Alpha
+      } else {
+        // No depth data (black with alpha)
+        imgData.data[index] = 0;
+        imgData.data[index + 1] = 0;
+        imgData.data[index + 2] = 0;
+        imgData.data[index + 3] = 255;
+      }
+    }
+
+    // Draw the image data
+    ctx.putImageData(imgData, 0, 0);
+
+    // Convert to data URL
+    return canvas.toDataURL('image/jpeg');
+  }
+
   startRawDepth(callback) {
+    console.log('Kinectron: startRawDepth called');
+
     if (callback) {
+      console.log(
+        'Kinectron: Setting up handler for rawDepth events',
+      );
+
       // Set up handler to process raw depth frames
-      this.messageHandlers.set('rawDepth', (data) => {
-        if (data && data.rawDepthData) {
-          // Raw depth data is already in a usable format (array of depth values)
-          // Just add timestamp and pass it through
-          callback({
-            ...data,
-            timestamp: data.timestamp || Date.now(),
-          });
+      this.messageHandlers.set('rawDepth', async (data) => {
+        console.log(
+          'Kinectron: Received rawDepth event with data:',
+          data
+            ? `has imagedata=${!!data.imagedata}, timestamp=${
+                data.timestamp
+              }`
+            : 'null',
+        );
+
+        if (data && data.imagedata) {
+          console.log(
+            'Kinectron: Raw depth data received, dimensions:',
+            `width=${data.width}, height=${data.height}`,
+          );
+          console.log(
+            'Kinectron: Data URL length:',
+            data.imagedata.length,
+          );
+
+          try {
+            // Process the raw depth data using our modern approach
+            const depthValues = await this.processRawDepth(
+              data.imagedata,
+              data.width,
+              data.height,
+            );
+
+            // Create a visualization for display
+            const src = this.createDepthVisualization(
+              depthValues,
+              data.width,
+              data.height,
+            );
+
+            // Call the user callback with processed frame
+            console.log(
+              'Kinectron: Calling user callback with processed frame',
+            );
+            callback({
+              src,
+              width: data.width,
+              height: data.height,
+              rawDepthData: depthValues,
+              timestamp: data.timestamp || Date.now(),
+            });
+            console.log(
+              'Kinectron: User callback called successfully',
+            );
+          } catch (error) {
+            console.error(
+              'Kinectron: Error processing raw depth data:',
+              error,
+            );
+
+            // Still try to call the callback with basic information
+            console.log(
+              'Kinectron: Calling user callback with basic data due to error',
+            );
+            callback({
+              width: data.width,
+              height: data.height,
+              timestamp: data.timestamp || Date.now(),
+              error: error.message,
+            });
+          }
+        } else {
+          console.warn(
+            'Kinectron: Received rawDepth event but no valid data',
+          );
         }
       });
+      console.log('Kinectron: rawDepth event handler registered');
+    } else {
+      console.warn(
+        'Kinectron: No callback provided for raw depth stream',
+      );
     }
+
+    console.log('Kinectron: Sending raw-depth feed request');
     this.send('feed', { feed: 'raw-depth' });
+    console.log('Kinectron: Raw depth feed request sent');
   }
 
   startBodies(callback) {
@@ -736,8 +963,138 @@ export class Kinectron {
     this.send('feed', { feed: 'stop-all' });
   }
 
+  // Frame callback registration methods
+  onColorFrame(callback) {
+    console.log('Kinectron: Registering onColorFrame callback');
+    const handler = (data) => {
+      console.log('Kinectron: onColorFrame handler called with data');
+      callback(data);
+    };
+    this.messageHandlers.set('frame', handler);
+
+    // Return cleanup function
+    return () => {
+      console.log('Kinectron: Cleaning up onColorFrame handler');
+      this.messageHandlers.delete('frame');
+    };
+  }
+
+  onDepthFrame(callback) {
+    console.log('Kinectron: Registering onDepthFrame callback');
+    const handler = (data) => {
+      console.log('Kinectron: onDepthFrame handler called with data');
+      callback(data);
+    };
+    this.messageHandlers.set('frame', handler);
+
+    // Return cleanup function
+    return () => {
+      console.log('Kinectron: Cleaning up onDepthFrame handler');
+      this.messageHandlers.delete('frame');
+    };
+  }
+
+  onRawDepthFrame(callback) {
+    console.log('Kinectron: Registering onRawDepthFrame callback');
+    const handler = (data) => {
+      console.log(
+        'Kinectron: onRawDepthFrame handler called with data:',
+        data ? `has rawDepthData=${!!data.rawDepthData}` : 'null',
+      );
+      callback(data);
+    };
+    this.messageHandlers.set('rawDepth', handler);
+
+    // Return cleanup function
+    return () => {
+      console.log('Kinectron: Cleaning up onRawDepthFrame handler');
+      this.messageHandlers.delete('rawDepth');
+    };
+  }
+
+  onBodyFrame(callback) {
+    console.log('Kinectron: Registering onBodyFrame callback');
+    const handler = (data) => {
+      console.log('Kinectron: onBodyFrame handler called with data');
+      callback(data);
+    };
+    this.messageHandlers.set('bodyFrame', handler);
+
+    // Return cleanup function
+    return () => {
+      console.log('Kinectron: Cleaning up onBodyFrame handler');
+      this.messageHandlers.delete('bodyFrame');
+    };
+  }
+
+  onKeyFrame(callback) {
+    console.log('Kinectron: Registering onKeyFrame callback');
+    const handler = (data) => {
+      console.log('Kinectron: onKeyFrame handler called with data');
+      callback(data);
+    };
+    this.messageHandlers.set('frame', handler);
+
+    // Return cleanup function
+    return () => {
+      console.log('Kinectron: Cleaning up onKeyFrame handler');
+      this.messageHandlers.delete('frame');
+    };
+  }
+
+  onDepthKeyFrame(callback) {
+    console.log('Kinectron: Registering onDepthKeyFrame callback');
+    const handler = (data) => {
+      console.log(
+        'Kinectron: onDepthKeyFrame handler called with data',
+      );
+      callback(data);
+    };
+    this.messageHandlers.set('depthKey', handler);
+
+    // Return cleanup function
+    return () => {
+      console.log('Kinectron: Cleaning up onDepthKeyFrame handler');
+      this.messageHandlers.delete('depthKey');
+    };
+  }
+
+  onRGBDFrame(callback) {
+    console.log('Kinectron: Registering onRGBDFrame callback');
+    const handler = (data) => {
+      console.log('Kinectron: onRGBDFrame handler called with data');
+      callback(data);
+    };
+    this.messageHandlers.set('frame', handler);
+
+    // Return cleanup function
+    return () => {
+      console.log('Kinectron: Cleaning up onRGBDFrame handler');
+      this.messageHandlers.delete('frame');
+    };
+  }
+
+  // Ngrok status change callback
+  onNgrokStatusChange(callback) {
+    console.log(
+      'Kinectron: Registering onNgrokStatusChange callback',
+    );
+    this.messageHandlers.set('ngrokStatus', callback);
+
+    // Return cleanup function
+    return () => {
+      console.log(
+        'Kinectron: Cleaning up onNgrokStatusChange handler',
+      );
+      this.messageHandlers.delete('ngrokStatus');
+    };
+  }
+
   // Clean up
   close() {
+    console.log(
+      'Kinectron: Closing connection and cleaning up resources',
+    );
     this.peer.close();
     this.messageHandlers.clear();
     this.state = null;
