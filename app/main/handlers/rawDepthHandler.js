@@ -3,6 +3,9 @@ import { ipcMain } from 'electron';
 import { BaseStreamHandler } from './baseHandler.js';
 import { RawDepthFrameProcessor } from '../processors/rawDepthProcessor.js';
 import { KinectOptions } from '../kinectController.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const sharp = require('sharp');
 
 /**
  * Handles raw depth stream operations and IPC communication
@@ -18,19 +21,6 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
    * Create frame callback for processing raw depth frames
    * @param {Electron.IpcMainInvokeEvent} event
    */
-  /**
-   * Helper function to convert a Blob to a data URL
-   * @param {Blob} blob - The blob to convert
-   * @returns {Promise<string>} A promise that resolves to the data URL
-   */
-  blobToDataURL(blob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
 
   createFrameCallback(event) {
     console.log('RawDepthHandler: Creating frame callback');
@@ -138,90 +128,161 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
               );
             }
 
-            // Create a canvas to render the depth data for WebP compression
+            // Process the image with Sharp
             console.log(
-              'RawDepthHandler: Creating canvas for WebP compression for frame #' +
+              'RawDepthHandler: Processing image with Sharp for frame #' +
                 frameCount,
             );
 
-            // Create a canvas in memory
-            const canvas = new OffscreenCanvas(
-              processedData.imageData.width,
-              processedData.imageData.height,
+            // Get dimensions and create buffer from RGBA data
+            const width = processedData.imageData.width;
+            const height = processedData.imageData.height;
+            const rgba = Buffer.from(
+              processedData.imageData.data.buffer,
             );
-            const ctx = canvas.getContext('2d');
-
-            // Create ImageData from the processed data
-            const imgData = new ImageData(
-              processedData.imageData.data,
-              processedData.imageData.width,
-              processedData.imageData.height,
-            );
-
-            // Put the image data on the canvas
-            ctx.putImageData(imgData, 0, 0);
-
-            // Convert to WebP data URL with lossless compression (quality=1.0)
-            const blob = await canvas.convertToBlob({
-              type: 'image/webp',
-              quality: 1.0,
-            });
-            const dataUrl = await this.blobToDataURL(blob);
 
             console.log(
-              'RawDepthHandler: WebP data URL created for frame #' +
-                frameCount,
-              'length:',
-              dataUrl.length,
+              'RawDepthHandler: Image dimensions:',
+              width,
+              'x',
+              height,
+              'buffer size:',
+              rgba.length,
             );
 
-            // Create a data package for broadcasting
-            console.log(
-              'RawDepthHandler: Creating data package for broadcasting frame #' +
-                frameCount,
-            );
+            try {
+              // Use Sharp to compress the image with lossless WebP
+              const compressedBuffer = await sharp(rgba, {
+                raw: {
+                  width: width,
+                  height: height,
+                  channels: 4, // RGBA
+                },
+              })
+                .webp({ quality: 100, lossless: true }) // Use lossless WebP for raw depth data
+                .toBuffer();
 
-            // Package the data for transmission
-            const dataPackage = this.createDataPackage('rawDepth', {
-              // Send the WebP data URL
-              imagedata: dataUrl,
-              width: processedData.imageData.width,
-              height: processedData.imageData.height,
-              timestamp: Date.now(),
-            });
+              console.log(
+                'RawDepthHandler: Successfully compressed image, buffer size:',
+                compressedBuffer.length,
+              );
 
-            console.log(
-              'RawDepthHandler: Data package created for frame #' +
-                frameCount +
-                ':',
-              `name=${
-                dataPackage.name
-              }, has data=${!!dataPackage.data}, timestamp=${
-                dataPackage.timestamp
-              }`,
-            );
-            console.log(
-              'RawDepthHandler: Data dimensions:',
-              `width=${dataPackage.data.width}, height=${dataPackage.data.height}`,
-            );
+              // Convert to data URL
+              const dataUrl = `data:image/webp;base64,${compressedBuffer.toString(
+                'base64',
+              )}`;
 
-            // Log data URL length for debugging
-            console.log(
-              'RawDepthHandler: Data URL length:',
-              dataUrl.length,
-            );
+              console.log(
+                'RawDepthHandler: Data URL created for frame #' +
+                  frameCount,
+                'length:',
+                dataUrl.length,
+              );
 
-            // Broadcast to peers with lossy=true (like in legacy code)
-            console.log(
-              'RawDepthHandler: Broadcasting rawDepth event to peers for frame #' +
-                frameCount,
-            );
-            this.broadcastFrame('rawDepth', dataPackage, true);
-            broadcastFrameCount++;
-            console.log(
-              'RawDepthHandler: Broadcast complete for frame #' +
-                frameCount,
-            );
+              // Create a data package for broadcasting
+              console.log(
+                'RawDepthHandler: Creating data package for broadcasting frame #' +
+                  frameCount,
+              );
+
+              // Create the data object with the structure expected by the renderer process
+              const dataPackage = {
+                event: 'rawDepth',
+                data: {
+                  data: {
+                    imagedata: dataUrl,
+                    width: processedData.imageData.width,
+                    height: processedData.imageData.height,
+                  },
+                  width: processedData.imageData.width,
+                  height: processedData.imageData.height,
+                  timestamp: Date.now(),
+                },
+                timestamp: Date.now(),
+              };
+
+              console.log(
+                'RawDepthHandler: Data package created for frame #' +
+                  frameCount +
+                  ':',
+                `event=${
+                  dataPackage.event
+                }, has data=${!!dataPackage.data}, timestamp=${
+                  dataPackage.timestamp
+                }`,
+              );
+              console.log(
+                'RawDepthHandler: Data dimensions:',
+                `width=${dataPackage.data.width}, height=${dataPackage.data.height}`,
+              );
+
+              // Log data URL length for debugging
+              console.log(
+                'RawDepthHandler: Data URL length:',
+                dataUrl.length,
+              );
+
+              // Broadcast to peers with lossy=true (like in legacy code)
+              console.log(
+                'RawDepthHandler: Broadcasting rawDepth event to peers for frame #' +
+                  frameCount,
+              );
+              // Use the peerManager directly to broadcast the custom data structure
+              this.peerManager.broadcast(
+                'rawDepth',
+                dataPackage.data,
+                true,
+              );
+
+              // Also broadcast to the renderer process for IPC-based peer connections
+              try {
+                console.log(
+                  'RawDepthHandler: Broadcasting via IPC to renderer process',
+                );
+                // Import BrowserWindow using ES modules
+                import('electron')
+                  .then(({ BrowserWindow }) => {
+                    const windows = BrowserWindow.getAllWindows();
+                    windows.forEach((window) => {
+                      if (!window.isDestroyed()) {
+                        window.webContents.send(
+                          'broadcast-to-peers',
+                          {
+                            event: 'rawDepth',
+                            data: dataPackage.data,
+                            lossy: true,
+                          },
+                        );
+                      }
+                    });
+                    console.log(
+                      'RawDepthHandler: Successfully sent to renderer process',
+                    );
+                  })
+                  .catch((error) => {
+                    console.error(
+                      'RawDepthHandler: Error importing electron:',
+                      error,
+                    );
+                  });
+              } catch (error) {
+                console.error(
+                  'RawDepthHandler: Error sending to renderer:',
+                  error,
+                );
+              }
+              broadcastFrameCount++;
+              console.log(
+                'RawDepthHandler: Broadcast complete for frame #' +
+                  frameCount,
+              );
+            } catch (error) {
+              console.error(
+                'RawDepthHandler: Error processing image with Sharp:',
+                error,
+              );
+              errorFrameCount++;
+            }
           } else {
             console.error(
               'RawDepthHandler: Failed to process depth frame #' +

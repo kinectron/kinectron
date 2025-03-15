@@ -373,34 +373,20 @@ export class PeerConnectionManager extends EventEmitter {
         );
         console.log(
           `PeerConnectionManager: rawDepth data type:`,
-          Object.prototype.toString.call(data.data.rawDepthData),
+          Object.prototype.toString.call(data.data.imagedata),
         );
         console.log(
           `PeerConnectionManager: rawDepth data length:`,
-          data.data.rawDepthData
-            ? data.data.rawDepthData.length
+          data.data.imagedata
+            ? data.data.imagedata.length
             : 'unknown',
         );
 
-        // Log sample values from the raw depth data
-        if (data.data.rawDepthData) {
-          const rawDepthArray = data.data.rawDepthData;
-          const sampleValues = [];
-          for (
-            let i = 0;
-            i < Math.min(20, rawDepthArray.length);
-            i += 4
-          ) {
-            sampleValues.push({
-              r: rawDepthArray[i],
-              g: rawDepthArray[i + 1],
-              b: rawDepthArray[i + 2],
-              a: rawDepthArray[i + 3],
-            });
-          }
+        // Log the imagedata URL (truncated for brevity)
+        if (data.data.imagedata) {
           console.log(
-            `PeerConnectionManager: Sample rawDepth values:`,
-            sampleValues,
+            `PeerConnectionManager: imagedata URL (truncated):`,
+            data.data.imagedata.substring(0, 50) + '...',
           );
         }
       }

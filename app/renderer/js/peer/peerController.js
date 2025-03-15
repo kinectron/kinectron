@@ -82,36 +82,22 @@ export class PeerController {
                 console.log(
                   `PeerController: rawDepth data type:`,
                   Object.prototype.toString.call(
-                    message.data.data.rawDepthData,
+                    message.data.data.imagedata,
                   ),
                 );
                 console.log(
                   `PeerController: rawDepth data length:`,
-                  message.data.data.rawDepthData
-                    ? message.data.data.rawDepthData.length
+                  message.data.data.imagedata
+                    ? message.data.data.imagedata.length
                     : 'unknown',
                 );
 
-                // Log sample values from the raw depth data
-                if (message.data.data.rawDepthData) {
-                  const rawDepthArray =
-                    message.data.data.rawDepthData;
-                  const sampleValues = [];
-                  for (
-                    let i = 0;
-                    i < Math.min(20, rawDepthArray.length);
-                    i += 4
-                  ) {
-                    sampleValues.push({
-                      r: rawDepthArray[i],
-                      g: rawDepthArray[i + 1],
-                      b: rawDepthArray[i + 2],
-                      a: rawDepthArray[i + 3],
-                    });
-                  }
+                // Log the imagedata URL (truncated for brevity)
+                if (message.data.data.imagedata) {
                   console.log(
-                    `PeerController: Sample rawDepth values:`,
-                    sampleValues,
+                    `PeerController: imagedata URL (truncated):`,
+                    message.data.data.imagedata.substring(0, 50) +
+                      '...',
                   );
                 }
               }
@@ -119,7 +105,7 @@ export class PeerController {
               // Create a simplified data structure for broadcasting to clients
               // This is critical for ensuring the client receives the data in the expected format
               const simplifiedData = {
-                rawDepthData: message.data.data.rawDepthData,
+                imagedata: message.data.data.imagedata,
                 width: message.data.data.width,
                 height: message.data.data.height,
                 timestamp: message.data.timestamp || Date.now(),
@@ -633,41 +619,26 @@ export class PeerController {
           console.log(
             'PeerController: rawDepth data details:',
             data.data
-              ? `has rawDepthData=${!!data.data
-                  .rawDepthData}, width=${data.data.width}, height=${
-                  data.data.height
-                }`
+              ? `has imagedata=${!!data.data.imagedata}, width=${
+                  data.data.width
+                }, height=${data.data.height}`
               : 'null',
           );
 
-          if (data.data && data.data.rawDepthData) {
+          if (data.data && data.data.imagedata) {
             console.log(
               'PeerController: rawDepth data type:',
-              Object.prototype.toString.call(data.data.rawDepthData),
+              Object.prototype.toString.call(data.data.imagedata),
             );
             console.log(
               'PeerController: rawDepth data length:',
-              data.data.rawDepthData.length,
+              data.data.imagedata.length,
             );
 
-            // Log sample values from the raw depth data
-            const rawDepthArray = data.data.rawDepthData;
-            const sampleValues = [];
-            for (
-              let i = 0;
-              i < Math.min(20, rawDepthArray.length);
-              i += 4
-            ) {
-              sampleValues.push({
-                r: rawDepthArray[i],
-                g: rawDepthArray[i + 1],
-                b: rawDepthArray[i + 2],
-                a: rawDepthArray[i + 3],
-              });
-            }
+            // Log the imagedata URL (truncated for brevity)
             console.log(
-              'PeerController: Sample rawDepth values:',
-              sampleValues,
+              'PeerController: imagedata URL (truncated):',
+              data.data.imagedata.substring(0, 50) + '...',
             );
           }
 
