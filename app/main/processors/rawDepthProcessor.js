@@ -33,7 +33,12 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
         'RawDepthProcessor: Creating Uint16Array from buffer',
       );
 
-      const depthData = new Uint16Array(frame.imageData.buffer);
+      // Create a copy of the depth data to avoid potential buffer issues
+      const originalDepthData = new Uint16Array(
+        frame.imageData.buffer,
+      );
+      const depthData = new Uint16Array(originalDepthData);
+
       console.log(
         'RawDepthProcessor: Depth data array created, length:',
         depthData.length,
@@ -60,23 +65,15 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
         height,
       );
 
-      // Create RGBA data for rendering and transmission
-      // Each pixel uses 4 bytes (R,G,B,A)
-      console.log('RawDepthProcessor: Creating RGBA data');
-      const processedData = new Uint8ClampedArray(width * height * 4);
-
       // Track min/max values for debugging
       let minDepth = Number.MAX_VALUE;
       let maxDepth = 0;
       let validPixels = 0;
       let invalidPixels = 0;
 
-      console.log('RawDepthProcessor: Processing depth data');
-
-      // Process each pixel
+      // Calculate statistics
       for (let i = 0; i < depthData.length; i++) {
         const depth = depthData[i];
-        const index = i * 4;
 
         // Track statistics
         if (depth > 0) {
@@ -86,12 +83,6 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
         } else {
           invalidPixels++;
         }
-
-        // Store 16-bit depth value in R and G channels (8 bits each)
-        processedData[index] = depth & 0xff; // Lower 8 bits in R
-        processedData[index + 1] = depth >> 8; // Upper 8 bits in G
-        processedData[index + 2] = 0; // B channel not used
-        processedData[index + 3] = 255; // Alpha channel (fully opaque)
       }
 
       console.log('RawDepthProcessor: Depth statistics:', {
@@ -102,27 +93,32 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
         totalPixels: width * height,
       });
 
+      // Return the raw depth data directly
       const result = {
-        imageData: {
-          data: processedData,
-          width: width,
-          height: height,
+        depthData: depthData,
+        width: width,
+        height: height,
+        stats: {
+          minDepth: minDepth === Number.MAX_VALUE ? 0 : minDepth,
+          maxDepth,
+          validPixels,
+          invalidPixels,
         },
       };
 
       console.log(
-        'RawDepthProcessor: Returning processed frame with dimensions:',
-        result.imageData.width,
+        'RawDepthProcessor: Returning raw depth data with dimensions:',
+        result.width,
         'x',
-        result.imageData.height,
+        result.height,
       );
       console.log(
-        'RawDepthProcessor: Processed data type:',
-        Object.prototype.toString.call(result.imageData.data),
+        'RawDepthProcessor: Depth data type:',
+        Object.prototype.toString.call(result.depthData),
       );
       console.log(
-        'RawDepthProcessor: Processed data length:',
-        result.imageData.data.length,
+        'RawDepthProcessor: Depth data length:',
+        result.depthData.length,
       );
 
       return result;

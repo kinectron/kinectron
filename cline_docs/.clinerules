@@ -1,0 +1,181 @@
+# Cline Rules for Kinectron Project
+
+## Project Overview
+
+This document defines the working parameters for Cline AI when assisting with the Kinectron refactoring project. Kinectron enables real-time streaming of Microsoft Azure Kinect data to web browsers using peer connections.
+
+## Project Components
+
+1. **Application (`app/`)**
+
+   - Electron-based desktop application
+   - Main Process: Manages Kinect hardware and peer server
+   - Renderer Process: Handles UI
+   - Stream processors and handlers
+
+2. **Client API (`client/`)**
+
+   - Modern JavaScript API (kinectron-modern.js)
+   - Legacy backward-compatible API (kinectron-client.js)
+   - Connects to Kinectron app via PeerJS
+
+3. **Testing**
+   - Peer connection testing (test.html)
+   - Stream testing (streamTest.html)
+   - End-to-end testing
+
+## General Working Method
+
+1. **Understand Context First**
+
+   - Analyze the system architecture
+   - Understand data flows and dependencies
+   - Consider cross-component impacts of changes
+
+2. **Break Tasks Into Manageable Units**
+
+   - Focus on one component or feature at a time
+   - Complete current task before moving to next
+   - Follow logical dependencies between tasks
+
+3. **Review Legacy Code**
+
+   - Analyze existing implementations in both kinectron-app.js and kinectron-client.js
+   - Identify key functions and patterns in both server and client code
+   - Note special cases and optimizations from both legacy files
+
+4. **Follow Established Patterns**
+
+   - Apply consistent architecture across components
+   - Follow existing patterns where appropriate
+   - Propose improvements while maintaining compatibility
+
+5. **Implement Changes**
+   - Make focused changes with clear purpose
+   - Test thoroughly after each change
+   - Document approach and decisions
+
+## Code Guidelines
+
+1. **Use Modern JavaScript**
+
+   - ES6+ features are acceptable and encouraged
+   - Use JSDoc for type documentation
+   - Do not convert to TypeScript
+
+2. **Follow Modular Architecture**
+
+   - Encapsulate logic in dedicated modules
+   - Use existing base classes where appropriate
+   - Maintain separation of concerns
+
+3. **Performance Consideration**
+
+   - Be mindful of memory usage, especially with image data
+   - Optimize for real-time performance
+   - Consider resource usage on both server and client
+
+4. **Error Handling**
+
+   - Implement robust error handling
+   - Provide meaningful error messages
+   - Gracefully degrade when possible
+
+5. **Documentation**
+   - Document all public methods and interfaces
+   - Explain complex logic and algorithms
+   - Note any deviations from standard patterns
+
+## Testing Guidelines
+
+1. **Unit Testing**
+
+   - Test individual components in isolation
+   - Verify expected behavior with various inputs
+   - Check edge cases and error handling
+
+2. **Integration Testing**
+
+   - Test interactions between components
+   - Verify proper event handling
+   - Ensure data flows correctly through the system
+
+3. **Stream Testing**
+
+   - Use streamTest.html for testing feed types
+   - Verify data format and frame delivery
+   - Check performance and memory usage
+
+4. **End-to-End Testing**
+   - Test the complete system workflow
+   - Verify proper Kinect-to-browser pipeline
+   - Test with real-world usage scenarios
+
+## Stream Implementation
+
+Current priority: Raw Depth stream, followed by Key, Depth Key, and RGBD
+
+### Stream Implementation Pattern
+
+1. Server-side processor (app/main/processors/[stream]Processor.js)
+2. Server-side handler (app/main/handlers/[stream]Handler.js)
+3. Client-side API methods in kinectron-modern.js
+4. Testing in streamTest.html
+
+## UI and UX Guidelines
+
+1. **Application Interface**
+
+   - Maintain consistency with existing UI
+   - Focus on usability for non-technical users
+   - Provide clear feedback on system status
+
+2. **API Design**
+   - Create intuitive, consistent API methods
+   - Maintain backward compatibility where possible
+   - Follow JavaScript best practices
+
+## Peer Connection Guidelines
+
+1. **Connection Management**
+
+   - Handle connection establishment/termination
+   - Implement proper error handling
+   - Ensure secure communication
+
+2. **Data Transmission**
+   - Optimize for real-time performance
+   - Handle large data transfers efficiently
+   - Implement appropriate buffering strategies
+
+## Documentation Guidelines
+
+1. **Code Documentation**
+
+   - Comment complex algorithms and logic
+   - Use JSDoc for function documentation
+   - Explain design decisions and trade-offs
+
+2. **User Documentation**
+   - Provide clear API usage examples
+   - Document configuration options
+   - Include troubleshooting information
+
+## Collaboration Approach
+
+1. **Before Starting Work:**
+
+   - Clearly define the scope and objectives
+   - Identify dependencies and prerequisites
+   - Establish success criteria
+
+2. **During Implementation:**
+
+   - Follow established patterns
+   - Focus on one component at a time
+   - Flag any significant deviations or issues
+
+3. **After Implementation:**
+   - Test thoroughly
+   - Document implementation approach
+   - Highlight optimizations or special handling

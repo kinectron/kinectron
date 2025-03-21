@@ -68,56 +68,47 @@ export class PeerController {
               console.log(
                 `PeerController: rawDepth data details:`,
                 message.data
-                  ? `has data=${!!message.data.data}, timestamp=${
+                  ? `has imagedata=${!!message.data
+                      .imagedata}, timestamp=${
                       message.data.timestamp
                     }`
                   : 'null',
               );
 
-              if (message.data && message.data.data) {
+              if (message.data && message.data.imagedata) {
                 console.log(
                   `PeerController: rawDepth data dimensions:`,
-                  `width=${message.data.data.width}, height=${message.data.data.height}`,
+                  `width=${message.data.width}, height=${message.data.height}`,
                 );
                 console.log(
                   `PeerController: rawDepth data type:`,
                   Object.prototype.toString.call(
-                    message.data.data.imagedata,
+                    message.data.imagedata,
                   ),
                 );
                 console.log(
                   `PeerController: rawDepth data length:`,
-                  message.data.data.imagedata
-                    ? message.data.data.imagedata.length
+                  message.data.imagedata
+                    ? message.data.imagedata.length
                     : 'unknown',
                 );
 
                 // Log the imagedata URL (truncated for brevity)
-                if (message.data.data.imagedata) {
+                if (message.data.imagedata) {
                   console.log(
                     `PeerController: imagedata URL (truncated):`,
-                    message.data.data.imagedata.substring(0, 50) +
-                      '...',
+                    message.data.imagedata.substring(0, 50) + '...',
                   );
                 }
               }
 
-              // Create a simplified data structure for broadcasting to clients
-              // This is critical for ensuring the client receives the data in the expected format
-              const simplifiedData = {
-                imagedata: message.data.data.imagedata,
-                width: message.data.data.width,
-                height: message.data.data.height,
-                timestamp: message.data.timestamp || Date.now(),
-              };
-
+              // The data structure is already simplified, no need to transform it
               console.log(
-                `PeerController: Broadcasting simplified rawDepth data to clients:`,
-                `width=${simplifiedData.width}, height=${simplifiedData.height}, timestamp=${simplifiedData.timestamp}`,
+                `PeerController: Broadcasting rawDepth data to clients:`,
+                `width=${message.data.width}, height=${message.data.height}, timestamp=${message.data.timestamp}`,
               );
 
-              // Override the message data with the simplified structure
-              message.data = simplifiedData;
+              // message.data is already in the correct format
             }
 
             // Broadcast the event to all connected peers

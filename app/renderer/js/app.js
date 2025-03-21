@@ -4,11 +4,24 @@ const BUTTON_INACTIVE_COLOR = '#fff';
 const BUTTON_ACTIVE_COLOR = '#1daad8';
 
 import { PeerController } from './peer/peerController.js';
+import {
+  initP5PointCloud,
+  updateDepthData,
+  isPointCloudInitialized,
+  cleanupP5PointCloud,
+} from './p5PointCloud.js';
 
 class KinectronApp {
   constructor() {
     this.cleanupFunctions = new Map();
     this.currentStream = null;
+    this.currentRawDepthView = 'standard'; // 'standard' or 'pointcloud'
+    this.pointCloudInitialized = false;
+    this.pointCloud = null;
+    this.scene = null;
+    this.camera = null;
+    this.renderer = null;
+    this.controls = null;
 
     // Create a local ipc interface for peer controller to use
     this.ipc = {
@@ -35,6 +48,7 @@ class KinectronApp {
     this.setupUIListeners();
     this.setupPeerListeners();
     this.setupNgrokListeners();
+    this.setupRawDepthVisualizationControls();
   }
 
   /**
@@ -449,6 +463,169 @@ class KinectronApp {
     }
   }
 
+  /**
+   * Set up raw depth visualization controls
+   * @private
+   */
+  setupRawDepthVisualizationControls() {
+    const standardViewBtn = document.getElementById(
+      'raw-depth-standard-view',
+    );
+    const pointCloudViewBtn = document.getElementById(
+      'raw-depth-point-cloud-view',
+    );
+
+    if (standardViewBtn && pointCloudViewBtn) {
+      // Set up standard view button
+      standardViewBtn.addEventListener('click', () => {
+        this.switchToStandardView();
+      });
+
+      // Set up point cloud view button
+      pointCloudViewBtn.addEventListener('click', () => {
+        this.switchToPointCloudView();
+      });
+    }
+  }
+
+  /**
+   * Switch to standard view for raw depth visualization
+   * @private
+   */
+  switchToStandardView() {
+    console.log('APP: Switching to standard view for raw depth');
+
+    // Update button states
+    const standardViewBtn = document.getElementById(
+      'raw-depth-standard-view',
+    );
+    const pointCloudViewBtn = document.getElementById(
+      'raw-depth-point-cloud-view',
+    );
+
+    if (standardViewBtn) standardViewBtn.classList.add('active');
+    if (pointCloudViewBtn)
+      pointCloudViewBtn.classList.remove('active');
+
+    // Show canvas, hide point cloud container
+    const canvas = document.getElementById('raw-depth-canvas');
+    const pointCloudContainer = document.getElementById(
+      'raw-depth-point-cloud',
+    );
+
+    if (canvas) canvas.style.display = 'block';
+    if (pointCloudContainer)
+      pointCloudContainer.style.display = 'none';
+
+    this.currentRawDepthView = 'standard';
+  }
+
+  /**
+   * Switch to point cloud view for raw depth visualization
+   * @private
+   */
+  switchToPointCloudView() {
+    console.log('APP: Switching to point cloud view for raw depth');
+
+    // Update button states
+    const standardViewBtn = document.getElementById(
+      'raw-depth-standard-view',
+    );
+    const pointCloudViewBtn = document.getElementById(
+      'raw-depth-point-cloud-view',
+    );
+
+    if (standardViewBtn) standardViewBtn.classList.remove('active');
+    if (pointCloudViewBtn) pointCloudViewBtn.classList.add('active');
+
+    // Hide canvas, show point cloud container
+    const canvas = document.getElementById('raw-depth-canvas');
+    const pointCloudContainer = document.getElementById(
+      'raw-depth-point-cloud',
+    );
+
+    if (canvas) canvas.style.display = 'none';
+    if (pointCloudContainer)
+      pointCloudContainer.style.display = 'block';
+
+    this.currentRawDepthView = 'pointcloud';
+
+    // Initialize point cloud if not already done
+    if (
+      !this.pointCloudInitialized &&
+      this.currentStream === 'raw-depth'
+    ) {
+      this.initPointCloud(320, 288);
+    }
+  }
+
+  /**
+   * Initialize p5.js point cloud visualization
+   * @private
+   * @param {number} width - Width of the depth image
+   * @param {number} height - Height of the depth image
+   */
+  initPointCloud(width, height) {
+    console.log('APP: Initializing p5.js point cloud visualization');
+
+    const container = document.getElementById(
+      'raw-depth-point-cloud',
+    );
+    if (!container) {
+      console.error('APP: Point cloud container not found');
+      return;
+    }
+
+    // Initialize p5.js point cloud
+    initP5PointCloud(container);
+
+    this.pointCloudInitialized = true;
+    console.log('APP: p5.js point cloud visualization initialized');
+  }
+
+  /**
+   * Process raw depth data for 3D point cloud visualization using p5.js
+   * @private
+   * @param {Object} frameData - Raw depth frame data
+   */
+  processRawDepthPointCloudView(frameData) {
+    // Check if we have binary depth data (could be named rawDepthData or depthData)
+    const depthData = frameData.rawDepthData || frameData.depthData;
+
+    if (depthData && frameData.width && frameData.height) {
+      console.log(
+        'APP: Processing binary depth data for p5.js point cloud',
+      );
+
+      // Initialize point cloud if not already done
+      if (!this.pointCloudInitialized || !isPointCloudInitialized()) {
+        this.initPointCloud(frameData.width, frameData.height);
+      }
+
+      // Update depth statistics display
+      const stats = frameData.stats || {
+        minDepth: 0,
+        maxDepth: 5000,
+        validPixels: 0,
+      };
+
+      document.getElementById('raw-depth-min').textContent =
+        stats.minDepth;
+      document.getElementById('raw-depth-max').textContent =
+        stats.maxDepth;
+      document.getElementById('raw-depth-valid').textContent = `${
+        stats.validPixels || 0
+      } / ${frameData.width * frameData.height}`;
+
+      // Update the p5.js point cloud with the depth data
+      updateDepthData(depthData);
+    } else {
+      console.error(
+        'APP: Raw depth frame missing binary depth data for point cloud',
+      );
+    }
+  }
+
   async initializeKinect() {
     try {
       const initialized = await window.kinectron.initializeKinect();
@@ -614,6 +791,16 @@ class KinectronApp {
         cleanup();
         this.cleanupFunctions.delete(this.currentStream);
       }
+
+      // Clean up p5.js point cloud if it was initialized
+      if (
+        this.currentStream === 'raw-depth' &&
+        this.pointCloudInitialized
+      ) {
+        cleanupP5PointCloud();
+        this.pointCloudInitialized = false;
+      }
+
       this.currentStream = null;
     } catch (error) {
       console.error('Error stopping stream:', error);
@@ -967,21 +1154,29 @@ class KinectronApp {
     console.log(
       'APP: Frame data structure:',
       frameData
-        ? `has imagedata=${!!frameData.imagedata}, has imageData=${!!frameData.imageData}`
+        ? `has imagedata=${!!frameData.imagedata}, has imageData=${!!frameData.imageData}, has rawDepthData=${!!frameData.rawDepthData}`
         : 'null',
     );
 
+    // Process based on current visualization mode
+    if (this.currentRawDepthView === 'standard') {
+      this.processRawDepthStandardView(frameData);
+    } else if (this.currentRawDepthView === 'pointcloud') {
+      this.processRawDepthPointCloudView(frameData);
+    }
+  }
+
+  /**
+   * Process raw depth data for standard 2D visualization
+   * @private
+   * @param {Object} frameData - Raw depth frame data
+   */
+  processRawDepthStandardView(frameData) {
     const canvas = document.getElementById('raw-depth-canvas');
     if (!canvas) {
       console.error('APP: Raw depth canvas not found');
       return;
     }
-    console.log(
-      'APP: Found raw depth canvas with dimensions:',
-      canvas.width,
-      'x',
-      canvas.height,
-    );
 
     const context = canvas.getContext('2d');
     if (!context) {
@@ -991,108 +1186,179 @@ class KinectronApp {
       return;
     }
 
-    // Check for both imagedata (from peer) and imageData (from direct API)
-    const imagedata = frameData.imagedata || frameData.imageData;
+    // Check for different data formats (could be named rawDepthData or depthData)
+    const depthData = frameData.rawDepthData || frameData.depthData;
 
-    if (
-      imagedata &&
-      (typeof imagedata.data === 'string' || imagedata.data)
-    ) {
-      console.log(
-        'APP: Raw depth frame has image data, dimensions:',
-        imagedata.width,
-        'x',
-        imagedata.height,
-      );
-      console.log(
-        'APP: Raw depth data type:',
-        Object.prototype.toString.call(imagedata.data),
-      );
-      console.log(
-        'APP: Raw depth data length:',
-        typeof imagedata.data === 'string'
-          ? imagedata.data.substring(0, 50) + '...'
-          : imagedata.data.length,
-      );
+    if (depthData && frameData.width && frameData.height) {
+      // Binary depth data format
+      console.log('APP: Processing binary depth data');
 
-      try {
-        // Check if data is a string (data URL)
-        if (typeof imagedata.data === 'string') {
-          console.log(
-            'APP: Raw depth frame data is a string (data URL)',
-          );
-          // Create an image from the data URL
-          const img = new Image();
+      // Get dimensions
+      const width = frameData.width;
+      const height = frameData.height;
 
-          img.onload = () => {
-            console.log(
-              'APP: Raw depth image loaded successfully, drawing to canvas',
-              img.width,
-              'x',
-              img.height,
-            );
-            // Clear the canvas
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            // Draw the image to the canvas
-            context.drawImage(img, 0, 0, canvas.width, canvas.height);
-            console.log('APP: Image drawn to canvas');
-          };
+      // Get depth statistics for better visualization
+      const stats = frameData.stats || {
+        minDepth: 0,
+        maxDepth: 5000,
+        validPixels: 0,
+      };
 
-          img.onerror = (err) => {
-            console.error('APP: Error loading raw depth image:', err);
-            console.error(
-              'APP: Data URL starts with:',
-              imagedata.data.substring(0, 50) + '...',
-            );
-          };
+      // Update depth statistics display
+      document.getElementById('raw-depth-min').textContent =
+        stats.minDepth;
+      document.getElementById('raw-depth-max').textContent =
+        stats.maxDepth;
+      document.getElementById('raw-depth-valid').textContent = `${
+        stats.validPixels || 0
+      } / ${width * height}`;
 
-          console.log('APP: Setting image src to data URL');
-          img.src = imagedata.data;
-          console.log('APP: Image src set');
-        } else {
-          console.log('APP: Creating ImageData from raw depth data');
-          const imgData = new ImageData(
-            new Uint8ClampedArray(imagedata.data),
-            imagedata.width,
-            imagedata.height,
-          );
-          console.log('APP: ImageData created successfully');
+      // Create image data for visualization
+      const imgData = context.createImageData(width, height);
 
-          // Log some sample pixel values for debugging
-          const samplePixels = [];
-          for (
-            let i = 0;
-            i < Math.min(5, imgData.data.length);
-            i += 4
-          ) {
-            samplePixels.push({
-              r: imgData.data[i],
-              g: imgData.data[i + 1],
-              b: imgData.data[i + 2],
-              a: imgData.data[i + 3],
-            });
-          }
-          console.log('APP: Sample pixel values:', samplePixels);
+      // Process each depth value
+      for (let i = 0; i < depthData.length; i++) {
+        const depthValue = depthData[i];
 
-          console.log('APP: Drawing raw depth image to canvas');
-          context.putImageData(imgData, 0, 0);
-          console.log('APP: Raw depth image drawn to canvas');
+        // Skip invalid depth values
+        if (depthValue <= 0) {
+          imgData.data[i * 4] = 0; // R
+          imgData.data[i * 4 + 1] = 0; // G
+          imgData.data[i * 4 + 2] = 0; // B
+          imgData.data[i * 4 + 3] = 255; // A
+          continue;
         }
-      } catch (error) {
-        console.error('APP: Error drawing raw depth frame:', error);
-        console.error(
-          'APP: Frame data type:',
-          Object.prototype.toString.call(imagedata.data),
+
+        // Map depth value to grayscale (0-255)
+        const normalizedValue = Math.max(
+          0,
+          Math.min(
+            255,
+            255 -
+              ((depthValue - stats.minDepth) /
+                (stats.maxDepth - stats.minDepth)) *
+                255,
+          ),
         );
-        if (typeof imagedata.data !== 'string') {
-          console.error(
-            'APP: Frame data length:',
-            imagedata.data ? imagedata.data.length : 'null',
-          );
-        }
+
+        // Set pixel color (grayscale)
+        imgData.data[i * 4] = normalizedValue; // R
+        imgData.data[i * 4 + 1] = normalizedValue; // G
+        imgData.data[i * 4 + 2] = normalizedValue; // B
+        imgData.data[i * 4 + 3] = 255; // A
       }
+
+      // Draw the image data to canvas
+      context.putImageData(imgData, 0, 0);
+      console.log('APP: Binary depth data visualization complete');
     } else {
-      console.error('APP: Raw depth frame missing image data');
+      // Legacy formats (data URL or RGBA data)
+      const imagedata = frameData.imagedata || frameData.imageData;
+
+      if (
+        imagedata &&
+        (typeof imagedata.data === 'string' || imagedata.data)
+      ) {
+        console.log(
+          'APP: Raw depth frame has image data, dimensions:',
+          imagedata.width,
+          'x',
+          imagedata.height,
+        );
+
+        try {
+          // Check if data is a string (data URL)
+          if (typeof imagedata.data === 'string') {
+            console.log(
+              'APP: Raw depth frame data is a string (data URL)',
+            );
+            // Create an image from the data URL
+            const img = new Image();
+
+            img.onload = () => {
+              console.log('APP: Raw depth image loaded successfully');
+              // Clear the canvas
+              context.clearRect(0, 0, canvas.width, canvas.height);
+              // Draw the image to the canvas
+              context.drawImage(
+                img,
+                0,
+                0,
+                canvas.width,
+                canvas.height,
+              );
+            };
+
+            img.onerror = (err) => {
+              console.error(
+                'APP: Error loading raw depth image:',
+                err,
+              );
+            };
+
+            img.src = imagedata.data;
+          } else {
+            console.log(
+              'APP: Creating ImageData from raw depth data',
+            );
+            const imgData = new ImageData(
+              new Uint8ClampedArray(imagedata.data),
+              imagedata.width,
+              imagedata.height,
+            );
+
+            context.putImageData(imgData, 0, 0);
+            console.log('APP: Raw depth image drawn to canvas');
+          }
+        } catch (error) {
+          console.error('APP: Error drawing raw depth frame:', error);
+        }
+      } else {
+        console.error('APP: Raw depth frame missing image data');
+      }
+    }
+  }
+
+  /**
+   * Process raw depth data for 3D point cloud visualization
+   * @private
+   * @param {Object} frameData - Raw depth frame data
+   */
+  processRawDepthPointCloudView(frameData) {
+    // Check if we have binary depth data (could be named rawDepthData or depthData)
+    const depthData = frameData.rawDepthData || frameData.depthData;
+
+    if (depthData && frameData.width && frameData.height) {
+      console.log(
+        'APP: Processing binary depth data for p5.js point cloud',
+      );
+
+      // Initialize point cloud if not already done
+      if (!this.pointCloudInitialized || !isPointCloudInitialized()) {
+        this.initPointCloud(frameData.width, frameData.height);
+      }
+
+      // Update depth statistics display
+      const stats = frameData.stats || {
+        minDepth: 0,
+        maxDepth: 5000,
+        validPixels: 0,
+      };
+
+      document.getElementById('raw-depth-min').textContent =
+        stats.minDepth;
+      document.getElementById('raw-depth-max').textContent =
+        stats.maxDepth;
+      document.getElementById('raw-depth-valid').textContent = `${
+        stats.validPixels || 0
+      } / ${frameData.width * frameData.height}`;
+
+      // Update the p5.js point cloud with the depth data
+      updateDepthData(depthData);
+    } else {
+      console.error(
+        'APP: Raw depth frame missing binary depth data for point cloud',
+      );
     }
   }
 
@@ -1401,6 +1667,12 @@ class KinectronApp {
       cleanup();
     }
     this.cleanupFunctions.clear();
+
+    // Clean up p5.js point cloud if it was initialized
+    if (this.pointCloudInitialized) {
+      cleanupP5PointCloud();
+      this.pointCloudInitialized = false;
+    }
 
     try {
       // Stop ngrok if it's running

@@ -493,10 +493,10 @@ export class PeerConnection {
       console.log('Creating new connection to:', this.targetPeerId);
       this.connection = this.peer.connect(this.targetPeerId, {
         reliable: true,
-        serialization: 'json',
+        serialization: 'binary', // Changed from 'json' to 'binary' to support ArrayBuffer
         metadata: {
           version: '2.0.0',
-          features: ['ping', 'queue'],
+          features: ['ping', 'queue', 'binary'],
           clientId: this.clientId,
         },
       });
@@ -577,9 +577,7 @@ export class PeerConnection {
   /**
    * Handle incoming data from peer with enhanced error handling
    * @private
-   * @param {Object} data - Data received from peer
-   * @param {string} data.event - Event type
-   * @param {*} data.data - Event data
+   * @param {Object|ArrayBuffer} data - Data received from peer
    */
   handleIncomingData(data) {
     try {
@@ -589,10 +587,37 @@ export class PeerConnection {
           frameCount: 0,
           lastLogTime: Date.now(),
           rawDepthFrameCount: 0,
+          rawDepthDataCount: 0,
           eventCounts: {},
         };
       }
 
+      // Handle binary data (ArrayBuffer)
+      if (data instanceof ArrayBuffer) {
+        console.log(
+          'PeerConnection: Received binary data, buffer size:',
+          data.byteLength,
+        );
+
+        // Call the binary data handler if registered
+        const binaryHandler =
+          this.messageHandlers.get('rawDepthData');
+        if (binaryHandler) {
+          this._frameStats.rawDepthDataCount++;
+          console.log(
+            `PeerConnection: Calling binary data handler (frame #${this._frameStats.rawDepthDataCount})`,
+          );
+          binaryHandler(data);
+        } else {
+          console.warn(
+            'PeerConnection: No handler registered for binary data',
+          );
+        }
+
+        return;
+      }
+
+      // Handle JSON data
       // Increment frame counter
       this._frameStats.frameCount++;
 
@@ -679,13 +704,14 @@ export class PeerConnection {
           const now = Date.now();
           if (now - this._frameStats.lastLogTime >= 5000) {
             console.log(
-              `PeerConnection: Frame stats (5s): ${this._frameStats.frameCount} total events, ${this._frameStats.rawDepthFrameCount} rawDepth events, event counts:`,
+              `PeerConnection: Frame stats (5s): ${this._frameStats.frameCount} total events, ${this._frameStats.rawDepthFrameCount} rawDepth events, ${this._frameStats.rawDepthDataCount} binary events, event counts:`,
               this._frameStats.eventCounts,
             );
 
             // Reset counters
             this._frameStats.frameCount = 0;
             this._frameStats.rawDepthFrameCount = 0;
+            this._frameStats.rawDepthDataCount = 0;
             this._frameStats.eventCounts = {};
             this._frameStats.lastLogTime = now;
           }
@@ -696,6 +722,29 @@ export class PeerConnection {
             `PeerConnection: No rawDepth handler found! (frame #${this._frameStats.rawDepthFrameCount})`,
           );
         }
+      }
+
+      // Special handling for rawDepthMetadata
+      if (data.event === 'rawDepthMetadata') {
+        console.log(
+          `PeerConnection: Handling rawDepthMetadata event (frame #${this._frameStats.frameCount})`,
+        );
+
+        const metadataHandler = this.messageHandlers.get(
+          'rawDepthMetadata',
+        );
+        if (metadataHandler) {
+          console.log(
+            'PeerConnection: Found rawDepthMetadata handler, calling it',
+          );
+          metadataHandler(data.data);
+        } else {
+          console.warn(
+            'PeerConnection: No rawDepthMetadata handler found',
+          );
+        }
+
+        return;
       }
 
       // First, try to find a specific handler for this event
@@ -735,13 +784,14 @@ export class PeerConnection {
       const now = Date.now();
       if (now - this._frameStats.lastLogTime >= 5000) {
         console.log(
-          `PeerConnection: Frame stats (5s): ${this._frameStats.frameCount} total events, ${this._frameStats.rawDepthFrameCount} rawDepth events, event counts:`,
+          `PeerConnection: Frame stats (5s): ${this._frameStats.frameCount} total events, ${this._frameStats.rawDepthFrameCount} rawDepth events, ${this._frameStats.rawDepthDataCount} binary events, event counts:`,
           this._frameStats.eventCounts,
         );
 
         // Reset counters
         this._frameStats.frameCount = 0;
         this._frameStats.rawDepthFrameCount = 0;
+        this._frameStats.rawDepthDataCount = 0;
         this._frameStats.eventCounts = {};
         this._frameStats.lastLogTime = now;
       }
@@ -816,6 +866,23 @@ export class PeerConnection {
       }
 
       try {
+        // Special handling for binary data (ArrayBuffer)
+        if (data instanceof ArrayBuffer) {
+          console.log(
+            `PeerConnection: Sending binary data directly, size: ${data.byteLength}`,
+          );
+
+          const timeout = setTimeout(() => {
+            reject(new Error('Send timeout'));
+          }, 5000);
+
+          this.connection.send(data);
+          clearTimeout(timeout);
+          resolve();
+          return;
+        }
+
+        // Regular JSON data
         const message = {
           event,
           data,

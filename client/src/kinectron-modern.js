@@ -64,6 +64,40 @@ export class Kinectron {
         }
       }
     });
+
+    // Forward rawDepthMetadata events from peer to Kinectron handlers
+    this.peer.on('rawDepthMetadata', (metadata) => {
+      console.log(
+        'Kinectron: Forwarding rawDepthMetadata event from peer',
+      );
+      const handler = this.messageHandlers.get('rawDepthMetadata');
+      if (handler) {
+        console.log(
+          'Kinectron: Found rawDepthMetadata handler, calling it',
+        );
+        handler(metadata);
+      } else {
+        console.warn(
+          'Kinectron: No rawDepthMetadata handler registered',
+        );
+      }
+    });
+
+    // Forward rawDepthData events from peer to Kinectron handlers
+    this.peer.on('rawDepthData', (binaryData) => {
+      console.log(
+        'Kinectron: Forwarding rawDepthData event from peer',
+      );
+      const handler = this.messageHandlers.get('rawDepthData');
+      if (handler) {
+        console.log(
+          'Kinectron: Found rawDepthData handler, calling it',
+        );
+        handler(binaryData);
+      } else {
+        console.warn('Kinectron: No rawDepthData handler registered');
+      }
+    });
   }
 
   // Event registration
@@ -591,69 +625,181 @@ export class Kinectron {
 
     if (callback) {
       console.log(
-        'Kinectron: Setting up handler for rawDepth events',
+        'Kinectron: Setting up handlers for raw depth data',
       );
 
-      // Set up handler to process raw depth frames
-      this.messageHandlers.set('rawDepth', async (data) => {
+      // Store pending metadata until binary data arrives
+      let pendingMetadata = null;
+
+      // Set up handler for metadata
+      this.messageHandlers.set('rawDepthMetadata', (metadata) => {
         console.log(
-          'Kinectron: Received rawDepth event with data:',
+          'Kinectron: Received rawDepthMetadata:',
+          metadata
+            ? `width=${metadata.width}, height=${metadata.height}, timestamp=${metadata.timestamp}, frameId=${metadata.frameId}`
+            : 'null',
+        );
+
+        // Store metadata until binary data arrives
+        pendingMetadata = metadata;
+      });
+
+      // Set up handler for binary data
+      this.messageHandlers.set('rawDepthData', (binaryData) => {
+        console.log('Kinectron: Received rawDepthData');
+
+        if (!pendingMetadata) {
+          console.warn(
+            'Kinectron: Received binary data without metadata, discarding',
+          );
+          return;
+        }
+
+        if (!(binaryData instanceof ArrayBuffer)) {
+          console.error(
+            'Kinectron: Received non-binary data for rawDepthData event',
+          );
+          return;
+        }
+
+        try {
+          // Convert ArrayBuffer to Uint16Array (16-bit depth values)
+          const depthData = new Uint16Array(binaryData);
+
+          console.log(
+            'Kinectron: Binary depth data processed, length:',
+            depthData.length,
+            'expected:',
+            pendingMetadata.width * pendingMetadata.height,
+          );
+
+          // Call the user callback with the raw depth data
+          callback({
+            width: pendingMetadata.width,
+            height: pendingMetadata.height,
+            rawDepthData: depthData,
+            timestamp: pendingMetadata.timestamp,
+            stats: pendingMetadata.stats,
+            frameId: pendingMetadata.frameId,
+          });
+
+          // Clear pending metadata after processing
+          pendingMetadata = null;
+        } catch (error) {
+          console.error(
+            'Kinectron: Error processing binary depth data:',
+            error,
+          );
+
+          // Still try to call the callback with basic information
+          callback({
+            width: pendingMetadata?.width,
+            height: pendingMetadata?.height,
+            timestamp: pendingMetadata?.timestamp || Date.now(),
+            error: error.message,
+          });
+
+          // Clear pending metadata
+          pendingMetadata = null;
+        }
+      });
+
+      // Set up handler for combined rawDepth event (fallback)
+      this.messageHandlers.set('rawDepth', (data) => {
+        console.log(
+          'Kinectron: Received combined rawDepth event:',
           data
-            ? `has imagedata=${!!data.imagedata}, timestamp=${
-                data.timestamp
+            ? `width=${data.width}, height=${
+                data.height
+              }, has rawDepthData=${!!data.rawDepthData}, downsampleFactor=${
+                data.downsampleFactor || 1
               }`
             : 'null',
         );
 
-        if (data && data.imagedata) {
-          console.log(
-            'Kinectron: Raw depth data received, dimensions:',
-            `width=${data.width}, height=${data.height}`,
-          );
-          console.log(
-            'Kinectron: Data URL length:',
-            data.imagedata.length,
-          );
-
+        if (data && data.rawDepthData) {
           try {
-            // Process the raw depth data using our modern approach
-            const depthValues = await this.processRawDepth(
-              data.imagedata,
-              data.width,
-              data.height,
+            // Convert Array to Uint16Array for the downsampled data
+            const downsampledData = new Uint16Array(
+              data.rawDepthData,
             );
 
-            // Create a visualization for display
-            const src = this.createDepthVisualization(
-              depthValues,
-              data.width,
-              data.height,
+            console.log(
+              'Kinectron: Downsampled depth data processed, length:',
+              downsampledData.length,
+              'expected:',
+              data.width * data.height,
             );
 
-            // Call the user callback with processed frame
-            console.log(
-              'Kinectron: Calling user callback with processed frame',
-            );
-            callback({
-              src,
-              width: data.width,
-              height: data.height,
-              rawDepthData: depthValues,
-              timestamp: data.timestamp || Date.now(),
-            });
-            console.log(
-              'Kinectron: User callback called successfully',
-            );
+            // If the data is downsampled, we need to upsample it to the original dimensions
+            if (data.downsampleFactor && data.downsampleFactor > 1) {
+              console.log(
+                'Kinectron: Upsampling depth data with factor:',
+                data.downsampleFactor,
+              );
+
+              // Calculate original dimensions
+              const originalWidth =
+                data.width * data.downsampleFactor;
+              const originalHeight =
+                data.height * data.downsampleFactor;
+
+              // Create a full-sized array filled with zeros
+              const fullSizeData = new Uint16Array(
+                originalWidth * originalHeight,
+              );
+
+              // Fill the array with the downsampled data, using nearest neighbor upsampling
+              for (let y = 0; y < originalHeight; y++) {
+                for (let x = 0; x < originalWidth; x++) {
+                  // Find the corresponding pixel in the downsampled data
+                  const dsX = Math.floor(x / data.downsampleFactor);
+                  const dsY = Math.floor(y / data.downsampleFactor);
+                  const dsIndex = dsY * data.width + dsX;
+
+                  // Set the pixel in the full-sized array
+                  const fullIndex = y * originalWidth + x;
+                  fullSizeData[fullIndex] =
+                    downsampledData[dsIndex] || 0;
+                }
+              }
+
+              console.log(
+                'Kinectron: Upsampled depth data, length:',
+                fullSizeData.length,
+                'expected:',
+                originalWidth * originalHeight,
+              );
+
+              // Call the user callback with the upsampled data
+              callback({
+                width: originalWidth,
+                height: originalHeight,
+                rawDepthData: fullSizeData,
+                timestamp: data.timestamp,
+                stats: data.stats,
+                frameId: data.frameId,
+                isUpsampled: true,
+                downsampleFactor: data.downsampleFactor,
+              });
+            } else {
+              // No upsampling needed, just pass the data through
+              callback({
+                width: data.width,
+                height: data.height,
+                rawDepthData: downsampledData,
+                timestamp: data.timestamp,
+                stats: data.stats,
+                frameId: data.frameId,
+              });
+            }
           } catch (error) {
             console.error(
-              'Kinectron: Error processing raw depth data:',
+              'Kinectron: Error processing combined depth data:',
               error,
             );
 
             // Still try to call the callback with basic information
-            console.log(
-              'Kinectron: Calling user callback with basic data due to error',
-            );
             callback({
               width: data.width,
               height: data.height,
@@ -663,11 +809,31 @@ export class Kinectron {
           }
         } else {
           console.warn(
-            'Kinectron: Received rawDepth event but no valid data',
+            'Kinectron: Received rawDepth event without depth data',
           );
         }
       });
-      console.log('Kinectron: rawDepth event handler registered');
+
+      // For backward compatibility, also handle the old rawDepth event
+      this.messageHandlers.set('rawDepth', (data) => {
+        console.log(
+          'Kinectron: Received legacy rawDepth event:',
+          data ? 'has data' : 'null',
+        );
+
+        // If we receive the old format, just forward it to the callback
+        if (data) {
+          callback({
+            width: data.width,
+            height: data.height,
+            timestamp: data.timestamp || Date.now(),
+            legacyFormat: true,
+            rawData: data,
+          });
+        }
+      });
+
+      console.log('Kinectron: Raw depth event handlers registered');
     } else {
       console.warn(
         'Kinectron: No callback provided for raw depth stream',
@@ -999,9 +1165,30 @@ export class Kinectron {
     const handler = (data) => {
       console.log(
         'Kinectron: onRawDepthFrame handler called with data:',
-        data ? `has rawDepthData=${!!data.rawDepthData}` : 'null',
+        data ? `has imagedata=${!!data.imagedata}` : 'null',
       );
-      callback(data);
+
+      // Process the data to maintain backward compatibility
+      if (data && data.imagedata) {
+        // If we have imagedata, process it to extract rawDepthData
+        this.processRawDepth(data.imagedata, data.width, data.height)
+          .then((depthValues) => {
+            // Add the rawDepthData property for backward compatibility
+            data.rawDepthData = depthValues;
+            callback(data);
+          })
+          .catch((error) => {
+            console.error(
+              'Kinectron: Error processing raw depth data:',
+              error,
+            );
+            // Still call the callback with the original data
+            callback(data);
+          });
+      } else {
+        // If no imagedata, just pass through the data
+        callback(data);
+      }
     };
     this.messageHandlers.set('rawDepth', handler);
 

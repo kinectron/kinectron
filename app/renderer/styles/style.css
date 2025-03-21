@@ -327,6 +327,40 @@ img {
   color: #fa5252;
 }
 
+/* Visualization Controls */
+.viz-button {
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  background-color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  margin-right: 5px;
+}
+
+.viz-button:hover {
+  background-color: #f8f9fa;
+}
+
+.viz-button.active {
+  background-color: #1daad8;
+  color: white;
+  border-color: #1daad8;
+}
+
+#raw-depth-stats {
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+#raw-depth-stats div {
+  margin: 2px 0;
+  font-size: 12px;
+}
+
 /* Utility */
 .clear-class {
   clear: both;

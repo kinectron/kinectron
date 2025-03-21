@@ -32,6 +32,35 @@
         .success {
             color: green;
         }
+
+        .visualization-container {
+            position: relative;
+            width: 100%;
+            height: 480px;
+            margin-top: 10px;
+        }
+
+        #canvas-container,
+        #point-cloud-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #point-cloud-container {
+            display: none;
+        }
+
+        .viz-controls {
+            margin: 10px 0;
+        }
+
+        .depth-stats {
+            margin-top: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -43,7 +72,24 @@
         <button onclick="startRawDepthStream()" disabled id="startRawDepthBtn">Start Raw Depth Stream</button>
         <button onclick="stopStream()" disabled id="stopStreamBtn">Stop Stream</button>
     </div>
-    <div id="canvas-container"></div>
+
+    <!-- Visualization type controls (initially hidden) -->
+    <div id="viz-controls" class="viz-controls" style="display: none;">
+        <button onclick="switchToStandardView()" id="standardViewBtn">Standard View</button>
+        <button onclick="switchToPointCloudView()" id="pointCloudViewBtn">Point Cloud View</button>
+    </div>
+
+    <div class="visualization-container">
+        <div id="canvas-container"></div>
+        <div id="point-cloud-container"></div>
+    </div>
+
+    <div id="depth-stats" class="depth-stats" style="display: none;">
+        <div id="minDepth" class="stat-item">Min Depth: - mm</div>
+        <div id="maxDepth" class="stat-item">Max Depth: - mm</div>
+        <div id="validPixels" class="stat-item">Valid Pixels: -</div>
+    </div>
+
     <div id="stats">
         <div id="connectionStatus" class="stat-item">Connection Status: Disconnected</div>
         <div id="streamStatus" class="stat-item">Stream Status: Inactive</div>
@@ -64,7 +110,18 @@
     <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
     <script type="module">
         import { Kinectron } from './src/kinectron-modern.js';
+        import {
+            initP5PointCloud,
+            updateDepthData,
+            isPointCloudInitialized,
+            cleanupP5PointCloud
+        } from './src/p5PointCloud.js';
+
         window.Kinectron = Kinectron;
+        window.initP5PointCloud = initP5PointCloud;
+        window.updateDepthData = updateDepthData;
+        window.isPointCloudInitialized = isPointCloudInitialized;
+        window.cleanupP5PointCloud = cleanupP5PointCloud;
     </script>
     <script>
         // Constants
@@ -388,6 +445,34 @@
             });
         }
 
+        // Variables for point cloud visualization
+        let currentVisualizationMode = 'standard'; // 'standard' or 'pointcloud'
+        let pointCloudInitialized = false;
+
+        // Switch to standard view
+        window.switchToStandardView = function () {
+            document.getElementById('canvas-container').style.display = 'block';
+            document.getElementById('point-cloud-container').style.display = 'none';
+            currentVisualizationMode = 'standard';
+            addDebugInfo('Switched to standard view');
+        }
+
+        // Switch to point cloud view
+        window.switchToPointCloudView = function () {
+            document.getElementById('canvas-container').style.display = 'none';
+            document.getElementById('point-cloud-container').style.display = 'block';
+            currentVisualizationMode = 'pointcloud';
+
+            // Initialize p5.js point cloud if not already done
+            if (!pointCloudInitialized) {
+                const container = document.getElementById('point-cloud-container');
+                initP5PointCloud(container);
+                pointCloudInitialized = true;
+            }
+
+            addDebugInfo('Switched to point cloud view');
+        }
+
         // Start raw depth stream
         window.startRawDepthStream = function () {
             document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
@@ -405,11 +490,57 @@
             resizeCanvas(AZURE_RAW_DEPTH_WIDTH * DISPLAY_SCALE, AZURE_RAW_DEPTH_HEIGHT * DISPLAY_SCALE);
             background(255);
 
+            // Show visualization controls and depth stats
+            document.getElementById('viz-controls').style.display = 'block';
+            document.getElementById('depth-stats').style.display = 'block';
+
+            // Default to standard view
+            switchToStandardView();
+
             addDebugInfo('Calling kinectron.startRawDepth()');
-            kinectron.startRawDepth((frame) => {
-                // Log frame data for debugging
-                addDebugInfo(`Received raw depth frame: timestamp=${frame.timestamp}`);
-                addDebugInfo(`Raw depth data: ${JSON.stringify(frame).substring(0, 100)}...`);
+
+            // Set up handlers for rawDepthMetadata and rawDepthData events
+            let pendingMetadata = null;
+
+            // Register handler for rawDepthMetadata events
+            kinectron.on('rawDepthMetadata', (metadata) => {
+                addDebugInfo(`Received rawDepthMetadata: width=${metadata.width}, height=${metadata.height}`);
+                pendingMetadata = metadata;
+
+                // Update depth statistics display
+                const stats = metadata.stats || {
+                    minDepth: 0,
+                    maxDepth: 5000,
+                    validPixels: 0,
+                };
+
+                document.getElementById('minDepth').textContent = `Min Depth: ${stats.minDepth} mm`;
+                document.getElementById('maxDepth').textContent = `Max Depth: ${stats.maxDepth} mm`;
+                document.getElementById('validPixels').textContent = `Valid Pixels: ${stats.validPixels || 0} / ${metadata.width * metadata.height}`;
+            });
+
+            // Register handler for rawDepthData events (binary data)
+            kinectron.on('rawDepthData', (binaryData) => {
+                addDebugInfo(`Received rawDepthData binary data: type=${Object.prototype.toString.call(binaryData)}, size=${binaryData.byteLength || 'unknown'}`);
+
+                // Log the first few bytes for debugging
+                if (binaryData instanceof ArrayBuffer) {
+                    const view = new DataView(binaryData);
+                    let debugBytes = [];
+                    for (let i = 0; i < Math.min(20, binaryData.byteLength); i += 2) {
+                        debugBytes.push(view.getUint16(i, true)); // true for little-endian
+                    }
+                    addDebugInfo(`First 10 depth values: ${debugBytes.join(', ')}`);
+                }
+
+                if (!pendingMetadata) {
+                    addDebugInfo('No metadata available for binary data, discarding');
+                    return;
+                }
+
+                // Convert ArrayBuffer to Uint16Array (16-bit depth values)
+                const depthData = new Uint16Array(binaryData);
+                addDebugInfo(`Converted to Uint16Array: length=${depthData.length}, expected=${pendingMetadata.width * pendingMetadata.height}`);
 
                 // Update stream status
                 document.getElementById('streamStatus').innerHTML =
@@ -429,8 +560,8 @@
                 }
 
                 // Calculate frame latency
-                if (frame.timestamp) {
-                    const latency = now - frame.timestamp;
+                if (pendingMetadata.timestamp) {
+                    const latency = now - pendingMetadata.timestamp;
                     frameLatencies.push(latency);
                     addDebugInfo(`Frame latency: ${latency}ms`);
                 }
@@ -438,81 +569,99 @@
                 // Track last frame timestamp for jitter calculation
                 lastFrameTimestamp = now;
 
-                // Process raw depth data
-                if (frame.src) {
-                    // If we have a data URL, use it directly
-                    loadImage(frame.src,
-                        (loadedImage) => {
-                            // Clear canvas
-                            background(255);
-                            // Draw the image
-                            image(loadedImage, 0, 0, width, height);
-                            addDebugInfo(`Raw depth image drawn to canvas: ${loadedImage.width}x${loadedImage.height}`);
-                        },
-                        (err) => {
-                            addDebugInfo(`Error loading raw depth image: ${err}`);
-                        }
-                    );
-                } else if (frame.rawDepthData) {
-                    // If we have raw depth data, create a visualization
-                    addDebugInfo('Processing raw depth data array');
-                    addDebugInfo(`Raw depth data type: ${Object.prototype.toString.call(frame.rawDepthData)}`);
-                    addDebugInfo(`Raw depth data length: ${frame.rawDepthData.length}`);
+                // Process the depth data
+                const width = pendingMetadata.width;
+                const height = pendingMetadata.height;
+                const stats = pendingMetadata.stats || {
+                    minDepth: 0,
+                    maxDepth: 5000,
+                    validPixels: 0,
+                };
 
-                    // Log sample values for debugging
-                    const sampleValues = [];
-                    for (let i = 0; i < Math.min(20, frame.rawDepthData.length); i += 4) {
-                        sampleValues.push({
-                            r: frame.rawDepthData[i],
-                            g: frame.rawDepthData[i + 1],
-                            b: frame.rawDepthData[i + 2],
-                            a: frame.rawDepthData[i + 3]
-                        });
+                // Update point cloud visualization
+                if (currentVisualizationMode === 'pointcloud') {
+                    if (!pointCloudInitialized) {
+                        const container = document.getElementById('point-cloud-container');
+                        initP5PointCloud(container);
+                        pointCloudInitialized = true;
                     }
-                    addDebugInfo(`Sample raw depth values: ${JSON.stringify(sampleValues)}`);
+                    updateDepthData(depthData);
+                    addDebugInfo('Updated point cloud with new depth data');
+                }
 
-                    // Get dimensions from frame or use defaults
-                    const rawDepthWidth = frame.width || AZURE_RAW_DEPTH_WIDTH;
-                    const rawDepthHeight = frame.height || AZURE_RAW_DEPTH_HEIGHT;
-                    addDebugInfo(`Using dimensions: ${rawDepthWidth}x${rawDepthHeight}`);
-
+                // Update standard visualization if in standard view
+                if (currentVisualizationMode === 'standard') {
                     // Create a p5.js image to display the raw depth data
-                    let img = createImage(rawDepthWidth, rawDepthHeight);
+                    let img = createImage(width, height);
                     img.loadPixels();
 
-                    // Check if the data is already in RGBA format (4 bytes per pixel)
-                    if (frame.rawDepthData.length === rawDepthWidth * rawDepthHeight * 4) {
-                        addDebugInfo('Raw depth data appears to be in RGBA format');
+                    // Get min/max depth for better visualization
+                    let minDepth = stats.minDepth || 0;
+                    let maxDepth = stats.maxDepth || 5000;
 
-                        // Copy the RGBA data directly
-                        for (let i = 0; i < frame.rawDepthData.length; i++) {
-                            img.pixels[i] = frame.rawDepthData[i];
+                    // Process each pixel in the raw depth data
+                    for (let i = 0; i < depthData.length; i++) {
+                        const depthValue = depthData[i];
+
+                        // Skip invalid depth values
+                        if (depthValue <= 0) {
+                            img.pixels[i * 4] = 0;     // R
+                            img.pixels[i * 4 + 1] = 0; // G
+                            img.pixels[i * 4 + 2] = 0; // B
+                            img.pixels[i * 4 + 3] = 255; // A
+                            continue;
                         }
-                    } else {
-                        addDebugInfo('Raw depth data appears to be in depth value format');
 
-                        // Process each pixel in the raw depth data
-                        for (let i = 0; i < frame.rawDepthData.length; i++) {
-                            const depthValue = frame.rawDepthData[i];
-                            // Map depth value to grayscale (0-255)
-                            const normalizedValue = map(depthValue, 0, 5000, 255, 0);
+                        // Map depth value to grayscale (0-255)
+                        const normalizedValue = map(depthValue, minDepth, maxDepth, 255, 0);
 
-                            // Set pixel color (grayscale)
-                            img.pixels[i * 4] = normalizedValue;     // R
-                            img.pixels[i * 4 + 1] = normalizedValue; // G
-                            img.pixels[i * 4 + 2] = normalizedValue; // B
-                            img.pixels[i * 4 + 3] = 255;             // A
-                        }
+                        // Set pixel color (grayscale)
+                        img.pixels[i * 4] = normalizedValue;     // R
+                        img.pixels[i * 4 + 1] = normalizedValue; // G
+                        img.pixels[i * 4 + 2] = normalizedValue; // B
+                        img.pixels[i * 4 + 3] = 255;             // A
                     }
 
                     img.updatePixels();
 
                     // Clear canvas and draw the image
                     background(255);
-                    image(img, 0, 0, width, height);
-                    addDebugInfo('Raw depth visualization created from data array');
-                } else {
-                    addDebugInfo('No usable raw depth data available');
+                    image(img, 0, 0, width * DISPLAY_SCALE, height * DISPLAY_SCALE);
+                    addDebugInfo('Raw depth visualization created from binary data');
+                }
+            });
+
+            // Also set up the traditional callback for backward compatibility
+            kinectron.startRawDepth((frame) => {
+                addDebugInfo(`Received raw depth frame via callback: timestamp=${frame.timestamp}`);
+
+                // If we have binary data in the frame, use it
+                if (frame.rawDepthData) {
+                    addDebugInfo(`Processing raw depth data from callback: ${frame.rawDepthData.length} values`);
+
+                    // Update point cloud if in point cloud view
+                    if (currentVisualizationMode === 'pointcloud') {
+                        updateDepthData(frame.rawDepthData);
+                    }
+                } else if (frame.src) {
+                    // Legacy format with data URL
+                    addDebugInfo('Received legacy format with data URL via callback');
+
+                    // If we have a data URL, use it directly for standard view
+                    if (currentVisualizationMode === 'standard') {
+                        loadImage(frame.src,
+                            (loadedImage) => {
+                                // Clear canvas
+                                background(255);
+                                // Draw the image
+                                image(loadedImage, 0, 0, width, height);
+                                addDebugInfo(`Raw depth image drawn to canvas: ${loadedImage.width}x${loadedImage.height}`);
+                            },
+                            (err) => {
+                                addDebugInfo(`Error loading raw depth image: ${err}`);
+                            }
+                        );
+                    }
                 }
             });
         }
@@ -523,8 +672,24 @@
             document.getElementById('streamStatus').textContent = 'Stream Status: Inactive';
             document.getElementById('frameRate').textContent = 'Frame Rate: 0 fps';
             document.getElementById('resolution').textContent = 'Resolution: -';
+
+            // Hide visualization controls and depth stats
+            document.getElementById('viz-controls').style.display = 'none';
+            document.getElementById('depth-stats').style.display = 'none';
+
+            // Reset to standard view
+            switchToStandardView();
+
+            // Clean up p5.js point cloud if it was initialized
+            if (pointCloudInitialized) {
+                cleanupP5PointCloud();
+                pointCloudInitialized = false;
+            }
+
             background(255);
             isStreamActive = false;
+
+            addDebugInfo('Stream stopped');
         }
     </script>
 </body>

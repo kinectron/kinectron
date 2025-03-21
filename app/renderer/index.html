@@ -5,6 +5,7 @@
 
   <title>Kinectron</title>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js"></script>
   <script type="module">
     import { initializeUI } from './js/app.js';
     initializeUI();
@@ -108,8 +109,21 @@
           <canvas id="depth-canvas"></canvas>
         </div>
         <div id="raw-depth-div">
-          <h5 id="raw-depth-canvas-label">Raw Deth Feed</h5>
-          <canvas id="raw-depth-canvas"></canvas>
+          <h5 id="raw-depth-canvas-label">Raw Depth Feed</h5>
+          <div id="raw-depth-viz-controls" style="margin-bottom: 10px;">
+            <button id="raw-depth-standard-view" class="viz-button active">Standard View</button>
+            <button id="raw-depth-point-cloud-view" class="viz-button">Point Cloud View</button>
+          </div>
+          <div id="raw-depth-container" style="position: relative; width: 100%; height: 288px;">
+            <canvas id="raw-depth-canvas" style="position: absolute; top: 0; left: 0;"></canvas>
+            <div id="raw-depth-point-cloud"
+              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;"></div>
+          </div>
+          <div id="raw-depth-stats" style="margin-top: 5px; font-size: 12px;">
+            <div>Min Depth: <span id="raw-depth-min">-</span> mm</div>
+            <div>Max Depth: <span id="raw-depth-max">-</span> mm</div>
+            <div>Valid Pixels: <span id="raw-depth-valid">-</span></div>
+          </div>
         </div>
         <!-- skeleton used for all bodies and tracked bodies -->
         <div id="skeleton-div">
