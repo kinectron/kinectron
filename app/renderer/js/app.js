@@ -595,7 +595,18 @@ class KinectronApp {
     if (depthData && frameData.width && frameData.height) {
       console.log(
         'APP: Processing binary depth data for p5.js point cloud',
+        'data type:',
+        Object.prototype.toString.call(depthData),
+        'length:',
+        depthData.length,
       );
+
+      // Log sample values for debugging
+      const sampleValues = [];
+      for (let i = 0; i < Math.min(5, depthData.length); i++) {
+        sampleValues.push(depthData[i]);
+      }
+      console.log('APP: Sample depth values:', sampleValues);
 
       // Initialize point cloud if not already done
       if (!this.pointCloudInitialized || !isPointCloudInitialized()) {
@@ -622,6 +633,8 @@ class KinectronApp {
     } else {
       console.error(
         'APP: Raw depth frame missing binary depth data for point cloud',
+        'frameData:',
+        frameData,
       );
     }
   }
@@ -1154,7 +1167,7 @@ class KinectronApp {
     console.log(
       'APP: Frame data structure:',
       frameData
-        ? `has imagedata=${!!frameData.imagedata}, has imageData=${!!frameData.imageData}, has rawDepthData=${!!frameData.rawDepthData}`
+        ? `has imagedata=${!!frameData.imagedata}, has imageData=${!!frameData.imageData}, has rawDepthData=${!!frameData.rawDepthData}, has depthData=${!!frameData.depthData}`
         : 'null',
     );
 

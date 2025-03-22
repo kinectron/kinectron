@@ -2,87 +2,69 @@
 
 ## What Works
 
-- Basic peer-to-peer connection between server and client
+- Peer-to-peer connection between server and client
 - Color stream visualization
-- Depth stream visualization (using processed depth images)
+- Depth stream visualization (processed depth images)
 - Body tracking
 - Key (green screen) functionality
 - RGBD (color + depth) visualization
+- Raw depth data visualization (fixed)
 
-## What's In Progress
+## Completed Features
 
 ### Raw Depth Data Visualization
 
-- **Status**: Partially working, but with issues
-- **Issue**: Binary depth data is not being properly transmitted from server to client
-- **Changes Made**:
+- **Status**: Fixed and working correctly
+- **Issue Resolved**: Binary depth data now properly transmitted
+- **Key Changes**:
+  - Added metadata event tracking and association
+  - Added helper methods for binary data processing
+  - Enhanced event handling and type checking
+  - Improved error handling and fallback mechanisms
+- **Current Behavior**: Server correctly sends events, client properly processes data, visualization works
 
-  - Modified server to downsample depth data before sending as JSON
-  - Updated client to handle downsampled data and upsample it
-  - Changed PeerJS serialization from 'json' to 'binary'
-  - Added extensive logging throughout the codebase
+## Planned Improvements
 
-- **Current Behavior**:
+### Performance Optimization
 
-  - Server correctly sends `rawDepthMetadata` and `rawDepthData` events
-  - Client receives `rawDepthMetadata` events but not `rawDepthData` events
-  - Renderer processes depth data, but visualization doesn't work correctly
+- **Status**: Planning phase
+- **Focus Areas**:
+  - Reduce latency in data transmission
+  - Optimize data processing
+  - Implement data compression
+  - Optimize point cloud rendering
 
-- **Next Steps**:
-  - Investigate WebRTC binary data transmission
-  - Check PeerJS configuration for binary data handling
-  - Add more detailed logging to track binary data flow
-  - Test with simplified binary data
-  - Consider alternative approaches if binary transmission continues to fail
+### Code Cleanup
+
+- **Status**: Planning phase
+- **Focus Areas**:
+  - Remove unnecessary logging
+  - Refactor redundant code
+  - Improve error handling
 
 ## Known Issues
 
-1. **Raw Depth Data Visualization**:
-
-   - Binary depth data is not being properly transmitted from server to client
-   - Point cloud visualization doesn't work correctly
-   - Possible issue with WebRTC binary data handling
-
-2. **Error Handling**:
-   - Some error conditions are not properly handled, leading to unclear error messages
-   - Need to improve error reporting and recovery
-
-## Completed Tasks
-
-1. **Basic Streaming Functionality**:
-
-   - Implemented color stream
-   - Implemented depth stream
-   - Implemented body tracking
-   - Implemented key (green screen) functionality
-   - Implemented RGBD visualization
-
-2. **Peer-to-Peer Connection**:
-
-   - Implemented WebRTC-based peer-to-peer connection
-   - Added support for multiple clients
-   - Added connection status monitoring
-
-3. **UI Improvements**:
-   - Added stream selection controls
-   - Added visualization options
-   - Added debug information display
+No critical issues currently. The main raw depth data visualization issue has been resolved.
 
 ## Future Work
 
-1. **Improve Raw Depth Data Visualization**:
+1. **Improve Raw Depth Visualization**:
 
-   - Fix binary data transmission issues
    - Optimize point cloud rendering
    - Add more visualization options
 
 2. **Performance Optimization**:
 
-   - Reduce latency in data transmission
-   - Optimize data processing on both server and client
-   - Implement data compression for large streams
+   - Reduce latency
+   - Optimize data processing
+   - Implement data compression
 
 3. **Additional Features**:
+
    - Add recording functionality
-   - Add more advanced visualization options
+   - Add advanced visualization options
    - Improve multi-client support
+
+4. **Documentation**:
+   - Update documentation
+   - Create more examples

@@ -39,6 +39,10 @@ export class PeerConnection {
     this.clientId = this.generateClientId();
     /** @private */
     this.state = new NgrokClientState();
+    /** @private */
+    this._lastMetadataEvent = null; // Track the last metadata event type
+    /** @private */
+    this._pendingMetadata = null; // Store metadata until binary data arrives
 
     // Forward state events to message handlers
     this.state.on('stateChange', (data) => {
@@ -599,21 +603,84 @@ export class PeerConnection {
           data.byteLength,
         );
 
-        // Call the binary data handler if registered
-        const binaryHandler =
-          this.messageHandlers.get('rawDepthData');
+        // Use the most recent metadata event name to determine what this binary data is for
+        const eventName = this._lastMetadataEvent || 'rawDepthData'; // Default if no metadata received
+        this._frameStats.rawDepthDataCount++;
+
+        console.log(
+          `PeerConnection: Processing binary data as ${eventName} (size: ${data.byteLength}, frame #${this._frameStats.rawDepthDataCount})`,
+        );
+
+        // Call the appropriate binary data handler
+        const binaryHandler = this.messageHandlers.get(eventName);
         if (binaryHandler) {
-          this._frameStats.rawDepthDataCount++;
           console.log(
-            `PeerConnection: Calling binary data handler (frame #${this._frameStats.rawDepthDataCount})`,
+            `PeerConnection: Calling handler for ${eventName} with binary data and metadata`,
           );
-          binaryHandler(data);
+
+          try {
+            // Convert to Uint16Array for depth data
+            const depthData = new Uint16Array(data);
+
+            // Log sample values for debugging
+            console.log(
+              'PeerConnection: Successfully created Uint16Array from binary data, length:',
+              depthData.length,
+              'first few values:',
+              Array.from(depthData.slice(0, 5)),
+            );
+
+            // Call the handler with a properly formatted event object
+            binaryHandler({
+              event: eventName,
+              data: {
+                buffer: depthData.buffer,
+                metadata: this._pendingMetadata,
+              },
+            });
+
+            // Clear pending metadata after use
+            this._pendingMetadata = null;
+          } catch (err) {
+            console.error(
+              'PeerConnection: Error creating Uint16Array from binary data:',
+              err,
+            );
+            // Still try to call the handler with the raw ArrayBuffer
+            binaryHandler({
+              event: eventName,
+              data: {
+                buffer: data,
+                metadata: this._pendingMetadata,
+              },
+            });
+
+            // Clear pending metadata
+            this._pendingMetadata = null;
+          }
         } else {
           console.warn(
-            'PeerConnection: No handler registered for binary data',
+            `PeerConnection: No handler registered for ${eventName}`,
           );
-        }
 
+          // Try the general data handler as a fallback
+          const dataHandler = this.messageHandlers.get('data');
+          if (dataHandler) {
+            console.log(
+              `PeerConnection: Forwarding binary data to general data handler as ${eventName}`,
+            );
+            dataHandler({
+              event: eventName,
+              data: {
+                buffer: data,
+                metadata: this._pendingMetadata,
+              },
+            });
+
+            // Clear pending metadata
+            this._pendingMetadata = null;
+          }
+        }
         return;
       }
 
@@ -718,29 +785,56 @@ export class PeerConnection {
 
           return;
         } else {
-          console.error(
-            `PeerConnection: No rawDepth handler found! (frame #${this._frameStats.rawDepthFrameCount})`,
+          console.warn(
+            `PeerConnection: No rawDepth handler found! (frame #${this._frameStats.rawDepthFrameCount}), forwarding to data handler`,
           );
+
+          // If no specific handler is found, forward the event to the data handler
+          const dataHandler = this.messageHandlers.get('data');
+          if (dataHandler) {
+            console.log(
+              `PeerConnection: Forwarding rawDepth event to data handler (frame #${this._frameStats.frameCount})`,
+            );
+            dataHandler(data);
+          } else {
+            console.error(
+              `PeerConnection: No data handler found for rawDepth event (frame #${this._frameStats.frameCount})`,
+            );
+          }
         }
       }
 
-      // Special handling for rawDepthMetadata
-      if (data.event === 'rawDepthMetadata') {
+      // Track metadata events for binary data association
+      if (data.event && data.event.endsWith('Metadata')) {
         console.log(
-          `PeerConnection: Handling rawDepthMetadata event (frame #${this._frameStats.frameCount})`,
+          `PeerConnection: Received metadata event: ${data.event} (frame #${this._frameStats.frameCount})`,
         );
 
-        const metadataHandler = this.messageHandlers.get(
-          'rawDepthMetadata',
+        // Store the corresponding data event name (remove 'Metadata' suffix)
+        this._lastMetadataEvent = data.event.replace(
+          'Metadata',
+          'Data',
         );
+
+        // Store the metadata for use with subsequent binary data
+        this._pendingMetadata = data.data;
+
+        console.log(
+          `PeerConnection: Set last metadata event to: ${this._lastMetadataEvent}`,
+          `with metadata:`,
+          this._pendingMetadata,
+        );
+
+        // Still call the specific metadata handler if registered
+        const metadataHandler = this.messageHandlers.get(data.event);
         if (metadataHandler) {
           console.log(
-            'PeerConnection: Found rawDepthMetadata handler, calling it',
+            `PeerConnection: Found handler for ${data.event}, calling it`,
           );
           metadataHandler(data.data);
         } else {
           console.warn(
-            'PeerConnection: No rawDepthMetadata handler found',
+            `PeerConnection: No handler registered for ${data.event}`,
           );
         }
 

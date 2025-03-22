@@ -17,6 +17,11 @@ export class IpcHandler {
     // Setup peer server event handlers
     this.peerManager.on('ready', this.handlePeerReady.bind(this));
     this.peerManager.on('error', this.handlePeerError.bind(this));
+    this.peerManager.on('broadcast', this.handleBroadcast.bind(this));
+    this.peerManager.on(
+      'broadcast-binary',
+      this.handleBroadcastBinary.bind(this),
+    );
   }
 
   initialize() {
@@ -256,6 +261,62 @@ export class IpcHandler {
   handlePeerError(error) {
     console.error('Peer server error:', error);
     this.sendToRenderer('peer-error', error);
+  }
+
+  /**
+   * Handle broadcast events from the peer manager
+   * @param {Object} data - The broadcast data
+   */
+  handleBroadcast(data) {
+    console.log(
+      `IpcHandler: Handling broadcast for event: ${data.event}`,
+    );
+    this.sendToRenderer('broadcast-to-peers', data);
+  }
+
+  /**
+   * Handle binary broadcast events from the peer manager
+   * @param {Object} data - The binary broadcast data
+   */
+  handleBroadcastBinary(data) {
+    console.log(
+      `IpcHandler: Handling binary broadcast for event: ${data.event}, size: ${data.data.byteLength} bytes`,
+    );
+
+    try {
+      // For binary data, we need to use a special IPC channel
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window) => {
+        if (!window.isDestroyed()) {
+          // First send metadata to prepare the renderer
+          window.webContents.send('broadcast-to-peers', {
+            event: `${data.event}Metadata`,
+            data: {
+              isBinary: true,
+              size: data.data.byteLength,
+              timestamp: Date.now(),
+            },
+            lossy: data.lossy || false,
+          });
+
+          // Then send the binary data
+          window.webContents.send('broadcast-binary-to-peers', {
+            event: data.event,
+            data: data.data,
+            lossy: data.lossy || false,
+          });
+
+          console.log(
+            `IpcHandler: Binary data sent to renderer for event: ${data.event}`,
+          );
+        }
+      });
+    } catch (error) {
+      console.error(
+        'IpcHandler: Error sending binary data to renderer:',
+        error,
+      );
+    }
   }
 
   /**

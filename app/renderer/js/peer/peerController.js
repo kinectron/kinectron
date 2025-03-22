@@ -46,7 +46,78 @@ export class PeerController {
       let frameCount = 0;
       let lastLogTime = Date.now();
       let rawDepthFrameCount = 0;
+      let pendingMetadata = null;
 
+      // Set up listener for binary data
+      window.electron.ipcRenderer.on(
+        'broadcast-binary-to-peers',
+        (message) => {
+          // Increment frame counter for binary events
+          frameCount++;
+
+          if (message && message.event && message.data) {
+            console.log(
+              `PeerController: Received binary data for event: ${message.event} (frame #${frameCount}), size: ${message.data.byteLength} bytes`,
+            );
+
+            // Check if we have pending metadata for this event
+            if (
+              pendingMetadata &&
+              pendingMetadata.event === `${message.event}Metadata`
+            ) {
+              console.log(
+                `PeerController: Found pending metadata for event: ${message.event}`,
+              );
+
+              // For rawDepthData events, we need special handling
+              if (message.event === 'rawDepthData') {
+                rawDepthFrameCount++;
+                console.log(
+                  `PeerController: Processing binary rawDepthData (frame #${frameCount}, rawDepth #${rawDepthFrameCount})`,
+                );
+
+                // Broadcast the binary data to all connected peers
+                console.log(
+                  `PeerController: Broadcasting binary data to ${this.connections.size} peers`,
+                );
+
+                // First send metadata to prepare clients
+                this.broadcast(
+                  `${message.event}Metadata`,
+                  pendingMetadata.data,
+                  message.lossy || false,
+                );
+
+                // Then broadcast the binary data directly
+                this.connections.forEach((conn) => {
+                  try {
+                    if (conn.open) {
+                      console.log(
+                        `PeerController: Sending binary data to peer: ${conn.peer}`,
+                      );
+                      conn.send(message.data);
+                    }
+                  } catch (error) {
+                    console.error(
+                      `PeerController: Error sending binary data to peer: ${conn.peer}`,
+                      error,
+                    );
+                  }
+                });
+              }
+
+              // Clear pending metadata
+              pendingMetadata = null;
+            } else {
+              console.warn(
+                `PeerController: Received binary data without metadata for event: ${message.event}`,
+              );
+            }
+          }
+        },
+      );
+
+      // Set up listener for regular data
       window.electron.ipcRenderer.on(
         'broadcast-to-peers',
         (message) => {
@@ -58,6 +129,25 @@ export class PeerController {
             console.log(
               `PeerController: Received broadcast-to-peers for event: ${message.event} (frame #${frameCount})`,
             );
+
+            // Check if this is metadata for binary data
+            if (
+              message.event.endsWith('Metadata') &&
+              message.data.isBinary
+            ) {
+              console.log(
+                `PeerController: Received metadata for binary data: ${message.event}`,
+              );
+
+              // Store metadata for later use with binary data
+              pendingMetadata = {
+                event: message.event,
+                data: message.data,
+                timestamp: Date.now(),
+              };
+
+              return;
+            }
 
             // Special handling for rawDepth events
             if (message.event === 'rawDepth') {

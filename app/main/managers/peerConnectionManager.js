@@ -335,12 +335,27 @@ export class PeerConnectionManager extends EventEmitter {
    * @param {boolean} [lossy=false] - Whether to use lossy transmission
    */
   broadcast(event, data, lossy = false) {
+    // Check if data is an ArrayBuffer (binary data)
+    const isBinaryData = data instanceof ArrayBuffer;
+
+    if (isBinaryData) {
+      console.log(
+        `PeerConnectionManager: Broadcasting binary data for event ${event}, size: ${data.byteLength} bytes`,
+      );
+    }
+
     // Always emit the event to the renderer process via IPC first
     // This is critical for ensuring events are forwarded even when there are no direct connections
     console.log(
       `PeerConnectionManager: Emitting ${event} event to renderer process`,
     );
-    this.emit('broadcast', { event, data, lossy });
+
+    // For binary data, we need to use a special IPC channel
+    if (isBinaryData) {
+      this.emit('broadcast-binary', { event, data, lossy });
+    } else {
+      this.emit('broadcast', { event, data, lossy });
+    }
 
     // Check if we have any direct connections to broadcast to
     if (
@@ -358,7 +373,7 @@ export class PeerConnectionManager extends EventEmitter {
     );
 
     // Special handling for rawDepth events
-    if (event === 'rawDepth') {
+    if (event === 'rawDepth' && !isBinaryData) {
       console.log(
         `PeerConnectionManager: Broadcasting rawDepth event with data:`,
         data
@@ -392,12 +407,6 @@ export class PeerConnectionManager extends EventEmitter {
       }
     }
 
-    const message = {
-      event,
-      data,
-      timestamp: Date.now(),
-    };
-
     try {
       let sentCount = 0;
 
@@ -418,10 +427,42 @@ export class PeerConnectionManager extends EventEmitter {
               return;
             }
 
-            console.log(
-              `PeerConnectionManager: Sending ${event} event to connection ${index}`,
-            );
-            connection.send(message);
+            if (isBinaryData) {
+              // For binary data, send it directly without wrapping
+              console.log(
+                `PeerConnectionManager: Sending binary data for ${event} to connection ${index}, size: ${data.byteLength} bytes`,
+              );
+
+              // First send a metadata message to prepare the client
+              const metadataMessage = {
+                event: `${event}Metadata`,
+                data: {
+                  isBinary: true,
+                  size: data.byteLength,
+                  timestamp: Date.now(),
+                },
+                timestamp: Date.now(),
+              };
+
+              connection.send(metadataMessage);
+
+              // Then send the binary data directly
+              connection.send(data);
+            } else {
+              // For regular data, wrap it in a message object
+              console.log(
+                `PeerConnectionManager: Sending ${event} event to connection ${index}`,
+              );
+
+              const message = {
+                event,
+                data,
+                timestamp: Date.now(),
+              };
+
+              connection.send(message);
+            }
+
             sentCount++;
           } catch (err) {
             console.error(

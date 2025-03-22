@@ -19,7 +19,10 @@ contextBridge.exposeInMainWorld('electron', {
     },
     on: (channel, callback) => {
       // Whitelist channels for security
-      const validChannels = ['broadcast-to-peers'];
+      const validChannels = [
+        'broadcast-to-peers',
+        'broadcast-binary-to-peers',
+      ];
 
       if (validChannels.includes(channel)) {
         // Wrap the callback to avoid exposing the event object directly

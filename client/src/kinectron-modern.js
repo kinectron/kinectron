@@ -6,6 +6,7 @@ export class Kinectron {
     this.peer = new PeerConnection(networkConfig);
     this.messageHandlers = new Map();
     this.state = null;
+    this.pendingMetadata = null; // Store metadata until binary data arrives
 
     // Set up event handlers
     this.peer.on('ready', (data) => {
@@ -35,6 +36,104 @@ export class Kinectron {
     // Handle incoming data
     this.peer.on('data', (data) => {
       console.log('Kinectron: Received data event:', data);
+
+      // Handle binary data directly (from the new format in PeerConnection)
+      if (
+        data &&
+        data.event &&
+        data.data &&
+        data.data.buffer instanceof ArrayBuffer
+      ) {
+        console.log(
+          `Kinectron: Received formatted binary data with event: ${data.event}`,
+        );
+
+        // Extract the binary data and metadata
+        const buffer = data.data.buffer;
+        const metadata = data.data.metadata;
+
+        // Process the binary data with the appropriate handler
+        this.processRawDepthBinaryData(buffer, metadata, data.event);
+        return;
+      }
+
+      // Handle case where data is received without an event name
+      if (!data || !data.event) {
+        console.warn(
+          'Kinectron: Received data without event name:',
+          data,
+        );
+
+        // Handle binary data (ArrayBuffer or TypedArray)
+        if (
+          data instanceof ArrayBuffer ||
+          (data && data.buffer instanceof ArrayBuffer)
+        ) {
+          console.log(
+            'Kinectron: Detected binary data directly in data event',
+          );
+
+          // Process the binary data with the pending metadata
+          this.processRawDepthBinaryData(
+            data instanceof ArrayBuffer ? data : data.buffer,
+            this.pendingMetadata,
+          );
+          return;
+        }
+
+        // Try to determine the event type from the data structure
+        let eventName = 'unknown';
+        let eventData = data;
+
+        // If it's an object with rawDepthData property, treat it as rawDepthData
+        if (data && data.rawDepthData) {
+          eventName = 'rawDepthData';
+          eventData = data;
+          console.log(
+            'Kinectron: Identified as rawDepthData from structure',
+          );
+        }
+        // If it has nested rawDepthData, treat it as rawDepth
+        else if (data && data.data && data.data.rawDepthData) {
+          eventName = 'rawDepth';
+          eventData = data.data;
+          console.log(
+            'Kinectron: Identified as rawDepth from nested structure',
+          );
+        }
+
+        // Try to find a handler for the determined event type
+        const handler = this.messageHandlers.get(eventName);
+        if (handler) {
+          console.log(
+            `Kinectron: Found handler for determined event: ${eventName}`,
+          );
+          handler(eventData);
+          return;
+        } else {
+          console.warn(
+            `Kinectron: No handler found for determined event: ${eventName}`,
+          );
+          // Continue to general data handler below
+        }
+
+        // Try the general data handler as a last resort
+        const dataHandler = this.messageHandlers.get('data');
+        if (dataHandler) {
+          console.log(
+            'Kinectron: Using general data handler as fallback for undefined event',
+          );
+          dataHandler(data);
+        } else {
+          console.error(
+            'Kinectron: No data handler available as fallback for undefined event',
+          );
+        }
+
+        return;
+      }
+
+      // Normal case with defined event name
       const { event, data: eventData } = data;
       const handler = this.messageHandlers.get(event);
 
@@ -62,6 +161,19 @@ export class Kinectron {
             );
           }
         }
+
+        // Try the general data handler as a last resort
+        const dataHandler = this.messageHandlers.get('data');
+        if (dataHandler) {
+          console.log(
+            'Kinectron: Using general data handler as fallback',
+          );
+          dataHandler(data);
+        } else {
+          console.error(
+            'Kinectron: No data handler available as fallback',
+          );
+        }
       }
     });
 
@@ -69,7 +181,23 @@ export class Kinectron {
     this.peer.on('rawDepthMetadata', (metadata) => {
       console.log(
         'Kinectron: Forwarding rawDepthMetadata event from peer',
+        metadata
+          ? `width=${metadata.width}, height=${metadata.height}, timestamp=${metadata.timestamp}, frameId=${metadata.frameId}`
+          : 'null',
       );
+
+      // Store metadata until binary data arrives
+      this.pendingMetadata = {
+        ...metadata,
+        event: 'rawDepthMetadata',
+        receivedAt: Date.now(),
+      };
+
+      console.log(
+        'Kinectron: Stored metadata for pending binary data',
+        `width=${this.pendingMetadata.width}, height=${this.pendingMetadata.height}`,
+      );
+
       const handler = this.messageHandlers.get('rawDepthMetadata');
       if (handler) {
         console.log(
@@ -83,17 +211,96 @@ export class Kinectron {
       }
     });
 
-    // Forward rawDepthData events from peer to Kinectron handlers
-    this.peer.on('rawDepthData', (binaryData) => {
+    // Also handle rawDepthDataMetadata events (from the new metadata format)
+    this.peer.on('rawDepthDataMetadata', (metadata) => {
       console.log(
-        'Kinectron: Forwarding rawDepthData event from peer',
+        'Kinectron: Forwarding rawDepthDataMetadata event from peer',
+        metadata
+          ? `isBinary=${metadata.isBinary}, size=${metadata.size}, timestamp=${metadata.timestamp}`
+          : 'null',
       );
+
+      // Store metadata until binary data arrives
+      this.pendingMetadata = {
+        ...metadata,
+        event: 'rawDepthDataMetadata',
+        receivedAt: Date.now(),
+      };
+
+      console.log(
+        'Kinectron: Stored rawDepthDataMetadata for pending binary data',
+        `size=${this.pendingMetadata.size}`,
+      );
+
+      const handler = this.messageHandlers.get(
+        'rawDepthDataMetadata',
+      );
+      if (handler) {
+        console.log(
+          'Kinectron: Found rawDepthDataMetadata handler, calling it',
+        );
+        handler(metadata);
+      } else {
+        console.warn(
+          'Kinectron: No rawDepthDataMetadata handler registered',
+        );
+      }
+    });
+
+    // Forward rawDepthData events from peer to Kinectron handlers
+    this.peer.on('rawDepthData', (data) => {
+      console.log(
+        'Kinectron: Forwarding rawDepthData event from peer, data type:',
+        data instanceof ArrayBuffer
+          ? 'ArrayBuffer'
+          : data && data.event
+          ? 'Formatted event'
+          : typeof data,
+        'size:',
+        data instanceof ArrayBuffer
+          ? data.byteLength
+          : data &&
+            data.data &&
+            data.data.buffer instanceof ArrayBuffer
+          ? data.data.buffer.byteLength
+          : 'unknown',
+      );
+
+      // Handle formatted event object from PeerConnection
+      if (data && data.event === 'rawDepthData' && data.data) {
+        console.log(
+          'Kinectron: Received formatted rawDepthData event with metadata',
+        );
+
+        // Extract the binary data and metadata
+        const buffer = data.data.buffer;
+        const metadata = data.data.metadata;
+
+        // Process with the extracted data
+        this.processRawDepthBinaryData(buffer, metadata);
+        return;
+      }
+
+      // Handle direct binary data
+      if (
+        data instanceof ArrayBuffer ||
+        (data && data.buffer instanceof ArrayBuffer)
+      ) {
+        // Process the binary data with the pending metadata
+        this.processRawDepthBinaryData(
+          data instanceof ArrayBuffer ? data : data.buffer,
+          this.pendingMetadata,
+        );
+        return;
+      }
+
+      // If we get here, it's some other format - try to handle it directly
       const handler = this.messageHandlers.get('rawDepthData');
       if (handler) {
         console.log(
-          'Kinectron: Found rawDepthData handler, calling it',
+          'Kinectron: Calling rawDepthData handler with data',
         );
-        handler(binaryData);
+        handler(data);
       } else {
         console.warn('Kinectron: No rawDepthData handler registered');
       }
@@ -489,6 +696,133 @@ export class Kinectron {
       });
     }
     this.send('feed', { feed: 'depth' });
+  }
+
+  /**
+   * Process raw depth binary data with metadata
+   * @private
+   * @param {ArrayBuffer|TypedArray} binaryData - The binary depth data
+   * @param {Object} metadata - The metadata for the depth data
+   * @param {string} [eventName='rawDepthData'] - The event name associated with this data
+   */
+  processRawDepthBinaryData(
+    binaryData,
+    metadata,
+    eventName = 'rawDepthData',
+  ) {
+    // Get the appropriate handler
+    const handler = this.messageHandlers.get(eventName);
+    if (!handler) {
+      console.warn(
+        `Kinectron: No handler available for ${eventName}`,
+      );
+      return;
+    }
+
+    console.log(`Kinectron: Processing binary data for ${eventName}`);
+
+    // If we have metadata, use it with the binary data
+    if (metadata) {
+      console.log(
+        'Kinectron: Using metadata with binary data',
+        `width=${metadata.width}, height=${
+          metadata.height
+        }, timestamp=${metadata.timestamp || 'unknown'}`,
+      );
+
+      try {
+        // Convert to Uint16Array if it's an ArrayBuffer
+        let depthData;
+        if (binaryData instanceof ArrayBuffer) {
+          depthData = new Uint16Array(binaryData);
+        } else if (
+          binaryData &&
+          binaryData.buffer instanceof ArrayBuffer
+        ) {
+          depthData =
+            binaryData instanceof Uint16Array
+              ? binaryData
+              : new Uint16Array(binaryData.buffer);
+        } else {
+          throw new Error('Unrecognized binary data format');
+        }
+
+        // Log sample values for debugging
+        const sampleValues = [];
+        for (let i = 0; i < Math.min(5, depthData.length); i++) {
+          sampleValues.push(depthData[i]);
+        }
+        console.log('Kinectron: Sample depth values:', sampleValues);
+
+        // Verify data dimensions
+        const expectedLength = metadata.width * metadata.height;
+        if (depthData.length !== expectedLength) {
+          console.warn(
+            `Kinectron: Depth data length mismatch. Got ${depthData.length}, expected ${expectedLength}`,
+          );
+        }
+
+        // Call the handler with the processed data
+        handler({
+          width: metadata.width,
+          height: metadata.height,
+          rawDepthData: depthData,
+          depthData: depthData, // For compatibility
+          timestamp: metadata.timestamp || Date.now(),
+          stats: metadata.stats || {},
+          frameId: metadata.frameId,
+        });
+
+        // Clear pending metadata if it matches the one we just used
+        if (metadata === this.pendingMetadata) {
+          this.pendingMetadata = null;
+        }
+      } catch (error) {
+        console.error(
+          'Kinectron: Error processing binary depth data:',
+          error,
+        );
+
+        // Still try to call the handler with basic information
+        handler({
+          width: metadata.width,
+          height: metadata.height,
+          timestamp: metadata.timestamp || Date.now(),
+          error: error.message,
+          rawData: binaryData,
+        });
+
+        // Clear pending metadata if it matches the one we just used
+        if (metadata === this.pendingMetadata) {
+          this.pendingMetadata = null;
+        }
+      }
+    } else {
+      console.warn(
+        'Kinectron: Received binary data without metadata',
+      );
+
+      // Try to call the handler with just the binary data
+      try {
+        if (binaryData instanceof ArrayBuffer) {
+          const depthData = new Uint16Array(binaryData);
+          handler({
+            rawDepthData: depthData,
+            depthData: depthData, // For compatibility
+            timestamp: Date.now(),
+            noMetadata: true,
+          });
+        } else {
+          handler(binaryData);
+        }
+      } catch (error) {
+        console.error(
+          'Kinectron: Error processing binary data without metadata:',
+          error,
+        );
+        handler(binaryData);
+      }
+    }
   }
 
   /**
