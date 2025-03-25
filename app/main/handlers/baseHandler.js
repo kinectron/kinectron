@@ -90,10 +90,26 @@ export class BaseStreamHandler {
           );
 
           // Log the imagedata URL (truncated for brevity)
-          console.log(
-            `BaseStreamHandler: imagedata URL (truncated):`,
-            data.data.imagedata.substring(0, 50) + '...',
-          );
+          // Handle both string and object formats for imagedata
+          if (typeof data.data.imagedata === 'string') {
+            console.log(
+              `BaseStreamHandler: imagedata URL (truncated):`,
+              data.data.imagedata.substring(0, 50) + '...',
+            );
+          } else if (
+            data.data.imagedata &&
+            typeof data.data.imagedata.data === 'string'
+          ) {
+            console.log(
+              `BaseStreamHandler: imagedata URL (truncated):`,
+              data.data.imagedata.data.substring(0, 50) + '...',
+            );
+          } else {
+            console.log(
+              `BaseStreamHandler: imagedata is not a string or object with data property`,
+              typeof data.data.imagedata,
+            );
+          }
         }
       }
 

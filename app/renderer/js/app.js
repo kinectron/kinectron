@@ -589,54 +589,408 @@ class KinectronApp {
    * @param {Object} frameData - Raw depth frame data
    */
   processRawDepthPointCloudView(frameData) {
-    // Check if we have binary depth data (could be named rawDepthData or depthData)
-    const depthData = frameData.rawDepthData || frameData.depthData;
+    console.log(
+      'APP: Processing raw depth for point cloud view',
+      frameData,
+    );
 
-    if (depthData && frameData.width && frameData.height) {
+    // Check if we have binary depth data (could be named rawDepthData or depthData)
+    let depthData = frameData.rawDepthData || frameData.depthData;
+
+    // Get the image data from either imagedata or imageData property
+    const imageData = frameData.imagedata || frameData.imageData;
+
+    // Get width and height from either frameData or imageData
+    let width =
+      frameData.width || (imageData ? imageData.width : null);
+    let height =
+      frameData.height || (imageData ? imageData.height : null);
+
+    console.log(
+      'APP: Raw depth dimensions:',
+      'width:',
+      width,
+      'height:',
+      height,
+      'has depthData:',
+      !!depthData,
+      'has imageData:',
+      !!imageData,
+    );
+
+    // If we don't have binary depth data, but we have image data
+    if (!depthData && imageData) {
+      // Log detailed information about the imageData object
       console.log(
-        'APP: Processing binary depth data for p5.js point cloud',
+        'APP: No binary depth data found, extracting from image data',
+        'imageData type:',
+        typeof imageData,
+        'imageData keys:',
+        imageData ? Object.keys(imageData) : 'null',
+        'has data property:',
+        imageData && imageData.data ? 'yes' : 'no',
         'data type:',
-        Object.prototype.toString.call(depthData),
-        'length:',
-        depthData.length,
+        imageData && imageData.data ? typeof imageData.data : 'n/a',
+        'data instanceof Uint8ClampedArray:',
+        imageData && imageData.data
+          ? imageData.data instanceof Uint8ClampedArray
+          : 'n/a',
+        'data length:',
+        imageData && imageData.data ? imageData.data.length : 'n/a',
+        'width:',
+        imageData ? imageData.width : 'n/a',
+        'height:',
+        imageData ? imageData.height : 'n/a',
       );
 
-      // Log sample values for debugging
-      const sampleValues = [];
-      for (let i = 0; i < Math.min(5, depthData.length); i++) {
-        sampleValues.push(depthData[i]);
+      // Check if we have a data URL
+      if (
+        typeof imageData === 'string' ||
+        (imageData &&
+          imageData.data &&
+          typeof imageData.data === 'string')
+      ) {
+        // Handle data URL
+        const dataUrl =
+          typeof imageData === 'string' ? imageData : imageData.data;
+
+        // Create an image element to load the data URL
+        const img = new Image();
+
+        img.onload = () => {
+          console.log(
+            'APP: Image loaded successfully from data URL',
+            img.width,
+            'x',
+            img.height,
+          );
+
+          // Create a temporary canvas to extract pixel data
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = img.width;
+          tempCanvas.height = img.height;
+          const tempContext = tempCanvas.getContext('2d');
+
+          // Draw the image to the canvas
+          tempContext.drawImage(img, 0, 0);
+
+          // Get the pixel data
+          const imageData = tempContext.getImageData(
+            0,
+            0,
+            img.width,
+            img.height,
+          );
+          const pixels = imageData.data;
+
+          // Create an array to hold the depth values
+          const extractedDepthData = new Uint16Array(
+            img.width * img.height,
+          );
+
+          // Extract depth values from R and G channels
+          // R channel contains lower 8 bits, G channel contains upper 8 bits
+          for (let i = 0, j = 0; i < pixels.length; i += 4, j++) {
+            const lowerBits = pixels[i]; // R channel (lower 8 bits)
+            const upperBits = pixels[i + 1]; // G channel (upper 8 bits)
+
+            // Combine the bits to get the 16-bit depth value
+            extractedDepthData[j] = (upperBits << 8) | lowerBits;
+          }
+
+          console.log(
+            'APP: Depth data extraction complete from data URL',
+            'width:',
+            img.width,
+            'height:',
+            img.height,
+            'data length:',
+            extractedDepthData.length,
+            'sample values:',
+            extractedDepthData.slice(0, 5),
+          );
+
+          // Update the point cloud with the extracted data
+          this.updatePointCloudWithDepthData(
+            extractedDepthData,
+            img.width,
+            img.height,
+            frameData.stats,
+          );
+        };
+
+        img.onerror = (err) => {
+          console.error(
+            'APP: Error loading image for depth data extraction:',
+            err,
+          );
+        };
+
+        // Set the image source to the data URL
+        img.src = dataUrl;
       }
-      console.log('APP: Sample depth values:', sampleValues);
+      // Direct handling of Uint8ClampedArray data - this is the most common case with the new implementation
+      else if (
+        imageData &&
+        imageData.data &&
+        imageData.data instanceof Uint8ClampedArray
+      ) {
+        // Handle raw pixel data
+        console.log(
+          'APP: Processing Uint8ClampedArray data for point cloud',
+          'width:',
+          imageData.width,
+          'height:',
+          imageData.height,
+          'data type:',
+          Object.prototype.toString.call(imageData.data),
+          'data length:',
+          imageData.data.length,
+          'sample data:',
+          Array.from(imageData.data.slice(0, 20)),
+        );
 
-      // Initialize point cloud if not already done
-      if (!this.pointCloudInitialized || !isPointCloudInitialized()) {
-        this.initPointCloud(frameData.width, frameData.height);
+        const pixels = imageData.data;
+        const width = imageData.width;
+        const height = imageData.height;
+
+        // Create an array to hold the depth values
+        const extractedDepthData = new Uint16Array(width * height);
+
+        // Extract depth values from R and G channels
+        // R channel contains lower 8 bits, G channel contains upper 8 bits
+        for (let i = 0, j = 0; i < pixels.length; i += 4, j++) {
+          const lowerBits = pixels[i]; // R channel (lower 8 bits)
+          const upperBits = pixels[i + 1]; // G channel (upper 8 bits)
+
+          // Combine the bits to get the 16-bit depth value
+          extractedDepthData[j] = (upperBits << 8) | lowerBits;
+        }
+
+        console.log(
+          'APP: Depth data extraction complete from Uint8ClampedArray',
+          'width:',
+          width,
+          'height:',
+          height,
+          'data length:',
+          extractedDepthData.length,
+          'sample values:',
+          Array.from(extractedDepthData.slice(0, 5)),
+        );
+
+        // Update the point cloud with the extracted data
+        this.updatePointCloudWithDepthData(
+          extractedDepthData,
+          width,
+          height,
+          frameData.stats,
+        );
+      }
+      // Handle array buffer or array data
+      else if (
+        imageData &&
+        imageData.data &&
+        (imageData.data.buffer || Array.isArray(imageData.data))
+      ) {
+        // Handle raw pixel data
+        console.log(
+          'APP: Processing buffer or array data for point cloud',
+          'width:',
+          imageData.width,
+          'height:',
+          imageData.height,
+          'data type:',
+          Object.prototype.toString.call(imageData.data),
+          'data length:',
+          imageData.data.length,
+          'sample data:',
+          Array.from(imageData.data.slice(0, 20)),
+        );
+
+        // Convert to Uint8ClampedArray if it's not already
+        const pixels = Array.isArray(imageData.data)
+          ? new Uint8ClampedArray(imageData.data)
+          : imageData.data;
+
+        const width = imageData.width;
+        const height = imageData.height;
+
+        // Create an array to hold the depth values
+        const extractedDepthData = new Uint16Array(width * height);
+
+        // Extract depth values from R and G channels
+        // R channel contains lower 8 bits, G channel contains upper 8 bits
+        for (let i = 0, j = 0; i < pixels.length; i += 4, j++) {
+          const lowerBits = pixels[i]; // R channel (lower 8 bits)
+          const upperBits = pixels[i + 1]; // G channel (upper 8 bits)
+
+          // Combine the bits to get the 16-bit depth value
+          extractedDepthData[j] = (upperBits << 8) | lowerBits;
+        }
+
+        console.log(
+          'APP: Depth data extraction complete from buffer/array',
+          'width:',
+          width,
+          'height:',
+          height,
+          'data length:',
+          extractedDepthData.length,
+          'sample values:',
+          Array.from(extractedDepthData.slice(0, 5)),
+        );
+
+        // Update the point cloud with the extracted data
+        this.updatePointCloudWithDepthData(
+          extractedDepthData,
+          width,
+          height,
+          frameData.stats,
+        );
+      }
+      // Last resort - try to handle any object with data property
+      else if (imageData && imageData.data) {
+        console.log(
+          'APP: Attempting to process unknown data format',
+          'data type:',
+          typeof imageData.data,
+          'data constructor:',
+          imageData.data.constructor
+            ? imageData.data.constructor.name
+            : 'unknown',
+          'has buffer:',
+          imageData.data.buffer ? 'yes' : 'no',
+          'sample data (if available):',
+          typeof imageData.data.slice === 'function'
+            ? Array.from(imageData.data.slice(0, 20))
+            : 'not available',
+        );
+
+        try {
+          // Try to convert to Uint8ClampedArray if it's not already
+          let pixels;
+
+          if (imageData.data instanceof Uint8ClampedArray) {
+            pixels = imageData.data;
+          } else if (imageData.data.buffer) {
+            // Try to create a view of the buffer
+            pixels = new Uint8ClampedArray(imageData.data.buffer);
+          } else {
+            // Last resort - try to create a new array
+            pixels = new Uint8ClampedArray(imageData.data);
+          }
+
+          const width = imageData.width;
+          const height = imageData.height;
+
+          // Create an array to hold the depth values
+          const extractedDepthData = new Uint16Array(width * height);
+
+          // Extract depth values from R and G channels
+          for (let i = 0, j = 0; i < pixels.length; i += 4, j++) {
+            const lowerBits = pixels[i]; // R channel (lower 8 bits)
+            const upperBits = pixels[i + 1]; // G channel (upper 8 bits)
+
+            // Combine the bits to get the 16-bit depth value
+            extractedDepthData[j] = (upperBits << 8) | lowerBits;
+          }
+
+          console.log(
+            'APP: Depth data extraction complete from unknown format',
+            'width:',
+            width,
+            'height:',
+            height,
+            'data length:',
+            extractedDepthData.length,
+            'sample values:',
+            Array.from(extractedDepthData.slice(0, 5)),
+          );
+
+          // Update the point cloud with the extracted data
+          this.updatePointCloudWithDepthData(
+            extractedDepthData,
+            width,
+            height,
+            frameData.stats,
+          );
+        } catch (error) {
+          console.error(
+            'APP: Failed to process unknown data format:',
+            error,
+          );
+          console.error('APP: Invalid image data format', imageData);
+        }
+      } else {
+        console.error('APP: Invalid image data format', imageData);
       }
 
-      // Update depth statistics display
-      const stats = frameData.stats || {
-        minDepth: 0,
-        maxDepth: 5000,
-        validPixels: 0,
-      };
+      return; // Return early since we'll handle the update in the onload callback
+    }
 
-      document.getElementById('raw-depth-min').textContent =
-        stats.minDepth;
-      document.getElementById('raw-depth-max').textContent =
-        stats.maxDepth;
-      document.getElementById('raw-depth-valid').textContent = `${
-        stats.validPixels || 0
-      } / ${frameData.width * frameData.height}`;
-
-      // Update the p5.js point cloud with the depth data
-      updateDepthData(depthData);
+    if (depthData && width && height) {
+      this.updatePointCloudWithDepthData(
+        depthData,
+        width,
+        height,
+        frameData.stats,
+      );
     } else {
       console.error(
-        'APP: Raw depth frame missing binary depth data for point cloud',
+        'APP: Raw depth frame missing depth data for point cloud',
         'frameData:',
         frameData,
       );
     }
+  }
+
+  /**
+   * Update the point cloud visualization with depth data
+   * @private
+   * @param {Uint16Array|Array} depthData - Array of depth values
+   * @param {number} width - Width of the depth image
+   * @param {number} height - Height of the depth image
+   * @param {Object} stats - Depth statistics
+   */
+  updatePointCloudWithDepthData(depthData, width, height, stats) {
+    console.log(
+      'APP: Processing depth data for p5.js point cloud',
+      'data type:',
+      Object.prototype.toString.call(depthData),
+      'length:',
+      depthData.length,
+    );
+
+    // Log sample values for debugging
+    const sampleValues = [];
+    for (let i = 0; i < Math.min(5, depthData.length); i++) {
+      sampleValues.push(depthData[i]);
+    }
+    console.log('APP: Sample depth values:', sampleValues);
+
+    // Initialize point cloud if not already done
+    if (!this.pointCloudInitialized || !isPointCloudInitialized()) {
+      this.initPointCloud(width, height);
+    }
+
+    // Update depth statistics display
+    const depthStats = stats || {
+      minDepth: 0,
+      maxDepth: 5000,
+      validPixels: 0,
+    };
+
+    document.getElementById('raw-depth-min').textContent =
+      depthStats.minDepth;
+    document.getElementById('raw-depth-max').textContent =
+      depthStats.maxDepth;
+    document.getElementById('raw-depth-valid').textContent = `${
+      depthStats.validPixels || 0
+    } / ${width * height}`;
+
+    // Update the p5.js point cloud with the depth data
+    updateDepthData(depthData);
   }
 
   async initializeKinect() {
@@ -1170,6 +1524,25 @@ class KinectronApp {
         ? `has imagedata=${!!frameData.imagedata}, has imageData=${!!frameData.imageData}, has rawDepthData=${!!frameData.rawDepthData}, has depthData=${!!frameData.depthData}`
         : 'null',
     );
+
+    // Add more detailed logging to understand the structure
+    if (frameData.imageData) {
+      console.log(
+        'APP: imageData details:',
+        'width:',
+        frameData.imageData.width,
+        'height:',
+        frameData.imageData.height,
+        'data type:',
+        typeof frameData.imageData.data,
+        'data instanceof Uint8ClampedArray:',
+        frameData.imageData.data instanceof Uint8ClampedArray,
+        'data length:',
+        frameData.imageData.data
+          ? frameData.imageData.data.length
+          : 'n/a',
+      );
+    }
 
     // Process based on current visualization mode
     if (this.currentRawDepthView === 'standard') {

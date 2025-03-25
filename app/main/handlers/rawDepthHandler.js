@@ -170,8 +170,8 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                   dataUrl.substring(0, 50) + '...',
                 );
 
-                // Create a properly structured frame package with compressed data
-                const frameData = {
+                // Create a properly structured frame package with compressed data for renderer
+                const rendererFrameData = {
                   name: 'rawDepth',
                   imagedata: {
                     data: dataUrl,
@@ -186,7 +186,19 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 console.log(
                   'RawDepthHandler: Sending raw depth frame to renderer via IPC',
                 );
-                event.sender.send('raw-depth-frame-image', frameData);
+                event.sender.send(
+                  'raw-depth-frame-image',
+                  rendererFrameData,
+                );
+
+                // Create a different structure for broadcasting to peers
+                // This structure should match what baseHandler.js expects
+                const broadcastData = {
+                  imagedata: dataUrl, // Direct string, not an object
+                  width: width,
+                  height: height,
+                  stats: processedData.stats,
+                };
 
                 // Broadcast to peers with the same compressed data
                 console.log(
@@ -194,7 +206,7 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 );
                 const framePackage = this.createDataPackage(
                   'rawDepth',
-                  frameData,
+                  broadcastData,
                 );
                 console.log(
                   'RawDepthHandler: Frame package created:',

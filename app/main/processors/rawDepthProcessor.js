@@ -44,16 +44,6 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
         depthData.length,
       );
 
-      // Log some sample depth values for debugging
-      const sampleValues = [];
-      for (let i = 0; i < Math.min(5, depthData.length); i++) {
-        sampleValues.push(depthData[i]);
-      }
-      console.log(
-        'RawDepthProcessor: Sample depth values:',
-        sampleValues,
-      );
-
       // Keep original dimensions
       const width = KinectConstants.RAW_DEPTH.WIDTH;
       const height = KinectConstants.RAW_DEPTH.HEIGHT;
