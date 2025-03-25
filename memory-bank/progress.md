@@ -8,20 +8,21 @@
 - Body tracking
 - Key (green screen) functionality
 - RGBD (color + depth) visualization
-- Raw depth data visualization (fixed)
+- Raw depth data visualization (refactored)
 
 ## Completed Features
 
-### Raw Depth Data Visualization
+### Raw Depth Data Processing Refactoring
 
-- **Status**: Fixed and working correctly
-- **Issue Resolved**: Binary depth data now properly transmitted
+- **Status**: Completed and working correctly
+- **Changes Implemented**: Replaced binary data transmission with image-based approach
 - **Key Changes**:
-  - Added metadata event tracking and association
-  - Added helper methods for binary data processing
-  - Enhanced event handling and type checking
-  - Improved error handling and fallback mechanisms
-- **Current Behavior**: Server correctly sends events, client properly processes data, visualization works
+  - Converted raw depth data to RGBA format with depth values stored in R/G channels
+  - Used Sharp for WebP image compression
+  - Transmitted data as dataURLs instead of binary arrays
+  - Simplified data flow with a single event
+  - Aligned with legacy code approach and other stream handlers
+- **Current Behavior**: Server correctly encodes depth data in image format, transmits as dataURL, client properly processes data, visualization works
 
 ## Planned Improvements
 

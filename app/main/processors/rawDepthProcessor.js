@@ -71,9 +71,14 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
       let validPixels = 0;
       let invalidPixels = 0;
 
-      // Calculate statistics
+      // Create RGBA data for image-based transmission
+      // Each 16-bit depth value will be split across R and G channels
+      const rgbaData = new Uint8ClampedArray(depthData.length * 4);
+
+      // Process the depth data
       for (let i = 0; i < depthData.length; i++) {
         const depth = depthData[i];
+        const rgbaIndex = i * 4;
 
         // Track statistics
         if (depth > 0) {
@@ -83,6 +88,14 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
         } else {
           invalidPixels++;
         }
+
+        // Store 16-bit depth value across R and G channels
+        // R channel: lower 8 bits
+        // G channel: upper 8 bits
+        rgbaData[rgbaIndex] = depth & 0xff; // R: lower 8 bits
+        rgbaData[rgbaIndex + 1] = (depth >> 8) & 0xff; // G: upper 8 bits
+        rgbaData[rgbaIndex + 2] = 0; // B: unused
+        rgbaData[rgbaIndex + 3] = 255; // A: fully opaque
       }
 
       console.log('RawDepthProcessor: Depth statistics:', {
@@ -93,11 +106,13 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
         totalPixels: width * height,
       });
 
-      // Return the raw depth data directly
+      // Return the processed RGBA data
       const result = {
-        depthData: depthData,
-        width: width,
-        height: height,
+        imageData: {
+          data: rgbaData,
+          width: width,
+          height: height,
+        },
         stats: {
           minDepth: minDepth === Number.MAX_VALUE ? 0 : minDepth,
           maxDepth,
@@ -107,18 +122,18 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
       };
 
       console.log(
-        'RawDepthProcessor: Returning raw depth data with dimensions:',
-        result.width,
+        'RawDepthProcessor: Returning RGBA depth data with dimensions:',
+        result.imageData.width,
         'x',
-        result.height,
+        result.imageData.height,
       );
       console.log(
-        'RawDepthProcessor: Depth data type:',
-        Object.prototype.toString.call(result.depthData),
+        'RawDepthProcessor: RGBA data type:',
+        Object.prototype.toString.call(result.imageData.data),
       );
       console.log(
-        'RawDepthProcessor: Depth data length:',
-        result.depthData.length,
+        'RawDepthProcessor: RGBA data length:',
+        result.imageData.data.length,
       );
 
       return result;
