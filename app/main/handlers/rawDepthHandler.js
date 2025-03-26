@@ -8,6 +8,66 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const sharp = require('sharp');
 
+// Function to estimate the size of an object in memory
+function roughSizeOfObject(object) {
+  const objectList = [];
+  const stack = [object];
+  let bytes = 0;
+
+  while (stack.length) {
+    const value = stack.pop();
+
+    if (typeof value === 'boolean') {
+      bytes += 4;
+    } else if (typeof value === 'string') {
+      bytes += value.length * 2;
+    } else if (typeof value === 'number') {
+      bytes += 8;
+    } else if (
+      typeof value === 'object' &&
+      value !== null &&
+      objectList.indexOf(value) === -1
+    ) {
+      objectList.push(value);
+
+      for (const i in value) {
+        if (Object.prototype.hasOwnProperty.call(value, i)) {
+          stack.push(value[i]);
+        }
+      }
+    }
+  }
+  return bytes;
+}
+
+// Function to calculate various size metrics for data
+function calculateDataSize(data) {
+  // Get the in-memory size estimate
+  const inMemorySize = roughSizeOfObject(data);
+
+  // Get the serialized size (what actually gets transmitted)
+  const serializedSize = JSON.stringify(data).length;
+
+  // If there's binary data (like a Buffer), get its size too
+  let binarySize = 0;
+  if (data.imagedata && typeof data.imagedata === 'string') {
+    // For data URLs, count the length of the string
+    binarySize = data.imagedata.length;
+  } else if (
+    data.imagedata &&
+    data.imagedata.data instanceof Buffer
+  ) {
+    binarySize = data.imagedata.data.length;
+  }
+
+  return {
+    inMemorySize,
+    serializedSize,
+    binarySize,
+    totalSize: serializedSize, // This is what matters for transmission
+  };
+}
+
 // Flags to enable/disable tests
 const ENABLE_WEBP_TEST = false;
 const ENABLE_COMPRESSION_COMPARISON = false;
@@ -72,6 +132,22 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 width: width,
                 height: height,
               };
+
+              // Calculate and log the size information
+              const sizeInfo = calculateDataSize(frameData);
+              console.log('Raw Depth Frame Size Information:');
+              console.log(
+                `  In-memory estimate: ${sizeInfo.inMemorySize} bytes`,
+              );
+              console.log(
+                `  Serialized size: ${sizeInfo.serializedSize} bytes`,
+              );
+              console.log(
+                `  Binary data size: ${sizeInfo.binarySize} bytes`,
+              );
+              console.log(
+                `  Total transmission size: ${sizeInfo.totalSize} bytes`,
+              );
 
               // Log the size of the JSON message
               const jsonSize = JSON.stringify(frameData).length;

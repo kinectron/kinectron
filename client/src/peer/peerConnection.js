@@ -493,12 +493,7 @@ export class PeerConnection {
       console.log('Creating new connection to:', this.targetPeerId);
       this.connection = this.peer.connect(this.targetPeerId, {
         reliable: true,
-        serialization: 'json',
-        metadata: {
-          version: '2.0.0',
-          features: ['ping', 'queue'],
-          clientId: this.clientId,
-        },
+        serialization: 'binary', // Explicitly set to binary
       });
 
       this.setupConnectionHandlers();
