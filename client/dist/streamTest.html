@@ -969,8 +969,9 @@ class Kinectron {
    * @param {number} packedWidth - The width of the packed image
    * @param {number} packedHeight - The height of the packed image
    * @param {number} originalWidth - The original width of the depth data
+   * @param {Object} testValues - Test values to verify unpacking accuracy
    * @returns {Promise<Uint16Array>} - Promise resolving to the unpacked depth values
-   */ _unpackRawDepthData(dataUrl, packedWidth, packedHeight, originalWidth) {
+   */ _unpackRawDepthData(dataUrl, packedWidth, packedHeight, originalWidth, testValues) {
         return new Promise((resolve, reject)=>{
             // Create image to load the data URL
             const img = new Image();
@@ -996,6 +997,29 @@ class Kinectron {
                     // Only store second value if it's within bounds
                     if (x * 2 + 1 < originalWidth) depthValues[y * originalWidth + x * 2 + 1] = depth2;
                 }
+                // Verify test values if provided
+                if (testValues) {
+                    const unpackedValue1000 = depthValues[1000];
+                    const unpackedValue2000 = depthValues[2000];
+                    const unpackedValue3000 = depthValues[3000];
+                    console.log('Test values comparison:', {
+                        'Index 1000': {
+                            Original: testValues.index1000,
+                            Unpacked: unpackedValue1000,
+                            Difference: testValues.index1000 - unpackedValue1000
+                        },
+                        'Index 2000': {
+                            Original: testValues.index2000,
+                            Unpacked: unpackedValue2000,
+                            Difference: testValues.index2000 - unpackedValue2000
+                        },
+                        'Index 3000': {
+                            Original: testValues.index3000,
+                            Unpacked: unpackedValue3000,
+                            Difference: testValues.index3000 - unpackedValue3000
+                        }
+                    });
+                }
                 resolve(depthValues);
             };
             img.onerror = (err)=>{
@@ -1010,7 +1034,7 @@ class Kinectron {
             if (data && data.imagedata) {
                 // Check if this is packed data that needs to be unpacked
                 if (data.isPacked) // Unpack the data
-                this._unpackRawDepthData(data.imagedata, data.width, data.height, data.originalWidth).then((depthValues)=>{
+                this._unpackRawDepthData(data.imagedata, data.width, data.height, data.originalWidth, data.testValues).then((depthValues)=>{
                     // Call the callback with the unpacked data
                     callback({
                         ...data,
@@ -12073,33 +12097,33 @@ function createParticles() {
 function updatePointCloud(depthValues) {
     if (!particles) return;
     // Set desired depth range
-    const minDepth = 100;
-    const maxDepth = 3000;
+    const minDepth = 0;
+    const maxDepth = 6000;
     // Analyze depth values
     let validValues = [];
     let min = Number.MAX_VALUE;
     let max = 0;
-    // First pass: collect statistics
-    for(let i = 0; i < depthValues.length; i++){
-        const depth = depthValues[i];
-        if (depth >= minDepth && depth <= maxDepth) {
-            validValues.push(depth);
-            min = Math.min(min, depth);
-            max = Math.max(max, depth);
-        }
-    }
-    // Log statistics (only occasionally to avoid flooding the console)
-    if (Math.random() < 0.05) {
-        console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
-        // Log a histogram of depth values (10 buckets)
-        const bucketSize = (max - min) / 10;
-        const histogram = Array(10).fill(0);
-        for (const depth of validValues){
-            const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
-            histogram[bucketIndex]++;
-        }
-        console.log("Depth histogram:", histogram);
-    }
+    // // First pass: collect statistics
+    // for (let i = 0; i < depthValues.length; i++) {
+    //     const depth = depthValues[i];
+    //     if (depth >= minDepth && depth <= maxDepth) {
+    //         validValues.push(depth);
+    //         min = Math.min(min, depth);
+    //         max = Math.max(max, depth);
+    //     }
+    // }
+    // // Log statistics (only occasionally to avoid flooding the console)
+    // if (Math.random() < 0.05) {
+    //     console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
+    //     // Log a histogram of depth values (10 buckets)
+    //     const bucketSize = (max - min) / 10;
+    //     const histogram = Array(10).fill(0);
+    //     for (const depth of validValues) {
+    //         const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
+    //         histogram[bucketIndex]++;
+    //     }
+    //     console.log("Depth histogram:", histogram);
+    // }
     // Camera view scale factor - adjust this to change the overall scale of the point cloud
     // This doesn't affect precision, just the visual size
     const viewScale = 0.5;

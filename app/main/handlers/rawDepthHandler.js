@@ -58,7 +58,16 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 originalWidth: processedData.imageData.originalWidth,
                 width: width,
                 height: height,
+                testValues: processedData.imageData.testValues, // Pass test values to client
               };
+
+              // Log the test values being sent to client
+              if (processedData.imageData.testValues) {
+                console.log(
+                  'Sending test values to client:',
+                  processedData.imageData.testValues,
+                );
+              }
 
               // Send the frame data to renderer
               event.sender.send('raw-depth-frame', frameData);

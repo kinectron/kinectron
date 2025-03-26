@@ -218,39 +218,39 @@
             if (!particles) return;
 
             // Set desired depth range
-            const minDepth = 100;
-            const maxDepth = 3000;
+            const minDepth = 0;
+            const maxDepth = 6000;
 
             // Analyze depth values
             let validValues = [];
             let min = Number.MAX_VALUE;
             let max = 0;
 
-            // First pass: collect statistics
-            for (let i = 0; i < depthValues.length; i++) {
-                const depth = depthValues[i];
-                if (depth >= minDepth && depth <= maxDepth) {
-                    validValues.push(depth);
-                    min = Math.min(min, depth);
-                    max = Math.max(max, depth);
-                }
-            }
+            // // First pass: collect statistics
+            // for (let i = 0; i < depthValues.length; i++) {
+            //     const depth = depthValues[i];
+            //     if (depth >= minDepth && depth <= maxDepth) {
+            //         validValues.push(depth);
+            //         min = Math.min(min, depth);
+            //         max = Math.max(max, depth);
+            //     }
+            // }
 
-            // Log statistics (only occasionally to avoid flooding the console)
-            if (Math.random() < 0.05) {
-                console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
+            // // Log statistics (only occasionally to avoid flooding the console)
+            // if (Math.random() < 0.05) {
+            //     console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
 
-                // Log a histogram of depth values (10 buckets)
-                const bucketSize = (max - min) / 10;
-                const histogram = Array(10).fill(0);
+            //     // Log a histogram of depth values (10 buckets)
+            //     const bucketSize = (max - min) / 10;
+            //     const histogram = Array(10).fill(0);
 
-                for (const depth of validValues) {
-                    const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
-                    histogram[bucketIndex]++;
-                }
+            //     for (const depth of validValues) {
+            //         const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
+            //         histogram[bucketIndex]++;
+            //     }
 
-                console.log("Depth histogram:", histogram);
-            }
+            //     console.log("Depth histogram:", histogram);
+            // }
 
             // Camera view scale factor - adjust this to change the overall scale of the point cloud
             // This doesn't affect precision, just the visual size

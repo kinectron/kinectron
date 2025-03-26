@@ -442,6 +442,7 @@ export class Kinectron {
    * @param {number} packedWidth - The width of the packed image
    * @param {number} packedHeight - The height of the packed image
    * @param {number} originalWidth - The original width of the depth data
+   * @param {Object} testValues - Test values to verify unpacking accuracy
    * @returns {Promise<Uint16Array>} - Promise resolving to the unpacked depth values
    */
   _unpackRawDepthData(
@@ -449,6 +450,7 @@ export class Kinectron {
     packedWidth,
     packedHeight,
     originalWidth,
+    testValues,
   ) {
     return new Promise((resolve, reject) => {
       // Create image to load the data URL
@@ -497,6 +499,31 @@ export class Kinectron {
           }
         }
 
+        // Verify test values if provided
+        if (testValues) {
+          const unpackedValue1000 = depthValues[1000];
+          const unpackedValue2000 = depthValues[2000];
+          const unpackedValue3000 = depthValues[3000];
+
+          console.log('Test values comparison:', {
+            'Index 1000': {
+              Original: testValues.index1000,
+              Unpacked: unpackedValue1000,
+              Difference: testValues.index1000 - unpackedValue1000,
+            },
+            'Index 2000': {
+              Original: testValues.index2000,
+              Unpacked: unpackedValue2000,
+              Difference: testValues.index2000 - unpackedValue2000,
+            },
+            'Index 3000': {
+              Original: testValues.index3000,
+              Unpacked: unpackedValue3000,
+              Difference: testValues.index3000 - unpackedValue3000,
+            },
+          });
+        }
+
         resolve(depthValues);
       };
 
@@ -521,6 +548,7 @@ export class Kinectron {
               data.width,
               data.height,
               data.originalWidth,
+              data.testValues, // Pass test values to unpacking function
             )
               .then((depthValues) => {
                 // Call the callback with the unpacked data
