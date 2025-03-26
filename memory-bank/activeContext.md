@@ -1,52 +1,47 @@
 # Active Context
 
-## Current Focus: Raw Depth Data Processing Refactoring
+## Current Focus: Application to Client Streaming
 
-We've refactored the raw depth data processing in the DepthStreamer application to use an image-based approach instead of binary data transmission. This change aligns with the legacy code approach and makes the codebase more consistent.
-
-### Key Changes
-
-1. **RawDepthFrameProcessor Improvements**:
-
-   - Converted raw depth data to RGBA format
-   - Stored 16-bit depth values across R and G channels (R for lower 8 bits, G for upper 8 bits)
-   - Set B channel to 0 and A channel to 255 (fully opaque)
-   - Returned image-compatible format instead of raw binary data
-
-2. **RawDepthStreamHandler Improvements**:
-   - Removed binary data transmission code
-   - Added Sharp for image processing
-   - Converted RGBA data to WebP image
-   - Created dataURL from compressed image
-   - Sent dataURL to peers using a single event
-
-### Core Changes
-
-1. **Image-Based Data Handling**:
-
-   - Replaced binary data transmission with image-based approach
-   - Used WebP compression with high quality to preserve depth data
-   - Simplified data flow by using a single event for transmission
-
-2. **Consistency Improvements**:
-
-   - Aligned raw depth processing with color and depth stream processing
-   - Followed the pattern established in the legacy code
-   - Improved code maintainability and readability
-
-3. **Transmission Optimization**:
-   - Used WebP compression for efficient data transmission
-   - Maintained data integrity with high-quality compression
-   - Simplified client-side processing by using standard image format
+We're currently working on implementing the streaming functionality from the application to the client. The color and depth streams are working correctly from client, and our next task is to implement the raw depth stream.
 
 ### Current Status
 
-The raw depth data visualization is now working correctly using the image-based approach. The depth data is properly encoded in the R and G channels of an image, transmitted as a dataURL, and can be correctly interpreted by the client.
+1. **UI Integration**:
+
+   - All streams accessible from the application UI
+
+2. **Stream Implementation**:
+   - Color stream fully implemented
+   - Depth stream fully implemented
+   - Raw depth stream planned for next implementation
+
+### Next Steps
+
+1. **Raw Depth Stream Implementation**:
+
+   - Implement RawDepthFrameProcessor
+   - Implement RawDepthStreamHandler
+   - Add client-side processing for raw depth data
+   - Ensure proper visualization in client applications
+
+2. **Streaming Optimization**:
+
+   - Optimize data transmission between application and client
+   - Reduce latency in stream delivery
+   - Improve compression for better performance
+
+3. **Testing and Validation**:
+
+   - Validate data integrity across the streaming pipeline
 
 ## Active Decisions
 
 - Using a consistent approach for all data streams:
+
   1. Process data into image-compatible format
   2. Use Sharp for image compression and conversion
   3. Transmit data as dataURLs
   4. Maintain backward compatibility where possible
+
+- Focusing on completing all stream types before moving to additional features
+- Prioritizing performance and reliability in the streaming pipeline

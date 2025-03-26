@@ -8,64 +8,37 @@
 - Body tracking
 - Key (green screen) functionality
 - RGBD (color + depth) visualization
-- Raw depth data visualization (refactored)
 
 ## Completed Features
 
-### Raw Depth Data Processing Refactoring
+### UI Integration for Streams
 
 - **Status**: Completed and working correctly
-- **Changes Implemented**: Replaced binary data transmission with image-based approach
-- **Key Changes**:
-  - Converted raw depth data to RGBA format with depth values stored in R/G channels
-  - Used Sharp for WebP image compression
-  - Transmitted data as dataURLs instead of binary arrays
-  - Simplified data flow with a single event
-  - Aligned with legacy code approach and other stream handlers
-- **Current Behavior**: Server correctly encodes depth data in image format, transmits as dataURL, client properly processes data, visualization works
+- **Implementation**: All available streams accessible from application UI buttons
+- **Current Behavior**: Users can activate streams directly from the application interface
+- **Streams Available**: Color, Depth, Raw Depth, Body, Key, RGBD
 
-## Planned Improvements
+### Color Stream Implementation
 
-### Performance Optimization
+- **Status**: Completed and working correctly
+- **Implementation**: Full pipeline from hardware to client
+- **Current Behavior**: Server captures, processes, and transmits color data; client receives and visualizes
 
-- **Status**: Planning phase
-- **Focus Areas**:
-  - Reduce latency in data transmission
-  - Optimize data processing
-  - Implement data compression
-  - Optimize point cloud rendering
+### Depth Stream Implementation
 
-### Code Cleanup
-
-- **Status**: Planning phase
-- **Focus Areas**:
-  - Remove unnecessary logging
-  - Refactor redundant code
-  - Improve error handling
+- **Status**: Completed and working correctly
+- **Implementation**: Full pipeline from hardware to client
+- **Current Behavior**: Server captures, processes, and transmits depth data; client receives and visualizes
 
 ## Known Issues
 
-No critical issues currently. The main raw depth data visualization issue has been resolved.
+No critical issues currently with implemented streams.
 
 ## Future Work
 
-1. **Improve Raw Depth Visualization**:
+1. **Implement Raw Depth Stream**:
 
-   - Optimize point cloud rendering
-   - Add more visualization options
-
-2. **Performance Optimization**:
-
-   - Reduce latency
-   - Optimize data processing
-   - Implement data compression
-
-3. **Additional Features**:
-
-   - Add recording functionality
-   - Add advanced visualization options
-   - Improve multi-client support
-
-4. **Documentation**:
-   - Update documentation
-   - Create more examples
+   - Create RawDepthFrameProcessor
+   - Create RawDepthStreamHandler
+   - Implement client-side processing
+   - Add visualization options

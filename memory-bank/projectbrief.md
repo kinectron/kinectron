@@ -19,9 +19,11 @@ Kinectron enables real-time streaming of Microsoft Azure Kinect data into web br
 ## Current Status
 
 - Application refactoring complete
+- All feeds work from application UI
 - Peer communication functional
+- Working on streaming from application to client
 - Color and Depth streams implemented
-- Raw Depth stream implementation fixed
+- Planned: Raw Depth stream implementation
 - Planned: Key, Depth Key, RGBD
 
 ## Data Flow
