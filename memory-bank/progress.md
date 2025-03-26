@@ -30,15 +30,27 @@
 - **Implementation**: Full pipeline from hardware to client
 - **Current Behavior**: Server captures, processes, and transmits depth data; client receives and visualizes
 
+## Partially Completed Features
+
+### Raw Depth Stream Implementation
+
+- **Status**: Partially completed
+- **Implementation**:
+  - Client-to-hardware data flow working (client requests properly activate the Kinect)
+  - Raw depth image is properly displayed in the application UI
+  - Fixed issues with Kinect hardware initialization for raw depth
+  - Fixed issues with client requests activating the Kinect hardware
+- **Current Behavior**: Users can start the raw depth stream from the client, which activates the Kinect hardware
+- **Remaining Work**: Complete hardware-to-client data flow, implement client-side processing and visualization
+
 ## Known Issues
 
 No critical issues currently with implemented streams.
 
 ## Future Work
 
-1. **Implement Raw Depth Stream**:
+1. **Complete Raw Depth Stream Implementation**:
 
-   - Create RawDepthFrameProcessor
-   - Create RawDepthStreamHandler
-   - Implement client-side processing
-   - Add visualization options
+   - Implement hardware-to-client data flow
+   - Implement client-side processing of raw depth data
+   - Add visualization options for raw depth data
