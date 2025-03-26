@@ -18,26 +18,48 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
       }
 
       const depthData = new Uint16Array(frame.imageData.buffer);
+
+      // Calculate dimensions for the packed format (half width)
+      const originalWidth = KinectConstants.RAW_DEPTH.WIDTH;
+      const originalHeight = KinectConstants.RAW_DEPTH.HEIGHT;
+      const packedWidth = Math.ceil(originalWidth / 2);
+
+      // Create an output buffer with half the number of pixels
       const processedData = new Uint8ClampedArray(
-        depthData.length * 4,
+        packedWidth * originalHeight * 4,
       );
 
-      for (let i = 0; i < depthData.length; i++) {
-        const depth = depthData[i];
-        const index = i * 4;
+      // Pack two depth values into each RGBA pixel
+      for (let y = 0; y < originalHeight; y++) {
+        for (let x = 0; x < originalWidth; x += 2) {
+          const srcIdx1 = y * originalWidth + x;
+          const srcIdx2 = srcIdx1 + 1;
+          const destIdx = (y * packedWidth + Math.floor(x / 2)) * 4;
 
-        // Store 16-bit depth value in R and G channels (8 bits each)
-        processedData[index] = depth & 0xff; // Lower 8 bits
-        processedData[index + 1] = depth >> 8; // Upper 8 bits
-        processedData[index + 2] = 0; // Not used
-        processedData[index + 3] = 255; // Alpha
+          // Get first depth value
+          const depth1 = depthData[srcIdx1];
+
+          // Get second depth value (or 0 if we're at the edge)
+          const depth2 =
+            x + 1 < originalWidth ? depthData[srcIdx2] : 0;
+
+          // Store first depth value in R and G channels
+          processedData[destIdx] = depth1 & 0xff; // Lower 8 bits in R
+          processedData[destIdx + 1] = depth1 >> 8; // Upper 8 bits in G
+
+          // Store second depth value in B and A channels
+          processedData[destIdx + 2] = depth2 & 0xff; // Lower 8 bits in B
+          processedData[destIdx + 3] = depth2 >> 8; // Upper 8 bits in A
+        }
       }
 
       return {
         imageData: {
           data: processedData,
-          width: KinectConstants.RAW_DEPTH.WIDTH,
-          height: KinectConstants.RAW_DEPTH.HEIGHT,
+          width: packedWidth,
+          height: originalHeight,
+          isPacked: true, // Add metadata to indicate this is packed data
+          originalWidth: originalWidth,
         },
       };
     } catch (error) {

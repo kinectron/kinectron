@@ -923,22 +923,96 @@ class KinectronApp {
       return;
     }
 
-    // Get the image data (now directly a string data URL)
+    // Get the image data (directly a string data URL)
     const imageDataUrl = frameData.imagedata;
 
     if (imageDataUrl) {
       try {
         // Create an image from the data URL
         const img = new Image();
+
         img.onload = () => {
-          // Clear the canvas
-          context.clearRect(0, 0, canvas.width, canvas.height);
-          // Draw the image to the canvas
-          context.drawImage(img, 0, 0, canvas.width, canvas.height);
+          // Check if this is packed data
+          if (frameData.isPacked) {
+            console.log('Unpacking raw depth data');
+
+            // Get the dimensions
+            const packedWidth = frameData.width;
+            const height = frameData.height;
+            const originalWidth = frameData.originalWidth;
+
+            // Set canvas to original dimensions
+            canvas.width = originalWidth;
+            canvas.height = height;
+
+            // Create a temporary canvas to extract the packed pixel data
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = packedWidth;
+            tempCanvas.height = height;
+            const tempContext = tempCanvas.getContext('2d');
+
+            // Draw the packed image to the temporary canvas
+            tempContext.drawImage(img, 0, 0);
+
+            // Get the packed pixel data
+            const packedData = tempContext.getImageData(
+              0,
+              0,
+              packedWidth,
+              height,
+            ).data;
+
+            // Create an image data object for the unpacked depth data
+            const depthImageData = context.createImageData(
+              originalWidth,
+              height,
+            );
+
+            // Unpack the depth data
+            for (let y = 0; y < height; y++) {
+              for (let x = 0; x < packedWidth; x++) {
+                const srcIdx = (y * packedWidth + x) * 4;
+                const destIdx1 = (y * originalWidth + x * 2) * 4;
+                const destIdx2 = destIdx1 + 4;
+
+                // Extract two depth values from each pixel
+                const depth1R = packedData[srcIdx];
+                const depth1G = packedData[srcIdx + 1];
+                const depth2R = packedData[srcIdx + 2];
+                const depth2G = packedData[srcIdx + 3];
+
+                // Store the first depth value
+                depthImageData.data[destIdx1] = depth1R; // R
+                depthImageData.data[destIdx1 + 1] = depth1G; // G
+                depthImageData.data[destIdx1 + 2] = 0; // B
+                depthImageData.data[destIdx1 + 3] = 255; // A
+
+                // Store the second depth value (if within bounds)
+                if (x * 2 + 1 < originalWidth) {
+                  depthImageData.data[destIdx2] = depth2R; // R
+                  depthImageData.data[destIdx2 + 1] = depth2G; // G
+                  depthImageData.data[destIdx2 + 2] = 0; // B
+                  depthImageData.data[destIdx2 + 3] = 255; // A
+                }
+              }
+            }
+
+            // Draw the unpacked depth data
+            context.putImageData(depthImageData, 0, 0);
+            console.log(
+              'Raw depth data unpacked and drawn to canvas',
+            );
+          } else {
+            // Handle non-packed data (original code)
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+          }
         };
+
         img.onerror = (err) => {
           console.error('Error loading raw depth image:', err);
         };
+
         img.src = imageDataUrl;
       } catch (error) {
         console.error('Error drawing raw depth frame:', error);

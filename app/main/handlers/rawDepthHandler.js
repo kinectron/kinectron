@@ -50,10 +50,14 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 'base64',
               )}`;
 
-              // Create a simplified frame package (similar to legacy code)
+              // Create a frame package with metadata about the packed format
               const frameData = {
                 name: 'rawDepth',
                 imagedata: dataUrl,
+                isPacked: processedData.imageData.isPacked,
+                originalWidth: processedData.imageData.originalWidth,
+                width: width,
+                height: height,
               };
 
               // Send the frame data to renderer
