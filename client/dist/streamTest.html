@@ -944,15 +944,91 @@ class Kinectron {
             feed: 'depth'
         });
     }
+    /**
+   * Unpacks raw depth data from a packed WebP image
+   * @private
+   * @param {string} dataUrl - The data URL containing the packed depth data
+   * @param {number} packedWidth - The width of the packed image
+   * @param {number} packedHeight - The height of the packed image
+   * @param {number} originalWidth - The original width of the depth data
+   * @returns {Promise<Uint16Array>} - Promise resolving to the unpacked depth values
+   */ _unpackRawDepthData(dataUrl, packedWidth, packedHeight, originalWidth) {
+        return new Promise((resolve, reject)=>{
+            // Create image to load the data URL
+            const img = new Image();
+            img.onload = ()=>{
+                // Use OffscreenCanvas for efficient processing
+                const canvas = new OffscreenCanvas(packedWidth, packedHeight);
+                const ctx = canvas.getContext('2d');
+                // Draw the image to the canvas
+                ctx.drawImage(img, 0, 0);
+                // Get the packed pixel data
+                const packedData = ctx.getImageData(0, 0, packedWidth, packedHeight).data;
+                // Create array for unpacked depth values
+                const depthValues = new Uint16Array(originalWidth * packedHeight);
+                // Unpack the depth data
+                for(let y = 0; y < packedHeight; y++)for(let x = 0; x < packedWidth; x++){
+                    const srcIdx = (y * packedWidth + x) * 4;
+                    // Extract first depth value from R and G channels
+                    const depth1 = packedData[srcIdx] | packedData[srcIdx + 1] << 8;
+                    // Extract second depth value from B and A channels
+                    const depth2 = packedData[srcIdx + 2] | packedData[srcIdx + 3] << 8;
+                    // Store in output array
+                    depthValues[y * originalWidth + x * 2] = depth1;
+                    // Only store second value if it's within bounds
+                    if (x * 2 + 1 < originalWidth) depthValues[y * originalWidth + x * 2 + 1] = depth2;
+                }
+                resolve(depthValues);
+            };
+            img.onerror = (err)=>{
+                reject(new Error('Failed to load depth image: ' + err));
+            };
+            img.src = dataUrl;
+        });
+    }
     startRawDepth(callback) {
         if (callback) // Set up handler to process raw depth frames
         this.messageHandlers.set('rawDepth', (data)=>{
-            if (data && data.rawDepthData) // Raw depth data is already in a usable format (array of depth values)
-            // Just add timestamp and pass it through
+            if (data && data.imagedata) {
+                // Check if this is packed data that needs to be unpacked
+                if (data.isPacked) // Unpack the data
+                this._unpackRawDepthData(data.imagedata, data.width, data.height, data.originalWidth).then((depthValues)=>{
+                    // Log a sample of the depth values to verify
+                    console.log('Unpacked depth values sample:', Array.from(depthValues.slice(0, 10)), '...', Array.from(depthValues.slice(Math.floor(depthValues.length / 2), Math.floor(depthValues.length / 2) + 10)), '...', Array.from(depthValues.slice(depthValues.length - 10)));
+                    debugger;
+                    // Call the callback with the unpacked data
+                    callback({
+                        ...data,
+                        depthValues: depthValues,
+                        timestamp: data.timestamp || Date.now()
+                    });
+                }).catch((error)=>{
+                    console.error('Error unpacking raw depth data:', error);
+                    // Still call the callback with the original data
+                    callback({
+                        ...data,
+                        error: 'Failed to unpack depth data: ' + error.message,
+                        timestamp: data.timestamp || Date.now()
+                    });
+                });
+                else // Data is not packed, pass it through
+                callback({
+                    ...data,
+                    timestamp: data.timestamp || Date.now()
+                });
+            } else if (data && data.rawDepthData) // Legacy format - raw depth data is already in a usable format
             callback({
                 ...data,
                 timestamp: data.timestamp || Date.now()
             });
+            else {
+                console.warn('Received raw depth frame with invalid data format:', data);
+                callback({
+                    ...data,
+                    error: 'Invalid data format',
+                    timestamp: data.timestamp || Date.now()
+                });
+            }
         });
         this.send('feed', {
             feed: 'raw-depth'
