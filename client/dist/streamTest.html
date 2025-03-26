@@ -39,6 +39,7 @@
         <button onclick="initializeKinect()">Initialize Kinect</button>
         <button onclick="startColorStream()" disabled="" id="startColorBtn">Start Color Stream</button>
         <button onclick="startDepthStream()" disabled="" id="startDepthBtn">Start Depth Stream</button>
+        <button onclick="startRawDepthStream()" disabled="" id="startRawDepthBtn">Start Raw Depth Stream</button>
         <button onclick="stopStream()" disabled="" id="stopStreamBtn">Stop Stream</button>
     </div>
     <div id="canvas-container"></div>
@@ -204,14 +205,14 @@
       this[globalName] = mainExports;
     }
   }
-})({"27OUr":[function(require,module,exports,__globalThis) {
+})({"by9NM":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
 var HMR_USE_SSE = false;
-module.bundle.HMR_BUNDLE_ID = "0cbfc525cf6fc88c";
+module.bundle.HMR_BUNDLE_ID = "b2bd563cf8ef2763";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -657,7 +658,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     }
 }
 
-},{}],"gdlrq":[function(require,module,exports,__globalThis) {
+},{}],"6J9ox":[function(require,module,exports,__globalThis) {
 var _kinectronModernJs = require("./src/kinectron-modern.js");
 window.Kinectron = (0, _kinectronModernJs.Kinectron);
 
@@ -11878,7 +11879,7 @@ class NgrokClientState {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["27OUr","gdlrq"], "gdlrq", "parcelRequire94c2")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["by9NM","6J9ox"], "6J9ox", "parcelRequire94c2")
 
 </script>
     <script>// Constants
@@ -11932,6 +11933,7 @@ function setup() {
         if (isSuccess || data.alreadyInitialized) {
             document.getElementById('startColorBtn').disabled = false;
             document.getElementById('startDepthBtn').disabled = false;
+            document.getElementById('startRawDepthBtn').disabled = false;
             document.getElementById('stopStreamBtn').disabled = false;
             document.getElementById('streamStatus').innerHTML = '<span class="success">Kinect Initialized via Direct Event</span>';
             addDebugInfo('Kinect initialized successfully via direct event');
@@ -11990,6 +11992,7 @@ function addDebugInfo(message) {
 function forceEnableButtons() {
     document.getElementById('startColorBtn').disabled = false;
     document.getElementById('startDepthBtn').disabled = false;
+    document.getElementById('startRawDepthBtn').disabled = false;
     document.getElementById('stopStreamBtn').disabled = false;
     addDebugInfo('Buttons forcibly enabled');
 }
@@ -12016,6 +12019,7 @@ window.initializeKinect = async function() {
             // Enable the buttons
             document.getElementById('startColorBtn').disabled = false;
             document.getElementById('startDepthBtn').disabled = false;
+            document.getElementById('startRawDepthBtn').disabled = false;
             document.getElementById('stopStreamBtn').disabled = false;
         } else {
             addDebugInfo(`Kinect initialization failed: ${result.error || 'Unknown error'}`);
@@ -12128,6 +12132,45 @@ window.startDepthStream = function() {
                 addDebugInfo(`Error loading image: ${err}`);
             });
         } else addDebugInfo('No frame.src available to load image');
+    });
+};
+// Start raw depth stream
+window.startRawDepthStream = function() {
+    document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
+    frameCount = 0;
+    lastFrameTime = Date.now();
+    frameRates = [];
+    frameLatencies = [];
+    isStreamActive = true;
+    // Resize canvas for raw depth stream
+    resizeCanvas(AZURE_DEPTH_WIDTH * DISPLAY_SCALE, AZURE_DEPTH_HEIGHT * DISPLAY_SCALE);
+    background(255);
+    addDebugInfo('Calling kinectron.startRawDepth()');
+    kinectron.startRawDepth((frame)=>{
+        // Log frame data for debugging
+        addDebugInfo(`Received raw depth frame: timestamp=${frame.timestamp}`);
+        addDebugInfo(`Raw depth data: ${JSON.stringify(frame).substring(0, 100)}...`);
+        // Update stream status
+        document.getElementById('streamStatus').innerHTML = '<span class="success">Stream Status: Active (Raw Depth)</span>';
+        // Calculate frame metrics
+        frameCount++;
+        const now = Date.now();
+        // Calculate frame rate every second
+        if (now - lastFrameTime >= 1000) {
+            const fps = frameCount / ((now - lastFrameTime) / 1000);
+            frameRates.push(fps);
+            if (frameRates.length > 10) frameRates.shift(); // Keep last 10 readings
+            frameCount = 0;
+            lastFrameTime = now;
+        }
+        // Calculate frame latency
+        if (frame.timestamp) {
+            const latency = now - frame.timestamp;
+            frameLatencies.push(latency);
+            addDebugInfo(`Frame latency: ${latency}ms`);
+        }
+        // Track last frame timestamp for jitter calculation
+        lastFrameTimestamp = now;
     });
 };
 // Stop all streams

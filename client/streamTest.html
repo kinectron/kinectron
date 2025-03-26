@@ -40,6 +40,7 @@
         <button onclick="initializeKinect()">Initialize Kinect</button>
         <button onclick="startColorStream()" disabled id="startColorBtn">Start Color Stream</button>
         <button onclick="startDepthStream()" disabled id="startDepthBtn">Start Depth Stream</button>
+        <button onclick="startRawDepthStream()" disabled id="startRawDepthBtn">Start Raw Depth Stream</button>
         <button onclick="stopStream()" disabled id="stopStreamBtn">Stop Stream</button>
     </div>
     <div id="canvas-container"></div>
@@ -131,6 +132,7 @@
                 if (isSuccess || data.alreadyInitialized) {
                     document.getElementById('startColorBtn').disabled = false;
                     document.getElementById('startDepthBtn').disabled = false;
+                    document.getElementById('startRawDepthBtn').disabled = false;
                     document.getElementById('stopStreamBtn').disabled = false;
                     document.getElementById('streamStatus').innerHTML =
                         '<span class="success">Kinect Initialized via Direct Event</span>';
@@ -207,6 +209,7 @@
         function forceEnableButtons() {
             document.getElementById('startColorBtn').disabled = false;
             document.getElementById('startDepthBtn').disabled = false;
+            document.getElementById('startRawDepthBtn').disabled = false;
             document.getElementById('stopStreamBtn').disabled = false;
             addDebugInfo('Buttons forcibly enabled');
         }
@@ -241,6 +244,7 @@
                     // Enable the buttons
                     document.getElementById('startColorBtn').disabled = false;
                     document.getElementById('startDepthBtn').disabled = false;
+                    document.getElementById('startRawDepthBtn').disabled = false;
                     document.getElementById('stopStreamBtn').disabled = false;
                 } else {
                     addDebugInfo(`Kinect initialization failed: ${result.error || 'Unknown error'}`);
@@ -381,6 +385,54 @@
                 } else {
                     addDebugInfo('No frame.src available to load image');
                 }
+            });
+        }
+
+        // Start raw depth stream
+        window.startRawDepthStream = function () {
+            document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
+            frameCount = 0;
+            lastFrameTime = Date.now();
+            frameRates = [];
+            frameLatencies = [];
+            isStreamActive = true;
+
+            // Resize canvas for raw depth stream
+            resizeCanvas(AZURE_DEPTH_WIDTH * DISPLAY_SCALE, AZURE_DEPTH_HEIGHT * DISPLAY_SCALE);
+            background(255);
+
+            addDebugInfo('Calling kinectron.startRawDepth()');
+            kinectron.startRawDepth((frame) => {
+                // Log frame data for debugging
+                addDebugInfo(`Received raw depth frame: timestamp=${frame.timestamp}`);
+                addDebugInfo(`Raw depth data: ${JSON.stringify(frame).substring(0, 100)}...`);
+
+                // Update stream status
+                document.getElementById('streamStatus').innerHTML =
+                    '<span class="success">Stream Status: Active (Raw Depth)</span>';
+
+                // Calculate frame metrics
+                frameCount++;
+                const now = Date.now();
+
+                // Calculate frame rate every second
+                if (now - lastFrameTime >= 1000) {
+                    const fps = frameCount / ((now - lastFrameTime) / 1000);
+                    frameRates.push(fps);
+                    if (frameRates.length > 10) frameRates.shift(); // Keep last 10 readings
+                    frameCount = 0;
+                    lastFrameTime = now;
+                }
+
+                // Calculate frame latency
+                if (frame.timestamp) {
+                    const latency = now - frame.timestamp;
+                    frameLatencies.push(latency);
+                    addDebugInfo(`Frame latency: ${latency}ms`);
+                }
+
+                // Track last frame timestamp for jitter calculation
+                lastFrameTimestamp = now;
             });
         }
 

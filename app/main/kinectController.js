@@ -215,14 +215,56 @@ export class KinectController {
   }
 
   startRawDepthCamera(options = {}) {
+    console.log(
+      'KinectController: startRawDepthCamera called with options:',
+      options,
+    );
     try {
-      this.kinect.startCameras({
+      const rawDepthOptions = {
         ...KinectOptions.RAW_DEPTH,
         ...options,
-      });
+      };
+
+      console.log(
+        'KinectController: Starting raw depth camera with options:',
+        rawDepthOptions,
+      );
+
+      // Check if cameras are already running
+      try {
+        console.log(
+          'KinectController: Stopping cameras first to ensure clean start',
+        );
+        this.kinect.stopCameras();
+        console.log('KinectController: Cameras stopped successfully');
+      } catch (stopError) {
+        console.warn(
+          'KinectController: Error stopping cameras (may be normal if not started):',
+          stopError,
+        );
+      }
+
+      // Start the cameras
+      this.kinect.startCameras(rawDepthOptions);
+      console.log(
+        'KinectController: Raw depth camera started successfully',
+      );
+
+      // Get depth mode range for debugging
+      const depthRange = this.kinect.getDepthModeRange(
+        rawDepthOptions.depth_mode,
+      );
+      console.log(
+        'KinectController: Depth range for current mode:',
+        depthRange,
+      );
+
       return true;
     } catch (error) {
-      console.error('Failed to start raw depth camera:', error);
+      console.error(
+        'KinectController: Failed to start raw depth camera:',
+        error,
+      );
       return false;
     }
   }

@@ -23,7 +23,17 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
       if (data.depthImageFrame) {
         const processedData = this.processFrame(data.depthImageFrame);
         if (processedData) {
+          // Send to renderer process via IPC
           event.sender.send('raw-depth-frame', processedData);
+
+          // Also broadcast to peers with the correct event name
+          console.log(
+            'RawDepthStreamHandler: Broadcasting raw depth frame to peers',
+          );
+          this.broadcastFrame('rawDepth', {
+            rawDepthData: processedData.imageData,
+            timestamp: Date.now(),
+          });
         }
       }
     };
