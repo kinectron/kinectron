@@ -3,9 +3,14 @@ import { ipcMain } from 'electron';
 import { BaseStreamHandler } from './baseHandler.js';
 import { RawDepthFrameProcessor } from '../processors/rawDepthProcessor.js';
 import { KinectOptions } from '../kinectController.js';
+import { testPackUnpack } from '../utils/dataTestUtils.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const sharp = require('sharp');
+
+// Flags to enable/disable tests
+const ENABLE_WEBP_TEST = false;
+const ENABLE_COMPRESSION_COMPARISON = false;
 
 /**
  * Handles raw depth stream operations and IPC communication
@@ -42,9 +47,17 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
               channels: 4, // RGBA
             },
           })
-            .webp({ quality: 100 }) // Use highest quality for WebP
+            .webp({
+              quality: 100, // Use highest quality for WebP
+              lossless: true, // Force lossless WebP mode
+            })
             .toBuffer()
             .then((compressedBuffer) => {
+              // Log the size of the compressed buffer
+              console.log(
+                `Compressed buffer size: ${compressedBuffer.length} bytes`,
+              );
+
               // Convert to data URL
               const dataUrl = `data:image/webp;base64,${compressedBuffer.toString(
                 'base64',
@@ -58,15 +71,142 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 originalWidth: processedData.imageData.originalWidth,
                 width: width,
                 height: height,
-                testValues: processedData.imageData.testValues, // Pass test values to client
               };
 
-              // Log the test values being sent to client
-              if (processedData.imageData.testValues) {
+              // Log the size of the JSON message
+              const jsonSize = JSON.stringify(frameData).length;
+              console.log(`JSON message size: ${jsonSize} bytes`);
+
+              // Run compression comparison test if enabled
+              if (ENABLE_COMPRESSION_COMPARISON) {
                 console.log(
-                  'Sending test values to client:',
-                  processedData.imageData.testValues,
+                  'Running WebP lossless vs lossy comparison...',
                 );
+
+                // Create promises for both compression methods
+                const losslessWebpPromise = sharp(rgba, {
+                  raw: {
+                    width: width,
+                    height: height,
+                    channels: 4,
+                  },
+                })
+                  .webp({
+                    quality: 100,
+                    lossless: true,
+                  })
+                  .toBuffer();
+
+                const lossyWebpPromise = sharp(rgba, {
+                  raw: {
+                    width: width,
+                    height: height,
+                    channels: 4,
+                  },
+                })
+                  .webp({
+                    quality: 100,
+                    lossless: false,
+                  })
+                  .toBuffer();
+
+                // Wait for both to complete
+                Promise.all([losslessWebpPromise, lossyWebpPromise])
+                  .then(([losslessBuffer, lossyBuffer]) => {
+                    // Calculate sizes
+                    const losslessSize = losslessBuffer.length;
+                    const lossySize = lossyBuffer.length;
+                    const sizeDiff = losslessSize - lossySize;
+                    const percentDiff = (
+                      (sizeDiff / losslessSize) *
+                      100
+                    ).toFixed(2);
+
+                    console.log(
+                      'WebP Compression Comparison Results:',
+                    );
+                    console.log(
+                      `WebP (lossless) size: ${losslessSize} bytes`,
+                    );
+                    console.log(
+                      `WebP (lossy, quality 100) size: ${lossySize} bytes`,
+                    );
+                    console.log(
+                      `Difference: ${sizeDiff} bytes (${percentDiff}% ${
+                        lossySize < losslessSize
+                          ? 'smaller'
+                          : 'larger'
+                      })`,
+                    );
+                  })
+                  .catch((err) => {
+                    console.error(
+                      'Error in WebP compression comparison test:',
+                      err,
+                    );
+                  });
+              }
+
+              // Test WebP compression if enabled
+              if (
+                ENABLE_WEBP_TEST &&
+                processedData.imageData.testValues
+              ) {
+                console.log('Running WebP compression test...');
+
+                // Decode the WebP buffer back to raw pixels
+                sharp(compressedBuffer)
+                  .raw()
+                  .toBuffer({ resolveWithObject: true })
+                  .then(({ data, info }) => {
+                    // Create test indices object from the test values
+                    const testIndices = {
+                      1000: processedData.imageData.testValues
+                        .index1000,
+                      2000: processedData.imageData.testValues
+                        .index2000,
+                      3000: processedData.imageData.testValues
+                        .index3000,
+                    };
+
+                    const dimensions = {
+                      originalWidth:
+                        processedData.imageData.originalWidth,
+                      packedWidth: width,
+                      height: height,
+                    };
+
+                    // We need to create a mock "original data" array with just the test values
+                    // since we don't have the full original array
+                    const mockOriginalData = new Uint16Array(
+                      processedData.imageData.originalWidth * height,
+                    );
+                    mockOriginalData[1000] = testIndices[1000];
+                    mockOriginalData[2000] = testIndices[2000];
+                    mockOriginalData[3000] = testIndices[3000];
+
+                    console.log(
+                      'WebP compression test - testing values:',
+                      testIndices,
+                    );
+
+                    // Test unpacking the WebP-compressed data
+                    const results = testPackUnpack(
+                      mockOriginalData,
+                      new Uint8ClampedArray(data),
+                      dimensions,
+                      testIndices,
+                      true, // log results
+                    );
+
+                    console.log('WebP compression test complete');
+                  })
+                  .catch((err) => {
+                    console.error(
+                      'Error in WebP compression test:',
+                      err,
+                    );
+                  });
               }
 
               // Send the frame data to renderer

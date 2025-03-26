@@ -20,29 +20,29 @@ We're currently working on implementing the raw depth stream processing and visu
      - Client-side unpacking of raw depth data implemented
      - Basic point cloud visualization implemented
      - Facing issues with depth value quantization/banding in visualization
+     - Confirmed that the packing/unpacking algorithm works correctly (test values match exactly)
+     - Identified that lossy WebP compression was causing data loss in depth values
+     - Implemented lossless WebP compression which preserves all depth values exactly
+     - Added size logging which shows messages are ~51KB
+     - Encountering "Message too big for JSON channel" errors in PeerJS
+     - Created a utility for testing data packing/unpacking
+     - Added a flag-controlled test value system for debugging
 
 ### Next Steps
 
-1. **Fix Raw Depth Visualization Issues**:
+1. **Address PeerJS Message Size Issue**:
 
-   - Investigate the unpacking process more deeply
-   - Add more detailed logging of the raw packed data
-   - Verify the bit manipulation in the unpacking process
-   - Check if there's any loss of precision during the packing/unpacking process
+   - Resolve the "Message too big for JSON channel" error in PeerJS
+   - Investigate solutions for transmitting large messages
 
-2. **Explore Alternative Visualization Approaches**:
+2. **Fix Raw Depth Visualization Issues**:
 
+   - Once transmission issues are resolved, return to visualization quality issues
    - Try different rendering techniques for the point cloud
    - Experiment with mesh-based visualization instead of points
    - Consider applying smoothing or interpolation to the depth data
 
-3. **Check Server-side Packing Implementation**:
-
-   - Review how the depth values are being packed on the server
-   - Ensure no precision is lost during the packing process
-   - Consider alternative packing strategies if needed
-
-4. **Streaming Optimization**:
+3. **Streaming Optimization**:
 
    - Optimize data transmission between application and client
    - Reduce latency in stream delivery
