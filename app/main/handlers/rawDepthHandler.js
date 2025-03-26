@@ -3,6 +3,9 @@ import { ipcMain } from 'electron';
 import { BaseStreamHandler } from './baseHandler.js';
 import { RawDepthFrameProcessor } from '../processors/rawDepthProcessor.js';
 import { KinectOptions } from '../kinectController.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const sharp = require('sharp');
 
 /**
  * Handles raw depth stream operations and IPC communication
@@ -22,19 +25,58 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
     this.frameCallback = (data) => {
       if (data.depthImageFrame) {
         const processedData = this.processFrame(data.depthImageFrame);
-        if (processedData) {
-          // Send to renderer process via IPC
-          event.sender.send('raw-depth-frame', processedData);
 
-          // Also broadcast to peers with the correct event name
-          console.log(
-            'RawDepthStreamHandler: Broadcasting raw depth frame to peers',
+        if (processedData && processedData.imageData) {
+          // Process the image with Sharp
+          const width = processedData.imageData.width;
+          const height = processedData.imageData.height;
+          const rgba = Buffer.from(
+            processedData.imageData.data.buffer,
           );
-          this.broadcastFrame('rawDepth', {
-            rawDepthData: processedData.imageData,
-            timestamp: Date.now(),
-          });
+
+          // Use Sharp to compress the image (no resizing)
+          sharp(rgba, {
+            raw: {
+              width: width,
+              height: height,
+              channels: 4, // RGBA
+            },
+          })
+            .webp({ quality: 100 }) // Use highest quality for WebP
+            .toBuffer()
+            .then((compressedBuffer) => {
+              // Convert to data URL
+              const dataUrl = `data:image/webp;base64,${compressedBuffer.toString(
+                'base64',
+              )}`;
+
+              // Create a simplified frame package (similar to legacy code)
+              const frameData = {
+                name: 'rawDepth',
+                imagedata: dataUrl,
+              };
+
+              // Send the frame data to renderer
+              event.sender.send('raw-depth-frame', frameData);
+
+              // Broadcast to peers directly without additional wrapping
+              this.broadcastFrame('rawDepth', frameData, true);
+            })
+            .catch((err) => {
+              console.error(
+                'RawDepthStreamHandler: Error processing image with Sharp:',
+                err,
+              );
+            });
+        } else {
+          console.error(
+            'RawDepthStreamHandler: Failed to process raw depth frame, processedData is null or missing imageData',
+          );
         }
+      } else {
+        console.warn(
+          'RawDepthStreamHandler: Received frame callback without depthImageFrame',
+        );
       }
     };
   }

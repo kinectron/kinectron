@@ -912,16 +912,39 @@ class KinectronApp {
 
   processRawDepthFrame(frameData) {
     const canvas = document.getElementById('raw-depth-canvas');
-    if (!canvas) return;
+    if (!canvas) {
+      console.error('Raw depth canvas not found');
+      return;
+    }
 
     const context = canvas.getContext('2d');
-    if (frameData.imageData && frameData.imageData.data) {
-      const imageData = new ImageData(
-        new Uint8ClampedArray(frameData.imageData.data),
-        frameData.imageData.width,
-        frameData.imageData.height,
-      );
-      context.putImageData(imageData, 0, 0);
+    if (!context) {
+      console.error('Could not get 2D context from raw depth canvas');
+      return;
+    }
+
+    // Get the image data (now directly a string data URL)
+    const imageDataUrl = frameData.imagedata;
+
+    if (imageDataUrl) {
+      try {
+        // Create an image from the data URL
+        const img = new Image();
+        img.onload = () => {
+          // Clear the canvas
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          // Draw the image to the canvas
+          context.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.onerror = (err) => {
+          console.error('Error loading raw depth image:', err);
+        };
+        img.src = imageDataUrl;
+      } catch (error) {
+        console.error('Error drawing raw depth frame:', error);
+      }
+    } else {
+      console.error('Raw depth frame missing image data:', frameData);
     }
   }
 
