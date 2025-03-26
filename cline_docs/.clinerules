@@ -1,0 +1,49 @@
+# Cline Rules for Kinectron Project
+
+## Project Components
+
+1. **Application (`app/`)**: Electron-based desktop app with main/renderer processes
+2. **Client API (`client/`)**: Modern and legacy JavaScript APIs using PeerJS
+3. **Testing**: Peer connection and stream testing
+
+## Working Method
+
+1. **Understand Context**: Analyze architecture and data flows
+2. **Break Tasks Into Units**: Focus on one component at a time
+3. **Review Legacy Code**: Analyze existing implementations
+4. **Follow Patterns**: Apply consistent architecture
+5. **Implement Changes**: Make focused changes with clear purpose
+
+## Code Guidelines
+
+1. **Modern JavaScript**: ES6+, JSDoc for types
+2. **Modular Architecture**: Encapsulate logic in dedicated modules
+3. **Performance**: Optimize for real-time, mind memory usage
+4. **Error Handling**: Robust handling with meaningful messages
+5. **Documentation**: Document public methods and interfaces
+
+## Stream Implementation Pattern
+
+1. Server-side processor (app/main/processors/[stream]Processor.js)
+2. Server-side handler (app/main/handlers/[stream]Handler.js)
+3. Client-side API methods in kinectron-modern.js
+4. Testing in streamTest.html
+
+## Current Priority
+
+Raw Depth stream, followed by Key, Depth Key, and RGBD
+
+## UI and API Guidelines
+
+1. **Application Interface**: Consistent UI, clear feedback
+2. **API Design**: Intuitive methods, backward compatibility
+
+## Peer Connection Guidelines
+
+1. **Connection Management**: Handle establishment/termination
+2. **Data Transmission**: Optimize for real-time performance
+
+## Documentation Guidelines
+
+1. **Code Documentation**: Comment complex logic, use JSDoc
+2. **User Documentation**: Clear examples, configuration options
