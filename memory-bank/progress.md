@@ -8,6 +8,7 @@
 - Body tracking
 - Key (green screen) functionality
 - RGBD (color + depth) visualization
+- Raw depth data transmission from hardware to client
 
 ## Completed Features
 
@@ -38,10 +39,17 @@
 - **Implementation**:
   - Client-to-hardware data flow working (client requests properly activate the Kinect)
   - Raw depth image is properly displayed in the application UI
-  - Fixed issues with Kinect hardware initialization for raw depth
-  - Fixed issues with client requests activating the Kinect hardware
-- **Current Behavior**: Users can start the raw depth stream from the client, which activates the Kinect hardware
-- **Remaining Work**: Complete hardware-to-client data flow, implement client-side processing and visualization
+  - Hardware-to-client data flow successfully implemented with data packing solution
+  - Implemented data packing to reduce message size by ~50% while preserving all depth data
+  - Added metadata to indicate packed format for client-side unpacking
+  - Successfully transmitting raw depth data from hardware to client
+- **Current Behavior**:
+  - Users can start the raw depth stream from the client, which activates the Kinect hardware
+  - Raw depth data is successfully transmitted from hardware to client
+- **Remaining Work**:
+  - Implement client-side processing for point cloud visualization
+  - Extract 16-bit depth values from the unpacked data
+  - Integrate with point cloud visualization code
 
 ## Known Issues
 
@@ -50,7 +58,5 @@ No critical issues currently with implemented streams.
 ## Future Work
 
 1. **Complete Raw Depth Stream Implementation**:
-
-   - Implement hardware-to-client data flow
-   - Implement client-side processing of raw depth data
-   - Add visualization options for raw depth data
+   - Implement client-side processing for point cloud visualization
+   - Integrate with point cloud visualization code
