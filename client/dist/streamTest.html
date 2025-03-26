@@ -31,7 +31,22 @@
 .success {
   color: green;
 }
+
+#three-container {
+  border: 1px solid #ccc;
+  width: 960px;
+  height: 540px;
+  display: none;
+}
+
+#threeCanvas {
+  width: 100%;
+  height: 100%;
+}
 </style>
+    <!-- Three.js dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.109.0/examples/js/controls/TrackballControls.js"></script>
 </head>
 
 <body>
@@ -43,6 +58,9 @@
         <button onclick="stopStream()" disabled="" id="stopStreamBtn">Stop Stream</button>
     </div>
     <div id="canvas-container"></div>
+    <div id="three-container">
+        <canvas id="threeCanvas"></canvas>
+    </div>
     <div id="stats">
         <div id="connectionStatus" class="stat-item">Connection Status: Disconnected</div>
         <div id="streamStatus" class="stat-item">Stream Status: Inactive</div>
@@ -205,14 +223,14 @@
       this[globalName] = mainExports;
     }
   }
-})({"by9NM":[function(require,module,exports,__globalThis) {
+})({"1Dw86":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
 var HMR_USE_SSE = false;
-module.bundle.HMR_BUNDLE_ID = "b2bd563cf8ef2763";
+module.bundle.HMR_BUNDLE_ID = "6131eec92be98c30";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -658,7 +676,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     }
 }
 
-},{}],"6J9ox":[function(require,module,exports,__globalThis) {
+},{}],"bzZz1":[function(require,module,exports,__globalThis) {
 var _kinectronModernJs = require("./src/kinectron-modern.js");
 window.Kinectron = (0, _kinectronModernJs.Kinectron);
 
@@ -993,9 +1011,6 @@ class Kinectron {
                 // Check if this is packed data that needs to be unpacked
                 if (data.isPacked) // Unpack the data
                 this._unpackRawDepthData(data.imagedata, data.width, data.height, data.originalWidth).then((depthValues)=>{
-                    // Log a sample of the depth values to verify
-                    console.log('Unpacked depth values sample:', Array.from(depthValues.slice(0, 10)), '...', Array.from(depthValues.slice(Math.floor(depthValues.length / 2), Math.floor(depthValues.length / 2) + 10)), '...', Array.from(depthValues.slice(depthValues.length - 10)));
-                    debugger;
                     // Call the callback with the unpacked data
                     callback({
                         ...data,
@@ -11955,7 +11970,7 @@ class NgrokClientState {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["by9NM","6J9ox"], "6J9ox", "parcelRequire94c2")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["1Dw86","bzZz1"], "bzZz1", "parcelRequire94c2")
 
 </script>
     <script>// Constants
@@ -11972,6 +11987,154 @@ let frameRates = [];
 let lastFrameTimestamp = 0;
 let frameLatencies = [];
 let isStreamActive = false;
+// Three.js globals
+let renderer, camera, scene, controls;
+let particles, mesh;
+let colors = [];
+// Constants for depth data
+const DEPTHWIDTH = 320;
+const DEPTHHEIGHT = 288;
+const numParticles = DEPTHWIDTH * DEPTHHEIGHT;
+// Initialize Three.js
+function initThreeJS() {
+    // Create renderer
+    renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById('threeCanvas'),
+        alpha: 0,
+        antialias: true,
+        clearColor: 0x000000
+    });
+    // Set renderer size to match container
+    const container = document.getElementById('three-container');
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    // Handle window resize
+    window.addEventListener('resize', ()=>{
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+    // Create camera with wider field of view
+    camera = new THREE.PerspectiveCamera(45, renderer.domElement.width / renderer.domElement.height, 1, 10000);
+    // Position camera to view the point cloud from a better angle
+    camera.position.set(0, -100, 300);
+    camera.lookAt(0, 0, 0);
+    // Create controls with better defaults
+    controls = new THREE.TrackballControls(camera, renderer.domElement);
+    controls.rotateSpeed = 1.5;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
+    controls.noZoom = false;
+    controls.noPan = false;
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
+    // Create scene with black background
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    // Create particles
+    createParticles();
+    // Begin render loop
+    render();
+}
+// Create particles for depth feed
+function createParticles() {
+    particles = new THREE.Geometry();
+    // Create particles
+    for(let y = 0; y < DEPTHHEIGHT; y++)for(let x = 0; x < DEPTHWIDTH; x++){
+        // Calculate index
+        const i = y * DEPTHWIDTH + x;
+        // Center the point cloud
+        const xPos = x - DEPTHWIDTH * 0.5;
+        const yPos = DEPTHHEIGHT - y - DEPTHHEIGHT * 0.5;
+        // Create a new three point vector with initial z=0
+        const vertex = new THREE.Vector3(xPos, yPos, 0);
+        // Add it to the particles
+        particles.vertices.push(vertex);
+        // Assign each particle a color based on position
+        // This creates a gradient based on position
+        const normalizedX = x / DEPTHWIDTH;
+        const normalizedY = y / DEPTHHEIGHT;
+        colors[i] = new THREE.Color(0.5 + normalizedX * 0.5, 0.5 + normalizedY * 0.5, 0.5 // B
+        );
+    }
+    // Give the particles their colors
+    particles.colors = colors;
+    // Create material for the points
+    let material = new THREE.PointsMaterial({
+        size: 2,
+        vertexColors: THREE.VertexColors,
+        sizeAttenuation: true
+    });
+    // Create the points geometry
+    mesh = new THREE.Points(particles, material);
+    // Add point cloud to scene
+    scene.add(mesh);
+}
+// Update point cloud with depth data
+function updatePointCloud(depthValues) {
+    if (!particles) return;
+    // Set desired depth range
+    const minDepth = 100;
+    const maxDepth = 3000;
+    // Analyze depth values
+    let validValues = [];
+    let min = Number.MAX_VALUE;
+    let max = 0;
+    // First pass: collect statistics
+    for(let i = 0; i < depthValues.length; i++){
+        const depth = depthValues[i];
+        if (depth >= minDepth && depth <= maxDepth) {
+            validValues.push(depth);
+            min = Math.min(min, depth);
+            max = Math.max(max, depth);
+        }
+    }
+    // Log statistics (only occasionally to avoid flooding the console)
+    if (Math.random() < 0.05) {
+        console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
+        // Log a histogram of depth values (10 buckets)
+        const bucketSize = (max - min) / 10;
+        const histogram = Array(10).fill(0);
+        for (const depth of validValues){
+            const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
+            histogram[bucketIndex]++;
+        }
+        console.log("Depth histogram:", histogram);
+    }
+    // Camera view scale factor - adjust this to change the overall scale of the point cloud
+    // This doesn't affect precision, just the visual size
+    const viewScale = 0.5;
+    // Second pass: update particles
+    for(let y = 0; y < DEPTHHEIGHT; y++)for(let x = 0; x < DEPTHWIDTH; x++){
+        const i = y * DEPTHWIDTH + x;
+        const depth = depthValues[i];
+        if (depth < minDepth || depth > maxDepth) // Push the particle far away so we don't see it
+        particles.vertices[i].z = Number.MAX_VALUE;
+        else {
+            // Use the raw depth value directly with view scaling
+            // This preserves the full precision of the depth data
+            particles.vertices[i].z = depth * viewScale;
+            // Update color based on depth using a more detailed gradient
+            // Use the local min/max for better color distribution
+            const normalizedDepth = (depth - min) / (max - min);
+            // Use a more sophisticated color mapping
+            // This creates a rainbow gradient from red (near) to violet (far)
+            const hue = (1.0 - normalizedDepth) * 270; // 0 (red) to 270 (violet)
+            colors[i].setHSL(hue / 360, 1.0, 0.5);
+        }
+    }
+    // Update particles
+    particles.verticesNeedUpdate = true;
+    particles.colorsNeedUpdate = true;
+}
+// Render three.js scene
+function render() {
+    // Render the scene
+    renderer.render(scene, camera);
+    // Update the trackball controls with each scene
+    controls.update();
+    // Request anim frame
+    requestAnimationFrame(render);
+}
 function setup() {
     // Create canvas
     const canvas = createCanvas(AZURE_COLOR_WIDTH * DISPLAY_SCALE, AZURE_COLOR_HEIGHT * DISPLAY_SCALE);
@@ -12218,14 +12381,15 @@ window.startRawDepthStream = function() {
     frameRates = [];
     frameLatencies = [];
     isStreamActive = true;
-    // Resize canvas for raw depth stream
-    resizeCanvas(AZURE_DEPTH_WIDTH * DISPLAY_SCALE, AZURE_DEPTH_HEIGHT * DISPLAY_SCALE);
-    background(255);
+    // Hide p5 canvas and show Three.js canvas
+    document.getElementById('canvas-container').style.display = 'none';
+    document.getElementById('three-container').style.display = 'block';
+    // Initialize Three.js if not already initialized
+    if (!renderer) initThreeJS();
     addDebugInfo('Calling kinectron.startRawDepth()');
     kinectron.startRawDepth((frame)=>{
         // Log frame data for debugging
         addDebugInfo(`Received raw depth frame: timestamp=${frame.timestamp}`);
-        addDebugInfo(`Raw depth data: ${JSON.stringify(frame).substring(0, 100)}...`);
         // Update stream status
         document.getElementById('streamStatus').innerHTML = '<span class="success">Stream Status: Active (Raw Depth)</span>';
         // Calculate frame metrics
@@ -12247,6 +12411,47 @@ window.startRawDepthStream = function() {
         }
         // Track last frame timestamp for jitter calculation
         lastFrameTimestamp = now;
+        // Check if we have unpacked depth values
+        if (frame.depthValues) {
+            // Update the point cloud with the depth values
+            updatePointCloud(frame.depthValues);
+            // Log some stats about the depth values
+            const totalValues = frame.depthValues.length;
+            // Calculate min, max, and average depth
+            let validCount = 0;
+            let sum = 0;
+            let min = Number.MAX_VALUE;
+            let max = 0;
+            for(let i = 0; i < frame.depthValues.length; i++){
+                const depth = frame.depthValues[i];
+                if (depth >= 100 && depth <= 3000) {
+                    validCount++;
+                    sum += depth;
+                    min = Math.min(min, depth);
+                    max = Math.max(max, depth);
+                }
+            }
+            const avg = validCount > 0 ? sum / validCount : 0;
+            // Add detailed depth stats to debug panel
+            addDebugInfo(`Depth values: ${totalValues} points, ${validCount} valid points`);
+            addDebugInfo(`Depth range: min=${min}, max=${max}, avg=${avg.toFixed(2)}`);
+            // Log a sample of the depth values
+            const sample = Array.from(frame.depthValues.slice(0, 10));
+            addDebugInfo(`Depth values sample: ${JSON.stringify(sample)}`);
+            // Check for quantization in the depth values
+            if (validCount > 100) {
+                // Create a set of unique depth values in the first 1000 points
+                const uniqueDepths = new Set();
+                for(let i = 0; i < Math.min(1000, frame.depthValues.length); i++){
+                    const depth = frame.depthValues[i];
+                    if (depth >= 100 && depth <= 3000) uniqueDepths.add(depth);
+                }
+                // Log the number of unique depth values
+                addDebugInfo(`Unique depth values in sample: ${uniqueDepths.size}`);
+            }
+            // Update resolution info
+            document.getElementById('resolution').textContent = `Resolution: ${frame.originalWidth}x${frame.height} | Depth Values: ${totalValues} | Avg Latency: ${frameLatencies.length > 0 ? (frameLatencies.reduce((a, b)=>a + b, 0) / frameLatencies.length).toFixed(1) : 0}ms`;
+        }
     });
 };
 // Stop all streams
@@ -12255,6 +12460,9 @@ window.stopStream = function() {
     document.getElementById('streamStatus').textContent = 'Stream Status: Inactive';
     document.getElementById('frameRate').textContent = 'Frame Rate: 0 fps';
     document.getElementById('resolution').textContent = 'Resolution: -';
+    // Show p5 canvas and hide Three.js canvas
+    document.getElementById('canvas-container').style.display = 'block';
+    document.getElementById('three-container').style.display = 'none';
     background(255);
     isStreamActive = false;
 };

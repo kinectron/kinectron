@@ -9,6 +9,8 @@
 - Key (green screen) functionality
 - RGBD (color + depth) visualization
 - Raw depth data transmission from hardware to client
+- Raw depth data unpacking on client side
+- Basic point cloud visualization of raw depth data
 
 ## Completed Features
 
@@ -43,20 +45,37 @@
   - Implemented data packing to reduce message size by ~50% while preserving all depth data
   - Added metadata to indicate packed format for client-side unpacking
   - Successfully transmitting raw depth data from hardware to client
+  - Implemented client-side unpacking of raw depth data
+  - Created `_unpackRawDepthData` method in `kinectron-modern.js`
+  - Implemented Three.js-based point cloud visualization
+  - Added depth value analysis and statistics
 - **Current Behavior**:
   - Users can start the raw depth stream from the client, which activates the Kinect hardware
   - Raw depth data is successfully transmitted from hardware to client
+  - Client unpacks the raw depth data into 16-bit depth values
+  - Basic point cloud visualization is displayed but has quality issues
 - **Remaining Work**:
-  - Implement client-side processing for point cloud visualization
-  - Extract 16-bit depth values from the unpacked data
-  - Integrate with point cloud visualization code
+  - Fix depth value quantization/banding issues in visualization
+  - Improve the unpacking process to ensure full precision is maintained
+  - Enhance the point cloud visualization for better quality
 
 ## Known Issues
 
-No critical issues currently with implemented streams.
+1. **Raw Depth Visualization Quality**:
+   - **Issue**: Depth data appears in distinct planes rather than smooth contours
+   - **Symptoms**: Banding/quantization effect in the point cloud visualization
+   - **Attempted Fixes**:
+     - Removed scaling operations that could reduce precision
+     - Implemented more sophisticated color mapping
+     - Added detailed depth statistics and analysis tools
+     - Improved camera positioning and controls
+   - **Current Status**: Issue persists despite attempted fixes
+   - **Next Steps**: Investigate unpacking process, explore alternative visualization approaches, check server-side packing implementation
 
 ## Future Work
 
-1. **Complete Raw Depth Stream Implementation**:
-   - Implement client-side processing for point cloud visualization
-   - Integrate with point cloud visualization code
+1. **Fix Raw Depth Visualization Issues**:
+   - Investigate the unpacking process more deeply
+   - Verify the bit manipulation in the unpacking process
+   - Check for precision loss during packing/unpacking
+   - Explore alternative visualization techniques

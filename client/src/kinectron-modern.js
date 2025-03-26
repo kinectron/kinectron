@@ -523,23 +523,6 @@ export class Kinectron {
               data.originalWidth,
             )
               .then((depthValues) => {
-                // Log a sample of the depth values to verify
-                console.log(
-                  'Unpacked depth values sample:',
-                  Array.from(depthValues.slice(0, 10)),
-                  '...',
-                  Array.from(
-                    depthValues.slice(
-                      Math.floor(depthValues.length / 2),
-                      Math.floor(depthValues.length / 2) + 10,
-                    ),
-                  ),
-                  '...',
-                  Array.from(
-                    depthValues.slice(depthValues.length - 10),
-                  ),
-                );
-
                 // Call the callback with the unpacked data
                 callback({
                   ...data,

@@ -22,8 +22,6 @@ client/.parcel-cache/
 
 # Old example code
 
-/examples/
-
 # Large data files
 
 app/_.dll
