@@ -5,7 +5,7 @@ import { testPackUnpack } from '../utils/dataTestUtils.js';
 
 // Flags to enable/disable features
 const ENABLE_PACK_UNPACK_TEST = false;
-const ENABLE_TEST_VALUES = false; // Set to true to enable test value collection and logging
+const ENABLE_TEST_VALUES = true; // Set to true to enable test value collection and logging
 
 /**
  * Processes raw depth frames from the Kinect

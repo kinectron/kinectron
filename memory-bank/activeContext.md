@@ -2,7 +2,7 @@
 
 ## Current Focus: Raw Depth Processing and Visualization
 
-We're currently working on implementing the raw depth stream processing and visualization. The color and depth streams are fully implemented, and we've made significant progress on the raw depth stream implementation but are facing some challenges with the visualization quality.
+We're currently working on implementing the raw depth stream processing and visualization. The color and depth streams are fully implemented, and we've made significant progress on the raw depth stream implementation but are facing some challenges with data integrity.
 
 ### Current Status
 
@@ -20,33 +20,26 @@ We're currently working on implementing the raw depth stream processing and visu
      - Client-side unpacking of raw depth data implemented
      - Basic point cloud visualization implemented
      - Facing issues with depth value quantization/banding in visualization
-     - Confirmed that the packing/unpacking algorithm works correctly (test values match exactly)
+     - Confirmed that the packing/unpacking algorithm works correctly on the server side
      - Identified that lossy WebP compression was causing data loss in depth values
-     - Implemented lossless WebP compression which preserves all depth values exactly
+     - Implemented lossless WebP compression which should preserve all depth values
      - Added size logging which shows messages are ~51KB
-     - Encountering "Message too big for JSON channel" errors in PeerJS
+     - Resolved "Message too big for JSON channel" errors in PeerJS by changing serialization method from JSON to binary
      - Created a utility for testing data packing/unpacking
      - Added a flag-controlled test value system for debugging
+     - Currently facing data integrity issues where unpacked values don't match original values
+     - Test values show significant discrepancies (e.g., Original: 3016, Unpacked: 185)
+     - Values near zero are preserved correctly, but larger values show major differences
+     - Tried PNG format as an alternative to WebP but encountered similar issues
+     - Reverted back to WebP after PNG didn't resolve the data integrity issues
 
 ### Next Steps
 
-1. **Address PeerJS Message Size Issue**:
-
-   - Resolve the "Message too big for JSON channel" error in PeerJS
-   - Investigate solutions for transmitting large messages
-
-2. **Fix Raw Depth Visualization Issues**:
-
-   - Once transmission issues are resolved, return to visualization quality issues
-   - Try different rendering techniques for the point cloud
-   - Experiment with mesh-based visualization instead of points
-   - Consider applying smoothing or interpolation to the depth data
-
-3. **Streaming Optimization**:
-
-   - Optimize data transmission between application and client
-   - Reduce latency in stream delivery
-   - Improve compression for better performance
+- **Continue investigating and debugging the client side until we find the root of the issue**
+  - Add more detailed logging to understand what's happening during unpacking
+  - Compare the client-side unpacking with the server-side packing in more detail
+  - Examine how the image data is being processed in the browser
+  - Test with different approaches to isolate the problem
 
 ## Active Decisions
 
@@ -69,5 +62,5 @@ We're currently working on implementing the raw depth stream processing and visu
   2. Implement color mapping based on depth values
   3. Add detailed depth statistics and analysis tools
 
-- Focusing on completing all stream types before moving to additional features
+- Focusing on resolving data integrity issues before moving to visualization improvements
 - Prioritizing performance and reliability in the streaming pipeline

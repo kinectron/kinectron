@@ -50,24 +50,43 @@
   - Implemented Three.js-based point cloud visualization
   - Added depth value analysis and statistics
   - Added test utilities for verifying packing/unpacking correctness
-  - Confirmed that the packing/unpacking algorithm preserves all depth values exactly
+  - Confirmed that the packing/unpacking algorithm works correctly on the server side
   - Switched from lossy to lossless WebP compression to preserve depth precision
   - Added size logging to monitor message sizes
   - Implemented flag-controlled test value system for debugging
+  - Resolved "Message too big for JSON channel" errors by changing PeerJS serialization method from JSON to binary
+  - Tried PNG format as an alternative to WebP but encountered similar issues
+  - Reverted back to WebP after PNG didn't resolve the data integrity issues
 - **Current Behavior**:
   - Users can start the raw depth stream from the client, which activates the Kinect hardware
   - Raw depth data is successfully transmitted from hardware to client
   - Client unpacks the raw depth data into 16-bit depth values
   - Basic point cloud visualization is displayed but has quality issues
-  - Encountering "Message too big for JSON channel" errors in PeerJS
+  - Facing data integrity issues where unpacked values don't match original values
+  - Test values show significant discrepancies (e.g., Original: 3016, Unpacked: 185)
+  - Values near zero are preserved correctly, but larger values show major differences
 - **Remaining Work**:
-  - Address the PeerJS message size issue
+  - Resolve data integrity issues in the client-side unpacking process
   - Fix depth value quantization/banding issues in visualization
   - Enhance the point cloud visualization for better quality
 
 ## Known Issues
 
-1. **Raw Depth Visualization Quality**:
+1. **Raw Depth Data Integrity Issues**:
+
+   - **Issue**: Unpacked depth values don't match original values
+   - **Symptoms**:
+     - Test values show significant discrepancies (e.g., Original: 3016, Unpacked: 185)
+     - Values near zero are preserved correctly, but larger values show major differences
+   - **Attempted Fixes**:
+     - Confirmed that the packing/unpacking algorithm works correctly on the server side
+     - Switched from lossy to lossless WebP compression to preserve depth precision
+     - Tried PNG format as an alternative to WebP but encountered similar issues
+     - Reverted back to WebP after PNG didn't resolve the data integrity issues
+   - **Current Status**: Still investigating the root cause of the data integrity issues
+   - **Next Steps**: Continue debugging the client-side unpacking process
+
+2. **Raw Depth Visualization Quality**:
 
    - **Issue**: Depth data appears in distinct planes rather than smooth contours
    - **Symptoms**: Banding/quantization effect in the point cloud visualization
@@ -76,29 +95,18 @@
      - Implemented more sophisticated color mapping
      - Added detailed depth statistics and analysis tools
      - Improved camera positioning and controls
-     - Confirmed packing/unpacking algorithm works correctly (test values match exactly)
-     - Identified lossy WebP compression as a source of data loss
-     - Implemented lossless WebP compression to preserve all depth values
-   - **Current Status**: Visualization issues may be resolved once transmission issues are fixed
-   - **Next Steps**: Address transmission issues, then re-evaluate visualization quality
-
-2. **PeerJS Message Size Limitation**:
-   - **Issue**: "Message too big for JSON channel" error in PeerJS
-   - **Symptoms**: Error occurs in the renderer process during PeerJS transmission
-   - **Findings**:
-     - Message size is approximately 51KB (after base64 encoding)
-     - Removed test values from transmitted data to reduce size
-     - Added size logging to monitor message sizes
-   - **Current Status**: Issue persists despite message size being below theoretical limit
-   - **Next Steps**: Investigate solutions for transmitting large messages via PeerJS
+   - **Current Status**: Visualization issues likely related to the data integrity issues
+   - **Next Steps**: Address data integrity issues, then re-evaluate visualization quality
 
 ## Future Work
 
-1. **Address PeerJS Message Size Issue**:
+1. **Resolve Data Integrity Issues**:
 
-   - Resolve the "Message too big for JSON channel" error
-   - Implement a solution for transmitting large messages
+   - Continue investigating and debugging the client-side unpacking process
+   - Add more detailed logging to understand what's happening during unpacking
+   - Compare the client-side unpacking with the server-side packing in more detail
+   - Examine how the image data is being processed in the browser
 
 2. **Fix Raw Depth Visualization Issues**:
-   - Once transmission issues are resolved, re-evaluate visualization quality
+   - Once data integrity issues are resolved, re-evaluate visualization quality
    - Explore alternative visualization techniques if needed

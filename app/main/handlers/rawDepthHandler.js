@@ -131,6 +131,10 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 originalWidth: processedData.imageData.originalWidth,
                 width: width,
                 height: height,
+                // Include test values if they exist
+                ...(processedData.imageData.testValues && {
+                  testValues: processedData.imageData.testValues,
+                }),
               };
 
               // Calculate and log the size information
