@@ -29,7 +29,8 @@
     "ngrok": "^5.0.0-beta.2",
     "os": "^0.1.2",
     "peer": "^1.0.2",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "webp-wasm": "^1.0.6"
   },
   "devDependencies": {
     "electron-reload": "^2.0.0-alpha.1"

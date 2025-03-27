@@ -69,7 +69,7 @@ function calculateDataSize(data) {
 }
 
 // Flags to enable/disable tests
-const ENABLE_WEBP_TEST = false;
+const ENABLE_WEBP_TEST = true;
 const ENABLE_COMPRESSION_COMPARISON = false;
 
 /**
@@ -232,45 +232,152 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 ENABLE_WEBP_TEST &&
                 processedData.imageData.testValues
               ) {
-                console.log('Running WebP compression test...');
+                console.log('Running complete pipeline test...');
 
-                // Decode the WebP buffer back to raw pixels
+                // Step 1: Get the original test values
+                const testIndices = {
+                  1000: processedData.imageData.testValues.index1000,
+                  2000: processedData.imageData.testValues.index2000,
+                  3000: processedData.imageData.testValues.index3000,
+                };
+                console.log('Original test values:', testIndices);
+
+                // Step 2: Log the raw packed RGBA values before WebP compression
+                const packedWidth = processedData.imageData.width;
+                const height = processedData.imageData.height;
+                const originalWidth =
+                  processedData.imageData.originalWidth;
+                const packedData = processedData.imageData.data;
+
+                // Calculate indices in the packed data for our test values
+                const getPackedIndex = (originalIndex) => {
+                  const y = Math.floor(originalIndex / originalWidth);
+                  const x = originalIndex % originalWidth;
+                  const packedX = Math.floor(x / 2);
+                  return (y * packedWidth + packedX) * 4;
+                };
+
+                const idx1000 = getPackedIndex(1000);
+                const idx2000 = getPackedIndex(2000);
+                const idx3000 = getPackedIndex(3000);
+
+                console.log(
+                  'Raw packed data before WebP compression:',
+                );
+                console.table({
+                  'Index 1000': {
+                    'R Channel': packedData[idx1000],
+                    'G Channel': packedData[idx1000 + 1],
+                    'B Channel': packedData[idx1000 + 2],
+                    'A Channel': packedData[idx1000 + 3],
+                  },
+                  'Index 2000': {
+                    'R Channel': packedData[idx2000],
+                    'G Channel': packedData[idx2000 + 1],
+                    'B Channel': packedData[idx2000 + 2],
+                    'A Channel': packedData[idx2000 + 3],
+                  },
+                  'Index 3000': {
+                    'R Channel': packedData[idx3000],
+                    'G Channel': packedData[idx3000 + 1],
+                    'B Channel': packedData[idx3000 + 2],
+                    'A Channel': packedData[idx3000 + 3],
+                  },
+                });
+
+                // Step 3: Test WebP compression/decompression
                 sharp(compressedBuffer)
                   .raw()
                   .toBuffer({ resolveWithObject: true })
                   .then(({ data, info }) => {
-                    // Create test indices object from the test values
-                    const testIndices = {
-                      1000: processedData.imageData.testValues
-                        .index1000,
-                      2000: processedData.imageData.testValues
-                        .index2000,
-                      3000: processedData.imageData.testValues
-                        .index3000,
-                    };
+                    console.log(
+                      'After WebP compression/decompression:',
+                    );
 
+                    // Log the raw packed data after WebP compression/decompression
+                    console.table({
+                      'Index 1000': {
+                        'R Channel': data[idx1000],
+                        'G Channel': data[idx1000 + 1],
+                        'B Channel': data[idx1000 + 2],
+                        'A Channel': data[idx1000 + 3],
+                      },
+                      'Index 2000': {
+                        'R Channel': data[idx2000],
+                        'G Channel': data[idx2000 + 1],
+                        'B Channel': data[idx2000 + 2],
+                        'A Channel': data[idx2000 + 3],
+                      },
+                      'Index 3000': {
+                        'R Channel': data[idx3000],
+                        'G Channel': data[idx3000 + 1],
+                        'B Channel': data[idx3000 + 2],
+                        'A Channel': data[idx3000 + 3],
+                      },
+                    });
+
+                    // Step 4: Test data URL conversion and back
+                    // Convert to data URL (same as in the main code)
+                    const dataUrl = `data:image/webp;base64,${compressedBuffer.toString(
+                      'base64',
+                    )}`;
+
+                    // Step 5: Simulate browser image processing
+                    // We can't directly simulate browser rendering, but we can decode the data URL back to a buffer
+                    const base64Data = dataUrl.split(',')[1];
+                    const decodedBuffer = Buffer.from(
+                      base64Data,
+                      'base64',
+                    );
+
+                    // Step 6: Decode the WebP data again
+                    return sharp(decodedBuffer)
+                      .raw()
+                      .toBuffer({ resolveWithObject: true });
+                  })
+                  .then(({ data, info }) => {
+                    console.log(
+                      'After data URL conversion and back:',
+                    );
+
+                    // Log the raw packed data after data URL conversion
+                    console.table({
+                      'Index 1000': {
+                        'R Channel': data[idx1000],
+                        'G Channel': data[idx1000 + 1],
+                        'B Channel': data[idx1000 + 2],
+                        'A Channel': data[idx1000 + 3],
+                      },
+                      'Index 2000': {
+                        'R Channel': data[idx2000],
+                        'G Channel': data[idx2000 + 1],
+                        'B Channel': data[idx2000 + 2],
+                        'A Channel': data[idx2000 + 3],
+                      },
+                      'Index 3000': {
+                        'R Channel': data[idx3000],
+                        'G Channel': data[idx3000 + 1],
+                        'B Channel': data[idx3000 + 2],
+                        'A Channel': data[idx3000 + 3],
+                      },
+                    });
+
+                    // Step 7: Test unpacking
                     const dimensions = {
-                      originalWidth:
-                        processedData.imageData.originalWidth,
-                      packedWidth: width,
-                      height: height,
+                      originalWidth,
+                      packedWidth,
+                      height,
                     };
 
-                    // We need to create a mock "original data" array with just the test values
-                    // since we don't have the full original array
+                    // Create a mock original data array with just the test values
                     const mockOriginalData = new Uint16Array(
-                      processedData.imageData.originalWidth * height,
+                      originalWidth * height,
                     );
                     mockOriginalData[1000] = testIndices[1000];
                     mockOriginalData[2000] = testIndices[2000];
                     mockOriginalData[3000] = testIndices[3000];
 
-                    console.log(
-                      'WebP compression test - testing values:',
-                      testIndices,
-                    );
-
-                    // Test unpacking the WebP-compressed data
+                    // Test unpacking the data after the full pipeline
                     const results = testPackUnpack(
                       mockOriginalData,
                       new Uint8ClampedArray(data),
@@ -279,11 +386,11 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                       true, // log results
                     );
 
-                    console.log('WebP compression test complete');
+                    console.log('Complete pipeline test finished');
                   })
                   .catch((err) => {
                     console.error(
-                      'Error in WebP compression test:',
+                      'Error in complete pipeline test:',
                       err,
                     );
                   });

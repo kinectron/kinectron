@@ -4,6 +4,7 @@ const BUTTON_INACTIVE_COLOR = '#fff';
 const BUTTON_ACTIVE_COLOR = '#1daad8';
 
 import { PeerController } from './peer/peerController.js';
+import { stopAllStreamsForDebug } from './utils/frameDebugger.js';
 
 class KinectronApp {
   constructor() {
@@ -968,6 +969,11 @@ class KinectronApp {
               height,
             );
 
+            // Create an array to store the unpacked depth values for verification
+            const depthValues = new Uint16Array(
+              originalWidth * height,
+            );
+
             // Unpack the depth data
             for (let y = 0; y < height; y++) {
               for (let x = 0; x < packedWidth; x++) {
@@ -981,7 +987,17 @@ class KinectronApp {
                 const depth2R = packedData[srcIdx + 2];
                 const depth2G = packedData[srcIdx + 3];
 
-                // Store the first depth value
+                // Reconstruct the 16-bit depth values
+                const depth1 = depth1R | (depth1G << 8);
+                const depth2 = depth2R | (depth2G << 8);
+
+                // Store in the depth values array for verification
+                depthValues[y * originalWidth + x * 2] = depth1;
+                if (x * 2 + 1 < originalWidth) {
+                  depthValues[y * originalWidth + x * 2 + 1] = depth2;
+                }
+
+                // Store the first depth value in the image data
                 depthImageData.data[destIdx1] = depth1R; // R
                 depthImageData.data[destIdx1 + 1] = depth1G; // G
                 depthImageData.data[destIdx1 + 2] = 0; // B
@@ -995,6 +1011,80 @@ class KinectronApp {
                   depthImageData.data[destIdx2 + 3] = 255; // A
                 }
               }
+            }
+
+            // Verify test values if they are included in the frame data
+            if (frameData.testValues) {
+              const testValues = frameData.testValues;
+              const unpackedValue1000 = depthValues[1000];
+              const unpackedValue2000 = depthValues[2000];
+              const unpackedValue3000 = depthValues[3000];
+
+              console.log('APP TEST VALUES COMPARISON:');
+              console.table({
+                'Index 1000': {
+                  Original: testValues.index1000,
+                  Unpacked: unpackedValue1000,
+                  Difference:
+                    testValues.index1000 - unpackedValue1000,
+                },
+                'Index 2000': {
+                  Original: testValues.index2000,
+                  Unpacked: unpackedValue2000,
+                  Difference:
+                    testValues.index2000 - unpackedValue2000,
+                },
+                'Index 3000': {
+                  Original: testValues.index3000,
+                  Unpacked: unpackedValue3000,
+                  Difference:
+                    testValues.index3000 - unpackedValue3000,
+                },
+              });
+
+              // Log the raw packed data for the test indices
+              const getPackedIndices = (originalIndex) => {
+                const y = Math.floor(originalIndex / originalWidth);
+                const x = originalIndex % originalWidth;
+                const packedX = Math.floor(x / 2);
+                const packedIdx = (y * packedWidth + packedX) * 4;
+                return {
+                  packedIdx,
+                  isFirstValue: x % 2 === 0,
+                };
+              };
+
+              const idx1000 = getPackedIndices(1000);
+              const idx2000 = getPackedIndices(2000);
+              const idx3000 = getPackedIndices(3000);
+
+              console.log('RAW PACKED DATA FOR TEST INDICES:');
+              console.table({
+                'Index 1000': {
+                  'Packed Index': idx1000.packedIdx,
+                  'Is First Value': idx1000.isFirstValue,
+                  'R Channel': packedData[idx1000.packedIdx],
+                  'G Channel': packedData[idx1000.packedIdx + 1],
+                  'B Channel': packedData[idx1000.packedIdx + 2],
+                  'A Channel': packedData[idx1000.packedIdx + 3],
+                },
+                'Index 2000': {
+                  'Packed Index': idx2000.packedIdx,
+                  'Is First Value': idx2000.isFirstValue,
+                  'R Channel': packedData[idx2000.packedIdx],
+                  'G Channel': packedData[idx2000.packedIdx + 1],
+                  'B Channel': packedData[idx2000.packedIdx + 2],
+                  'A Channel': packedData[idx2000.packedIdx + 3],
+                },
+                'Index 3000': {
+                  'Packed Index': idx3000.packedIdx,
+                  'Is First Value': idx3000.isFirstValue,
+                  'R Channel': packedData[idx3000.packedIdx],
+                  'G Channel': packedData[idx3000.packedIdx + 1],
+                  'B Channel': packedData[idx3000.packedIdx + 2],
+                  'A Channel': packedData[idx3000.packedIdx + 3],
+                },
+              });
             }
 
             // Draw the unpacked depth data
