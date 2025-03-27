@@ -6,6 +6,9 @@ class UIController {
   constructor() {
     // Cache DOM elements
     this.elements = {
+      initializeKinectBtn: document.getElementById(
+        'initializeKinectBtn',
+      ),
       startColorBtn: document.getElementById('startColorBtn'),
       startDepthBtn: document.getElementById('startDepthBtn'),
       startRawDepthBtn: document.getElementById('startRawDepthBtn'),
@@ -163,6 +166,16 @@ class UIController {
   updateResolution(resolution) {
     if (this.elements.resolution) {
       this.elements.resolution.textContent = `Resolution: ${resolution}`;
+    }
+  }
+
+  /**
+   * Enable the Initialize Kinect button
+   * This is called when the peer connection is established
+   */
+  enableInitializeKinectButton() {
+    if (this.elements.initializeKinectBtn) {
+      this.elements.initializeKinectBtn.disabled = false;
     }
   }
 

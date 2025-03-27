@@ -9,7 +9,6 @@ class KinectController {
     this.ui = dependencies.ui;
     this.visualization = dependencies.visualization;
 
-    this.kinectron = null;
     this.isStreamActive = false;
     this.currentStreamType = null;
 
@@ -29,6 +28,27 @@ class KinectController {
 
     // Set up UI event handlers
     this._setupUIEventHandlers();
+
+    // Create Kinectron instance and connect to peer server
+    this.debug.addDebugInfo(
+      'Creating Kinectron instance and connecting to peer server...',
+      true,
+    );
+    this.kinectron = new Kinectron({
+      host: '127.0.0.1',
+      port: 9001,
+      path: '/',
+    });
+
+    // Set up Kinectron event handlers
+    this._setupKinectronEvents();
+
+    // Connect to server
+    this.kinectron.peer.connect();
+    this.ui.updateConnectionStatus(
+      'Connecting to peer server...',
+      false,
+    );
   }
 
   /**
@@ -64,26 +84,11 @@ class KinectController {
   }
 
   /**
-   * Initialize Kinectron and connect to the server
+   * Initialize Kinect hardware
    */
   async initKinect() {
     this.ui.updateStreamStatus('Initializing Kinect...');
     this.debug.addDebugInfo('Initializing Kinect...', true);
-
-    // Initialize Kinectron if not already initialized
-    if (!this.kinectron) {
-      this.kinectron = new Kinectron({
-        host: '127.0.0.1',
-        port: 9001,
-        path: '/',
-      });
-
-      // Set up Kinectron event handlers
-      this._setupKinectronEvents();
-
-      // Connect to server
-      this.kinectron.peer.connect();
-    }
 
     try {
       // Initialize Kinect on the server
@@ -157,7 +162,8 @@ class KinectController {
     this.kinectron.on('ready', () => {
       this.ui.updateConnectionStatus('Connected', true);
       this.debug.addDebugInfo('Peer connection ready', true);
-      // Note: We do NOT enable buttons here. Buttons should only be enabled after Kinect initialization.
+      // Enable the Initialize Kinect button now that we're connected
+      this.ui.enableInitializeKinectButton();
     });
 
     this.kinectron.on('error', (error) => {

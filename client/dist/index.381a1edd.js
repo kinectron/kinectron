@@ -7,7 +7,6 @@
         this.metrics = dependencies.metrics;
         this.ui = dependencies.ui;
         this.visualization = dependencies.visualization;
-        this.kinectron = null;
         this.isStreamActive = false;
         this.currentStreamType = null;
         // Constants
@@ -24,6 +23,18 @@
         this.stopStream = this.stopStream.bind(this);
         // Set up UI event handlers
         this._setupUIEventHandlers();
+        // Create Kinectron instance and connect to peer server
+        this.debug.addDebugInfo('Creating Kinectron instance and connecting to peer server...', true);
+        this.kinectron = new Kinectron({
+            host: '127.0.0.1',
+            port: 9001,
+            path: '/'
+        });
+        // Set up Kinectron event handlers
+        this._setupKinectronEvents();
+        // Connect to server
+        this.kinectron.peer.connect();
+        this.ui.updateConnectionStatus('Connecting to peer server...', false);
     }
     /**
    * Initialize the controller
@@ -52,22 +63,10 @@
         });
     }
     /**
-   * Initialize Kinectron and connect to the server
+   * Initialize Kinect hardware
    */ async initKinect() {
         this.ui.updateStreamStatus('Initializing Kinect...');
         this.debug.addDebugInfo('Initializing Kinect...', true);
-        // Initialize Kinectron if not already initialized
-        if (!this.kinectron) {
-            this.kinectron = new Kinectron({
-                host: '127.0.0.1',
-                port: 9001,
-                path: '/'
-            });
-            // Set up Kinectron event handlers
-            this._setupKinectronEvents();
-            // Connect to server
-            this.kinectron.peer.connect();
-        }
         try {
             // Initialize Kinect on the server
             this.debug.addDebugInfo('Calling kinectron.initKinect()', true);
@@ -102,7 +101,8 @@
         this.kinectron.on('ready', ()=>{
             this.ui.updateConnectionStatus('Connected', true);
             this.debug.addDebugInfo('Peer connection ready', true);
-        // Note: We do NOT enable buttons here. Buttons should only be enabled after Kinect initialization.
+            // Enable the Initialize Kinect button now that we're connected
+            this.ui.enableInitializeKinectButton();
         });
         this.kinectron.on('error', (error)=>{
             this.ui.updateConnectionStatus(`Error - ${error.error || error.message}`, false);
