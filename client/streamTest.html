@@ -76,13 +76,36 @@
         <div>
             <button onclick="forceEnableButtons()">Force Enable Buttons</button>
             <button onclick="clearDebugInfo()">Clear Debug Info</button>
+            <div style="margin-top: 10px;">
+                <label>
+                    <input type="checkbox" id="debugToggle" onchange="toggleDebug(this.checked)">
+                    Enable Debug Logging
+                </label>
+                <div style="margin-top: 5px;">
+                    <label>
+                        <input type="checkbox" id="debugPerformance" onchange="togglePerformanceDebug(this.checked)">
+                        Performance Logs
+                    </label>
+                    <label style="margin-left: 10px;">
+                        <input type="checkbox" id="debugData" onchange="toggleDataDebug(this.checked)">
+                        Data Integrity Logs
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
     <script type="module">
         import { Kinectron } from './src/kinectron-modern.js';
+        import { DEBUG } from './src/utils/debug.js';
         window.Kinectron = Kinectron;
+        window.DEBUG = DEBUG;
+
+        // Initialize DEBUG flags to false by default
+        DEBUG.RAW_DEPTH = false;
+        DEBUG.PERFORMANCE = false;
+        DEBUG.DATA = false;
     </script>
     <script>
         // Constants
@@ -253,7 +276,8 @@
             }
 
             // Log statistics (only occasionally to avoid flooding the console)
-            if (Math.random() < 0.05) {
+            if (Math.random() < 0.05 && window.DEBUG.RAW_DEPTH && window.DEBUG.PERFORMANCE) {
+                console.group('Raw Depth Statistics');
                 console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
                 console.log(`Zero values: ${zeroCount}, Non-zero values: ${nonZeroCount}`);
 
@@ -274,6 +298,7 @@
                     const sampleValues = validValues.slice(0, sampleSize);
                     console.log("Sample depth values:", sampleValues);
                 }
+                console.groupEnd();
             }
 
             // Camera view scale factor - adjust this to change the overall scale of the point cloud
@@ -307,7 +332,7 @@
             }
 
             // Log some debug info about the point cloud
-            if (Math.random() < 0.01) {  // Only log occasionally
+            if (Math.random() < 0.01 && window.DEBUG.RAW_DEPTH && window.DEBUG.DATA) {  // Only log occasionally
                 // Sample a few points to check their z values
                 const samplePoints = [];
                 for (let i = 0; i < 5; i++) {
@@ -345,6 +370,10 @@
             pixelDensity(1);
             background(255);
 
+            // Initialize debug controls
+            document.getElementById('debugPerformance').disabled = true;
+            document.getElementById('debugData').disabled = true;
+
             // Initialize Kinectron
             kinectron = new Kinectron({
                 host: '127.0.0.1',
@@ -356,25 +385,18 @@
             kinectron.on('ready', () => {
                 document.getElementById('connectionStatus').innerHTML =
                     '<span class="success">Connection Status: Connected</span>';
-                addDebugInfo('Peer connection ready');
+                addDebugInfo('Peer connection ready', true);
             });
 
             kinectron.on('error', (error) => {
                 document.getElementById('connectionStatus').innerHTML =
                     `<span class="error">Connection Status: Error - ${error.error || error.message}</span>`;
                 console.error('Connection error:', error);
-                addDebugInfo(`Connection error: ${error.error || error.message}`);
+                addDebugInfo(`Connection error: ${error.error || error.message}`, true);
             });
 
             // Direct event listener for kinectInitialized as a backup approach
             kinectron.on('kinectInitialized', (data) => {
-                addDebugInfo(`Direct kinectInitialized event received: ${JSON.stringify(data)}`);
-
-                // Log button states before update
-                const startBtnBefore = document.getElementById('startColorBtn').disabled;
-                const stopBtnBefore = document.getElementById('stopStreamBtn').disabled;
-                addDebugInfo(`Button states before: startColorBtn=${startBtnBefore}, stopStreamBtn=${stopBtnBefore}`);
-
                 // Normalize the success value to handle nested structure
                 let isSuccess = false;
                 if (data.success && typeof data.success === 'object' && data.success.success === true) {
@@ -391,20 +413,17 @@
                     document.getElementById('stopStreamBtn').disabled = false;
                     document.getElementById('streamStatus').innerHTML =
                         '<span class="success">Kinect Initialized via Direct Event</span>';
-                    addDebugInfo('Kinect initialized successfully via direct event');
+                    addDebugInfo('Kinect initialized successfully via direct event', true);
                 } else {
-                    addDebugInfo(`Kinect initialization had issues: ${data.error || 'Unknown error'}`);
+                    addDebugInfo(`Kinect initialization had issues: ${data.error || 'Unknown error'}`, true);
                 }
-
-                // Log button states after update
-                const startBtnAfter = document.getElementById('startColorBtn').disabled;
-                const stopBtnAfter = document.getElementById('stopStreamBtn').disabled;
-                addDebugInfo(`Button states after: startColorBtn=${startBtnAfter}, stopStreamBtn=${stopBtnAfter}`);
             });
 
             // Add a data event listener to capture all peer messages
             kinectron.on('data', (data) => {
-                addDebugInfo(`Raw data event received: ${JSON.stringify(data)}`);
+                if (window.DEBUG.RAW_DEPTH) {
+                    console.log('Raw data event received:', data);
+                }
             });
 
             // Connect to server
@@ -449,8 +468,41 @@
             return frameRates.reduce((a, b) => a + b, 0) / frameRates.length;
         }
 
+        // Debug toggle functions
+        function toggleDebug(enabled) {
+            if (enabled) {
+                window.DEBUG.RAW_DEPTH = true;
+                document.getElementById('debugPerformance').disabled = false;
+                document.getElementById('debugData').disabled = false;
+            } else {
+                window.DEBUG.RAW_DEPTH = false;
+                window.DEBUG.PERFORMANCE = false;
+                window.DEBUG.DATA = false;
+                document.getElementById('debugPerformance').checked = false;
+                document.getElementById('debugData').checked = false;
+                document.getElementById('debugPerformance').disabled = true;
+                document.getElementById('debugData').disabled = true;
+            }
+            addDebugInfo(`Debug logging ${enabled ? 'enabled' : 'disabled'}`, true);
+        }
+
+        function togglePerformanceDebug(enabled) {
+            window.DEBUG.PERFORMANCE = enabled;
+            addDebugInfo(`Performance logging ${enabled ? 'enabled' : 'disabled'}`, true);
+        }
+
+        function toggleDataDebug(enabled) {
+            window.DEBUG.DATA = enabled;
+            addDebugInfo(`Data integrity logging ${enabled ? 'enabled' : 'disabled'}`, true);
+        }
+
         // Debug functions
-        function addDebugInfo(message) {
+        function addDebugInfo(message, isEssential = false) {
+            // Only log essential messages or when debugging is enabled
+            if (!isEssential && !window.DEBUG.RAW_DEPTH) {
+                return; // Skip non-essential logs when debugging is disabled
+            }
+
             const debugInfo = document.getElementById('debugInfo');
             const timestamp = new Date().toLocaleTimeString();
             const entry = document.createElement('div');
@@ -466,7 +518,7 @@
             document.getElementById('startDepthBtn').disabled = false;
             document.getElementById('startRawDepthBtn').disabled = false;
             document.getElementById('stopStreamBtn').disabled = false;
-            addDebugInfo('Buttons forcibly enabled');
+            addDebugInfo('Buttons forcibly enabled', true);
         }
 
         function clearDebugInfo() {
@@ -476,23 +528,20 @@
         // Initialize Kinect
         window.initializeKinect = async function () {
             document.getElementById('streamStatus').textContent = 'Initializing Kinect...';
-            addDebugInfo('Initializing Kinect...');
+            addDebugInfo('Initializing Kinect...', true);
 
             try {
                 // Initialize Kinect on the server using Promise-based approach
-                addDebugInfo('Calling kinectron.initKinect()');
+                addDebugInfo('Calling kinectron.initKinect()', true);
                 const result = await kinectron.initKinect();
 
-                addDebugInfo(`Kinect initialization result: ${JSON.stringify(result)}`);
-
-                // Log button states before update
-                const startBtnBefore = document.getElementById('startColorBtn').disabled;
-                const stopBtnBefore = document.getElementById('stopStreamBtn').disabled;
-                addDebugInfo(`Button states before update: startColorBtn=${startBtnBefore}, stopStreamBtn=${stopBtnBefore}`);
+                if (window.DEBUG.RAW_DEPTH) {
+                    console.log('Kinect initialization result:', result);
+                }
 
                 // Check for success in the normalized result
                 if (result.success || result.alreadyInitialized) {
-                    addDebugInfo('Kinect initialized successfully - enabling buttons');
+                    addDebugInfo('Kinect initialized successfully - enabling buttons', true);
                     document.getElementById('streamStatus').innerHTML =
                         `<span class="success">Kinect ${result.alreadyInitialized ? 'Already' : ''} Initialized Successfully</span>`;
 
@@ -502,23 +551,18 @@
                     document.getElementById('startRawDepthBtn').disabled = false;
                     document.getElementById('stopStreamBtn').disabled = false;
                 } else {
-                    addDebugInfo(`Kinect initialization failed: ${result.error || 'Unknown error'}`);
+                    addDebugInfo(`Kinect initialization failed: ${result.error || 'Unknown error'}`, true);
                     document.getElementById('streamStatus').innerHTML =
                         `<span class="error">Kinect Initialization Failed: ${result.error || 'Unknown error'}</span>`;
                 }
 
-                // Log button states after update
-                const startBtnAfter = document.getElementById('startColorBtn').disabled;
-                const stopBtnAfter = document.getElementById('stopStreamBtn').disabled;
-                addDebugInfo(`Button states after update: startColorBtn=${startBtnAfter}, stopStreamBtn=${stopBtnAfter}`);
-
                 // Try to force enable buttons if they're still disabled
-                if (startBtnAfter || stopBtnAfter) {
-                    addDebugInfo('Buttons still disabled after update, forcing enable...');
+                if (document.getElementById('startColorBtn').disabled || document.getElementById('stopStreamBtn').disabled) {
+                    addDebugInfo('Buttons still disabled after update, forcing enable...', true);
                     forceEnableButtons();
                 }
             } catch (error) {
-                addDebugInfo(`Error initializing Kinect: ${error.message || 'Unknown error'}`);
+                addDebugInfo(`Error initializing Kinect: ${error.message || 'Unknown error'}`, true);
                 document.getElementById('streamStatus').innerHTML =
                     `<span class="error">Kinect Initialization Failed: ${error.message || 'Unknown error'}</span>`;
             }
@@ -534,9 +578,6 @@
             isStreamActive = true;
 
             kinectron.startColor((frame) => {
-                // Log frame data for debugging
-                addDebugInfo(`Received color frame: width=${frame.width}, height=${frame.height}, timestamp=${frame.timestamp}`);
-
                 // Update stream status
                 document.getElementById('streamStatus').innerHTML =
                     '<span class="success">Stream Status: Active (Color)</span>';
@@ -558,7 +599,10 @@
                 if (frame.timestamp) {
                     const latency = now - frame.timestamp;
                     frameLatencies.push(latency);
-                    addDebugInfo(`Frame latency: ${latency}ms`);
+
+                    if (window.DEBUG.RAW_DEPTH && window.DEBUG.PERFORMANCE) {
+                        console.log(`Color frame latency: ${latency}ms`);
+                    }
                 }
 
                 // Track last frame timestamp for jitter calculation
@@ -570,7 +614,10 @@
                     background(255);
                     // Draw the image
                     image(loadedImage, 0, 0, width, height);
-                    addDebugInfo(`Image drawn to canvas: ${loadedImage.width}x${loadedImage.height}`);
+
+                    if (window.DEBUG.RAW_DEPTH) {
+                        console.log(`Color image drawn: ${loadedImage.width}x${loadedImage.height}`);
+                    }
                 });
             });
         }
@@ -588,13 +635,8 @@
             resizeCanvas(AZURE_DEPTH_WIDTH * DISPLAY_SCALE, AZURE_DEPTH_HEIGHT * DISPLAY_SCALE);
             background(255);
 
-            addDebugInfo('Calling kinectron.startDepth()');
+            addDebugInfo('Starting depth stream...', true);
             kinectron.startDepth((frame) => {
-                // Log frame data for debugging
-                addDebugInfo(`Received depth frame: width=${frame.width}, height=${frame.height}, timestamp=${frame.timestamp}`);
-                addDebugInfo(`Frame src type: ${typeof frame.src}, starts with: ${frame.src ? frame.src.substring(0, 30) + '...' : 'undefined'}`);
-                addDebugInfo(`Frame raw data: ${JSON.stringify(frame.raw).substring(0, 100)}...`);
-
                 // Update stream status
                 document.getElementById('streamStatus').innerHTML =
                     '<span class="success">Stream Status: Active (Depth)</span>';
@@ -616,7 +658,10 @@
                 if (frame.timestamp) {
                     const latency = now - frame.timestamp;
                     frameLatencies.push(latency);
-                    addDebugInfo(`Frame latency: ${latency}ms`);
+
+                    if (window.DEBUG.RAW_DEPTH && window.DEBUG.PERFORMANCE) {
+                        console.log(`Depth frame latency: ${latency}ms`);
+                    }
                 }
 
                 // Track last frame timestamp for jitter calculation
@@ -624,21 +669,23 @@
 
                 // Use p5.js loadImage to handle the frame data
                 if (frame.src) {
-                    addDebugInfo('Loading image from frame.src');
                     loadImage(frame.src,
                         (loadedImage) => {
                             // Clear canvas
                             background(255);
                             // Draw the image
                             image(loadedImage, 0, 0, width, height);
-                            addDebugInfo(`Image drawn to canvas: ${loadedImage.width}x${loadedImage.height}`);
+
+                            if (window.DEBUG.RAW_DEPTH) {
+                                console.log(`Depth image drawn: ${loadedImage.width}x${loadedImage.height}`);
+                            }
                         },
                         (err) => {
-                            addDebugInfo(`Error loading image: ${err}`);
+                            console.error(`Error loading depth image: ${err}`);
                         }
                     );
                 } else {
-                    addDebugInfo('No frame.src available to load image');
+                    console.warn('No frame.src available to load depth image');
                 }
             });
         }
@@ -661,11 +708,8 @@
                 initThreeJS();
             }
 
-            addDebugInfo('Calling kinectron.startRawDepth()');
+            addDebugInfo('Starting raw depth stream...', true);
             kinectron.startRawDepth((frame) => {
-                // Log frame data for debugging
-                addDebugInfo(`Received raw depth frame: timestamp=${frame.timestamp}`);
-
                 // Update stream status
                 document.getElementById('streamStatus').innerHTML =
                     '<span class="success">Stream Status: Active (Raw Depth)</span>';
@@ -687,7 +731,10 @@
                 if (frame.timestamp) {
                     const latency = now - frame.timestamp;
                     frameLatencies.push(latency);
-                    addDebugInfo(`Frame latency: ${latency}ms`);
+
+                    if (window.DEBUG.RAW_DEPTH && window.DEBUG.PERFORMANCE) {
+                        console.log(`Raw depth frame latency: ${latency}ms`);
+                    }
                 }
 
                 // Track last frame timestamp for jitter calculation
@@ -698,64 +745,34 @@
                     // Update the point cloud with the depth values
                     updatePointCloud(frame.depthValues);
 
-                    // Log some stats about the depth values
-                    const totalValues = frame.depthValues.length;
+                    // Update resolution info
+                    document.getElementById('resolution').textContent =
+                        `Resolution: ${frame.width}x${frame.height} | Depth Values: ${frame.depthValues.length} | Avg Latency: ${frameLatencies.length > 0 ? (frameLatencies.reduce((a, b) => a + b, 0) / frameLatencies.length).toFixed(1) : 0}ms`;
 
-                    // Calculate min, max, and average depth
-                    let validCount = 0;
-                    let sum = 0;
-                    let min = Number.MAX_VALUE;
-                    let max = 0;
+                    if (window.DEBUG.RAW_DEPTH && window.DEBUG.DATA) {
+                        // Calculate min, max, and average depth for console logging
+                        let validCount = 0;
+                        let sum = 0;
+                        let min = Number.MAX_VALUE;
+                        let max = 0;
 
-                    for (let i = 0; i < frame.depthValues.length; i++) {
-                        const depth = frame.depthValues[i];
-                        if (depth >= 100 && depth <= 3000) {
-                            validCount++;
-                            sum += depth;
-                            min = Math.min(min, depth);
-                            max = Math.max(max, depth);
-                        }
-                    }
-
-                    const avg = validCount > 0 ? sum / validCount : 0;
-
-                    // Add detailed depth stats to debug panel
-                    addDebugInfo(`Depth values: ${totalValues} points, ${validCount} valid points`);
-                    addDebugInfo(`Depth range: min=${min}, max=${max}, avg=${avg.toFixed(2)}`);
-
-                    // Log a sample of the depth values
-                    const sample = Array.from(frame.depthValues.slice(0, 10));
-                    addDebugInfo(`Depth values sample: ${JSON.stringify(sample)}`);
-
-                    // Check for quantization in the depth values
-                    if (validCount > 100) {
-                        // Create a set of unique depth values in the first 1000 points
-                        const uniqueDepths = new Set();
-                        for (let i = 0; i < Math.min(1000, frame.depthValues.length); i++) {
+                        for (let i = 0; i < frame.depthValues.length; i++) {
                             const depth = frame.depthValues[i];
                             if (depth >= 100 && depth <= 3000) {
-                                uniqueDepths.add(depth);
+                                validCount++;
+                                sum += depth;
+                                min = Math.min(min, depth);
+                                max = Math.max(max, depth);
                             }
                         }
 
-                        // Log the number of unique depth values
-                        addDebugInfo(`Unique depth values in sample: ${uniqueDepths.size}`);
+                        const avg = validCount > 0 ? sum / validCount : 0;
 
-                        // Log some actual depth values for debugging
-                        const depthSample = [];
-                        for (let i = 0; i < 10; i++) {
-                            const idx = Math.floor(Math.random() * frame.depthValues.length);
-                            depthSample.push({
-                                index: idx,
-                                depth: frame.depthValues[idx]
-                            });
-                        }
-                        addDebugInfo(`Depth sample: ${JSON.stringify(depthSample)}`);
+                        console.group('Raw Depth Frame Data');
+                        console.log(`Depth values: ${frame.depthValues.length} points, ${validCount} valid points`);
+                        console.log(`Depth range: min=${min}, max=${max}, avg=${avg.toFixed(2)}`);
+                        console.groupEnd();
                     }
-
-                    // Update resolution info
-                    document.getElementById('resolution').textContent =
-                        `Resolution: ${frame.originalWidth}x${frame.height} | Depth Values: ${totalValues} | Avg Latency: ${frameLatencies.length > 0 ? (frameLatencies.reduce((a, b) => a + b, 0) / frameLatencies.length).toFixed(1) : 0}ms`;
                 }
             });
         }
@@ -766,6 +783,7 @@
             document.getElementById('streamStatus').textContent = 'Stream Status: Inactive';
             document.getElementById('frameRate').textContent = 'Frame Rate: 0 fps';
             document.getElementById('resolution').textContent = 'Resolution: -';
+            addDebugInfo('Stream stopped', true);
 
             // Show p5 canvas and hide Three.js canvas
             document.getElementById('canvas-container').style.display = 'block';

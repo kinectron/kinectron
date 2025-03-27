@@ -4,6 +4,7 @@ import { BaseStreamHandler } from './baseHandler.js';
 import { RawDepthFrameProcessor } from '../processors/rawDepthProcessor.js';
 import { KinectOptions } from '../kinectController.js';
 import { testPackUnpack } from '../utils/dataTestUtils.js';
+import { DEBUG } from '../utils/debug.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const sharp = require('sharp');
@@ -68,9 +69,7 @@ function calculateDataSize(data) {
   };
 }
 
-// Flags to enable/disable tests
-const ENABLE_WEBP_TEST = false;
-const ENABLE_COMPRESSION_COMPARISON = false;
+// Debug flags are now controlled by the DEBUG object in utils/debug.js
 
 /**
  * Handles raw depth stream operations and IPC communication
@@ -117,9 +116,11 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
             .toBuffer()
             .then((compressedBuffer) => {
               // Log the size of the compressed buffer
-              console.log(
-                `Compressed buffer size: ${compressedBuffer.length} bytes`,
-              );
+              if (DEBUG.RAW_DEPTH && DEBUG.PERFORMANCE) {
+                console.log(
+                  `Compressed buffer size: ${compressedBuffer.length} bytes`,
+                );
+              }
 
               // Convert to data URL
               const dataUrl = `data:image/webp;base64,${compressedBuffer.toString(
@@ -140,27 +141,29 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
               };
 
               // Calculate and log the size information
-              const sizeInfo = calculateDataSize(frameData);
-              console.log('Raw Depth Frame Size Information:');
-              console.log(
-                `  In-memory estimate: ${sizeInfo.inMemorySize} bytes`,
-              );
-              console.log(
-                `  Serialized size: ${sizeInfo.serializedSize} bytes`,
-              );
-              console.log(
-                `  Binary data size: ${sizeInfo.binarySize} bytes`,
-              );
-              console.log(
-                `  Total transmission size: ${sizeInfo.totalSize} bytes`,
-              );
+              if (DEBUG.RAW_DEPTH && DEBUG.PERFORMANCE) {
+                const sizeInfo = calculateDataSize(frameData);
+                console.log('Raw Depth Frame Size Information:');
+                console.log(
+                  `  In-memory estimate: ${sizeInfo.inMemorySize} bytes`,
+                );
+                console.log(
+                  `  Serialized size: ${sizeInfo.serializedSize} bytes`,
+                );
+                console.log(
+                  `  Binary data size: ${sizeInfo.binarySize} bytes`,
+                );
+                console.log(
+                  `  Total transmission size: ${sizeInfo.totalSize} bytes`,
+                );
 
-              // Log the size of the JSON message
-              const jsonSize = JSON.stringify(frameData).length;
-              console.log(`JSON message size: ${jsonSize} bytes`);
+                // Log the size of the JSON message
+                const jsonSize = JSON.stringify(frameData).length;
+                console.log(`JSON message size: ${jsonSize} bytes`);
+              }
 
               // Run compression comparison test if enabled
-              if (ENABLE_COMPRESSION_COMPARISON) {
+              if (DEBUG.RAW_DEPTH && DEBUG.PERFORMANCE) {
                 console.log(
                   'Running WebP lossless vs lossy comparison...',
                 );
@@ -231,7 +234,8 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
 
               // Test WebP compression if enabled
               if (
-                ENABLE_WEBP_TEST &&
+                DEBUG.RAW_DEPTH &&
+                DEBUG.DATA &&
                 processedData.imageData.testValues
               ) {
                 console.log('Running complete pipeline test...');
@@ -462,14 +466,18 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
               );
             });
         } else {
-          console.error(
-            'RawDepthStreamHandler: Failed to process raw depth frame, processedData is null or missing imageData',
-          );
+          if (DEBUG.RAW_DEPTH) {
+            console.error(
+              'RawDepthStreamHandler: Failed to process raw depth frame, processedData is null or missing imageData',
+            );
+          }
         }
       } else {
-        console.warn(
-          'RawDepthStreamHandler: Received frame callback without depthImageFrame',
-        );
+        if (DEBUG.RAW_DEPTH) {
+          console.warn(
+            'RawDepthStreamHandler: Received frame callback without depthImageFrame',
+          );
+        }
       }
     };
   }
@@ -480,9 +488,11 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
   setupHandler() {
     // Check if handler is already registered
     if (ipcMain.listenerCount('start-raw-depth-stream') > 0) {
-      console.log(
-        'Handler for start-raw-depth-stream already registered',
-      );
+      if (DEBUG.RAW_DEPTH) {
+        console.log(
+          'Handler for start-raw-depth-stream already registered',
+        );
+      }
       return;
     }
 

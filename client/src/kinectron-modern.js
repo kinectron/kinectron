@@ -452,6 +452,22 @@ export class Kinectron {
     originalWidth,
     testValues,
   ) {
+    // Import the debug configuration
+    import('./utils/debug.js')
+      .then(({ DEBUG }) => {
+        // Enable debug if needed
+        if (DEBUG.RAW_DEPTH) {
+          console.log(
+            'Unpacking raw depth data with dimensions:',
+            width,
+            'x',
+            height,
+          );
+        }
+      })
+      .catch((err) => {
+        // Silently fail if debug module can't be loaded
+      });
     return new Promise((resolve, reject) => {
       // Create image to load the data URL
       const img = new Image();
@@ -479,27 +495,39 @@ export class Kinectron {
 
         // Verify test values if provided
         if (testValues) {
-          const unpackedValue1000 = depthValues[1000];
-          const unpackedValue2000 = depthValues[2000];
-          const unpackedValue3000 = depthValues[3000];
+          // Import the debug configuration
+          import('./utils/debug.js')
+            .then(({ DEBUG }) => {
+              if (DEBUG.RAW_DEPTH && DEBUG.DATA) {
+                const unpackedValue1000 = depthValues[1000];
+                const unpackedValue2000 = depthValues[2000];
+                const unpackedValue3000 = depthValues[3000];
 
-          console.log('Test values comparison:', {
-            'Index 1000': {
-              Original: testValues.index1000,
-              Unpacked: unpackedValue1000,
-              Difference: testValues.index1000 - unpackedValue1000,
-            },
-            'Index 2000': {
-              Original: testValues.index2000,
-              Unpacked: unpackedValue2000,
-              Difference: testValues.index2000 - unpackedValue2000,
-            },
-            'Index 3000': {
-              Original: testValues.index3000,
-              Unpacked: unpackedValue3000,
-              Difference: testValues.index3000 - unpackedValue3000,
-            },
-          });
+                console.log('Test values comparison:', {
+                  'Index 1000': {
+                    Original: testValues.index1000,
+                    Unpacked: unpackedValue1000,
+                    Difference:
+                      testValues.index1000 - unpackedValue1000,
+                  },
+                  'Index 2000': {
+                    Original: testValues.index2000,
+                    Unpacked: unpackedValue2000,
+                    Difference:
+                      testValues.index2000 - unpackedValue2000,
+                  },
+                  'Index 3000': {
+                    Original: testValues.index3000,
+                    Unpacked: unpackedValue3000,
+                    Difference:
+                      testValues.index3000 - unpackedValue3000,
+                  },
+                });
+              }
+            })
+            .catch((err) => {
+              // Silently fail if debug module can't be loaded
+            });
         }
 
         resolve(depthValues);
