@@ -1,8 +1,8 @@
 # Active Context
 
-## Current Focus: Raw Depth Processing and Visualization
+## Current Focus: Debugging System and Raw Depth Completion
 
-We're currently working on implementing the raw depth stream processing and visualization. The color and depth streams are fully implemented, and we've successfully implemented the raw depth stream with a new approach.
+We've completed the raw depth stream implementation and added a comprehensive debugging system for both application and client.
 
 ### Current Status
 
@@ -11,28 +11,29 @@ We're currently working on implementing the raw depth stream processing and visu
    - All streams accessible from the application UI
 
 2. **Stream Implementation**:
+
    - Color stream fully implemented
    - Depth stream fully implemented
-   - Raw depth stream successfully implemented:
-     - Client-to-hardware data flow working (client requests properly activate the Kinect)
-     - Raw depth image is properly displayed in the application UI
-     - Hardware-to-client data flow successfully implemented with data packing solution
-     - Client-side unpacking of raw depth data implemented and working correctly
-     - Basic point cloud visualization implemented
-     - Successfully switched from putting two depth values into a 4-channel pixel to only putting one depth value per four channels
-     - Confirmed that the packing/unpacking algorithm works correctly on both server and client sides
-     - Implemented lossless WebP compression which preserves all depth values
-     - Added size logging which shows messages are ~51KB
-     - Resolved "Message too big for JSON channel" errors in PeerJS by changing serialization method from JSON to binary
-     - Created a utility for testing data packing/unpacking
-     - Added a flag-controlled test value system for debugging
-     - Issue with "Stop Stream" button in streamTest.html - it stops the stream in the UI but doesn't stop the stream on the server side
+   - Raw depth stream fully implemented:
+     - Client-to-hardware data flow working
+     - Raw depth image properly displayed in the application UI
+     - Hardware-to-client data flow working with data packing solution
+     - Client-side unpacking of raw depth data working correctly
+     - Point cloud visualization implemented
+     - Lossless WebP compression preserving all depth values
+     - "Stop Stream" button now working correctly in streamTest.html
+
+3. **Debugging System**:
+   - Implemented flag-based debugging system for both application and client
+   - Added UI controls in streamTest.html for toggling debug flags
+   - Created categories for different types of logs (performance, data, network)
+   - Reduced console noise by making logs conditional on debug flags
 
 ### Next Steps
 
-- **Fix the "Stop Stream" button in streamTest.html**
-  - Ensure it properly stops the raw depth stream on the server side
-  - Compare with the working implementation in app.js
+- **Enhance Raw Depth Visualization**
+  - Improve point cloud visualization quality
+  - Explore alternative visualization techniques if needed
 
 ## Active Decisions
 
@@ -54,4 +55,8 @@ We're currently working on implementing the raw depth stream processing and visu
   2. Implement color mapping based on depth values
   3. Add detailed depth statistics and analysis tools
 
-- Prioritizing performance and reliability in the streaming pipeline
+- Implementing a structured debugging system:
+  1. Flag-based approach with master and category-specific flags
+  2. UI controls for toggling debug modes
+  3. Console organization with console.group() for related logs
+  4. Essential vs. non-essential message differentiation

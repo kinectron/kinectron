@@ -10,7 +10,8 @@
 - RGBD (color + depth) visualization
 - Raw depth data transmission from hardware to client
 - Raw depth data unpacking on client side
-- Basic point cloud visualization of raw depth data
+- Point cloud visualization of raw depth data
+- Debugging system with flag-based controls
 
 ## Completed Features
 
@@ -35,7 +36,7 @@
 
 ### Raw Depth Stream Implementation
 
-- **Status**: Completed with one remaining issue
+- **Status**: Completed and working correctly
 - **Implementation**:
   - Client-to-hardware data flow working (client requests properly activate the Kinect)
   - Raw depth image is properly displayed in the application UI
@@ -53,25 +54,38 @@
   - Added size logging to monitor message sizes
   - Implemented flag-controlled test value system for debugging
   - Resolved "Message too big for JSON channel" errors by changing PeerJS serialization method from JSON to binary
+  - Fixed "Stop Stream" button in streamTest.html to properly stop the stream on the server side
 - **Current Behavior**:
   - Users can start the raw depth stream from the client, which activates the Kinect hardware
   - Raw depth data is successfully transmitted from hardware to client
   - Client unpacks the raw depth data into 16-bit depth values correctly
-  - Basic point cloud visualization is displayed
-  - The "Stop Stream" button in streamTest.html stops the stream in the UI but doesn't stop the stream on the server side
+  - Point cloud visualization is displayed
+  - The "Stop Stream" button in streamTest.html properly stops the stream on both client and server sides
+
+### Debugging System Implementation
+
+- **Status**: Completed and working correctly
+- **Implementation**:
+  - Created debug.js files for both application and client
+  - Implemented a consistent DEBUG object structure across both environments
+  - Added flag-based controls for different logging categories:
+    - RAW_DEPTH: Master switch for raw depth logging
+    - PERFORMANCE: For performance-related logs
+    - DATA: For data integrity logs
+    - NETWORK: For network-related logs
+  - Added UI controls in streamTest.html for toggling debug flags
+  - Wrapped console logs with appropriate debug flag checks
+  - Used console.group() for better organization of related logs
+  - Added essential vs. non-essential message differentiation in debug panel
+- **Current Behavior**:
+  - Debug logging is disabled by default
+  - Users can enable specific categories of logging as needed
+  - Console output is clean and organized when debugging is enabled
+  - Debug panel only shows essential information by default
 
 ## Known Issues
 
-1. **Raw Depth Stream Stop Button Issue**:
-
-   - **Issue**: The "Stop Stream" button in streamTest.html doesn't fully stop the raw depth stream
-   - **Symptoms**:
-     - UI updates correctly to show the stream has stopped
-     - Server continues processing and broadcasting data
-   - **Current Status**: Need to implement proper cleanup similar to app.js
-   - **Next Steps**: Fix the "Stop Stream" button to properly stop the stream on the server side
-
-2. **Raw Depth Visualization Quality**:
+1. **Raw Depth Visualization Quality**:
 
    - **Issue**: Depth data appears in distinct planes rather than smooth contours
    - **Symptoms**: Banding/quantization effect in the point cloud visualization
@@ -85,11 +99,7 @@
 
 ## Future Work
 
-1. **Fix the "Stop Stream" Button**:
-
-   - Implement proper cleanup for the raw depth stream in streamTest.html
-   - Compare with the working implementation in app.js
-
-2. **Enhance Raw Depth Visualization**:
+1. **Enhance Raw Depth Visualization**:
    - Improve point cloud visualization quality
    - Explore alternative visualization techniques if needed
+   - Consider adding smoothing or filtering options

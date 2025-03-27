@@ -2,7 +2,7 @@
 
 ## System Architecture
 
-Kinectron uses a modular architecture separating hardware interaction, data processing, and network communication within an Electron application.
+Kinectron uses a modular architecture separating hardware interaction, data processing, network communication, and debugging within an Electron application.
 
 ```mermaid
 flowchart TD
@@ -114,6 +114,7 @@ flowchart TD
 3. **Stream Handlers**: Manage stream lifecycle
 4. **PeerConnectionManager**: Handles WebRTC connections
 5. **Client API**: Provides interface for web applications
+6. **Debugging System**: Controls logging and diagnostics
 
 ## Design Patterns Used
 
@@ -122,3 +123,45 @@ flowchart TD
 3. **Strategy Pattern**: Different processing strategies
 4. **Template Method**: Base classes defining algorithms
 5. **Adapter Pattern**: Converting between data formats
+6. **Facade Pattern**: Simplified debugging interface
+
+## Debugging System Architecture
+
+```mermaid
+flowchart TD
+    subgraph "Application"
+        AppDebug[DEBUG Object]
+        DebugFlags[Debug Flags]
+        LogFunctions[Conditional Logging]
+    end
+
+    subgraph "Client"
+        ClientDebug[DEBUG Object]
+        ClientFlags[Debug Flags]
+        ClientUI[Debug UI Controls]
+        ClientLogs[Conditional Logging]
+    end
+
+    AppDebug --> DebugFlags --> LogFunctions
+    ClientDebug --> ClientFlags --> ClientLogs
+    ClientUI --> ClientFlags
+```
+
+### Debugging System Implementation
+
+1. **Flag-Based Control**:
+
+   - Master flags for component-level control (e.g., RAW_DEPTH)
+   - Category flags for specific log types (PERFORMANCE, DATA, NETWORK)
+   - All flags default to false (disabled)
+
+2. **UI Integration**:
+
+   - Checkbox controls in streamTest.html
+   - Master toggle enables/disables all debugging
+   - Category toggles for fine-grained control
+
+3. **Conditional Logging**:
+   - Console logs wrapped with flag checks
+   - Console.group() for organizing related logs
+   - Essential vs. non-essential message differentiation
