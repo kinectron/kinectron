@@ -933,170 +933,110 @@ class KinectronApp {
         const img = new Image();
 
         img.onload = () => {
-          // Check if this is packed data
-          if (frameData.isPacked) {
-            console.log('Unpacking raw depth data');
+          // Set canvas dimensions to match the image
+          canvas.width = frameData.width;
+          canvas.height = frameData.height;
 
-            // Get the dimensions
-            const packedWidth = frameData.width;
-            const height = frameData.height;
-            const originalWidth = frameData.originalWidth;
+          // Create a temporary canvas to extract the pixel data
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = frameData.width;
+          tempCanvas.height = frameData.height;
+          const tempContext = tempCanvas.getContext('2d');
 
-            // Set canvas to original dimensions
-            canvas.width = originalWidth;
-            canvas.height = height;
+          // Draw the image to the temporary canvas
+          tempContext.drawImage(img, 0, 0);
 
-            // Create a temporary canvas to extract the packed pixel data
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = packedWidth;
-            tempCanvas.height = height;
-            const tempContext = tempCanvas.getContext('2d');
+          // Get the pixel data
+          const imageData = tempContext.getImageData(
+            0,
+            0,
+            frameData.width,
+            frameData.height,
+          );
 
-            // Draw the packed image to the temporary canvas
-            tempContext.drawImage(img, 0, 0);
+          // Process the raw depth data exactly like the legacy client code
+          const processedData = [];
 
-            // Get the packed pixel data
-            const packedData = tempContext.getImageData(
-              0,
-              0,
-              packedWidth,
-              height,
-            ).data;
-
-            // Create an image data object for the unpacked depth data
-            const depthImageData = context.createImageData(
-              originalWidth,
-              height,
-            );
-
-            // Create an array to store the unpacked depth values for verification
-            const depthValues = new Uint16Array(
-              originalWidth * height,
-            );
-
-            // Unpack the depth data
-            for (let y = 0; y < height; y++) {
-              for (let x = 0; x < packedWidth; x++) {
-                const srcIdx = (y * packedWidth + x) * 4;
-                const destIdx1 = (y * originalWidth + x * 2) * 4;
-                const destIdx2 = destIdx1 + 4;
-
-                // Extract two depth values from each pixel
-                const depth1R = packedData[srcIdx];
-                const depth1G = packedData[srcIdx + 1];
-                const depth2R = packedData[srcIdx + 2];
-                const depth2G = packedData[srcIdx + 3];
-
-                // Reconstruct the 16-bit depth values
-                const depth1 = depth1R | (depth1G << 8);
-                const depth2 = depth2R | (depth2G << 8);
-
-                // Store in the depth values array for verification
-                depthValues[y * originalWidth + x * 2] = depth1;
-                if (x * 2 + 1 < originalWidth) {
-                  depthValues[y * originalWidth + x * 2 + 1] = depth2;
-                }
-
-                // Store the first depth value in the image data
-                depthImageData.data[destIdx1] = depth1R; // R
-                depthImageData.data[destIdx1 + 1] = depth1G; // G
-                depthImageData.data[destIdx1 + 2] = 0; // B
-                depthImageData.data[destIdx1 + 3] = 255; // A
-
-                // Store the second depth value (if within bounds)
-                if (x * 2 + 1 < originalWidth) {
-                  depthImageData.data[destIdx2] = depth2R; // R
-                  depthImageData.data[destIdx2 + 1] = depth2G; // G
-                  depthImageData.data[destIdx2 + 2] = 0; // B
-                  depthImageData.data[destIdx2 + 3] = 255; // A
-                }
-              }
-            }
-
-            // Verify test values if they are included in the frame data
-            if (frameData.testValues) {
-              const testValues = frameData.testValues;
-              const unpackedValue1000 = depthValues[1000];
-              const unpackedValue2000 = depthValues[2000];
-              const unpackedValue3000 = depthValues[3000];
-
-              console.log('APP TEST VALUES COMPARISON:');
-              console.table({
-                'Index 1000': {
-                  Original: testValues.index1000,
-                  Unpacked: unpackedValue1000,
-                  Difference:
-                    testValues.index1000 - unpackedValue1000,
-                },
-                'Index 2000': {
-                  Original: testValues.index2000,
-                  Unpacked: unpackedValue2000,
-                  Difference:
-                    testValues.index2000 - unpackedValue2000,
-                },
-                'Index 3000': {
-                  Original: testValues.index3000,
-                  Unpacked: unpackedValue3000,
-                  Difference:
-                    testValues.index3000 - unpackedValue3000,
-                },
-              });
-
-              // Log the raw packed data for the test indices
-              const getPackedIndices = (originalIndex) => {
-                const y = Math.floor(originalIndex / originalWidth);
-                const x = originalIndex % originalWidth;
-                const packedX = Math.floor(x / 2);
-                const packedIdx = (y * packedWidth + packedX) * 4;
-                return {
-                  packedIdx,
-                  isFirstValue: x % 2 === 0,
-                };
-              };
-
-              const idx1000 = getPackedIndices(1000);
-              const idx2000 = getPackedIndices(2000);
-              const idx3000 = getPackedIndices(3000);
-
-              console.log('RAW PACKED DATA FOR TEST INDICES:');
-              console.table({
-                'Index 1000': {
-                  'Packed Index': idx1000.packedIdx,
-                  'Is First Value': idx1000.isFirstValue,
-                  'R Channel': packedData[idx1000.packedIdx],
-                  'G Channel': packedData[idx1000.packedIdx + 1],
-                  'B Channel': packedData[idx1000.packedIdx + 2],
-                  'A Channel': packedData[idx1000.packedIdx + 3],
-                },
-                'Index 2000': {
-                  'Packed Index': idx2000.packedIdx,
-                  'Is First Value': idx2000.isFirstValue,
-                  'R Channel': packedData[idx2000.packedIdx],
-                  'G Channel': packedData[idx2000.packedIdx + 1],
-                  'B Channel': packedData[idx2000.packedIdx + 2],
-                  'A Channel': packedData[idx2000.packedIdx + 3],
-                },
-                'Index 3000': {
-                  'Packed Index': idx3000.packedIdx,
-                  'Is First Value': idx3000.isFirstValue,
-                  'R Channel': packedData[idx3000.packedIdx],
-                  'G Channel': packedData[idx3000.packedIdx + 1],
-                  'B Channel': packedData[idx3000.packedIdx + 2],
-                  'A Channel': packedData[idx3000.packedIdx + 3],
-                },
-              });
-            }
-
-            // Draw the unpacked depth data
-            context.putImageData(depthImageData, 0, 0);
-            console.log(
-              'Raw depth data unpacked and drawn to canvas',
-            );
-          } else {
-            // Handle non-packed data (original code)
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+          for (let i = 0; i < imageData.data.length; i += 4) {
+            // Extract depth value from R and G channels
+            const depth =
+              (imageData.data[i + 1] << 8) | imageData.data[i]; // Get uint16 data from buffer
+            processedData.push(depth);
           }
+
+          // Create a visualization of the depth data
+          const depthImageData = context.createImageData(
+            frameData.width,
+            frameData.height,
+          );
+
+          // Copy the original image data for visualization
+          for (let i = 0; i < imageData.data.length; i++) {
+            depthImageData.data[i] = imageData.data[i];
+          }
+
+          // Verify test values if they are included in the frame data
+          if (frameData.testValues) {
+            const testValues = frameData.testValues;
+            const unpackedValue1000 = processedData[1000];
+            const unpackedValue2000 = processedData[2000];
+            const unpackedValue3000 = processedData[3000];
+
+            console.log('APP TEST VALUES COMPARISON:');
+            console.table({
+              'Index 1000': {
+                Original: testValues.index1000,
+                Unpacked: unpackedValue1000,
+                Difference: testValues.index1000 - unpackedValue1000,
+              },
+              'Index 2000': {
+                Original: testValues.index2000,
+                Unpacked: unpackedValue2000,
+                Difference: testValues.index2000 - unpackedValue2000,
+              },
+              'Index 3000': {
+                Original: testValues.index3000,
+                Unpacked: unpackedValue3000,
+                Difference: testValues.index3000 - unpackedValue3000,
+              },
+            });
+
+            // Log the raw data for the test indices
+            const getPixelIndex = (index) => index * 4;
+
+            const idx1000 = getPixelIndex(1000);
+            const idx2000 = getPixelIndex(2000);
+            const idx3000 = getPixelIndex(3000);
+
+            console.log('RAW PIXEL DATA FOR TEST INDICES:');
+            console.table({
+              'Index 1000': {
+                'R Channel': imageData.data[idx1000],
+                'G Channel': imageData.data[idx1000 + 1],
+                'B Channel': imageData.data[idx1000 + 2],
+                'A Channel': imageData.data[idx1000 + 3],
+                'Reconstructed Value': processedData[1000],
+              },
+              'Index 2000': {
+                'R Channel': imageData.data[idx2000],
+                'G Channel': imageData.data[idx2000 + 1],
+                'B Channel': imageData.data[idx2000 + 2],
+                'A Channel': imageData.data[idx2000 + 3],
+                'Reconstructed Value': processedData[2000],
+              },
+              'Index 3000': {
+                'R Channel': imageData.data[idx3000],
+                'G Channel': imageData.data[idx3000 + 1],
+                'B Channel': imageData.data[idx3000 + 2],
+                'A Channel': imageData.data[idx3000 + 3],
+                'Reconstructed Value': processedData[3000],
+              },
+            });
+          }
+
+          // Draw the depth data
+          context.putImageData(depthImageData, 0, 0);
+          console.log('Raw depth data processed and drawn to canvas');
         };
 
         img.onerror = (err) => {

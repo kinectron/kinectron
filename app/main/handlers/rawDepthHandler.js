@@ -99,7 +99,7 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
             processedData.imageData.data.buffer,
           );
 
-          // Use Sharp to compress the image (no resizing)
+          // Use Sharp to compress the image with WebP lossless at full size
           sharp(rgba, {
             raw: {
               width: width,
@@ -110,6 +110,9 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
             .webp({
               quality: 100, // Use highest quality for WebP
               lossless: true, // Force lossless WebP mode
+              nearLossless: false, // Disable near lossless mode
+              smartSubsample: false, // Disable smart subsampling
+              reductionEffort: 6, // Maximum reduction effort (0-6)
             })
             .toBuffer()
             .then((compressedBuffer) => {
@@ -123,12 +126,11 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 'base64',
               )}`;
 
-              // Create a frame package with metadata about the packed format
+              // Create a frame package with metadata about the format
               const frameData = {
                 name: 'rawDepth',
                 imagedata: dataUrl,
-                isPacked: processedData.imageData.isPacked,
-                originalWidth: processedData.imageData.originalWidth,
+                isPacked: false, // Indicate this is not using the packed format
                 width: width,
                 height: height,
                 // Include test values if they exist
@@ -242,46 +244,48 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 };
                 console.log('Original test values:', testIndices);
 
-                // Step 2: Log the raw packed RGBA values before WebP compression
-                const packedWidth = processedData.imageData.width;
+                // Step 2: Log the raw RGBA values before WebP compression
+                const width = processedData.imageData.width;
                 const height = processedData.imageData.height;
-                const originalWidth =
-                  processedData.imageData.originalWidth;
-                const packedData = processedData.imageData.data;
+                const pixelData = processedData.imageData.data;
 
-                // Calculate indices in the packed data for our test values
-                const getPackedIndex = (originalIndex) => {
-                  const y = Math.floor(originalIndex / originalWidth);
-                  const x = originalIndex % originalWidth;
-                  const packedX = Math.floor(x / 2);
-                  return (y * packedWidth + packedX) * 4;
-                };
+                // Calculate indices in the pixel data for our test values
+                const getPixelIndex = (index) => index * 4;
 
-                const idx1000 = getPackedIndex(1000);
-                const idx2000 = getPackedIndex(2000);
-                const idx3000 = getPackedIndex(3000);
+                const idx1000 = getPixelIndex(1000);
+                const idx2000 = getPixelIndex(2000);
+                const idx3000 = getPixelIndex(3000);
 
                 console.log(
-                  'Raw packed data before WebP compression:',
+                  'Raw pixel data before WebP compression:',
                 );
                 console.table({
                   'Index 1000': {
-                    'R Channel': packedData[idx1000],
-                    'G Channel': packedData[idx1000 + 1],
-                    'B Channel': packedData[idx1000 + 2],
-                    'A Channel': packedData[idx1000 + 3],
+                    'R Channel': pixelData[idx1000],
+                    'G Channel': pixelData[idx1000 + 1],
+                    'B Channel': pixelData[idx1000 + 2],
+                    'A Channel': pixelData[idx1000 + 3],
+                    'Reconstructed Value':
+                      pixelData[idx1000] |
+                      (pixelData[idx1000 + 1] << 8),
                   },
                   'Index 2000': {
-                    'R Channel': packedData[idx2000],
-                    'G Channel': packedData[idx2000 + 1],
-                    'B Channel': packedData[idx2000 + 2],
-                    'A Channel': packedData[idx2000 + 3],
+                    'R Channel': pixelData[idx2000],
+                    'G Channel': pixelData[idx2000 + 1],
+                    'B Channel': pixelData[idx2000 + 2],
+                    'A Channel': pixelData[idx2000 + 3],
+                    'Reconstructed Value':
+                      pixelData[idx2000] |
+                      (pixelData[idx2000 + 1] << 8),
                   },
                   'Index 3000': {
-                    'R Channel': packedData[idx3000],
-                    'G Channel': packedData[idx3000 + 1],
-                    'B Channel': packedData[idx3000 + 2],
-                    'A Channel': packedData[idx3000 + 3],
+                    'R Channel': pixelData[idx3000],
+                    'G Channel': pixelData[idx3000 + 1],
+                    'B Channel': pixelData[idx3000 + 2],
+                    'A Channel': pixelData[idx3000 + 3],
+                    'Reconstructed Value':
+                      pixelData[idx3000] |
+                      (pixelData[idx3000 + 1] << 8),
                   },
                 });
 
@@ -364,14 +368,13 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
 
                     // Step 7: Test unpacking
                     const dimensions = {
-                      originalWidth,
-                      packedWidth,
+                      width,
                       height,
                     };
 
                     // Create a mock original data array with just the test values
                     const mockOriginalData = new Uint16Array(
-                      originalWidth * height,
+                      width * height,
                     );
                     mockOriginalData[1000] = testIndices[1000];
                     mockOriginalData[2000] = testIndices[2000];

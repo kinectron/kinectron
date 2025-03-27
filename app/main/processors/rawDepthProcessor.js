@@ -24,50 +24,40 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
 
       const depthData = new Uint16Array(frame.imageData.buffer);
 
-      // Calculate dimensions for the packed format (half width)
+      // Use full original dimensions
       const originalWidth = KinectConstants.RAW_DEPTH.WIDTH;
       const originalHeight = KinectConstants.RAW_DEPTH.HEIGHT;
-      const packedWidth = Math.ceil(originalWidth / 2);
 
       // Variables to store test values at specific indices (if enabled)
       let testValue1000 = null;
       let testValue2000 = null;
       let testValue3000 = null;
 
-      // Create an output buffer with half the number of pixels
+      // Create an output buffer with full dimensions
       const processedData = new Uint8ClampedArray(
-        packedWidth * originalHeight * 4,
+        originalWidth * originalHeight * 4,
       );
 
-      // Pack two depth values into each RGBA pixel
-      for (let y = 0; y < originalHeight; y++) {
-        for (let x = 0; x < originalWidth; x += 2) {
-          const srcIdx1 = y * originalWidth + x;
-          const srcIdx2 = srcIdx1 + 1;
-          const destIdx = (y * packedWidth + Math.floor(x / 2)) * 4;
-
-          // Get first depth value
-          const depth1 = depthData[srcIdx1];
-
-          // Get second depth value (or 0 if we're at the edge)
-          const depth2 =
-            x + 1 < originalWidth ? depthData[srcIdx2] : 0;
-
-          // Store test values at specific indices (if enabled)
-          if (ENABLE_TEST_VALUES) {
-            if (srcIdx1 === 1000) testValue1000 = depth1;
-            if (srcIdx1 === 2000) testValue2000 = depth1;
-            if (srcIdx1 === 3000) testValue3000 = depth1;
-          }
-
-          // Store first depth value in R and G channels
-          processedData[destIdx] = depth1 & 0xff; // Lower 8 bits in R
-          processedData[destIdx + 1] = depth1 >> 8; // Upper 8 bits in G
-
-          // Store second depth value in B and A channels
-          processedData[destIdx + 2] = depth2 & 0xff; // Lower 8 bits in B
-          processedData[destIdx + 3] = depth2 >> 8; // Upper 8 bits in A
+      // Process raw depth data exactly like the legacy code
+      let j = 0;
+      for (let i = 0; i < processedData.length; i += 4) {
+        // Store test values at specific indices (if enabled)
+        if (ENABLE_TEST_VALUES) {
+          const pixelIndex = i / 4;
+          if (pixelIndex === 1000)
+            testValue1000 = depthData[pixelIndex];
+          if (pixelIndex === 2000)
+            testValue2000 = depthData[pixelIndex];
+          if (pixelIndex === 3000)
+            testValue3000 = depthData[pixelIndex];
         }
+
+        // Store depth value in R and G channels exactly like legacy code
+        processedData[i] = depthData[j / 2] & 0xff; // Lower 8 bits in R
+        processedData[i + 1] = depthData[j / 2] >> 8; // Upper 8 bits in G
+        processedData[i + 2] = 0; // B channel set to 0
+        processedData[i + 3] = 0xff; // A channel set to full opacity
+        j += 2;
       }
 
       // Log the test values (if enabled)
@@ -79,15 +69,12 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
         });
       }
 
-      // Pack/unpack test disabled - test values removed
-
       return {
         imageData: {
           data: processedData,
-          width: packedWidth,
+          width: originalWidth,
           height: originalHeight,
-          isPacked: true, // Add metadata to indicate this is packed data
-          originalWidth: originalWidth,
+          isPacked: false, // Not using the packed format anymore
           // Include test values in the returned object (if enabled)
           ...(ENABLE_TEST_VALUES && {
             testValues: {
