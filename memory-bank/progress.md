@@ -33,16 +33,14 @@
 - **Implementation**: Full pipeline from hardware to client
 - **Current Behavior**: Server captures, processes, and transmits depth data; client receives and visualizes
 
-## Partially Completed Features
-
 ### Raw Depth Stream Implementation
 
-- **Status**: Partially completed
+- **Status**: Completed with one remaining issue
 - **Implementation**:
   - Client-to-hardware data flow working (client requests properly activate the Kinect)
   - Raw depth image is properly displayed in the application UI
   - Hardware-to-client data flow successfully implemented with data packing solution
-  - Implemented data packing to reduce message size by ~50% while preserving all depth data
+  - Successfully switched from putting two depth values into a 4-channel pixel to only putting one depth value per four channels
   - Added metadata to indicate packed format for client-side unpacking
   - Successfully transmitting raw depth data from hardware to client
   - Implemented client-side unpacking of raw depth data
@@ -50,41 +48,28 @@
   - Implemented Three.js-based point cloud visualization
   - Added depth value analysis and statistics
   - Added test utilities for verifying packing/unpacking correctness
-  - Confirmed that the packing/unpacking algorithm works correctly on the server side
+  - Confirmed that the packing/unpacking algorithm works correctly on both server and client sides
   - Switched from lossy to lossless WebP compression to preserve depth precision
   - Added size logging to monitor message sizes
   - Implemented flag-controlled test value system for debugging
   - Resolved "Message too big for JSON channel" errors by changing PeerJS serialization method from JSON to binary
-  - Tried PNG format as an alternative to WebP but encountered similar issues
-  - Reverted back to WebP after PNG didn't resolve the data integrity issues
 - **Current Behavior**:
   - Users can start the raw depth stream from the client, which activates the Kinect hardware
   - Raw depth data is successfully transmitted from hardware to client
-  - Client unpacks the raw depth data into 16-bit depth values
-  - Basic point cloud visualization is displayed but has quality issues
-  - Facing data integrity issues where unpacked values don't match original values
-  - Test values show significant discrepancies (e.g., Original: 3016, Unpacked: 185)
-  - Values near zero are preserved correctly, but larger values show major differences
-- **Remaining Work**:
-  - Resolve data integrity issues in the client-side unpacking process
-  - Fix depth value quantization/banding issues in visualization
-  - Enhance the point cloud visualization for better quality
+  - Client unpacks the raw depth data into 16-bit depth values correctly
+  - Basic point cloud visualization is displayed
+  - The "Stop Stream" button in streamTest.html stops the stream in the UI but doesn't stop the stream on the server side
 
 ## Known Issues
 
-1. **Raw Depth Data Integrity Issues**:
+1. **Raw Depth Stream Stop Button Issue**:
 
-   - **Issue**: Unpacked depth values don't match original values
+   - **Issue**: The "Stop Stream" button in streamTest.html doesn't fully stop the raw depth stream
    - **Symptoms**:
-     - Test values show significant discrepancies (e.g., Original: 3016, Unpacked: 185)
-     - Values near zero are preserved correctly, but larger values show major differences
-   - **Attempted Fixes**:
-     - Confirmed that the packing/unpacking algorithm works correctly on the server side
-     - Switched from lossy to lossless WebP compression to preserve depth precision
-     - Tried PNG format as an alternative to WebP but encountered similar issues
-     - Reverted back to WebP after PNG didn't resolve the data integrity issues
-   - **Current Status**: Still investigating the root cause of the data integrity issues
-   - **Next Steps**: Continue debugging the client-side unpacking process
+     - UI updates correctly to show the stream has stopped
+     - Server continues processing and broadcasting data
+   - **Current Status**: Need to implement proper cleanup similar to app.js
+   - **Next Steps**: Fix the "Stop Stream" button to properly stop the stream on the server side
 
 2. **Raw Depth Visualization Quality**:
 
@@ -95,18 +80,16 @@
      - Implemented more sophisticated color mapping
      - Added detailed depth statistics and analysis tools
      - Improved camera positioning and controls
-   - **Current Status**: Visualization issues likely related to the data integrity issues
-   - **Next Steps**: Address data integrity issues, then re-evaluate visualization quality
+   - **Current Status**: Visualization quality can be improved now that data integrity issues are resolved
+   - **Next Steps**: Enhance visualization techniques for better quality
 
 ## Future Work
 
-1. **Resolve Data Integrity Issues**:
+1. **Fix the "Stop Stream" Button**:
 
-   - Continue investigating and debugging the client-side unpacking process
-   - Add more detailed logging to understand what's happening during unpacking
-   - Compare the client-side unpacking with the server-side packing in more detail
-   - Examine how the image data is being processed in the browser
+   - Implement proper cleanup for the raw depth stream in streamTest.html
+   - Compare with the working implementation in app.js
 
-2. **Fix Raw Depth Visualization Issues**:
-   - Once data integrity issues are resolved, re-evaluate visualization quality
+2. **Enhance Raw Depth Visualization**:
+   - Improve point cloud visualization quality
    - Explore alternative visualization techniques if needed

@@ -79,6 +79,34 @@ flowchart LR
     KinectHW[Kinect Hardware] --> KinectController --> Processor --> Handler --> PeerManager --> ClientAPI --> UserCallback
 ```
 
+### Raw Depth Data Flow
+
+```mermaid
+flowchart TD
+    subgraph "Server-Side"
+        KinectHW[Kinect Hardware] --> RawDepthData[Raw 16-bit Depth Data]
+        RawDepthData --> PackingProcess[Packing Process]
+        PackingProcess --> ImageEncoding[WebP Lossless Encoding]
+        ImageEncoding --> DataURL[Data URL Creation]
+    end
+
+    subgraph "Client-Side"
+        DataURL --> ImageDecoding[Image Decoding]
+        ImageDecoding --> UnpackingProcess[Unpacking Process]
+        UnpackingProcess --> Uint16Array[Restored 16-bit Depth Values]
+        Uint16Array --> Visualization[Point Cloud Visualization]
+    end
+```
+
+### Raw Depth Packing Strategy
+
+1. **Current Implementation**:
+   - One 16-bit depth value per RGBA pixel
+   - Lower 8 bits stored in R channel
+   - Upper 8 bits stored in G channel
+   - B and A channels unused (set to 0 and 255)
+   - Unpacking: `depth = (G << 8) | R`
+
 ## Component Relationships
 
 1. **KinectController**: Manages hardware interface

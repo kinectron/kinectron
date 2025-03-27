@@ -2,7 +2,7 @@
 
 ## Current Focus: Raw Depth Processing and Visualization
 
-We're currently working on implementing the raw depth stream processing and visualization. The color and depth streams are fully implemented, and we've made significant progress on the raw depth stream implementation but are facing some challenges with data integrity.
+We're currently working on implementing the raw depth stream processing and visualization. The color and depth streams are fully implemented, and we've successfully implemented the raw depth stream with a new approach.
 
 ### Current Status
 
@@ -13,33 +13,26 @@ We're currently working on implementing the raw depth stream processing and visu
 2. **Stream Implementation**:
    - Color stream fully implemented
    - Depth stream fully implemented
-   - Raw depth stream partially implemented:
+   - Raw depth stream successfully implemented:
      - Client-to-hardware data flow working (client requests properly activate the Kinect)
      - Raw depth image is properly displayed in the application UI
      - Hardware-to-client data flow successfully implemented with data packing solution
-     - Client-side unpacking of raw depth data implemented
+     - Client-side unpacking of raw depth data implemented and working correctly
      - Basic point cloud visualization implemented
-     - Facing issues with depth value quantization/banding in visualization
-     - Confirmed that the packing/unpacking algorithm works correctly on the server side
-     - Identified that lossy WebP compression was causing data loss in depth values
-     - Implemented lossless WebP compression which should preserve all depth values
+     - Successfully switched from putting two depth values into a 4-channel pixel to only putting one depth value per four channels
+     - Confirmed that the packing/unpacking algorithm works correctly on both server and client sides
+     - Implemented lossless WebP compression which preserves all depth values
      - Added size logging which shows messages are ~51KB
      - Resolved "Message too big for JSON channel" errors in PeerJS by changing serialization method from JSON to binary
      - Created a utility for testing data packing/unpacking
      - Added a flag-controlled test value system for debugging
-     - Currently facing data integrity issues where unpacked values don't match original values
-     - Test values show significant discrepancies (e.g., Original: 3016, Unpacked: 185)
-     - Values near zero are preserved correctly, but larger values show major differences
-     - Tried PNG format as an alternative to WebP but encountered similar issues
-     - Reverted back to WebP after PNG didn't resolve the data integrity issues
+     - Issue with "Stop Stream" button in streamTest.html - it stops the stream in the UI but doesn't stop the stream on the server side
 
 ### Next Steps
 
-- **Continue investigating and debugging the client side until we find the root of the issue**
-  - Add more detailed logging to understand what's happening during unpacking
-  - Compare the client-side unpacking with the server-side packing in more detail
-  - Examine how the image data is being processed in the browser
-  - Test with different approaches to isolate the problem
+- **Fix the "Stop Stream" button in streamTest.html**
+  - Ensure it properly stops the raw depth stream on the server side
+  - Compare with the working implementation in app.js
 
 ## Active Decisions
 
@@ -52,9 +45,8 @@ We're currently working on implementing the raw depth stream processing and visu
 
 - Implementing data packing for raw depth stream:
 
-  1. Pack two 16-bit depth values into each RGBA pixel (using all 4 channels)
-  2. Reduce message size by approximately 50% while preserving all depth data
-  3. Include metadata to indicate packed format for client-side unpacking
+  1. Pack one 16-bit depth value into each RGBA pixel (using R and G channels)
+  2. Include metadata to indicate packed format for client-side unpacking
 
 - Using Three.js for point cloud visualization:
 
@@ -62,5 +54,4 @@ We're currently working on implementing the raw depth stream processing and visu
   2. Implement color mapping based on depth values
   3. Add detailed depth statistics and analysis tools
 
-- Focusing on resolving data integrity issues before moving to visualization improvements
 - Prioritizing performance and reliability in the streaming pipeline
