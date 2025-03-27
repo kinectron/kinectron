@@ -963,39 +963,34 @@ class Kinectron {
         });
     }
     /**
-   * Unpacks raw depth data from a packed WebP image
+   * Unpacks raw depth data from a WebP image
    * @private
-   * @param {string} dataUrl - The data URL containing the packed depth data
-   * @param {number} packedWidth - The width of the packed image
-   * @param {number} packedHeight - The height of the packed image
-   * @param {number} originalWidth - The original width of the depth data
+   * @param {string} dataUrl - The data URL containing the depth data
+   * @param {number} width - The width of the image
+   * @param {number} height - The height of the image
+   * @param {number} originalWidth - The original width of the depth data (not used in new implementation)
    * @param {Object} testValues - Test values to verify unpacking accuracy
    * @returns {Promise<Uint16Array>} - Promise resolving to the unpacked depth values
-   */ _unpackRawDepthData(dataUrl, packedWidth, packedHeight, originalWidth, testValues) {
+   */ _unpackRawDepthData(dataUrl, width, height, originalWidth, testValues) {
         return new Promise((resolve, reject)=>{
             // Create image to load the data URL
             const img = new Image();
             img.onload = ()=>{
                 // Use OffscreenCanvas for efficient processing
-                const canvas = new OffscreenCanvas(packedWidth, packedHeight);
+                const canvas = new OffscreenCanvas(width, height);
                 const ctx = canvas.getContext('2d');
                 // Draw the image to the canvas
                 ctx.drawImage(img, 0, 0);
-                // Get the packed pixel data
-                const packedData = ctx.getImageData(0, 0, packedWidth, packedHeight).data;
+                // Get the pixel data
+                const imageData = ctx.getImageData(0, 0, width, height).data;
                 // Create array for unpacked depth values
-                const depthValues = new Uint16Array(originalWidth * packedHeight);
-                // Unpack the depth data
-                for(let y = 0; y < packedHeight; y++)for(let x = 0; x < packedWidth; x++){
-                    const srcIdx = (y * packedWidth + x) * 4;
-                    // Extract first depth value from R and G channels
-                    const depth1 = packedData[srcIdx] | packedData[srcIdx + 1] << 8;
-                    // Extract second depth value from B and A channels
-                    const depth2 = packedData[srcIdx + 2] | packedData[srcIdx + 3] << 8;
-                    // Store in output array
-                    depthValues[y * originalWidth + x * 2] = depth1;
-                    // Only store second value if it's within bounds
-                    if (x * 2 + 1 < originalWidth) depthValues[y * originalWidth + x * 2 + 1] = depth2;
+                const depthValues = new Uint16Array(width * height);
+                // Process the raw depth data exactly like the app.js client code
+                let j = 0;
+                for(let i = 0; i < imageData.length; i += 4){
+                    // Extract depth value from R and G channels
+                    const depth = imageData[i + 1] << 8 | imageData[i]; // Get uint16 data from buffer
+                    depthValues[j++] = depth;
                 }
                 // Verify test values if provided
                 if (testValues) {
@@ -1031,31 +1026,25 @@ class Kinectron {
     startRawDepth(callback) {
         if (callback) // Set up handler to process raw depth frames
         this.messageHandlers.set('rawDepth', (data)=>{
-            if (data && data.imagedata) {
-                // Check if this is packed data that needs to be unpacked
-                if (data.isPacked) // Unpack the data
-                this._unpackRawDepthData(data.imagedata, data.width, data.height, data.originalWidth, data.testValues).then((depthValues)=>{
-                    // Call the callback with the unpacked data
-                    callback({
-                        ...data,
-                        depthValues: depthValues,
-                        timestamp: data.timestamp || Date.now()
-                    });
-                }).catch((error)=>{
-                    console.error('Error unpacking raw depth data:', error);
-                    // Still call the callback with the original data
-                    callback({
-                        ...data,
-                        error: 'Failed to unpack depth data: ' + error.message,
-                        timestamp: data.timestamp || Date.now()
-                    });
-                });
-                else // Data is not packed, pass it through
+            if (data && data.imagedata) // Process the data regardless of isPacked flag
+            // The new implementation always unpacks the data
+            this._unpackRawDepthData(data.imagedata, data.width, data.height, data.width, data.testValues).then((depthValues)=>{
+                // Call the callback with the unpacked data
                 callback({
                     ...data,
+                    depthValues: depthValues,
                     timestamp: data.timestamp || Date.now()
                 });
-            } else if (data && data.rawDepthData) // Legacy format - raw depth data is already in a usable format
+            }).catch((error)=>{
+                console.error('Error unpacking raw depth data:', error);
+                // Still call the callback with the original data
+                callback({
+                    ...data,
+                    error: 'Failed to unpack depth data: ' + error.message,
+                    timestamp: data.timestamp || Date.now()
+                });
+            });
+            else if (data && data.rawDepthData) // Legacy format - raw depth data is already in a usable format
             callback({
                 ...data,
                 timestamp: data.timestamp || Date.now()
@@ -12089,54 +12078,85 @@ function createParticles() {
 function updatePointCloud(depthValues) {
     if (!particles) return;
     // Set desired depth range
-    const minDepth = 0;
+    const minDepth = 100; // Ignore values too close to 0
     const maxDepth = 6000;
     // Analyze depth values
     let validValues = [];
     let min = Number.MAX_VALUE;
     let max = 0;
-    // // First pass: collect statistics
-    // for (let i = 0; i < depthValues.length; i++) {
-    //     const depth = depthValues[i];
-    //     if (depth >= minDepth && depth <= maxDepth) {
-    //         validValues.push(depth);
-    //         min = Math.min(min, depth);
-    //         max = Math.max(max, depth);
-    //     }
-    // }
-    // // Log statistics (only occasionally to avoid flooding the console)
-    // if (Math.random() < 0.05) {
-    //     console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
-    //     // Log a histogram of depth values (10 buckets)
-    //     const bucketSize = (max - min) / 10;
-    //     const histogram = Array(10).fill(0);
-    //     for (const depth of validValues) {
-    //         const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
-    //         histogram[bucketIndex]++;
-    //     }
-    //     console.log("Depth histogram:", histogram);
-    // }
+    let nonZeroCount = 0;
+    let zeroCount = 0;
+    // First pass: collect statistics
+    for(let i = 0; i < depthValues.length; i++){
+        const depth = depthValues[i];
+        // Count zero vs non-zero values for debugging
+        if (depth === 0) zeroCount++;
+        else nonZeroCount++;
+        if (depth >= minDepth && depth <= maxDepth) {
+            validValues.push(depth);
+            min = Math.min(min, depth);
+            max = Math.max(max, depth);
+        }
+    }
+    // If we don't have enough valid values, use defaults
+    if (validValues.length < 100) {
+        min = minDepth;
+        max = maxDepth;
+    }
+    // Log statistics (only occasionally to avoid flooding the console)
+    if (Math.random() < 0.05) {
+        console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
+        console.log(`Zero values: ${zeroCount}, Non-zero values: ${nonZeroCount}`);
+        // Log a histogram of depth values (10 buckets)
+        if (validValues.length > 0) {
+            const bucketSize = (max - min) / 10;
+            const histogram = Array(10).fill(0);
+            for (const depth of validValues){
+                const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
+                histogram[bucketIndex]++;
+            }
+            console.log("Depth histogram:", histogram);
+            // Log some sample depth values
+            const sampleSize = Math.min(20, validValues.length);
+            const sampleValues = validValues.slice(0, sampleSize);
+            console.log("Sample depth values:", sampleValues);
+        }
+    }
     // Camera view scale factor - adjust this to change the overall scale of the point cloud
     // This doesn't affect precision, just the visual size
-    const viewScale = 0.5;
+    const viewScale = 0.1; // Reduced to make depth more visible
     // Second pass: update particles
     for(let y = 0; y < DEPTHHEIGHT; y++)for(let x = 0; x < DEPTHWIDTH; x++){
         const i = y * DEPTHWIDTH + x;
         const depth = depthValues[i];
         if (depth < minDepth || depth > maxDepth) // Push the particle far away so we don't see it
-        particles.vertices[i].z = Number.MAX_VALUE;
+        particles.vertices[i].z = -10000; // Use negative value to hide
         else {
             // Use the raw depth value directly with view scaling
             // This preserves the full precision of the depth data
-            particles.vertices[i].z = depth * viewScale;
+            particles.vertices[i].z = -depth * viewScale; // Negative to make closer objects appear in front
             // Update color based on depth using a more detailed gradient
             // Use the local min/max for better color distribution
-            const normalizedDepth = (depth - min) / (max - min);
+            const normalizedDepth = max !== min ? (depth - min) / (max - min) : 0.5;
             // Use a more sophisticated color mapping
             // This creates a rainbow gradient from red (near) to violet (far)
             const hue = (1.0 - normalizedDepth) * 270; // 0 (red) to 270 (violet)
             colors[i].setHSL(hue / 360, 1.0, 0.5);
         }
+    }
+    // Log some debug info about the point cloud
+    if (Math.random() < 0.01) {
+        // Sample a few points to check their z values
+        const samplePoints = [];
+        for(let i = 0; i < 5; i++){
+            const idx = Math.floor(Math.random() * particles.vertices.length);
+            samplePoints.push({
+                index: idx,
+                z: particles.vertices[idx].z,
+                originalDepth: depthValues[idx]
+            });
+        }
+        console.log("Sample points z-values:", samplePoints);
     }
     // Update particles
     particles.verticesNeedUpdate = true;
@@ -12464,6 +12484,16 @@ window.startRawDepthStream = function() {
                 }
                 // Log the number of unique depth values
                 addDebugInfo(`Unique depth values in sample: ${uniqueDepths.size}`);
+                // Log some actual depth values for debugging
+                const depthSample = [];
+                for(let i = 0; i < 10; i++){
+                    const idx = Math.floor(Math.random() * frame.depthValues.length);
+                    depthSample.push({
+                        index: idx,
+                        depth: frame.depthValues[idx]
+                    });
+                }
+                addDebugInfo(`Depth sample: ${JSON.stringify(depthSample)}`);
             }
             // Update resolution info
             document.getElementById('resolution').textContent = `Resolution: ${frame.originalWidth}x${frame.height} | Depth Values: ${totalValues} | Avg Latency: ${frameLatencies.length > 0 ? (frameLatencies.reduce((a, b)=>a + b, 0) / frameLatencies.length).toFixed(1) : 0}ms`;

@@ -53,8 +53,10 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
         }
 
         // Store depth value in R and G channels exactly like legacy code
-        processedData[i] = depthData[j / 2] & 0xff; // Lower 8 bits in R
-        processedData[i + 1] = depthData[j / 2] >> 8; // Upper 8 bits in G
+        // IMPORTANT: Order matters! This must match how app.js unpacks the data
+        const depth = depthData[j / 2];
+        processedData[i] = depth & 0xff; // Lower 8 bits in R
+        processedData[i + 1] = (depth >> 8) & 0xff; // Upper 8 bits in G
         processedData[i + 2] = 0; // B channel set to 0
         processedData[i + 3] = 0xff; // A channel set to full opacity
         j += 2;

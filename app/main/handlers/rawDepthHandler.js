@@ -69,7 +69,7 @@ function calculateDataSize(data) {
 }
 
 // Flags to enable/disable tests
-const ENABLE_WEBP_TEST = true;
+const ENABLE_WEBP_TEST = false;
 const ENABLE_COMPRESSION_COMPARISON = false;
 
 /**
@@ -252,42 +252,42 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                 // Calculate indices in the pixel data for our test values
                 const getPixelIndex = (index) => index * 4;
 
-                const idx1000 = getPixelIndex(1000);
-                const idx2000 = getPixelIndex(2000);
-                const idx3000 = getPixelIndex(3000);
+                // const idx1000 = getPixelIndex(1000);
+                // const idx2000 = getPixelIndex(2000);
+                // const idx3000 = getPixelIndex(3000);
 
-                console.log(
-                  'Raw pixel data before WebP compression:',
-                );
-                console.table({
-                  'Index 1000': {
-                    'R Channel': pixelData[idx1000],
-                    'G Channel': pixelData[idx1000 + 1],
-                    'B Channel': pixelData[idx1000 + 2],
-                    'A Channel': pixelData[idx1000 + 3],
-                    'Reconstructed Value':
-                      pixelData[idx1000] |
-                      (pixelData[idx1000 + 1] << 8),
-                  },
-                  'Index 2000': {
-                    'R Channel': pixelData[idx2000],
-                    'G Channel': pixelData[idx2000 + 1],
-                    'B Channel': pixelData[idx2000 + 2],
-                    'A Channel': pixelData[idx2000 + 3],
-                    'Reconstructed Value':
-                      pixelData[idx2000] |
-                      (pixelData[idx2000 + 1] << 8),
-                  },
-                  'Index 3000': {
-                    'R Channel': pixelData[idx3000],
-                    'G Channel': pixelData[idx3000 + 1],
-                    'B Channel': pixelData[idx3000 + 2],
-                    'A Channel': pixelData[idx3000 + 3],
-                    'Reconstructed Value':
-                      pixelData[idx3000] |
-                      (pixelData[idx3000 + 1] << 8),
-                  },
-                });
+                // console.log(
+                //   'Raw pixel data before WebP compression:',
+                // );
+                // console.table({
+                //   'Index 1000': {
+                //     'R Channel': pixelData[idx1000],
+                //     'G Channel': pixelData[idx1000 + 1],
+                //     'B Channel': pixelData[idx1000 + 2],
+                //     'A Channel': pixelData[idx1000 + 3],
+                //     'Reconstructed Value':
+                //       (pixelData[idx1000 + 1] << 8) |
+                //       pixelData[idx1000],
+                //   },
+                //   'Index 2000': {
+                //     'R Channel': pixelData[idx2000],
+                //     'G Channel': pixelData[idx2000 + 1],
+                //     'B Channel': pixelData[idx2000 + 2],
+                //     'A Channel': pixelData[idx2000 + 3],
+                //     'Reconstructed Value':
+                //       (pixelData[idx2000 + 1] << 8) |
+                //       pixelData[idx2000],
+                //   },
+                //   'Index 3000': {
+                //     'R Channel': pixelData[idx3000],
+                //     'G Channel': pixelData[idx3000 + 1],
+                //     'B Channel': pixelData[idx3000 + 2],
+                //     'A Channel': pixelData[idx3000 + 3],
+                //     'Reconstructed Value':
+                //       (pixelData[idx3000 + 1] << 8) |
+                //       pixelData[idx3000],
+                //   },
+                // });
 
                 // Step 3: Test WebP compression/decompression
                 sharp(compressedBuffer)
@@ -298,27 +298,53 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                       'After WebP compression/decompression:',
                     );
 
-                    // Log the raw packed data after WebP compression/decompression
-                    console.table({
-                      'Index 1000': {
-                        'R Channel': data[idx1000],
-                        'G Channel': data[idx1000 + 1],
-                        'B Channel': data[idx1000 + 2],
-                        'A Channel': data[idx1000 + 3],
-                      },
-                      'Index 2000': {
-                        'R Channel': data[idx2000],
-                        'G Channel': data[idx2000 + 1],
-                        'B Channel': data[idx2000 + 2],
-                        'A Channel': data[idx2000 + 3],
-                      },
-                      'Index 3000': {
-                        'R Channel': data[idx3000],
-                        'G Channel': data[idx3000 + 1],
-                        'B Channel': data[idx3000 + 2],
-                        'A Channel': data[idx3000 + 3],
-                      },
-                    });
+                    // Log the raw data after WebP compression/decompression
+                    const decompressedData = new Uint8ClampedArray(
+                      data,
+                    );
+
+                    // Calculate indices in the pixel data for our test values
+                    const getPixelIndex = (index) => index * 4;
+                    const idx1000 = getPixelIndex(1000);
+                    const idx2000 = getPixelIndex(2000);
+                    const idx3000 = getPixelIndex(3000);
+
+                    // Calculate reconstructed values using the same method as the app.js client
+                    const reconstructed1000 =
+                      (decompressedData[idx1000 + 1] << 8) |
+                      decompressedData[idx1000];
+                    const reconstructed2000 =
+                      (decompressedData[idx2000 + 1] << 8) |
+                      decompressedData[idx2000];
+                    const reconstructed3000 =
+                      (decompressedData[idx3000 + 1] << 8) |
+                      decompressedData[idx3000];
+
+                    // Log only the reconstructed values and comparison
+                    console.log(
+                      'After WebP compression/decompression - Reconstructed Values:',
+                    );
+                    console.log(
+                      `Index 1000: Original=${
+                        testIndices[1000]
+                      }, Reconstructed=${reconstructed1000}, Diff=${
+                        testIndices[1000] - reconstructed1000
+                      }`,
+                    );
+                    console.log(
+                      `Index 2000: Original=${
+                        testIndices[2000]
+                      }, Reconstructed=${reconstructed2000}, Diff=${
+                        testIndices[2000] - reconstructed2000
+                      }`,
+                    );
+                    console.log(
+                      `Index 3000: Original=${
+                        testIndices[3000]
+                      }, Reconstructed=${reconstructed3000}, Diff=${
+                        testIndices[3000] - reconstructed3000
+                      }`,
+                    );
 
                     // Step 4: Test data URL conversion and back
                     // Convert to data URL (same as in the main code)
@@ -344,29 +370,53 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                       'After data URL conversion and back:',
                     );
 
-                    // Log the raw packed data after data URL conversion
-                    console.table({
-                      'Index 1000': {
-                        'R Channel': data[idx1000],
-                        'G Channel': data[idx1000 + 1],
-                        'B Channel': data[idx1000 + 2],
-                        'A Channel': data[idx1000 + 3],
-                      },
-                      'Index 2000': {
-                        'R Channel': data[idx2000],
-                        'G Channel': data[idx2000 + 1],
-                        'B Channel': data[idx2000 + 2],
-                        'A Channel': data[idx2000 + 3],
-                      },
-                      'Index 3000': {
-                        'R Channel': data[idx3000],
-                        'G Channel': data[idx3000 + 1],
-                        'B Channel': data[idx3000 + 2],
-                        'A Channel': data[idx3000 + 3],
-                      },
-                    });
+                    // Log the raw data after data URL conversion
+                    const finalData = new Uint8ClampedArray(data);
 
-                    // Step 7: Test unpacking
+                    // Calculate indices in the pixel data for our test values
+                    const getPixelIndex = (index) => index * 4;
+                    const idx1000 = getPixelIndex(1000);
+                    const idx2000 = getPixelIndex(2000);
+                    const idx3000 = getPixelIndex(3000);
+
+                    // Calculate reconstructed values using the same method as the app.js client
+                    const reconstructed1000 =
+                      (finalData[idx1000 + 1] << 8) |
+                      finalData[idx1000];
+                    const reconstructed2000 =
+                      (finalData[idx2000 + 1] << 8) |
+                      finalData[idx2000];
+                    const reconstructed3000 =
+                      (finalData[idx3000 + 1] << 8) |
+                      finalData[idx3000];
+
+                    // Log only the reconstructed values and comparison
+                    console.log(
+                      'After data URL conversion - Reconstructed Values:',
+                    );
+                    console.log(
+                      `Index 1000: Original=${
+                        testIndices[1000]
+                      }, Reconstructed=${reconstructed1000}, Diff=${
+                        testIndices[1000] - reconstructed1000
+                      }`,
+                    );
+                    console.log(
+                      `Index 2000: Original=${
+                        testIndices[2000]
+                      }, Reconstructed=${reconstructed2000}, Diff=${
+                        testIndices[2000] - reconstructed2000
+                      }`,
+                    );
+                    console.log(
+                      `Index 3000: Original=${
+                        testIndices[3000]
+                      }, Reconstructed=${reconstructed3000}, Diff=${
+                        testIndices[3000] - reconstructed3000
+                      }`,
+                    );
+
+                    // Step 7: Test unpacking using our utility function
                     const dimensions = {
                       width,
                       height,
@@ -383,7 +433,7 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
                     // Test unpacking the data after the full pipeline
                     const results = testPackUnpack(
                       mockOriginalData,
-                      new Uint8ClampedArray(data),
+                      finalData,
                       dimensions,
                       testIndices,
                       true, // log results

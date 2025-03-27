@@ -23,10 +23,10 @@ export function testPackUnpack(
   // Create array for unpacked depth values
   const processedData = [];
 
-  // Process the raw depth data exactly like the legacy client code
+  // Process the raw depth data exactly like the app.js client code
   for (let i = 0; i < pixelData.length; i += 4) {
-    // Extract depth value from R and G channels
-    const depth = (pixelData[i + 1] << 8) | pixelData[i]; // Get uint16 data from buffer
+    // Extract depth value from R and G channels - IMPORTANT: order matters!
+    const depth = (pixelData[i + 1] << 8) | pixelData[i]; // Get uint16 data from buffer - MUST match app.js
     processedData.push(depth);
   }
 

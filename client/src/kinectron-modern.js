@@ -436,19 +436,19 @@ export class Kinectron {
   }
 
   /**
-   * Unpacks raw depth data from a packed WebP image
+   * Unpacks raw depth data from a WebP image
    * @private
-   * @param {string} dataUrl - The data URL containing the packed depth data
-   * @param {number} packedWidth - The width of the packed image
-   * @param {number} packedHeight - The height of the packed image
-   * @param {number} originalWidth - The original width of the depth data
+   * @param {string} dataUrl - The data URL containing the depth data
+   * @param {number} width - The width of the image
+   * @param {number} height - The height of the image
+   * @param {number} originalWidth - The original width of the depth data (not used in new implementation)
    * @param {Object} testValues - Test values to verify unpacking accuracy
    * @returns {Promise<Uint16Array>} - Promise resolving to the unpacked depth values
    */
   _unpackRawDepthData(
     dataUrl,
-    packedWidth,
-    packedHeight,
+    width,
+    height,
     originalWidth,
     testValues,
   ) {
@@ -457,46 +457,24 @@ export class Kinectron {
       const img = new Image();
       img.onload = () => {
         // Use OffscreenCanvas for efficient processing
-        const canvas = new OffscreenCanvas(packedWidth, packedHeight);
+        const canvas = new OffscreenCanvas(width, height);
         const ctx = canvas.getContext('2d');
 
         // Draw the image to the canvas
         ctx.drawImage(img, 0, 0);
 
-        // Get the packed pixel data
-        const packedData = ctx.getImageData(
-          0,
-          0,
-          packedWidth,
-          packedHeight,
-        ).data;
+        // Get the pixel data
+        const imageData = ctx.getImageData(0, 0, width, height).data;
 
         // Create array for unpacked depth values
-        const depthValues = new Uint16Array(
-          originalWidth * packedHeight,
-        );
+        const depthValues = new Uint16Array(width * height);
 
-        // Unpack the depth data
-        for (let y = 0; y < packedHeight; y++) {
-          for (let x = 0; x < packedWidth; x++) {
-            const srcIdx = (y * packedWidth + x) * 4;
-
-            // Extract first depth value from R and G channels
-            const depth1 =
-              packedData[srcIdx] | (packedData[srcIdx + 1] << 8);
-
-            // Extract second depth value from B and A channels
-            const depth2 =
-              packedData[srcIdx + 2] | (packedData[srcIdx + 3] << 8);
-
-            // Store in output array
-            depthValues[y * originalWidth + x * 2] = depth1;
-
-            // Only store second value if it's within bounds
-            if (x * 2 + 1 < originalWidth) {
-              depthValues[y * originalWidth + x * 2 + 1] = depth2;
-            }
-          }
+        // Process the raw depth data exactly like the app.js client code
+        let j = 0;
+        for (let i = 0; i < imageData.length; i += 4) {
+          // Extract depth value from R and G channels
+          const depth = (imageData[i + 1] << 8) | imageData[i]; // Get uint16 data from buffer
+          depthValues[j++] = depth;
         }
 
         // Verify test values if provided
@@ -540,44 +518,33 @@ export class Kinectron {
       // Set up handler to process raw depth frames
       this.messageHandlers.set('rawDepth', (data) => {
         if (data && data.imagedata) {
-          // Check if this is packed data that needs to be unpacked
-          if (data.isPacked) {
-            // Unpack the data
-            this._unpackRawDepthData(
-              data.imagedata,
-              data.width,
-              data.height,
-              data.originalWidth,
-              data.testValues, // Pass test values to unpacking function
-            )
-              .then((depthValues) => {
-                // Call the callback with the unpacked data
-                callback({
-                  ...data,
-                  depthValues: depthValues,
-                  timestamp: data.timestamp || Date.now(),
-                });
-              })
-              .catch((error) => {
-                console.error(
-                  'Error unpacking raw depth data:',
-                  error,
-                );
-                // Still call the callback with the original data
-                callback({
-                  ...data,
-                  error:
-                    'Failed to unpack depth data: ' + error.message,
-                  timestamp: data.timestamp || Date.now(),
-                });
+          // Process the data regardless of isPacked flag
+          // The new implementation always unpacks the data
+          this._unpackRawDepthData(
+            data.imagedata,
+            data.width,
+            data.height,
+            data.width, // originalWidth is the same as width in new implementation
+            data.testValues, // Pass test values to unpacking function
+          )
+            .then((depthValues) => {
+              // Call the callback with the unpacked data
+              callback({
+                ...data,
+                depthValues: depthValues,
+                timestamp: data.timestamp || Date.now(),
               });
-          } else {
-            // Data is not packed, pass it through
-            callback({
-              ...data,
-              timestamp: data.timestamp || Date.now(),
+            })
+            .catch((error) => {
+              console.error('Error unpacking raw depth data:', error);
+              // Still call the callback with the original data
+              callback({
+                ...data,
+                error:
+                  'Failed to unpack depth data: ' + error.message,
+                timestamp: data.timestamp || Date.now(),
+              });
             });
-          }
         } else if (data && data.rawDepthData) {
           // Legacy format - raw depth data is already in a usable format
           callback({

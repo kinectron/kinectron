@@ -218,43 +218,67 @@
             if (!particles) return;
 
             // Set desired depth range
-            const minDepth = 0;
+            const minDepth = 100;  // Ignore values too close to 0
             const maxDepth = 6000;
 
             // Analyze depth values
             let validValues = [];
             let min = Number.MAX_VALUE;
             let max = 0;
+            let nonZeroCount = 0;
+            let zeroCount = 0;
 
-            // // First pass: collect statistics
-            // for (let i = 0; i < depthValues.length; i++) {
-            //     const depth = depthValues[i];
-            //     if (depth >= minDepth && depth <= maxDepth) {
-            //         validValues.push(depth);
-            //         min = Math.min(min, depth);
-            //         max = Math.max(max, depth);
-            //     }
-            // }
+            // First pass: collect statistics
+            for (let i = 0; i < depthValues.length; i++) {
+                const depth = depthValues[i];
 
-            // // Log statistics (only occasionally to avoid flooding the console)
-            // if (Math.random() < 0.05) {
-            //     console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
+                // Count zero vs non-zero values for debugging
+                if (depth === 0) {
+                    zeroCount++;
+                } else {
+                    nonZeroCount++;
+                }
 
-            //     // Log a histogram of depth values (10 buckets)
-            //     const bucketSize = (max - min) / 10;
-            //     const histogram = Array(10).fill(0);
+                if (depth >= minDepth && depth <= maxDepth) {
+                    validValues.push(depth);
+                    min = Math.min(min, depth);
+                    max = Math.max(max, depth);
+                }
+            }
 
-            //     for (const depth of validValues) {
-            //         const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
-            //         histogram[bucketIndex]++;
-            //     }
+            // If we don't have enough valid values, use defaults
+            if (validValues.length < 100) {
+                min = minDepth;
+                max = maxDepth;
+            }
 
-            //     console.log("Depth histogram:", histogram);
-            // }
+            // Log statistics (only occasionally to avoid flooding the console)
+            if (Math.random() < 0.05) {
+                console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
+                console.log(`Zero values: ${zeroCount}, Non-zero values: ${nonZeroCount}`);
+
+                // Log a histogram of depth values (10 buckets)
+                if (validValues.length > 0) {
+                    const bucketSize = (max - min) / 10;
+                    const histogram = Array(10).fill(0);
+
+                    for (const depth of validValues) {
+                        const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
+                        histogram[bucketIndex]++;
+                    }
+
+                    console.log("Depth histogram:", histogram);
+
+                    // Log some sample depth values
+                    const sampleSize = Math.min(20, validValues.length);
+                    const sampleValues = validValues.slice(0, sampleSize);
+                    console.log("Sample depth values:", sampleValues);
+                }
+            }
 
             // Camera view scale factor - adjust this to change the overall scale of the point cloud
             // This doesn't affect precision, just the visual size
-            const viewScale = 0.5;
+            const viewScale = 0.1;  // Reduced to make depth more visible
 
             // Second pass: update particles
             for (let y = 0; y < DEPTHHEIGHT; y++) {
@@ -264,15 +288,15 @@
 
                     if (depth < minDepth || depth > maxDepth) {
                         // Push the particle far away so we don't see it
-                        particles.vertices[i].z = Number.MAX_VALUE;
+                        particles.vertices[i].z = -10000;  // Use negative value to hide
                     } else {
                         // Use the raw depth value directly with view scaling
                         // This preserves the full precision of the depth data
-                        particles.vertices[i].z = depth * viewScale;
+                        particles.vertices[i].z = -depth * viewScale;  // Negative to make closer objects appear in front
 
                         // Update color based on depth using a more detailed gradient
                         // Use the local min/max for better color distribution
-                        const normalizedDepth = (depth - min) / (max - min);
+                        const normalizedDepth = max !== min ? (depth - min) / (max - min) : 0.5;
 
                         // Use a more sophisticated color mapping
                         // This creates a rainbow gradient from red (near) to violet (far)
@@ -280,6 +304,21 @@
                         colors[i].setHSL(hue / 360, 1.0, 0.5);
                     }
                 }
+            }
+
+            // Log some debug info about the point cloud
+            if (Math.random() < 0.01) {  // Only log occasionally
+                // Sample a few points to check their z values
+                const samplePoints = [];
+                for (let i = 0; i < 5; i++) {
+                    const idx = Math.floor(Math.random() * particles.vertices.length);
+                    samplePoints.push({
+                        index: idx,
+                        z: particles.vertices[idx].z,
+                        originalDepth: depthValues[idx]
+                    });
+                }
+                console.log("Sample points z-values:", samplePoints);
             }
 
             // Update particles
@@ -701,6 +740,17 @@
 
                         // Log the number of unique depth values
                         addDebugInfo(`Unique depth values in sample: ${uniqueDepths.size}`);
+
+                        // Log some actual depth values for debugging
+                        const depthSample = [];
+                        for (let i = 0; i < 10; i++) {
+                            const idx = Math.floor(Math.random() * frame.depthValues.length);
+                            depthSample.push({
+                                index: idx,
+                                depth: frame.depthValues[idx]
+                            });
+                        }
+                        addDebugInfo(`Depth sample: ${JSON.stringify(depthSample)}`);
                     }
 
                     // Update resolution info
