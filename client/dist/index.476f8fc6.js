@@ -26,4 +26,4 @@ document.addEventListener('DOMContentLoaded', ()=>{
     console.log('Kinectron Stream Test initialized');
 });
 
-//# sourceMappingURL=streamTest.9c122702.js.map
+//# sourceMappingURL=index.476f8fc6.js.map

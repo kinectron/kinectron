@@ -90,6 +90,8 @@
    - **Implementation**:
      - Refactored streamTest.html into modular components
      - Created separate controller files for different functionalities
+     - Reorganized file structure with dedicated examples/ directory
+     - Updated references, paths, and documentation
      - Resolved Parcel caching issues affecting development workflow
      - Added clean script to package.json to prevent caching problems
      - Created DEVELOPMENT.md to document development workflows
@@ -117,7 +119,7 @@
 
 2. **Parcel Build System Caching**:
    - **Issue**: Parcel's caching mechanism can cause issues with directly included JavaScript files
-   - **Symptoms**: Changes to files in the `js/controllers/` directory don't appear in the browser
+   - **Symptoms**: Changes to files in the `examples/streamTest/js/controllers/` directory don't appear in the browser
    - **Solution**: Added clean script to package.json and documented the issue in DEVELOPMENT.md
    - **Current Status**: Resolved with workaround, but requires awareness during development
 

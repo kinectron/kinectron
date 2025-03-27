@@ -31,7 +31,10 @@ We've completed the raw depth stream implementation and added a comprehensive de
    - Reduced console noise by making logs conditional on debug flags
 
 4. **StreamTest Refactoring**:
-   - Started refactoring streamTest.html into modular components
+   - Reorganized example files into dedicated examples/ directory structure
+   - Moved streamTest and test files to their respective subdirectories
+   - Updated all references and import paths to maintain functionality
+   - Updated package.json scripts and documentation
    - Resolved Parcel caching issues affecting development workflow
    - Added clean script to package.json to prevent caching problems
    - Created DEVELOPMENT.md to document development workflows and known issues
@@ -76,6 +79,11 @@ We've completed the raw depth stream implementation and added a comprehensive de
   4. Essential vs. non-essential message differentiation
 
 - Addressing build system challenges:
+
   1. Use clean script to prevent Parcel caching issues
   2. Document development workflows for consistent results
   3. Implement proper UI state management for stream buttons
+
+- Implementing clear separation between core API and examples:
+  1. Core client API in `src/`, examples in `examples/` directory
+  2. Improved maintainability through clearer project structure
