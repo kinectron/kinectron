@@ -83,6 +83,24 @@
   - Console output is clean and organized when debugging is enabled
   - Debug panel only shows essential information by default
 
+## In Progress
+
+1. **StreamTest Refactoring**:
+   - **Status**: In progress
+   - **Implementation**:
+     - Refactored streamTest.html into modular components
+     - Created separate controller files for different functionalities
+     - Resolved Parcel caching issues affecting development workflow
+     - Added clean script to package.json to prevent caching problems
+     - Created DEVELOPMENT.md to document development workflows
+     - Implemented proper UI button state management with isKinectInitialized flag
+   - **Current Focus**:
+     - Fixing Kinect initialization button functionality
+     - Ensuring proper UI state management across all components
+   - **Next Steps**:
+     - Complete the refactoring of remaining components
+     - Implement comprehensive testing of all UI interactions
+
 ## Known Issues
 
 1. **Raw Depth Visualization Quality**:
@@ -96,6 +114,12 @@
      - Improved camera positioning and controls
    - **Current Status**: Visualization quality can be improved now that data integrity issues are resolved
    - **Next Steps**: Enhance visualization techniques for better quality
+
+2. **Parcel Build System Caching**:
+   - **Issue**: Parcel's caching mechanism can cause issues with directly included JavaScript files
+   - **Symptoms**: Changes to files in the `js/controllers/` directory don't appear in the browser
+   - **Solution**: Added clean script to package.json and documented the issue in DEVELOPMENT.md
+   - **Current Status**: Resolved with workaround, but requires awareness during development
 
 ## Future Work
 

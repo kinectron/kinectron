@@ -5,45 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kinectron Stream Test</title>
-    <style>body {
-  margin: 0;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-}
-
-#defaultCanvas0 {
-  border: 1px solid #ccc;
-}
-
-#stats {
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-.stat-item {
-  margin: 5px 0;
-}
-
-.error {
-  color: red;
-}
-
-.success {
-  color: green;
-}
-
-#three-container {
-  border: 1px solid #ccc;
-  width: 960px;
-  height: 540px;
-  display: none;
-}
-
-#threeCanvas {
-  width: 100%;
-  height: 100%;
-}
-</style>
+    <link rel="stylesheet" href="/streamTest.212802d4.css">
     <!-- Three.js dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.109.0/examples/js/controls/TrackballControls.js"></script>
@@ -51,11 +13,11 @@
 
 <body>
     <div id="controls">
-        <button onclick="initializeKinect()">Initialize Kinect</button>
-        <button onclick="startColorStream()" disabled="" id="startColorBtn">Start Color Stream</button>
-        <button onclick="startDepthStream()" disabled="" id="startDepthBtn">Start Depth Stream</button>
-        <button onclick="startRawDepthStream()" disabled="" id="startRawDepthBtn">Start Raw Depth Stream</button>
-        <button onclick="stopStream()" disabled="" id="stopStreamBtn">Stop Stream</button>
+        <button id="initializeKinectBtn">Initialize Kinect</button>
+        <button disabled="" id="startColorBtn">Start Color Stream</button>
+        <button disabled="" id="startDepthBtn">Start Depth Stream</button>
+        <button disabled="" id="startRawDepthBtn">Start Raw Depth Stream</button>
+        <button disabled="" id="stopStreamBtn">Stop Stream</button>
     </div>
     <div id="canvas-container"></div>
     <div id="three-container">
@@ -69,24 +31,24 @@
     </div>
 
     <!-- Debug Panel -->
-    <div id="debugPanel" style="background-color: #f5f5f5; border: 1px solid #ccc; margin-top: 20px; padding: 10px">
+    <div id="debugPanel">
         <h3>Debug Panel</h3>
         <div id="debugInfo"></div>
         <div>
-            <button onclick="forceEnableButtons()">Force Enable Buttons</button>
-            <button onclick="clearDebugInfo()">Clear Debug Info</button>
+            <button id="forceEnableBtn">Force Enable Buttons</button>
+            <button id="clearDebugBtn">Clear Debug Info</button>
             <div style="margin-top: 10px">
                 <label>
-                    <input type="checkbox" id="debugToggle" onchange="toggleDebug(this.checked)">
+                    <input type="checkbox" id="debugToggle">
                     Enable Debug Logging
                 </label>
                 <div style="margin-top: 5px">
                     <label>
-                        <input type="checkbox" id="debugPerformance" onchange="togglePerformanceDebug(this.checked)">
+                        <input type="checkbox" id="debugPerformance">
                         Performance Logs
                     </label>
                     <label style="margin-left: 10px">
-                        <input type="checkbox" id="debugData" onchange="toggleDataDebug(this.checked)">
+                        <input type="checkbox" id="debugData">
                         Data Integrity Logs
                     </label>
                 </div>
@@ -94,7 +56,10 @@
         </div>
     </div>
 
+    <!-- p5.js library -->
     <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+
+    <!-- Import Kinectron and DEBUG -->
     <script>// modules are defined as an array
 // [ module function, map of requires ]
 //
@@ -239,14 +204,14 @@
       this[globalName] = mainExports;
     }
   }
-})({"g5LgJ":[function(require,module,exports,__globalThis) {
+})({"65IXd":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
 var HMR_USE_SSE = false;
-module.bundle.HMR_BUNDLE_ID = "6eb25f63f19013f8";
+module.bundle.HMR_BUNDLE_ID = "fd9604f5fd3f3dc8";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -692,7 +657,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     }
 }
 
-},{}],"gfZn7":[function(require,module,exports,__globalThis) {
+},{}],"iFVdu":[function(require,module,exports,__globalThis) {
 var _kinectronModernJs = require("./src/kinectron-modern.js");
 var _debugJs = require("./src/utils/debug.js");
 window.Kinectron = (0, _kinectronModernJs.Kinectron);
@@ -12040,528 +12005,23 @@ const DEBUG = {
     }
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["g5LgJ","gfZn7"], "gfZn7", "parcelRequire94c2")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["65IXd","iFVdu"], "iFVdu", "parcelRequire94c2")
 
 </script>
-    <script>// Constants
-const AZURE_COLOR_WIDTH = 1280;
-const AZURE_COLOR_HEIGHT = 720;
-const AZURE_DEPTH_WIDTH = 640;
-const AZURE_DEPTH_HEIGHT = 576;
-const DISPLAY_SCALE = 0.5;
-// Global variables
-let kinectron = null;
-let frameCount = 0;
-let lastFrameTime = 0;
-let frameRates = [];
-let lastFrameTimestamp = 0;
-let frameLatencies = [];
-let isStreamActive = false;
-// Three.js globals
-let renderer, camera, scene, controls;
-let particles, mesh;
-let colors = [];
-// Constants for depth data
-const DEPTHWIDTH = 320;
-const DEPTHHEIGHT = 288;
-const numParticles = DEPTHWIDTH * DEPTHHEIGHT;
-// Initialize Three.js
-function initThreeJS() {
-    // Create renderer
-    renderer = new THREE.WebGLRenderer({
-        canvas: document.getElementById('threeCanvas'),
-        alpha: 0,
-        antialias: true,
-        clearColor: 0x000000
-    });
-    // Set renderer size to match container
-    const container = document.getElementById('three-container');
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    // Handle window resize
-    window.addEventListener('resize', ()=>{
-        camera.aspect = container.clientWidth / container.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
-    });
-    // Create camera with wider field of view
-    camera = new THREE.PerspectiveCamera(45, renderer.domElement.width / renderer.domElement.height, 1, 10000);
-    // Position camera to view the point cloud from a better angle
-    camera.position.set(0, -100, 300);
-    camera.lookAt(0, 0, 0);
-    // Create controls with better defaults
-    controls = new THREE.TrackballControls(camera, renderer.domElement);
-    controls.rotateSpeed = 1.5;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
-    controls.noZoom = false;
-    controls.noPan = false;
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.3;
-    // Create scene with black background
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
-    // Create particles
-    createParticles();
-    // Begin render loop
-    render();
-}
-// Create particles for depth feed
-function createParticles() {
-    particles = new THREE.Geometry();
-    // Create particles
-    for(let y = 0; y < DEPTHHEIGHT; y++)for(let x = 0; x < DEPTHWIDTH; x++){
-        // Calculate index
-        const i = y * DEPTHWIDTH + x;
-        // Center the point cloud
-        const xPos = x - DEPTHWIDTH * 0.5;
-        const yPos = DEPTHHEIGHT - y - DEPTHHEIGHT * 0.5;
-        // Create a new three point vector with initial z=0
-        const vertex = new THREE.Vector3(xPos, yPos, 0);
-        // Add it to the particles
-        particles.vertices.push(vertex);
-        // Assign each particle a color based on position
-        // This creates a gradient based on position
-        const normalizedX = x / DEPTHWIDTH;
-        const normalizedY = y / DEPTHHEIGHT;
-        colors[i] = new THREE.Color(0.5 + normalizedX * 0.5, 0.5 + normalizedY * 0.5, 0.5 // B
-        );
-    }
-    // Give the particles their colors
-    particles.colors = colors;
-    // Create material for the points
-    let material = new THREE.PointsMaterial({
-        size: 2,
-        vertexColors: THREE.VertexColors,
-        sizeAttenuation: true
-    });
-    // Create the points geometry
-    mesh = new THREE.Points(particles, material);
-    // Add point cloud to scene
-    scene.add(mesh);
-}
-// Update point cloud with depth data
-function updatePointCloud(depthValues) {
-    if (!particles) return;
-    // Set desired depth range
-    const minDepth = 100; // Ignore values too close to 0
-    const maxDepth = 6000;
-    // Analyze depth values
-    let validValues = [];
-    let min = Number.MAX_VALUE;
-    let max = 0;
-    let nonZeroCount = 0;
-    let zeroCount = 0;
-    // First pass: collect statistics
-    for(let i = 0; i < depthValues.length; i++){
-        const depth = depthValues[i];
-        // Count zero vs non-zero values for debugging
-        if (depth === 0) zeroCount++;
-        else nonZeroCount++;
-        if (depth >= minDepth && depth <= maxDepth) {
-            validValues.push(depth);
-            min = Math.min(min, depth);
-            max = Math.max(max, depth);
-        }
-    }
-    // If we don't have enough valid values, use defaults
-    if (validValues.length < 100) {
-        min = minDepth;
-        max = maxDepth;
-    }
-    // Log statistics (only occasionally to avoid flooding the console)
-    if (Math.random() < 0.05 && window.DEBUG.RAW_DEPTH && window.DEBUG.PERFORMANCE) {
-        console.group('Raw Depth Statistics');
-        console.log(`Depth range: ${min} to ${max}, valid values: ${validValues.length}`);
-        console.log(`Zero values: ${zeroCount}, Non-zero values: ${nonZeroCount}`);
-        // Log a histogram of depth values (10 buckets)
-        if (validValues.length > 0) {
-            const bucketSize = (max - min) / 10;
-            const histogram = Array(10).fill(0);
-            for (const depth of validValues){
-                const bucketIndex = Math.min(9, Math.floor((depth - min) / bucketSize));
-                histogram[bucketIndex]++;
-            }
-            console.log("Depth histogram:", histogram);
-            // Log some sample depth values
-            const sampleSize = Math.min(20, validValues.length);
-            const sampleValues = validValues.slice(0, sampleSize);
-            console.log("Sample depth values:", sampleValues);
-        }
-        console.groupEnd();
-    }
-    // Camera view scale factor - adjust this to change the overall scale of the point cloud
-    // This doesn't affect precision, just the visual size
-    const viewScale = 0.1; // Reduced to make depth more visible
-    // Second pass: update particles
-    for(let y = 0; y < DEPTHHEIGHT; y++)for(let x = 0; x < DEPTHWIDTH; x++){
-        const i = y * DEPTHWIDTH + x;
-        const depth = depthValues[i];
-        if (depth < minDepth || depth > maxDepth) // Push the particle far away so we don't see it
-        particles.vertices[i].z = -10000; // Use negative value to hide
-        else {
-            // Use the raw depth value directly with view scaling
-            // This preserves the full precision of the depth data
-            particles.vertices[i].z = -depth * viewScale; // Negative to make closer objects appear in front
-            // Update color based on depth using a more detailed gradient
-            // Use the local min/max for better color distribution
-            const normalizedDepth = max !== min ? (depth - min) / (max - min) : 0.5;
-            // Use a more sophisticated color mapping
-            // This creates a rainbow gradient from red (near) to violet (far)
-            const hue = (1.0 - normalizedDepth) * 270; // 0 (red) to 270 (violet)
-            colors[i].setHSL(hue / 360, 1.0, 0.5);
-        }
-    }
-    // Log some debug info about the point cloud
-    if (Math.random() < 0.01 && window.DEBUG.RAW_DEPTH && window.DEBUG.DATA) {
-        // Sample a few points to check their z values
-        const samplePoints = [];
-        for(let i = 0; i < 5; i++){
-            const idx = Math.floor(Math.random() * particles.vertices.length);
-            samplePoints.push({
-                index: idx,
-                z: particles.vertices[idx].z,
-                originalDepth: depthValues[idx]
-            });
-        }
-        console.log("Sample points z-values:", samplePoints);
-    }
-    // Update particles
-    particles.verticesNeedUpdate = true;
-    particles.colorsNeedUpdate = true;
-}
-// Render three.js scene
-function render() {
-    // Render the scene
-    renderer.render(scene, camera);
-    // Update the trackball controls with each scene
-    controls.update();
-    // Request anim frame
-    requestAnimationFrame(render);
-}
-function setup() {
-    // Create canvas
-    const canvas = createCanvas(AZURE_COLOR_WIDTH * DISPLAY_SCALE, AZURE_COLOR_HEIGHT * DISPLAY_SCALE);
-    canvas.parent('canvas-container');
-    pixelDensity(1);
-    background(255);
-    // Initialize debug controls
-    document.getElementById('debugPerformance').disabled = true;
-    document.getElementById('debugData').disabled = true;
-    // Initialize Kinectron
-    kinectron = new Kinectron({
-        host: '127.0.0.1',
-        port: 9001,
-        path: '/'
-    });
-    // Connection status handling
-    kinectron.on('ready', ()=>{
-        document.getElementById('connectionStatus').innerHTML = '<span class="success">Connection Status: Connected</span>';
-        addDebugInfo('Peer connection ready', true);
-    });
-    kinectron.on('error', (error)=>{
-        document.getElementById('connectionStatus').innerHTML = `<span class="error">Connection Status: Error - ${error.error || error.message}</span>`;
-        console.error('Connection error:', error);
-        addDebugInfo(`Connection error: ${error.error || error.message}`, true);
-    });
-    // Direct event listener for kinectInitialized as a backup approach
-    kinectron.on('kinectInitialized', (data)=>{
-        // Normalize the success value to handle nested structure
-        let isSuccess = false;
-        if (data.success && typeof data.success === 'object' && data.success.success === true) isSuccess = true;
-        else if (typeof data.success === 'boolean' && data.success === true) isSuccess = true;
-        // Enable buttons if successful
-        if (isSuccess || data.alreadyInitialized) {
-            document.getElementById('startColorBtn').disabled = false;
-            document.getElementById('startDepthBtn').disabled = false;
-            document.getElementById('startRawDepthBtn').disabled = false;
-            document.getElementById('stopStreamBtn').disabled = false;
-            document.getElementById('streamStatus').innerHTML = '<span class="success">Kinect Initialized via Direct Event</span>';
-            addDebugInfo('Kinect initialized successfully via direct event', true);
-        } else addDebugInfo(`Kinect initialization had issues: ${data.error || 'Unknown error'}`, true);
-    });
-    // Add a data event listener to capture all peer messages
-    kinectron.on('data', (data)=>{
-        if (window.DEBUG.RAW_DEPTH) console.log('Raw data event received:', data);
-    });
-    // Connect to server
-    kinectron.peer.connect();
-    // Start frame rate calculation
-    setInterval(calculateMetrics, 1000);
-}
-function draw() {
-    // Update frame rate display from p5.js
-    const p5FrameRate = frameRate().toFixed(0);
-    document.getElementById('frameRate').textContent = `Frame Rate: ${p5FrameRate} fps (p5.js) / ${calculateAverageFrameRate().toFixed(1)} fps (actual)`;
-    // Draw frame count in corner if stream is active
-    if (isStreamActive) {
-        fill(0);
-        textSize(14);
-        text(`Frames: ${frameCount}`, 10, 20);
-    }
-}
-// Calculate metrics
-function calculateMetrics() {
-    if (!isStreamActive) return;
-    // Calculate average latency
-    if (frameLatencies.length > 0) {
-        const avgLatency = frameLatencies.reduce((a, b)=>a + b, 0) / frameLatencies.length;
-        document.getElementById('resolution').textContent = `Resolution: ${width * 2}x${height * 2} (displayed at ${width}x${height}) | Avg Latency: ${avgLatency.toFixed(1)}ms`;
-        // Reset latencies array
-        frameLatencies = [];
-    }
-}
-// Calculate average frame rate
-function calculateAverageFrameRate() {
-    if (frameRates.length === 0) return 0;
-    return frameRates.reduce((a, b)=>a + b, 0) / frameRates.length;
-}
-// Debug toggle functions
-function toggleDebug(enabled) {
-    if (enabled) {
-        window.DEBUG.RAW_DEPTH = true;
-        document.getElementById('debugPerformance').disabled = false;
-        document.getElementById('debugData').disabled = false;
-    } else {
-        window.DEBUG.RAW_DEPTH = false;
-        window.DEBUG.PERFORMANCE = false;
-        window.DEBUG.DATA = false;
-        document.getElementById('debugPerformance').checked = false;
-        document.getElementById('debugData').checked = false;
-        document.getElementById('debugPerformance').disabled = true;
-        document.getElementById('debugData').disabled = true;
-    }
-    addDebugInfo(`Debug logging ${enabled ? 'enabled' : 'disabled'}`, true);
-}
-function togglePerformanceDebug(enabled) {
-    window.DEBUG.PERFORMANCE = enabled;
-    addDebugInfo(`Performance logging ${enabled ? 'enabled' : 'disabled'}`, true);
-}
-function toggleDataDebug(enabled) {
-    window.DEBUG.DATA = enabled;
-    addDebugInfo(`Data integrity logging ${enabled ? 'enabled' : 'disabled'}`, true);
-}
-// Debug functions
-function addDebugInfo(message, isEssential = false) {
-    // Only log essential messages or when debugging is enabled
-    if (!isEssential && !window.DEBUG.RAW_DEPTH) return; // Skip non-essential logs when debugging is disabled
-    const debugInfo = document.getElementById('debugInfo');
-    const timestamp = new Date().toLocaleTimeString();
-    const entry = document.createElement('div');
-    entry.innerHTML = `<strong>${timestamp}</strong>: ${message}`;
-    debugInfo.appendChild(entry);
-    // Scroll to bottom
-    debugInfo.scrollTop = debugInfo.scrollHeight;
-}
-function forceEnableButtons() {
-    document.getElementById('startColorBtn').disabled = false;
-    document.getElementById('startDepthBtn').disabled = false;
-    document.getElementById('startRawDepthBtn').disabled = false;
-    document.getElementById('stopStreamBtn').disabled = false;
-    addDebugInfo('Buttons forcibly enabled', true);
-}
-function clearDebugInfo() {
-    document.getElementById('debugInfo').innerHTML = '';
-}
-// Initialize Kinect
-window.initializeKinect = async function() {
-    document.getElementById('streamStatus').textContent = 'Initializing Kinect...';
-    addDebugInfo('Initializing Kinect...', true);
-    try {
-        // Initialize Kinect on the server using Promise-based approach
-        addDebugInfo('Calling kinectron.initKinect()', true);
-        const result = await kinectron.initKinect();
-        if (window.DEBUG.RAW_DEPTH) console.log('Kinect initialization result:', result);
-        // Check for success in the normalized result
-        if (result.success || result.alreadyInitialized) {
-            addDebugInfo('Kinect initialized successfully - enabling buttons', true);
-            document.getElementById('streamStatus').innerHTML = `<span class="success">Kinect ${result.alreadyInitialized ? 'Already' : ''} Initialized Successfully</span>`;
-            // Enable the buttons
-            document.getElementById('startColorBtn').disabled = false;
-            document.getElementById('startDepthBtn').disabled = false;
-            document.getElementById('startRawDepthBtn').disabled = false;
-            document.getElementById('stopStreamBtn').disabled = false;
-        } else {
-            addDebugInfo(`Kinect initialization failed: ${result.error || 'Unknown error'}`, true);
-            document.getElementById('streamStatus').innerHTML = `<span class="error">Kinect Initialization Failed: ${result.error || 'Unknown error'}</span>`;
-        }
-        // Try to force enable buttons if they're still disabled
-        if (document.getElementById('startColorBtn').disabled || document.getElementById('stopStreamBtn').disabled) {
-            addDebugInfo('Buttons still disabled after update, forcing enable...', true);
-            forceEnableButtons();
-        }
-    } catch (error) {
-        addDebugInfo(`Error initializing Kinect: ${error.message || 'Unknown error'}`, true);
-        document.getElementById('streamStatus').innerHTML = `<span class="error">Kinect Initialization Failed: ${error.message || 'Unknown error'}</span>`;
-    }
-};
-// Start color stream
-window.startColorStream = function() {
-    document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
-    frameCount = 0;
-    lastFrameTime = Date.now();
-    frameRates = [];
-    frameLatencies = [];
-    isStreamActive = true;
-    kinectron.startColor((frame)=>{
-        // Update stream status
-        document.getElementById('streamStatus').innerHTML = '<span class="success">Stream Status: Active (Color)</span>';
-        // Calculate frame metrics
-        frameCount++;
-        const now = Date.now();
-        // Calculate frame rate every second
-        if (now - lastFrameTime >= 1000) {
-            const fps = frameCount / ((now - lastFrameTime) / 1000);
-            frameRates.push(fps);
-            if (frameRates.length > 10) frameRates.shift(); // Keep last 10 readings
-            frameCount = 0;
-            lastFrameTime = now;
-        }
-        // Calculate frame latency
-        if (frame.timestamp) {
-            const latency = now - frame.timestamp;
-            frameLatencies.push(latency);
-            if (window.DEBUG.RAW_DEPTH && window.DEBUG.PERFORMANCE) console.log(`Color frame latency: ${latency}ms`);
-        }
-        // Track last frame timestamp for jitter calculation
-        lastFrameTimestamp = now;
-        // Use p5.js loadImage to handle the frame data
-        loadImage(frame.src, (loadedImage)=>{
-            // Clear canvas
-            background(255);
-            // Draw the image
-            image(loadedImage, 0, 0, width, height);
-            if (window.DEBUG.RAW_DEPTH) console.log(`Color image drawn: ${loadedImage.width}x${loadedImage.height}`);
-        });
-    });
-};
-// Start depth stream
-window.startDepthStream = function() {
-    document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
-    frameCount = 0;
-    lastFrameTime = Date.now();
-    frameRates = [];
-    frameLatencies = [];
-    isStreamActive = true;
-    // Resize canvas for depth stream
-    resizeCanvas(AZURE_DEPTH_WIDTH * DISPLAY_SCALE, AZURE_DEPTH_HEIGHT * DISPLAY_SCALE);
-    background(255);
-    addDebugInfo('Starting depth stream...', true);
-    kinectron.startDepth((frame)=>{
-        // Update stream status
-        document.getElementById('streamStatus').innerHTML = '<span class="success">Stream Status: Active (Depth)</span>';
-        // Calculate frame metrics
-        frameCount++;
-        const now = Date.now();
-        // Calculate frame rate every second
-        if (now - lastFrameTime >= 1000) {
-            const fps = frameCount / ((now - lastFrameTime) / 1000);
-            frameRates.push(fps);
-            if (frameRates.length > 10) frameRates.shift(); // Keep last 10 readings
-            frameCount = 0;
-            lastFrameTime = now;
-        }
-        // Calculate frame latency
-        if (frame.timestamp) {
-            const latency = now - frame.timestamp;
-            frameLatencies.push(latency);
-            if (window.DEBUG.RAW_DEPTH && window.DEBUG.PERFORMANCE) console.log(`Depth frame latency: ${latency}ms`);
-        }
-        // Track last frame timestamp for jitter calculation
-        lastFrameTimestamp = now;
-        // Use p5.js loadImage to handle the frame data
-        if (frame.src) loadImage(frame.src, (loadedImage)=>{
-            // Clear canvas
-            background(255);
-            // Draw the image
-            image(loadedImage, 0, 0, width, height);
-            if (window.DEBUG.RAW_DEPTH) console.log(`Depth image drawn: ${loadedImage.width}x${loadedImage.height}`);
-        }, (err)=>{
-            console.error(`Error loading depth image: ${err}`);
-        });
-        else console.warn('No frame.src available to load depth image');
-    });
-};
-// Start raw depth stream
-window.startRawDepthStream = function() {
-    document.getElementById('streamStatus').textContent = 'Stream Status: Starting...';
-    frameCount = 0;
-    lastFrameTime = Date.now();
-    frameRates = [];
-    frameLatencies = [];
-    isStreamActive = true;
-    // Hide p5 canvas and show Three.js canvas
-    document.getElementById('canvas-container').style.display = 'none';
-    document.getElementById('three-container').style.display = 'block';
-    // Initialize Three.js if not already initialized
-    if (!renderer) initThreeJS();
-    addDebugInfo('Starting raw depth stream...', true);
-    kinectron.startRawDepth((frame)=>{
-        // Update stream status
-        document.getElementById('streamStatus').innerHTML = '<span class="success">Stream Status: Active (Raw Depth)</span>';
-        // Calculate frame metrics
-        frameCount++;
-        const now = Date.now();
-        // Calculate frame rate every second
-        if (now - lastFrameTime >= 1000) {
-            const fps = frameCount / ((now - lastFrameTime) / 1000);
-            frameRates.push(fps);
-            if (frameRates.length > 10) frameRates.shift(); // Keep last 10 readings
-            frameCount = 0;
-            lastFrameTime = now;
-        }
-        // Calculate frame latency
-        if (frame.timestamp) {
-            const latency = now - frame.timestamp;
-            frameLatencies.push(latency);
-            if (window.DEBUG.RAW_DEPTH && window.DEBUG.PERFORMANCE) console.log(`Raw depth frame latency: ${latency}ms`);
-        }
-        // Track last frame timestamp for jitter calculation
-        lastFrameTimestamp = now;
-        // Check if we have unpacked depth values
-        if (frame.depthValues) {
-            // Update the point cloud with the depth values
-            updatePointCloud(frame.depthValues);
-            // Update resolution info
-            document.getElementById('resolution').textContent = `Resolution: ${frame.width}x${frame.height} | Depth Values: ${frame.depthValues.length} | Avg Latency: ${frameLatencies.length > 0 ? (frameLatencies.reduce((a, b)=>a + b, 0) / frameLatencies.length).toFixed(1) : 0}ms`;
-            if (window.DEBUG.RAW_DEPTH && window.DEBUG.DATA) {
-                // Calculate min, max, and average depth for console logging
-                let validCount = 0;
-                let sum = 0;
-                let min = Number.MAX_VALUE;
-                let max = 0;
-                for(let i = 0; i < frame.depthValues.length; i++){
-                    const depth = frame.depthValues[i];
-                    if (depth >= 100 && depth <= 3000) {
-                        validCount++;
-                        sum += depth;
-                        min = Math.min(min, depth);
-                        max = Math.max(max, depth);
-                    }
-                }
-                const avg = validCount > 0 ? sum / validCount : 0;
-                console.group('Raw Depth Frame Data');
-                console.log(`Depth values: ${frame.depthValues.length} points, ${validCount} valid points`);
-                console.log(`Depth range: min=${min}, max=${max}, avg=${avg.toFixed(2)}`);
-                console.groupEnd();
-            }
-        }
-    });
-};
-// Stop all streams
-window.stopStream = function() {
-    kinectron.stopAll();
-    document.getElementById('streamStatus').textContent = 'Stream Status: Inactive';
-    document.getElementById('frameRate').textContent = 'Frame Rate: 0 fps';
-    document.getElementById('resolution').textContent = 'Resolution: -';
-    addDebugInfo('Stream stopped', true);
-    // Show p5 canvas and hide Three.js canvas
-    document.getElementById('canvas-container').style.display = 'block';
-    document.getElementById('three-container').style.display = 'none';
-    background(255);
-    isStreamActive = false;
-};
 
-</script>
+    <!-- Visualizers -->
+    <script src="/streamTest.ff118588.js"></script>
+    <script src="/streamTest.6eb02a16.js"></script>
+
+    <!-- Controllers -->
+    <script src="/streamTest.1a6519ec.js"></script>
+    <script src="/streamTest.55c82c18.js"></script>
+    <script src="/streamTest.fcee50b7.js"></script>
+    <script src="/streamTest.b38630cd.js"></script>
+    <script src="/streamTest.21fe1ade.js"></script>
+
+    <!-- Main application -->
+    <script src="/streamTest.9c122702.js"></script>
 </body>
 
 </html>

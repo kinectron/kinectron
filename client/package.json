@@ -10,10 +10,11 @@
     "process": "^0.11.10"
   },
   "scripts": {
-    "start": "parcel watch src/index.js",
-    "build": "parcel build src/index.js --no-optimize",
-    "test": "parcel serve test.html --open",
-    "test:stream": "parcel serve streamTest.html --open"
+    "clean": "rm -rf .parcel-cache dist",
+    "start": "npm run clean && parcel watch src/index.js",
+    "build": "npm run clean && parcel build src/index.js --no-optimize",
+    "test": "npm run clean && parcel serve test.html --open",
+    "test:stream": "npm run clean && parcel build src/index.js --no-optimize && parcel serve streamTest.html --open"
   },
   "repository": {
     "type": "git",

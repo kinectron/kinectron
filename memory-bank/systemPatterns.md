@@ -165,3 +165,43 @@ flowchart TD
    - Console logs wrapped with flag checks
    - Console.group() for organizing related logs
    - Essential vs. non-essential message differentiation
+
+## Build System and Development Workflow
+
+```mermaid
+flowchart TD
+    subgraph "Development Process"
+        Clean[Clean Cache]
+        Build[Build Client Library]
+        Serve[Serve StreamTest]
+        Test[Test in Browser]
+    end
+
+    subgraph "File Organization"
+        SrcFiles[ES Module Source Files]
+        JSFiles[Direct JS Includes]
+        HTMLFiles[HTML Entry Points]
+        StyleFiles[CSS Files]
+    end
+
+    Clean --> Build --> Serve --> Test
+    SrcFiles --> Build
+    JSFiles --> Serve
+    HTMLFiles --> Serve
+    StyleFiles --> Serve
+```
+
+### Build System Implementation
+
+1. **Parcel Bundler**:
+
+   - Zero-configuration bundler for web applications
+   - Handles JavaScript, HTML, CSS, and assets
+   - Provides development server with hot module replacement
+   - Requires cache management for direct script includes
+
+2. **Development Workflow**:
+   - Clean script removes cache and build artifacts
+   - Build process compiles ES modules into browser-compatible code
+   - Serve process starts development server with live reloading
+   - Browser testing validates functionality
