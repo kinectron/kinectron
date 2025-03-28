@@ -59,7 +59,8 @@
             clearDebugInfo: ()=>this.debug.clearDebugInfo(),
             toggleDebug: (enabled)=>this.debug.toggleDebug(enabled),
             togglePerformanceDebug: (enabled)=>this.debug.togglePerformanceDebug(enabled),
-            toggleDataDebug: (enabled)=>this.debug.toggleDataDebug(enabled)
+            toggleDataDebug: (enabled)=>this.debug.toggleDataDebug(enabled),
+            togglePeerDebug: (enabled)=>this.debug.togglePeerDebug(enabled)
         });
     }
     /**

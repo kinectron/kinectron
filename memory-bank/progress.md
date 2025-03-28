@@ -72,16 +72,19 @@
     - RAW_DEPTH: Master switch for raw depth logging
     - PERFORMANCE: For performance-related logs
     - DATA: For data integrity logs
-    - NETWORK: For network-related logs
+    - PEER: For peer connection logs
   - Added UI controls in streamTest.html for toggling debug flags
   - Wrapped console logs with appropriate debug flag checks
   - Used console.group() for better organization of related logs
   - Added essential vs. non-essential message differentiation in debug panel
+  - Implemented conditional logging in peerConnection.js using DEBUG.PEER flag
+  - Added PEER debug checkbox to streamTest UI
 - **Current Behavior**:
   - Debug logging is disabled by default
   - Users can enable specific categories of logging as needed
   - Console output is clean and organized when debugging is enabled
   - Debug panel only shows essential information by default
+  - Peer connection logs can be toggled independently from other debug logs
 
 ## Completed Features
 
@@ -141,7 +144,13 @@
 
 ## Future Work
 
-1. **Enhance Raw Depth Visualization**:
+1. **Implement Skeleton Feed**:
+
+   - Add body tracking and skeleton data streaming
+   - Implement visualization for skeleton data
+   - Ensure compatibility with existing streams
+
+2. **Enhance Raw Depth Visualization**:
    - Improve point cloud visualization quality
    - Explore alternative visualization techniques if needed
    - Consider adding smoothing or filtering options

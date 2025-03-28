@@ -16,7 +16,8 @@
             resolution: document.getElementById('resolution'),
             debugToggle: document.getElementById('debugToggle'),
             debugPerformance: document.getElementById('debugPerformance'),
-            debugData: document.getElementById('debugData')
+            debugData: document.getElementById('debugData'),
+            debugPeer: document.getElementById('debugPeer')
         };
         // Flag to track if Kinect is initialized
         this.isKinectInitialized = false;
@@ -49,6 +50,7 @@
         if (this.elements.debugToggle && handlers.toggleDebug) this.elements.debugToggle.addEventListener('change', (e)=>handlers.toggleDebug(e.target.checked));
         if (this.elements.debugPerformance && handlers.togglePerformanceDebug) this.elements.debugPerformance.addEventListener('change', (e)=>handlers.togglePerformanceDebug(e.target.checked));
         if (this.elements.debugData && handlers.toggleDataDebug) this.elements.debugData.addEventListener('change', (e)=>handlers.toggleDataDebug(e.target.checked));
+        if (this.elements.debugPeer && handlers.togglePeerDebug) this.elements.debugPeer.addEventListener('change', (e)=>handlers.togglePeerDebug(e.target.checked));
     }
     /**
    * Update connection status display
@@ -128,6 +130,7 @@
    */ enableDebugControls(enabled) {
         if (this.elements.debugPerformance) this.elements.debugPerformance.disabled = !enabled;
         if (this.elements.debugData) this.elements.debugData.disabled = !enabled;
+        if (this.elements.debugPeer) this.elements.debugPeer.disabled = !enabled;
     }
 }
 

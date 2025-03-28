@@ -10,6 +10,7 @@ class DebugController {
       debugToggle: document.getElementById('debugToggle'),
       debugPerformance: document.getElementById('debugPerformance'),
       debugData: document.getElementById('debugData'),
+      debugPeer: document.getElementById('debugPeer'),
     };
 
     // Bind methods to maintain 'this' context
@@ -19,6 +20,7 @@ class DebugController {
     this.togglePerformanceDebug =
       this.togglePerformanceDebug.bind(this);
     this.toggleDataDebug = this.toggleDataDebug.bind(this);
+    this.togglePeerDebug = this.togglePeerDebug.bind(this);
 
     // Set up event listeners
     this._setupEventListeners();
@@ -43,6 +45,7 @@ class DebugController {
     window.toggleDebug = this.toggleDebug;
     window.togglePerformanceDebug = this.togglePerformanceDebug;
     window.toggleDataDebug = this.toggleDataDebug;
+    window.togglePeerDebug = this.togglePeerDebug;
 
     // Set initial state
     if (this.elements.debugToggle) {
@@ -59,6 +62,11 @@ class DebugController {
     if (this.elements.debugData) {
       this.elements.debugData.checked = window.DEBUG.DATA;
       this.elements.debugData.disabled = !window.DEBUG.RAW_DEPTH;
+    }
+
+    if (this.elements.debugPeer) {
+      this.elements.debugPeer.checked = window.DEBUG.PEER;
+      this.elements.debugPeer.disabled = !window.DEBUG.RAW_DEPTH;
     }
   }
 
@@ -109,9 +117,14 @@ class DebugController {
       this.elements.debugData.disabled = !enabled;
     }
 
+    if (this.elements.debugPeer) {
+      this.elements.debugPeer.disabled = !enabled;
+    }
+
     if (!enabled) {
       window.DEBUG.PERFORMANCE = false;
       window.DEBUG.DATA = false;
+      window.DEBUG.PEER = false;
 
       if (this.elements.debugPerformance) {
         this.elements.debugPerformance.checked = false;
@@ -119,6 +132,10 @@ class DebugController {
 
       if (this.elements.debugData) {
         this.elements.debugData.checked = false;
+      }
+
+      if (this.elements.debugPeer) {
+        this.elements.debugPeer.checked = false;
       }
     }
 
@@ -148,6 +165,18 @@ class DebugController {
     window.DEBUG.DATA = enabled;
     this.addDebugInfo(
       `Data integrity logging ${enabled ? 'enabled' : 'disabled'}`,
+      true,
+    );
+  }
+
+  /**
+   * Toggle peer connection debug flag
+   * @param {boolean} enabled - Whether peer connection debugging should be enabled
+   */
+  togglePeerDebug(enabled) {
+    window.DEBUG.PEER = enabled;
+    this.addDebugInfo(
+      `Peer connection logging ${enabled ? 'enabled' : 'disabled'}`,
       true,
     );
   }

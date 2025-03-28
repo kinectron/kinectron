@@ -80,6 +80,8 @@ class KinectController {
         this.debug.togglePerformanceDebug(enabled),
       toggleDataDebug: (enabled) =>
         this.debug.toggleDataDebug(enabled),
+      togglePeerDebug: (enabled) =>
+        this.debug.togglePeerDebug(enabled),
     });
   }
 

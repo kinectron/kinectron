@@ -1,8 +1,8 @@
 # Active Context
 
-## Current Focus: Debugging System and Raw Depth Completion
+## Current Focus: Skeleton Feed Implementation
 
-We've completed the raw depth stream implementation and added a comprehensive debugging system for both application and client.
+We've completed the raw depth stream implementation, added a comprehensive debugging system for both application and client, and finished refactoring the kinectron-modern client.
 
 ### Current Status
 
@@ -45,10 +45,11 @@ We've completed the raw depth stream implementation and added a comprehensive de
 
 ### Next Steps
 
-- **Complete StreamTest Refactoring**
+- **Implement Skeleton Feed**
 
-  - Continue refactoring streamTest.html into modular components
-  - Implement comprehensive testing of all UI interactions
+  - Add body tracking and skeleton data streaming
+  - Implement visualization for skeleton data
+  - Ensure compatibility with existing streams
 
 - **Enhance Raw Depth Visualization**
   - Improve point cloud visualization quality

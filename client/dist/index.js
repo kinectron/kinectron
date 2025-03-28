@@ -41,150 +41,35 @@ if (parcelRequire == null) {
 }
 
 var parcelRegister = parcelRequire.register;
-parcelRegister("i35iy", function(module, exports) {
+parcelRegister("kSHSU", function(module, exports) {
 
-$parcel$export(module.exports, "register", () => $d23c9df46dea4e30$export$6503ec6e8aabbaf, (v) => $d23c9df46dea4e30$export$6503ec6e8aabbaf = v);
-$parcel$export(module.exports, "resolve", () => $d23c9df46dea4e30$export$f7ad0328861e2f03, (v) => $d23c9df46dea4e30$export$f7ad0328861e2f03 = v);
-var $d23c9df46dea4e30$export$6503ec6e8aabbaf;
-var $d23c9df46dea4e30$export$f7ad0328861e2f03;
-"use strict";
-var $d23c9df46dea4e30$var$mapping = new Map();
-function $d23c9df46dea4e30$var$register(baseUrl, manifest) {
-    for(var i = 0; i < manifest.length - 1; i += 2)$d23c9df46dea4e30$var$mapping.set(manifest[i], {
-        baseUrl: baseUrl,
-        path: manifest[i + 1]
-    });
-}
-function $d23c9df46dea4e30$var$resolve(id) {
-    var resolved = $d23c9df46dea4e30$var$mapping.get(id);
-    if (resolved == null) throw new Error('Could not resolve bundle with id ' + id);
-    return new URL(resolved.path, resolved.baseUrl).toString();
-}
-$d23c9df46dea4e30$export$6503ec6e8aabbaf = $d23c9df46dea4e30$var$register;
-$d23c9df46dea4e30$export$f7ad0328861e2f03 = $d23c9df46dea4e30$var$resolve;
-
-});
-
-parcelRegister("jn4pO", function(module, exports) {
-
-$parcel$export(module.exports, "getBundleURL", () => $e1a397194cf67d3d$export$bdfd709ae4826697, (v) => $e1a397194cf67d3d$export$bdfd709ae4826697 = v);
-var $e1a397194cf67d3d$export$bdfd709ae4826697;
-var $e1a397194cf67d3d$export$c9e73fbda7da57b6;
-var $e1a397194cf67d3d$export$5a759dc7a1cfb72a;
-"use strict";
-var $e1a397194cf67d3d$var$bundleURL = {};
-function $e1a397194cf67d3d$var$getBundleURLCached(id) {
-    var value = $e1a397194cf67d3d$var$bundleURL[id];
-    if (!value) {
-        value = $e1a397194cf67d3d$var$getBundleURL();
-        $e1a397194cf67d3d$var$bundleURL[id] = value;
-    }
-    return value;
-}
-function $e1a397194cf67d3d$var$getBundleURL() {
-    try {
-        throw new Error();
-    } catch (err) {
-        var matches = ('' + err.stack).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^)\n]+/g);
-        if (matches) // The first two stack frames will be this function and getBundleURLCached.
-        // Use the 3rd one, which will be a runtime in the original bundle.
-        return $e1a397194cf67d3d$var$getBaseURL(matches[2]);
-    }
-    return '/';
-}
-function $e1a397194cf67d3d$var$getBaseURL(url) {
-    return ('' + url).replace(/^((?:https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/.+)\/[^/]+$/, '$1') + '/';
-}
-// TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
-function $e1a397194cf67d3d$var$getOrigin(url) {
-    var matches = ('' + url).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^/]+/);
-    if (!matches) throw new Error('Origin not found');
-    return matches[0];
-}
-$e1a397194cf67d3d$export$bdfd709ae4826697 = $e1a397194cf67d3d$var$getBundleURLCached;
-$e1a397194cf67d3d$export$c9e73fbda7da57b6 = $e1a397194cf67d3d$var$getBaseURL;
-$e1a397194cf67d3d$export$5a759dc7a1cfb72a = $e1a397194cf67d3d$var$getOrigin;
-
-});
-
-parcelRegister("iZi0K", function(module, exports) {
-
-
-module.exports = (parcelRequire("jHRVE"))((parcelRequire("i35iy")).resolve("jbhc8")).then(()=>parcelRequire('kSHSU'));
-
-});
-parcelRegister("jHRVE", function(module, exports) {
-"use strict";
-
-var $3nnn0 = parcelRequire("3nnn0");
-module.exports = $3nnn0(function(bundle) {
-    return new Promise(function(resolve, reject) {
-        // Don't insert the same script twice (e.g. if it was already in the HTML)
-        var existingScripts = document.getElementsByTagName('script');
-        if ([].concat(existingScripts).some(function(script) {
-            return script.src === bundle;
-        })) {
-            resolve();
-            return;
-        }
-        var preloadLink = document.createElement('link');
-        preloadLink.href = bundle;
-        preloadLink.rel = 'preload';
-        preloadLink.as = 'script';
-        document.head.appendChild(preloadLink);
-        var script = document.createElement('script');
-        script.async = true;
-        script.type = 'text/javascript';
-        script.src = bundle;
-        script.onerror = function(e) {
-            var error = new TypeError("Failed to fetch dynamically imported module: ".concat(bundle, ". Error: ").concat(e.message));
-            script.onerror = script.onload = null;
-            script.remove();
-            reject(error);
-        };
-        script.onload = function() {
-            script.onerror = script.onload = null;
-            resolve();
-        };
-        document.getElementsByTagName('head')[0].appendChild(script);
-    });
-});
-
-});
-parcelRegister("3nnn0", function(module, exports) {
-"use strict";
-var $2755a5e882c2aac1$var$cachedBundles = {};
-var $2755a5e882c2aac1$var$cachedPreloads = {};
-var $2755a5e882c2aac1$var$cachedPrefetches = {};
-function $2755a5e882c2aac1$var$getCache(type) {
-    switch(type){
-        case 'preload':
-            return $2755a5e882c2aac1$var$cachedPreloads;
-        case 'prefetch':
-            return $2755a5e882c2aac1$var$cachedPrefetches;
-        default:
-            return $2755a5e882c2aac1$var$cachedBundles;
-    }
-}
-module.exports = function(loader, type) {
-    return function(bundle) {
-        var cache = $2755a5e882c2aac1$var$getCache(type);
-        if (cache[bundle]) return cache[bundle];
-        return cache[bundle] = loader.apply(null, arguments).catch(function(e) {
-            delete cache[bundle];
-            throw e;
+$parcel$export(module.exports, "DEBUG", () => $f33ae462b482966d$export$3f32c2013f0dcc1e);
+/**
+ * Debug configuration for Kinectron client
+ * Controls logging output for different components
+ */ const $f33ae462b482966d$export$3f32c2013f0dcc1e = {
+    // Master switches for components
+    RAW_DEPTH: false,
+    PEER: false,
+    // Specific logging categories
+    PERFORMANCE: false,
+    DATA: false,
+    NETWORK: false,
+    // Helper method to enable all logs
+    enableAll: function() {
+        Object.keys(this).forEach((key)=>{
+            if (typeof this[key] === 'boolean') this[key] = true;
         });
-    };
+    },
+    // Helper method to disable all logs
+    disableAll: function() {
+        Object.keys(this).forEach((key)=>{
+            if (typeof this[key] === 'boolean') this[key] = false;
+        });
+    }
 };
 
 });
-
-
-
-var $b5b764c851158610$exports = {};
-
-
-(parcelRequire("i35iy")).register((parcelRequire("jn4pO")).getBundleURL('66wtG'), JSON.parse("[\"66wtG\",\"index.js\",\"jbhc8\",\"debug.ce74e50c.js\"]"));
 
 /**
  * @fileoverview Main entry point for the Kinectron client library
@@ -9957,6 +9842,8 @@ class $b0904cb4b6312074$export$575c13c422fb6041 {
 }
 
 
+
+var $kSHSU = parcelRequire("kSHSU");
 class $4d767ee87242f6c3$export$d84cf184fade0488 {
     /**
    * @param {string|PeerNetworkConfig} [networkConfig] - Network configuration or host address
@@ -10016,7 +9903,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                 console.warn('Peer already initialized');
                 return;
             }
-            console.log('Initializing peer with config:', this.config);
+            if ((0, $kSHSU.DEBUG).PEER) console.log('Initializing peer with config:', this.config);
             // Check if this is an ngrok connection
             const isNgrok = typeof this.config.host === 'string' && this.config.host.includes('ngrok');
             if (isNgrok) {
@@ -10055,7 +9942,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
    * @private
    */ setupPeerEventHandlers() {
         this.peer.on('open', (id)=>{
-            console.log('My peer ID is:', id);
+            if ((0, $kSHSU.DEBUG).PEER) console.log('My peer ID is:', id);
             // Already in CONNECTING state, proceed with connection
             this.connect();
         });
@@ -10063,7 +9950,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
             console.error('Peer connection error:', error);
             // Handle ID taken error by generating new ID
             if (error.type === 'unavailable-id') {
-                console.log('Client ID taken, generating new ID');
+                if ((0, $kSHSU.DEBUG).PEER) console.log('Client ID taken, generating new ID');
                 this.clientId = this.generateClientId();
                 this._cleanup(false);
                 this.initialize();
@@ -10079,7 +9966,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
             if (this.shouldAttemptReconnection(error)) this._handleReconnection(error);
         });
         this.peer.on('disconnected', ()=>{
-            console.log('Peer disconnected from server');
+            if ((0, $kSHSU.DEBUG).PEER) console.log('Peer disconnected from server');
             this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.DISCONNECTED, {
                 reason: 'peer_disconnected'
             });
@@ -10225,7 +10112,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
         const timeoutDuration = 15000; // 15 second timeout for ngrok connections
         setTimeout(()=>{
             if (this.state.getState() !== (0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.CONNECTED) {
-                console.log('Connection attempt timed out');
+                if ((0, $kSHSU.DEBUG).PEER) console.log('Connection attempt timed out');
                 if (this.shouldAttemptReconnection({
                     type: 'timeout'
                 })) this._handleReconnection({
@@ -10252,11 +10139,11 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
         const baseDelay = Math.min(2000 * Math.pow(1.5, this.state.getMetadata().metrics.reconnects.count), 15000);
         const jitter = baseDelay * 0.2 * (Math.random() * 2 - 1);
         const delay = Math.max(2000, baseDelay + jitter);
-        console.log(`Attempting reconnection ${this.state.getMetadata().metrics.reconnects.count + 1} of 3 in ${Math.round(delay)}ms`);
+        if ((0, $kSHSU.DEBUG).PEER) console.log(`Attempting reconnection ${this.state.getMetadata().metrics.reconnects.count + 1} of 3 in ${Math.round(delay)}ms`);
         // Wait for delay
         await new Promise((resolve)=>setTimeout(resolve, delay));
         if (this.state.getState() === (0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.RECONNECTING) {
-            console.log('Attempting to reconnect...');
+            if ((0, $kSHSU.DEBUG).PEER) console.log('Attempting to reconnect...');
             // Clean up existing resources
             await this._cleanup(false);
             // Only try to reconnect if we haven't exceeded max attempts
@@ -10265,7 +10152,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                 this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.CONNECTING);
                 this.initialize();
             } else {
-                console.log('Max reconnection attempts reached');
+                if ((0, $kSHSU.DEBUG).PEER) console.log('Max reconnection attempts reached');
                 this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.ERROR, {
                     error: 'Maximum reconnection attempts reached',
                     type: 'max_retries'
@@ -10308,14 +10195,14 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
             if (this.peer.connections[this.targetPeerId]?.length > 0) {
                 const existingConn = this.peer.connections[this.targetPeerId][0];
                 if (existingConn.open) {
-                    console.log('Reusing existing connection');
+                    if ((0, $kSHSU.DEBUG).PEER) console.log('Reusing existing connection');
                     this.connection = existingConn;
                     this.setupConnectionHandlers();
                     return;
                 }
             }
             // Create new connection
-            console.log('Creating new connection to:', this.targetPeerId);
+            if ((0, $kSHSU.DEBUG).PEER) console.log('Creating new connection to:', this.targetPeerId);
             this.connection = this.peer.connect(this.targetPeerId, {
                 reliable: true,
                 serialization: 'binary'
@@ -10332,7 +10219,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
    * @private
    */ setupConnectionHandlers() {
         this.connection.on('open', ()=>{
-            console.log('Connected to peer:', this.targetPeerId);
+            if ((0, $kSHSU.DEBUG).PEER) console.log('Connected to peer:', this.targetPeerId);
             // Update state
             this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.CONNECTED, {
                 peerId: this.targetPeerId,
@@ -10359,11 +10246,11 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                 });
                 return;
             }
-            console.log('Received data from peer:', data);
+            if ((0, $kSHSU.DEBUG).PEER) console.log('Received data from peer:', data);
             this.handleIncomingData(data);
         });
         this.connection.on('close', ()=>{
-            console.log('Peer connection closed');
+            if ((0, $kSHSU.DEBUG).PEER) console.log('Peer connection closed');
             if (!this._isClosing) {
                 this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.DISCONNECTED, {
                     reason: 'connection_closed'
@@ -10391,18 +10278,18 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
    * @param {*} data.data - Event data
    */ handleIncomingData(data) {
         try {
-            console.log('PeerConnection: Received event:', data.event, 'with data:', data.data);
+            if ((0, $kSHSU.DEBUG).PEER) console.log('PeerConnection: Received event:', data.event, 'with data:', data.data);
             // First, try to find a specific handler for this event
             const handler = this.messageHandlers.get(data.event);
             if (handler) {
-                console.log('PeerConnection: Found specific handler for event:', data.event);
+                if ((0, $kSHSU.DEBUG).PEER) console.log('PeerConnection: Found specific handler for event:', data.event);
                 handler({
                     ...data.data,
                     timestamp: Date.now(),
                     state: this.state.getState()
                 });
             } else {
-                console.log('PeerConnection: No specific handler for event:', data.event, 'forwarding to data handler');
+                if ((0, $kSHSU.DEBUG).PEER) console.log('PeerConnection: No specific handler for event:', data.event, 'forwarding to data handler');
                 // If no specific handler is found, forward the event to the data handler
                 // This ensures all events are forwarded to the Kinectron class
                 const dataHandler = this.messageHandlers.get('data');
@@ -10505,6 +10392,195 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
 
 
 
+
+
+/**
+ * Stream handler factory functions
+ */ /**
+ * Utility functions for processing image data from different streams
+ */ /**
+ * Process image data from a frame
+ * @param {Object} frameData - The frame data containing image information
+ * @param {number} width - The width of the image
+ * @param {number} height - The height of the image
+ * @param {Function} callback - Callback to receive the processed image
+ */ function $c98be0bef0e4b75f$export$6bfa04708e643828(frameData, callback) {
+    if (!frameData || !frameData.imagedata) {
+        console.warn('Invalid frame data received:', frameData);
+        return;
+    }
+    const { width: width, height: height } = frameData.imagedata;
+    // Create a canvas to convert image data to a data URL
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = width;
+    canvas.height = height;
+    try {
+        // Check if data is a string (data URL)
+        if (typeof frameData.imagedata.data === 'string') $c98be0bef0e4b75f$export$708bda43d64f1409(frameData.imagedata.data, width, height, (src)=>{
+            // Call the user callback with processed frame
+            callback({
+                src: src,
+                width: width,
+                height: height,
+                raw: frameData.imagedata,
+                timestamp: frameData.timestamp || Date.now()
+            });
+        }, (err)=>{
+            console.error('Error loading image from data URL:', err);
+            // Try to call callback anyway with the raw data
+            callback({
+                src: frameData.imagedata.data,
+                width: width,
+                height: height,
+                raw: frameData.imagedata,
+                timestamp: frameData.timestamp || Date.now()
+            });
+        });
+        else {
+            // Handle raw pixel data
+            const pixelData = $c98be0bef0e4b75f$export$3f12cadb607c10de(frameData.imagedata.data);
+            const imgData = new ImageData(pixelData, width, height);
+            // Put the image data on the canvas
+            ctx.putImageData(imgData, 0, 0);
+            // Convert to data URL for easy display
+            const src = canvas.toDataURL('image/jpeg');
+            // Call the user callback with processed frame
+            callback({
+                src: src,
+                width: width,
+                height: height,
+                raw: frameData.imagedata,
+                timestamp: frameData.timestamp || Date.now()
+            });
+        }
+    } catch (error) {
+        console.error('Error processing frame:', error);
+        console.error('Frame data:', frameData.imagedata);
+    }
+}
+function $c98be0bef0e4b75f$export$708bda43d64f1409(dataUrl, width, height, onSuccess, onError) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = width;
+    canvas.height = height;
+    // Create an image from the data URL
+    const img = new Image();
+    img.onload = ()=>{
+        // Draw the image to the canvas
+        ctx.drawImage(img, 0, 0, width, height);
+        // Use the original data URL
+        onSuccess(dataUrl);
+    };
+    // Set error handler
+    img.onerror = (err)=>{
+        if (onError) onError(err);
+    };
+    // Start loading the image
+    img.src = dataUrl;
+}
+function $c98be0bef0e4b75f$export$3f12cadb607c10de(data) {
+    if (data instanceof Uint8ClampedArray) return data;
+    else if (data instanceof Uint8Array) return new Uint8ClampedArray(data);
+    else if (Array.isArray(data)) return new Uint8ClampedArray(data);
+    else // Handle case where data is an object (e.g., from JSON)
+    return new Uint8ClampedArray(Object.values(data));
+}
+
+
+function $bea288e8dbb006c6$export$1a5215a6a049f7d8(streamType, callback) {
+    return (data)=>{
+        // Extract the actual frame data
+        const frameData = data.data || data;
+        // Only process frames with matching name
+        if (frameData.name === streamType && frameData.imagedata) // Process the image data
+        $c98be0bef0e4b75f$export$6bfa04708e643828(frameData, callback);
+        else console.warn(`Received frame event but it's not a valid ${streamType} frame:`, 'name=', frameData.name, 'has imagedata=', !!frameData.imagedata);
+    };
+}
+function $bea288e8dbb006c6$export$e4d1bd1c23c09b9e(callback, unpackFunction) {
+    return (data)=>{
+        if (data && data.imagedata) // Process the data regardless of isPacked flag
+        // The new implementation always unpacks the data
+        unpackFunction(data.imagedata, data.width, data.height, data.width, data.testValues).then((depthValues)=>{
+            // Call the callback with the unpacked data
+            callback({
+                ...data,
+                depthValues: depthValues,
+                timestamp: data.timestamp || Date.now()
+            });
+        }).catch((error)=>{
+            console.error('Error unpacking raw depth data:', error);
+            // Still call the callback with the original data
+            callback({
+                ...data,
+                error: 'Failed to unpack depth data: ' + error.message,
+                timestamp: data.timestamp || Date.now()
+            });
+        });
+        else if (data && data.rawDepthData) // Legacy format - raw depth data is already in a usable format
+        callback({
+            ...data,
+            timestamp: data.timestamp || Date.now()
+        });
+        else {
+            console.warn('Received raw depth frame with invalid data format:', data);
+            callback({
+                ...data,
+                error: 'Invalid data format',
+                timestamp: data.timestamp || Date.now()
+            });
+        }
+    };
+}
+function $bea288e8dbb006c6$export$2105b7696d7712ee(callback) {
+    return (data)=>{
+        if (data && data.bodies) // Body data is already in a usable format (array of body objects)
+        // Just add timestamp and pass it through
+        callback({
+            bodies: data.bodies,
+            timestamp: data.timestamp || Date.now(),
+            floorClipPlane: data.floorClipPlane,
+            trackingId: data.trackingId
+        });
+    };
+}
+function $bea288e8dbb006c6$export$334c6911e6336aba(callback) {
+    return (data)=>{
+        if (data && data.frames) {
+            // Process each frame based on its type
+            const processedFrames = {};
+            // Process each frame in the multiframe data
+            Object.entries(data.frames).forEach(([type, frameData])=>{
+                if (frameData.imagedata) {
+                    // For image-based frames, convert to data URL
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const { width: width, height: height } = frameData.imagedata;
+                    canvas.width = width;
+                    canvas.height = height;
+                    // Create ImageData object from the raw data
+                    const imgData = new ImageData($c98be0bef0e4b75f$export$3f12cadb607c10de(frameData.imagedata.data), width, height);
+                    // Put the image data on the canvas
+                    ctx.putImageData(imgData, 0, 0);
+                    // Convert to data URL
+                    processedFrames[type] = {
+                        src: canvas.toDataURL('image/jpeg'),
+                        width: width,
+                        height: height,
+                        raw: frameData.imagedata
+                    };
+                } else // For non-image data (like body tracking), pass through
+                processedFrames[type] = frameData;
+            });
+            // Call the user callback with processed frames
+            callback({
+                frames: processedFrames,
+                timestamp: data.timestamp || Date.now()
+            });
+        }
+    };
+}
 
 
 
@@ -10612,175 +10688,14 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
     // Start feed methods
     startColor(callback) {
         if (callback) // Set up frame handler to process color frames
-        this.messageHandlers.set('frame', (data)=>{
-            // Extract the actual frame data
-            const frameData = data.data || data;
-            // Only process frames with name 'color'
-            if (frameData.name === 'color' && frameData.imagedata) {
-                // Create a canvas to convert image data to a data URL
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const { width: width, height: height } = frameData.imagedata;
-                canvas.width = width;
-                canvas.height = height;
-                try {
-                    // Check if data is a string (data URL)
-                    if (typeof frameData.imagedata.data === 'string') {
-                        // Create an image from the data URL
-                        const img = new Image();
-                        img.onload = ()=>{
-                            // Draw the image to the canvas
-                            ctx.drawImage(img, 0, 0, width, height);
-                            // Use the original data URL
-                            const src = frameData.imagedata.data;
-                            // Call the user callback with processed frame
-                            callback({
-                                src: src,
-                                width: width,
-                                height: height,
-                                raw: frameData.imagedata,
-                                timestamp: frameData.timestamp || Date.now()
-                            });
-                        };
-                        // Set error handler
-                        img.onerror = (err)=>{
-                            console.error('Kinectron: Error loading image from data URL:', err);
-                            // Try to call callback anyway with the raw data
-                            callback({
-                                src: frameData.imagedata.data,
-                                width: width,
-                                height: height,
-                                raw: frameData.imagedata,
-                                timestamp: frameData.timestamp || Date.now()
-                            });
-                        };
-                        // Start loading the image
-                        img.src = frameData.imagedata.data;
-                        // Return early - callback will be called from onload handler
-                        return;
-                    } else {
-                        // Original code for handling raw pixel data
-                        // Ensure we have a Uint8ClampedArray
-                        let pixelData;
-                        if (frameData.imagedata.data instanceof Uint8ClampedArray) pixelData = frameData.imagedata.data;
-                        else if (frameData.imagedata.data instanceof Uint8Array) pixelData = new Uint8ClampedArray(frameData.imagedata.data);
-                        else if (Array.isArray(frameData.imagedata.data)) pixelData = new Uint8ClampedArray(frameData.imagedata.data);
-                        else // Handle case where data is an object (e.g., from JSON)
-                        pixelData = new Uint8ClampedArray(Object.values(frameData.imagedata.data));
-                        const imgData = new ImageData(pixelData, width, height);
-                        // Put the image data on the canvas
-                        ctx.putImageData(imgData, 0, 0);
-                        // Convert to data URL for easy display
-                        const src = canvas.toDataURL('image/jpeg');
-                        // Call the user callback with processed frame
-                        callback({
-                            src: src,
-                            width: width,
-                            height: height,
-                            raw: frameData.imagedata,
-                            timestamp: frameData.timestamp || Date.now()
-                        });
-                    }
-                } catch (error) {
-                    console.error('Kinectron: Error processing color frame:', error);
-                    console.error('Kinectron: Frame data:', frameData.imagedata);
-                }
-            } else console.warn("Kinectron: Received frame event but it's not a valid color frame:", 'name=', frameData.name, 'has imagedata=', !!frameData.imagedata);
-        });
+        this.messageHandlers.set('frame', (0, $bea288e8dbb006c6$export$1a5215a6a049f7d8)('color', callback));
         this.send('feed', {
             feed: 'color'
         });
     }
     startDepth(callback) {
-        console.log('Kinectron: startDepth called');
-        if (callback) {
-            console.log('Kinectron: Setting up frame handler for depth frames');
-            // Set up frame handler to process depth frames
-            this.messageHandlers.set('frame', (data)=>{
-                console.log('Kinectron: Received frame event:', data);
-                // Extract the actual frame data
-                const frameData = data.data || data;
-                console.log('Kinectron: Frame data extracted:', frameData ? `name=${frameData.name}, has imagedata=${!!frameData.imagedata}` : 'null');
-                // Only process frames with name 'depth'
-                if (frameData.name === 'depth' && frameData.imagedata) {
-                    console.log('Kinectron: Processing depth frame with dimensions:', frameData.imagedata.width, 'x', frameData.imagedata.height);
-                    // Create a canvas to convert image data to a data URL
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const { width: width, height: height } = frameData.imagedata;
-                    canvas.width = width;
-                    canvas.height = height;
-                    try {
-                        // Check if data is a string (data URL)
-                        if (typeof frameData.imagedata.data === 'string') {
-                            console.log('Kinectron: Received depth frame with data URL');
-                            // Create an image from the data URL
-                            const img = new Image();
-                            img.onload = ()=>{
-                                console.log('Kinectron: Depth image loaded successfully');
-                                // Draw the image to the canvas
-                                ctx.drawImage(img, 0, 0, width, height);
-                                // Use the original data URL
-                                const src = frameData.imagedata.data;
-                                // Call the user callback with processed frame
-                                console.log('Kinectron: Calling user callback with processed depth frame');
-                                callback({
-                                    src: src,
-                                    width: width,
-                                    height: height,
-                                    raw: frameData.imagedata,
-                                    timestamp: frameData.timestamp || Date.now()
-                                });
-                            };
-                            // Set error handler
-                            img.onerror = (err)=>{
-                                console.error('Kinectron: Error loading depth image from data URL:', err);
-                                // Try to call callback anyway with the raw data
-                                console.log('Kinectron: Calling user callback with raw data due to image load error');
-                                callback({
-                                    src: frameData.imagedata.data,
-                                    width: width,
-                                    height: height,
-                                    raw: frameData.imagedata,
-                                    timestamp: frameData.timestamp || Date.now()
-                                });
-                            };
-                            // Start loading the image
-                            console.log('Kinectron: Setting image src to data URL');
-                            img.src = frameData.imagedata.data;
-                            // Return early - callback will be called from onload handler
-                            return;
-                        } else {
-                            console.log('Kinectron: Received depth frame with raw pixel data');
-                            // Original code for handling raw pixel data
-                            // Ensure we have a Uint8ClampedArray
-                            let pixelData;
-                            if (frameData.imagedata.data instanceof Uint8ClampedArray) pixelData = frameData.imagedata.data;
-                            else if (frameData.imagedata.data instanceof Uint8Array) pixelData = new Uint8ClampedArray(frameData.imagedata.data);
-                            else if (Array.isArray(frameData.imagedata.data)) pixelData = new Uint8ClampedArray(frameData.imagedata.data);
-                            else // Handle case where data is an object (e.g., from JSON)
-                            pixelData = new Uint8ClampedArray(Object.values(frameData.imagedata.data));
-                            const imgData = new ImageData(pixelData, width, height);
-                            // Put the image data on the canvas
-                            ctx.putImageData(imgData, 0, 0);
-                            // Convert to data URL for easy display
-                            const src = canvas.toDataURL('image/jpeg');
-                            // Call the user callback with processed frame
-                            callback({
-                                src: src,
-                                width: width,
-                                height: height,
-                                raw: frameData.imagedata,
-                                timestamp: frameData.timestamp || Date.now()
-                            });
-                        }
-                    } catch (error) {
-                        console.error('Kinectron: Error processing depth frame:', error);
-                        console.error('Kinectron: Frame data:', frameData.imagedata);
-                    }
-                } else console.warn("Kinectron: Received frame event but it's not a valid depth frame:", 'name=', frameData.name, 'has imagedata=', !!frameData.imagedata);
-            });
-        }
+        if (callback) // Set up frame handler to process depth frames
+        this.messageHandlers.set('frame', (0, $bea288e8dbb006c6$export$1a5215a6a049f7d8)('depth', callback));
         this.send('feed', {
             feed: 'depth'
         });
@@ -10796,7 +10711,7 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
    * @returns {Promise<Uint16Array>} - Promise resolving to the unpacked depth values
    */ _unpackRawDepthData(dataUrl, width, height, originalWidth, testValues) {
         // Import the debug configuration
-        (parcelRequire("iZi0K")).then(({ DEBUG: DEBUG })=>{
+        Promise.resolve((parcelRequire("kSHSU"))).then(({ DEBUG: DEBUG })=>{
             // Enable debug if needed
             if (DEBUG.RAW_DEPTH) console.log('Unpacking raw depth data with dimensions:', width, 'x', height);
         }).catch((err)=>{
@@ -10824,7 +10739,7 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
                 }
                 // Verify test values if provided
                 if (testValues) // Import the debug configuration
-                (parcelRequire("iZi0K")).then(({ DEBUG: DEBUG })=>{
+                Promise.resolve((parcelRequire("kSHSU"))).then(({ DEBUG: DEBUG })=>{
                     if (DEBUG.RAW_DEPTH && DEBUG.DATA) {
                         const unpackedValue1000 = depthValues[1000];
                         const unpackedValue2000 = depthValues[2000];
@@ -10860,237 +10775,42 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
     }
     startRawDepth(callback) {
         if (callback) // Set up handler to process raw depth frames
-        this.messageHandlers.set('rawDepth', (data)=>{
-            if (data && data.imagedata) // Process the data regardless of isPacked flag
-            // The new implementation always unpacks the data
-            this._unpackRawDepthData(data.imagedata, data.width, data.height, data.width, data.testValues).then((depthValues)=>{
-                // Call the callback with the unpacked data
-                callback({
-                    ...data,
-                    depthValues: depthValues,
-                    timestamp: data.timestamp || Date.now()
-                });
-            }).catch((error)=>{
-                console.error('Error unpacking raw depth data:', error);
-                // Still call the callback with the original data
-                callback({
-                    ...data,
-                    error: 'Failed to unpack depth data: ' + error.message,
-                    timestamp: data.timestamp || Date.now()
-                });
-            });
-            else if (data && data.rawDepthData) // Legacy format - raw depth data is already in a usable format
-            callback({
-                ...data,
-                timestamp: data.timestamp || Date.now()
-            });
-            else {
-                console.warn('Received raw depth frame with invalid data format:', data);
-                callback({
-                    ...data,
-                    error: 'Invalid data format',
-                    timestamp: data.timestamp || Date.now()
-                });
-            }
-        });
+        this.messageHandlers.set('rawDepth', (0, $bea288e8dbb006c6$export$e4d1bd1c23c09b9e)(callback, this._unpackRawDepthData.bind(this)));
         this.send('feed', {
             feed: 'raw-depth'
         });
     }
     startBodies(callback) {
         if (callback) // Set up handler to process body tracking frames
-        this.messageHandlers.set('bodyFrame', (data)=>{
-            if (data && data.bodies) // Body data is already in a usable format (array of body objects)
-            // Just add timestamp and pass it through
-            callback({
-                bodies: data.bodies,
-                timestamp: data.timestamp || Date.now(),
-                floorClipPlane: data.floorClipPlane,
-                trackingId: data.trackingId
-            });
-        });
+        this.messageHandlers.set('bodyFrame', (0, $bea288e8dbb006c6$export$2105b7696d7712ee)(callback));
         this.send('feed', {
             feed: 'body'
         });
     }
     startKey(callback) {
         if (callback) // Set up frame handler to process key frames
-        this.messageHandlers.set('frame', (data)=>{
-            // Extract the actual frame data
-            const frameData = data.data || data;
-            // Only process frames with name 'key'
-            if (frameData.name === 'key' && frameData.imagedata) {
-                // Create a canvas to convert image data to a data URL
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const { width: width, height: height } = frameData.imagedata;
-                canvas.width = width;
-                canvas.height = height;
-                try {
-                    // Check if data is a string (data URL)
-                    if (typeof frameData.imagedata.data === 'string') {
-                        // Create an image from the data URL
-                        const img = new Image();
-                        img.onload = ()=>{
-                            // Draw the image to the canvas
-                            ctx.drawImage(img, 0, 0, width, height);
-                            // Use the original data URL
-                            const src = frameData.imagedata.data;
-                            // Call the user callback with processed frame
-                            callback({
-                                src: src,
-                                width: width,
-                                height: height,
-                                raw: frameData.imagedata,
-                                timestamp: frameData.timestamp || Date.now()
-                            });
-                        };
-                        // Set error handler
-                        img.onerror = (err)=>{
-                            console.error('Kinectron: Error loading key image from data URL:', err);
-                            // Try to call callback anyway with the raw data
-                            callback({
-                                src: frameData.imagedata.data,
-                                width: width,
-                                height: height,
-                                raw: frameData.imagedata,
-                                timestamp: frameData.timestamp || Date.now()
-                            });
-                        };
-                        // Start loading the image
-                        img.src = frameData.imagedata.data;
-                        // Return early - callback will be called from onload handler
-                        return;
-                    } else {
-                        // Original code for handling raw pixel data
-                        // Ensure we have a Uint8ClampedArray
-                        let pixelData;
-                        if (frameData.imagedata.data instanceof Uint8ClampedArray) pixelData = frameData.imagedata.data;
-                        else if (frameData.imagedata.data instanceof Uint8Array) pixelData = new Uint8ClampedArray(frameData.imagedata.data);
-                        else if (Array.isArray(frameData.imagedata.data)) pixelData = new Uint8ClampedArray(frameData.imagedata.data);
-                        else // Handle case where data is an object (e.g., from JSON)
-                        pixelData = new Uint8ClampedArray(Object.values(frameData.imagedata.data));
-                        const imgData = new ImageData(pixelData, width, height);
-                        // Put the image data on the canvas
-                        ctx.putImageData(imgData, 0, 0);
-                        // Convert to data URL for easy display
-                        const src = canvas.toDataURL('image/jpeg');
-                        // Call the user callback with processed frame
-                        callback({
-                            src: src,
-                            width: width,
-                            height: height,
-                            raw: frameData.imagedata,
-                            timestamp: frameData.timestamp || Date.now()
-                        });
-                    }
-                } catch (error) {
-                    console.error('Kinectron: Error processing key frame:', error);
-                    console.error('Kinectron: Frame data:', frameData.imagedata);
-                }
-            } else console.warn("Kinectron: Received frame event but it's not a valid key frame:", 'name=', frameData.name, 'has imagedata=', !!frameData.imagedata);
-        });
+        this.messageHandlers.set('frame', (0, $bea288e8dbb006c6$export$1a5215a6a049f7d8)('key', callback));
         this.send('feed', {
             feed: 'key'
         });
     }
     startDepthKey(callback) {
         if (callback) // Set up handler to process depth key frames
-        this.messageHandlers.set('depthKey', (data)=>{
-            if (data && data.imagedata) {
-                // Create a canvas to convert image data to a data URL
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const { width: width, height: height } = data.imagedata;
-                canvas.width = width;
-                canvas.height = height;
-                // Create ImageData object from the raw data
-                const imgData = new ImageData(new Uint8ClampedArray(data.imagedata.data), width, height);
-                // Put the image data on the canvas
-                ctx.putImageData(imgData, 0, 0);
-                // Convert to data URL for easy display
-                const src = canvas.toDataURL('image/jpeg');
-                // Call the user callback with processed frame
-                callback({
-                    src: src,
-                    width: width,
-                    height: height,
-                    raw: data.imagedata,
-                    timestamp: data.timestamp || Date.now()
-                });
-            }
-        });
+        this.messageHandlers.set('depthKey', (0, $bea288e8dbb006c6$export$1a5215a6a049f7d8)('depth-key', callback));
         this.send('feed', {
             feed: 'depth-key'
         });
     }
     startRGBD(callback) {
         if (callback) // Set up frame handler to process RGBD frames
-        this.messageHandlers.set('frame', (data)=>{
-            // Only process frames with name 'rgbd'
-            if (data.name === 'rgbd' && data.imagedata) {
-                // Create a canvas to convert image data to a data URL
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const { width: width, height: height } = data.imagedata;
-                canvas.width = width;
-                canvas.height = height;
-                // Create ImageData object from the raw data
-                const imgData = new ImageData(new Uint8ClampedArray(data.imagedata.data), width, height);
-                // Put the image data on the canvas
-                ctx.putImageData(imgData, 0, 0);
-                // Convert to data URL for easy display
-                const src = canvas.toDataURL('image/jpeg');
-                // Call the user callback with processed frame
-                callback({
-                    src: src,
-                    width: width,
-                    height: height,
-                    raw: data.imagedata,
-                    timestamp: data.timestamp || Date.now()
-                });
-            }
-        });
+        this.messageHandlers.set('frame', (0, $bea288e8dbb006c6$export$1a5215a6a049f7d8)('rgbd', callback));
         this.send('feed', {
             feed: 'rgbd'
         });
     }
     startMultiFrame(frames, callback) {
         if (callback) // Set up handler to process multi-frame data
-        this.messageHandlers.set('multiFrame', (data)=>{
-            if (data && data.frames) {
-                // Process each frame based on its type
-                const processedFrames = {};
-                // Process each frame in the multiframe data
-                Object.entries(data.frames).forEach(([type, frameData])=>{
-                    if (frameData.imagedata) {
-                        // For image-based frames, convert to data URL
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const { width: width, height: height } = frameData.imagedata;
-                        canvas.width = width;
-                        canvas.height = height;
-                        // Create ImageData object from the raw data
-                        const imgData = new ImageData(new Uint8ClampedArray(frameData.imagedata.data), width, height);
-                        // Put the image data on the canvas
-                        ctx.putImageData(imgData, 0, 0);
-                        // Convert to data URL
-                        processedFrames[type] = {
-                            src: canvas.toDataURL('image/jpeg'),
-                            width: width,
-                            height: height,
-                            raw: frameData.imagedata
-                        };
-                    } else // For non-image data (like body tracking), pass through
-                    processedFrames[type] = frameData;
-                });
-                // Call the user callback with processed frames
-                callback({
-                    frames: processedFrames,
-                    timestamp: data.timestamp || Date.now()
-                });
-            }
-        });
+        this.messageHandlers.set('multiFrame', (0, $bea288e8dbb006c6$export$334c6911e6336aba)(callback));
         this.send('multi', frames);
     }
     // Stop all feeds

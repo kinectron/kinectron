@@ -152,7 +152,7 @@ flowchart TD
 1. **Flag-Based Control**:
 
    - Master flags for component-level control (e.g., RAW_DEPTH)
-   - Category flags for specific log types (PERFORMANCE, DATA, NETWORK)
+   - Category flags for specific log types (PERFORMANCE, DATA, PEER)
    - All flags default to false (disabled)
 
 2. **UI Integration**:

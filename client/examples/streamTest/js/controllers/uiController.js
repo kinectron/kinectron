@@ -20,6 +20,7 @@ class UIController {
       debugToggle: document.getElementById('debugToggle'),
       debugPerformance: document.getElementById('debugPerformance'),
       debugData: document.getElementById('debugData'),
+      debugPeer: document.getElementById('debugPeer'),
     };
 
     // Flag to track if Kinect is initialized
@@ -119,6 +120,12 @@ class UIController {
     if (this.elements.debugData && handlers.toggleDataDebug) {
       this.elements.debugData.addEventListener('change', (e) =>
         handlers.toggleDataDebug(e.target.checked),
+      );
+    }
+
+    if (this.elements.debugPeer && handlers.togglePeerDebug) {
+      this.elements.debugPeer.addEventListener('change', (e) =>
+        handlers.togglePeerDebug(e.target.checked),
       );
     }
   }
@@ -266,6 +273,10 @@ class UIController {
 
     if (this.elements.debugData) {
       this.elements.debugData.disabled = !enabled;
+    }
+
+    if (this.elements.debugPeer) {
+      this.elements.debugPeer.disabled = !enabled;
     }
   }
 }

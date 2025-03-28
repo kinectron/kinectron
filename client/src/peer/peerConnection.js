@@ -1,6 +1,7 @@
 import Peer from 'peerjs';
 import { DEFAULT_PEER_ID, processPeerConfig } from './peerConfig.js';
 import { NgrokClientState, NgrokClientError } from './ngrokState.js';
+import { DEBUG } from '../utils/debug.js';
 
 /**
  * @typedef {import('./peerConfig.js').PeerNetworkConfig} PeerNetworkConfig
@@ -94,7 +95,9 @@ export class PeerConnection {
         return;
       }
 
-      console.log('Initializing peer with config:', this.config);
+      if (DEBUG.PEER) {
+        console.log('Initializing peer with config:', this.config);
+      }
 
       // Check if this is an ngrok connection
       const isNgrok =
@@ -147,7 +150,9 @@ export class PeerConnection {
    */
   setupPeerEventHandlers() {
     this.peer.on('open', (id) => {
-      console.log('My peer ID is:', id);
+      if (DEBUG.PEER) {
+        console.log('My peer ID is:', id);
+      }
       // Already in CONNECTING state, proceed with connection
       this.connect();
     });
@@ -157,7 +162,9 @@ export class PeerConnection {
 
       // Handle ID taken error by generating new ID
       if (error.type === 'unavailable-id') {
-        console.log('Client ID taken, generating new ID');
+        if (DEBUG.PEER) {
+          console.log('Client ID taken, generating new ID');
+        }
         this.clientId = this.generateClientId();
         this._cleanup(false);
         this.initialize();
@@ -179,7 +186,9 @@ export class PeerConnection {
     });
 
     this.peer.on('disconnected', () => {
-      console.log('Peer disconnected from server');
+      if (DEBUG.PEER) {
+        console.log('Peer disconnected from server');
+      }
       this.state.setState(NgrokClientState.STATES.DISCONNECTED, {
         reason: 'peer_disconnected',
       });
@@ -371,7 +380,9 @@ export class PeerConnection {
       if (
         this.state.getState() !== NgrokClientState.STATES.CONNECTED
       ) {
-        console.log('Connection attempt timed out');
+        if (DEBUG.PEER) {
+          console.log('Connection attempt timed out');
+        }
 
         if (this.shouldAttemptReconnection({ type: 'timeout' })) {
           this._handleReconnection({ type: 'timeout' });
@@ -409,11 +420,13 @@ export class PeerConnection {
     const jitter = baseDelay * 0.2 * (Math.random() * 2 - 1);
     const delay = Math.max(2000, baseDelay + jitter);
 
-    console.log(
-      `Attempting reconnection ${
-        this.state.getMetadata().metrics.reconnects.count + 1
-      } of 3 in ${Math.round(delay)}ms`,
-    );
+    if (DEBUG.PEER) {
+      console.log(
+        `Attempting reconnection ${
+          this.state.getMetadata().metrics.reconnects.count + 1
+        } of 3 in ${Math.round(delay)}ms`,
+      );
+    }
 
     // Wait for delay
     await new Promise((resolve) => setTimeout(resolve, delay));
@@ -421,7 +434,9 @@ export class PeerConnection {
     if (
       this.state.getState() === NgrokClientState.STATES.RECONNECTING
     ) {
-      console.log('Attempting to reconnect...');
+      if (DEBUG.PEER) {
+        console.log('Attempting to reconnect...');
+      }
 
       // Clean up existing resources
       await this._cleanup(false);
@@ -432,7 +447,9 @@ export class PeerConnection {
         this.state.setState(NgrokClientState.STATES.CONNECTING);
         this.initialize();
       } else {
-        console.log('Max reconnection attempts reached');
+        if (DEBUG.PEER) {
+          console.log('Max reconnection attempts reached');
+        }
         this.state.setState(NgrokClientState.STATES.ERROR, {
           error: 'Maximum reconnection attempts reached',
           type: 'max_retries',
@@ -482,7 +499,9 @@ export class PeerConnection {
         const existingConn =
           this.peer.connections[this.targetPeerId][0];
         if (existingConn.open) {
-          console.log('Reusing existing connection');
+          if (DEBUG.PEER) {
+            console.log('Reusing existing connection');
+          }
           this.connection = existingConn;
           this.setupConnectionHandlers();
           return;
@@ -490,7 +509,9 @@ export class PeerConnection {
       }
 
       // Create new connection
-      console.log('Creating new connection to:', this.targetPeerId);
+      if (DEBUG.PEER) {
+        console.log('Creating new connection to:', this.targetPeerId);
+      }
       this.connection = this.peer.connect(this.targetPeerId, {
         reliable: true,
         serialization: 'binary', // Explicitly set to binary
@@ -510,7 +531,9 @@ export class PeerConnection {
    */
   setupConnectionHandlers() {
     this.connection.on('open', () => {
-      console.log('Connected to peer:', this.targetPeerId);
+      if (DEBUG.PEER) {
+        console.log('Connected to peer:', this.targetPeerId);
+      }
 
       // Update state
       this.state.setState(NgrokClientState.STATES.CONNECTED, {
@@ -541,12 +564,16 @@ export class PeerConnection {
         this.state.updateMetrics({ latency });
         return;
       }
-      console.log('Received data from peer:', data);
+      if (DEBUG.PEER) {
+        console.log('Received data from peer:', data);
+      }
       this.handleIncomingData(data);
     });
 
     this.connection.on('close', () => {
-      console.log('Peer connection closed');
+      if (DEBUG.PEER) {
+        console.log('Peer connection closed');
+      }
 
       if (!this._isClosing) {
         this.state.setState(NgrokClientState.STATES.DISCONNECTED, {
@@ -578,31 +605,37 @@ export class PeerConnection {
    */
   handleIncomingData(data) {
     try {
-      console.log(
-        'PeerConnection: Received event:',
-        data.event,
-        'with data:',
-        data.data,
-      );
+      if (DEBUG.PEER) {
+        console.log(
+          'PeerConnection: Received event:',
+          data.event,
+          'with data:',
+          data.data,
+        );
+      }
 
       // First, try to find a specific handler for this event
       const handler = this.messageHandlers.get(data.event);
       if (handler) {
-        console.log(
-          'PeerConnection: Found specific handler for event:',
-          data.event,
-        );
+        if (DEBUG.PEER) {
+          console.log(
+            'PeerConnection: Found specific handler for event:',
+            data.event,
+          );
+        }
         handler({
           ...data.data,
           timestamp: Date.now(),
           state: this.state.getState(),
         });
       } else {
-        console.log(
-          'PeerConnection: No specific handler for event:',
-          data.event,
-          'forwarding to data handler',
-        );
+        if (DEBUG.PEER) {
+          console.log(
+            'PeerConnection: No specific handler for event:',
+            data.event,
+            'forwarding to data handler',
+          );
+        }
         // If no specific handler is found, forward the event to the data handler
         // This ensures all events are forwarded to the Kinectron class
         const dataHandler = this.messageHandlers.get('data');

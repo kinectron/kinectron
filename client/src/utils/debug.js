@@ -6,6 +6,7 @@
 export const DEBUG = {
   // Master switches for components
   RAW_DEPTH: false, // Master switch for raw depth logging
+  PEER: false, // Master switch for peer connection logs
 
   // Specific logging categories
   PERFORMANCE: false, // For performance-related logs
