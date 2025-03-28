@@ -2,7 +2,12 @@
  * MetricsController
  * Handles performance metrics, frame rates, and statistics
  */ class MetricsController {
-    constructor(){
+    /**
+   * @param {Object} dependencies - Controller dependencies
+   * @param {P5Visualizer} dependencies.p5Visualizer - The P5Visualizer instance
+   */ constructor(dependencies){
+        // Store dependencies
+        this.p5Visualizer = dependencies?.p5Visualizer;
         // Metrics state
         this.frameCount = 0;
         this.lastFrameTime = 0;
@@ -21,9 +26,10 @@
     }
     /**
    * Initialize the controller
+   * @param {Object} dependencies - Controller dependencies
    * @returns {MetricsController} - The initialized controller instance
-   */ static initialize() {
-        const controller = new MetricsController();
+   */ static initialize(dependencies) {
+        const controller = new MetricsController(dependencies);
         return controller;
     }
     /**
@@ -64,7 +70,9 @@
    */ calculateMetrics() {
         if (!this.isStreamActive) return;
         // Update UI with frame rate
-        const p5FrameRate = window.frameRate ? window.frameRate().toFixed(0) : 0;
+        let p5FrameRate = 0;
+        // Use the p5 instance's frameRate method if available
+        if (this.p5Visualizer && this.p5Visualizer.p5Instance) p5FrameRate = this.p5Visualizer.p5Instance.frameRate().toFixed(0);
         const actualFrameRate = this.getAverageFrameRate().toFixed(1);
         // Update frame rate display
         const frameRateElement = document.getElementById('frameRate');

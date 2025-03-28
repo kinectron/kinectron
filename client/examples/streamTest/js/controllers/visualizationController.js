@@ -79,9 +79,8 @@ class VisualizationController {
    * @param {number} height - Canvas height
    */
   resizeP5Canvas(width, height) {
-    if (window.resizeCanvas) {
-      window.resizeCanvas(width, height);
-      window.background(255);
+    if (this.p5Visualizer) {
+      this.p5Visualizer.resizeCanvas(width, height);
     }
   }
 
@@ -89,8 +88,8 @@ class VisualizationController {
    * Clear p5 canvas
    */
   clearP5Canvas() {
-    if (window.background) {
-      window.background(255);
+    if (this.p5Visualizer) {
+      this.p5Visualizer.clearCanvas();
     }
   }
 
@@ -99,19 +98,10 @@ class VisualizationController {
    * @param {Object} frame - Color frame data
    */
   displayColorFrame(frame) {
-    if (window.loadImage) {
-      window.loadImage(frame.src, (loadedImage) => {
-        // Clear canvas
-        window.background(255);
-        // Draw the image
-        window.image(loadedImage, 0, 0, window.width, window.height);
-
-        if (window.DEBUG.RAW_DEPTH) {
-          console.log(
-            `Color image drawn: ${loadedImage.width}x${loadedImage.height}`,
-          );
-        }
-      });
+    if (this.p5Visualizer) {
+      this.p5Visualizer.displayColorFrame(frame);
+    } else {
+      console.warn('P5Visualizer not initialized');
     }
   }
 
@@ -120,33 +110,10 @@ class VisualizationController {
    * @param {Object} frame - Depth frame data
    */
   displayDepthFrame(frame) {
-    if (window.loadImage && frame.src) {
-      window.loadImage(
-        frame.src,
-        (loadedImage) => {
-          // Clear canvas
-          window.background(255);
-          // Draw the image
-          window.image(
-            loadedImage,
-            0,
-            0,
-            window.width,
-            window.height,
-          );
-
-          if (window.DEBUG.RAW_DEPTH) {
-            console.log(
-              `Depth image drawn: ${loadedImage.width}x${loadedImage.height}`,
-            );
-          }
-        },
-        (err) => {
-          console.error(`Error loading depth image: ${err}`);
-        },
-      );
+    if (this.p5Visualizer) {
+      this.p5Visualizer.displayDepthFrame(frame);
     } else {
-      console.warn('No frame.src available to load depth image');
+      console.warn('P5Visualizer not initialized');
     }
   }
 

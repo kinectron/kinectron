@@ -3,8 +3,9 @@
  * Handles p5.js visualization for color and depth streams
  */ class P5Visualizer {
     constructor(){
-        // p5.js canvas
+        // p5.js canvas and instance
         this.canvas = null;
+        this.p5Instance = null;
         // Visualization state
         this.isActive = false;
         this.frameCount = 0;
@@ -29,6 +30,8 @@
    */ _setupP5() {
         // Define p5.js sketch
         const sketch = (p)=>{
+            // Store the p5 instance
+            this.p5Instance = p;
             p.setup = ()=>{
                 // Create canvas
                 this.canvas = p.createCanvas(this.AZURE_COLOR_WIDTH * this.DISPLAY_SCALE, this.AZURE_COLOR_HEIGHT * this.DISPLAY_SCALE);
@@ -53,46 +56,51 @@
    * @param {number} width - Canvas width
    * @param {number} height - Canvas height
    */ resizeCanvas(width, height) {
-        if (window.resizeCanvas) {
-            window.resizeCanvas(width, height);
-            window.background(255);
+        if (this.p5Instance) {
+            this.p5Instance.resizeCanvas(width, height);
+            this.p5Instance.background(255);
         }
     }
     /**
    * Clear canvas
    */ clearCanvas() {
-        if (window.background) window.background(255);
+        if (this.p5Instance) this.p5Instance.background(255);
     }
     /**
    * Display color frame
    * @param {Object} frame - Color frame data
    */ displayColorFrame(frame) {
-        if (window.loadImage) window.loadImage(frame.src, (loadedImage)=>{
+        if (this.p5Instance && frame.src) this.p5Instance.loadImage(frame.src, (loadedImage)=>{
             // Clear canvas
-            window.background(255);
+            this.p5Instance.background(255);
             // Draw the image
-            window.image(loadedImage, 0, 0, window.width, window.height);
+            this.p5Instance.image(loadedImage, 0, 0, this.p5Instance.width, this.p5Instance.height);
             // Update frame count
             this.frameCount++;
-            if (window.DEBUG.RAW_DEPTH) console.log(`Color image drawn: ${loadedImage.width}x${loadedImage.height}`);
+            // Set active state
+            this.setActive(true);
+            if (window.DEBUG && window.DEBUG.RAW_DEPTH) console.log(`Color image drawn: ${loadedImage.width}x${loadedImage.height}`);
         });
+        else console.warn('Cannot display color frame: p5 instance or frame source not available');
     }
     /**
    * Display depth frame
    * @param {Object} frame - Depth frame data
    */ displayDepthFrame(frame) {
-        if (window.loadImage && frame.src) window.loadImage(frame.src, (loadedImage)=>{
+        if (this.p5Instance && frame.src) this.p5Instance.loadImage(frame.src, (loadedImage)=>{
             // Clear canvas
-            window.background(255);
+            this.p5Instance.background(255);
             // Draw the image
-            window.image(loadedImage, 0, 0, window.width, window.height);
+            this.p5Instance.image(loadedImage, 0, 0, this.p5Instance.width, this.p5Instance.height);
             // Update frame count
             this.frameCount++;
-            if (window.DEBUG.RAW_DEPTH) console.log(`Depth image drawn: ${loadedImage.width}x${loadedImage.height}`);
+            // Set active state
+            this.setActive(true);
+            if (window.DEBUG && window.DEBUG.RAW_DEPTH) console.log(`Depth image drawn: ${loadedImage.width}x${loadedImage.height}`);
         }, (err)=>{
             console.error(`Error loading depth image: ${err}`);
         });
-        else console.warn('No frame.src available to load depth image');
+        else console.warn('Cannot display depth frame: p5 instance or frame source not available');
     }
     /**
    * Set active state
