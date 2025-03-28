@@ -98,6 +98,44 @@ flowchart TD
     end
 ```
 
+### Body Tracking Data Flow
+
+```mermaid
+flowchart TD
+    subgraph "Server-Side"
+        KinectHW[Kinect Hardware] --> BodyTracking[Body Tracking System]
+        BodyTracking --> BodyProcessor[Body Frame Processor]
+        BodyProcessor --> Normalization[Joint Coordinate Normalization]
+        Normalization --> FramePackaging[Frame Packaging]
+    end
+
+    subgraph "Client-Side"
+        FramePackaging --> ClientAPI[Client API]
+        ClientAPI --> BodyFrameHandler[Body Frame Handler]
+        BodyFrameHandler --> SkeletonVisualization[Skeleton Visualization]
+    end
+```
+
+### Body Tracking Initialization Pattern
+
+1. **Sequential Initialization**:
+
+   - First, ensure any previous tracking is stopped
+   - Start cameras with the right options
+   - Create the body tracker
+   - Create the frame callback
+   - Start listening for frames
+
+2. **Error Handling**:
+
+   - Try/catch blocks around critical operations
+   - Graceful error recovery
+   - Detailed logging for diagnostics
+
+3. **State Management**:
+   - Track active state to prevent multiple overlapping initialization attempts
+   - Ensure proper cleanup before starting new sessions
+
 ### Raw Depth Packing Strategy
 
 1. **Current Implementation**:
