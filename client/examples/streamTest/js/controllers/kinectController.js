@@ -24,6 +24,7 @@ class KinectController {
     this.startColorStream = this.startColorStream.bind(this);
     this.startDepthStream = this.startDepthStream.bind(this);
     this.startRawDepthStream = this.startRawDepthStream.bind(this);
+    this.startSkeletonStream = this.startSkeletonStream.bind(this);
     this.stopStream = this.stopStream.bind(this);
 
     // Set up UI event handlers
@@ -72,6 +73,7 @@ class KinectController {
       startColorStream: this.startColorStream,
       startDepthStream: this.startDepthStream,
       startRawDepthStream: this.startRawDepthStream,
+      startSkeletonStream: this.startSkeletonStream,
       stopStream: this.stopStream,
       forceEnableButtons: () => this.ui.forceEnableButtons(),
       clearDebugInfo: () => this.debug.clearDebugInfo(),
@@ -325,6 +327,80 @@ class KinectController {
         }
       }
     });
+  }
+
+  /**
+   * Start skeleton stream
+   */
+  startSkeletonStream() {
+    this.ui.updateStreamStatus('Stream Status: Starting...');
+    this.metrics.resetMetrics();
+    this.isStreamActive = true;
+    this.currentStreamType = 'skeleton';
+
+    // Show p5 canvas and hide Three.js canvas
+    this.visualization.showP5Canvas();
+
+    // Resize canvas for skeleton stream (using depth dimensions)
+    this.visualization.resizeP5Canvas(
+      this.AZURE_DEPTH_WIDTH * this.DISPLAY_SCALE,
+      this.AZURE_DEPTH_HEIGHT * this.DISPLAY_SCALE,
+    );
+
+    this.debug.addDebugInfo('Starting skeleton stream...', true);
+
+    // Add direct event listener for debugging
+    this.kinectron.on('data', (data) => {
+      if (window.DEBUG.DATA) {
+        console.log('Raw data event received:', data);
+      }
+    });
+
+    // Add direct event listener for bodyFrame events
+    this.kinectron.on('bodyFrame', (data) => {
+      if (window.DEBUG.DATA) {
+        console.log('Direct bodyFrame event received:', data);
+      }
+    });
+
+    this.kinectron.startBodies((frame) => {
+      // Update stream status
+      this.ui.updateStreamStatus('Active (Skeleton)', true);
+
+      // Update metrics
+      this.metrics.updateFrameMetrics(frame);
+
+      // Log the skeleton data to verify it's working
+      if (window.DEBUG.DATA) {
+        console.group('Skeleton Frame Data');
+        console.log(
+          'Bodies:',
+          frame.bodies ? frame.bodies.length : 0,
+        );
+        console.log('Frame data:', frame);
+        console.groupEnd();
+      }
+
+      // Update resolution info
+      this.ui.updateResolution(
+        `Bodies: ${
+          frame.bodies ? frame.bodies.length : 0
+        } | Avg Latency: ${this.metrics.getAverageLatency()}ms`,
+      );
+
+      // Display the skeleton frame using the P5Visualizer
+      this.visualization.displaySkeletonFrame(frame);
+
+      // Enable debug flag to see data
+      window.DEBUG.DATA = true;
+    });
+
+    // Enable debug logging for this stream
+    window.DEBUG.DATA = true;
+    this.debug.addDebugInfo(
+      'Debug logging enabled for skeleton stream',
+      true,
+    );
   }
 
   /**

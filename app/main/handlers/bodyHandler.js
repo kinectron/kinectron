@@ -23,7 +23,24 @@ export class BodyStreamHandler extends BaseStreamHandler {
       if (data.bodyFrame && data.bodyFrame.numBodies > 0) {
         const processedData = this.processFrame(data.bodyFrame);
         if (processedData) {
+          // Send to renderer process
           event.sender.send('body-frame', processedData);
+
+          // Create a data package for broadcasting to peers
+          const framePackage = this.createDataPackage(
+            'bodyFrame',
+            processedData,
+          );
+
+          // Broadcast to peers - use 'bodyFrame' event to match client listener
+          this.broadcastFrame('bodyFrame', framePackage, true);
+
+          console.log(
+            'BodyStreamHandler: Broadcasting body frame data',
+            `Bodies: ${
+              processedData.bodies ? processedData.bodies.length : 0
+            }`,
+          );
         }
       }
     };

@@ -167,6 +167,131 @@ class P5Visualizer {
   }
 
   /**
+   * Display skeleton frame
+   * @param {Object} frame - Skeleton frame data with bodies array
+   */
+  displaySkeletonFrame(frame) {
+    if (!this.p5Instance) {
+      console.warn(
+        'Cannot display skeleton: p5 instance not available',
+      );
+      return;
+    }
+
+    // Clear canvas
+    this.p5Instance.background(255);
+
+    // Draw skeletons if bodies exist
+    if (frame.bodies && frame.bodies.length > 0) {
+      // Colors for different bodies
+      const colors = [
+        this.p5Instance.color(255, 0, 0), // Red
+        this.p5Instance.color(0, 255, 0), // Green
+        this.p5Instance.color(0, 0, 255), // Blue
+        this.p5Instance.color(255, 255, 0), // Yellow
+        this.p5Instance.color(0, 255, 255), // Cyan
+        this.p5Instance.color(255, 0, 255), // Magenta
+      ];
+
+      // Draw each body
+      frame.bodies.forEach((body, index) => {
+        const color = colors[index % colors.length];
+        this._drawSkeleton(body, color);
+      });
+
+      // Update frame count
+      this.frameCount++;
+
+      // Set active state
+      this.setActive(true);
+
+      if (window.DEBUG && window.DEBUG.DATA) {
+        console.log(`Skeleton drawn: ${frame.bodies.length} bodies`);
+      }
+    } else {
+      console.warn('No bodies in skeleton frame');
+    }
+  }
+
+  /**
+   * Draw a single skeleton
+   * @private
+   * @param {Object} body - Body data with skeleton information
+   * @param {p5.Color} color - Color to use for this skeleton
+   */
+  _drawSkeleton(body, color) {
+    if (!body.skeleton || !body.skeleton.joints) {
+      console.warn('No skeleton joints in body data');
+      return;
+    }
+
+    const p5 = this.p5Instance;
+    const joints = body.skeleton.joints;
+
+    // Draw joints
+    p5.fill(color);
+    p5.noStroke();
+
+    joints.forEach((joint) => {
+      // Scale joint coordinates to canvas size
+      const x = joint.depthX * p5.width;
+      const y = joint.depthY * p5.height;
+
+      // Draw joint
+      p5.ellipse(x, y, 10, 10);
+    });
+
+    // Draw connections between joints (bone structure)
+    p5.stroke(color);
+    p5.strokeWeight(3);
+
+    // Define connections (pairs of joint indices)
+    const connections = [
+      // Torso
+      [0, 1],
+      [1, 20],
+      [20, 2],
+      [2, 3],
+      // Left arm
+      [20, 4],
+      [4, 5],
+      [5, 6],
+      [6, 7],
+      [7, 21],
+      [6, 22],
+      // Right arm
+      [20, 8],
+      [8, 9],
+      [9, 10],
+      [10, 11],
+      [11, 23],
+      [10, 24],
+      // Left leg
+      [0, 12],
+      [12, 13],
+      [13, 14],
+      [14, 15],
+      // Right leg
+      [0, 16],
+      [16, 17],
+      [17, 18],
+      [18, 19],
+    ];
+
+    // Draw lines for connections
+    connections.forEach(([i, j]) => {
+      if (joints[i] && joints[j]) {
+        p5.line(
+          joints[i].depthX * p5.width,
+          joints[i].depthY * p5.height,
+          joints[j].depthX * p5.width,
+          joints[j].depthY * p5.height,
+        );
+      }
+    });
+  }
+
+  /**
    * Set active state
    * @param {boolean} active - Whether the visualizer is active
    */
