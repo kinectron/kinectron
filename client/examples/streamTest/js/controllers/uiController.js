@@ -15,6 +15,7 @@ class UIController {
       startSkeletonBtn: document.getElementById('startSkeletonBtn'),
       startKeyBtn: document.getElementById('startKeyBtn'),
       startRGBDBtn: document.getElementById('startRGBDBtn'),
+      startDepthKeyBtn: document.getElementById('startDepthKeyBtn'),
       stopStreamBtn: document.getElementById('stopStreamBtn'),
       connectionStatus: document.getElementById('connectionStatus'),
       streamStatus: document.getElementById('streamStatus'),
@@ -101,6 +102,16 @@ class UIController {
       this.elements.startRGBDBtn.addEventListener(
         'click',
         handlers.startRGBDStream,
+      );
+    }
+
+    if (
+      this.elements.startDepthKeyBtn &&
+      handlers.startDepthKeyStream
+    ) {
+      this.elements.startDepthKeyBtn.addEventListener(
+        'click',
+        handlers.startDepthKeyStream,
       );
     }
 
@@ -238,6 +249,8 @@ class UIController {
         this.elements.startKeyBtn.disabled = false;
       if (this.elements.startRGBDBtn)
         this.elements.startRGBDBtn.disabled = false;
+      if (this.elements.startDepthKeyBtn)
+        this.elements.startDepthKeyBtn.disabled = false;
       if (this.elements.stopStreamBtn)
         this.elements.stopStreamBtn.disabled = false;
     } else {
@@ -272,6 +285,8 @@ class UIController {
       this.elements.startKeyBtn.disabled = true;
     if (this.elements.startRGBDBtn)
       this.elements.startRGBDBtn.disabled = true;
+    if (this.elements.startDepthKeyBtn)
+      this.elements.startDepthKeyBtn.disabled = true;
     if (this.elements.stopStreamBtn)
       this.elements.stopStreamBtn.disabled = true;
   }
@@ -302,6 +317,8 @@ class UIController {
         this.elements.startKeyBtn.disabled) ||
       (this.elements.startRGBDBtn &&
         this.elements.startRGBDBtn.disabled) ||
+      (this.elements.startDepthKeyBtn &&
+        this.elements.startDepthKeyBtn.disabled) ||
       (this.elements.stopStreamBtn &&
         this.elements.stopStreamBtn.disabled)
     );

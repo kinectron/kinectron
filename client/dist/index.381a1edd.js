@@ -26,6 +26,7 @@
         this.startSkeletonStream = this.startSkeletonStream.bind(this);
         this.startKeyStream = this.startKeyStream.bind(this);
         this.startRGBDStream = this.startRGBDStream.bind(this);
+        this.startDepthKeyStream = this.startDepthKeyStream.bind(this);
         this.stopStream = this.stopStream.bind(this);
         // Set up UI event handlers
         this._setupUIEventHandlers();
@@ -63,6 +64,7 @@
             startSkeletonStream: this.startSkeletonStream,
             startKeyStream: this.startKeyStream,
             startRGBDStream: this.startRGBDStream,
+            startDepthKeyStream: this.startDepthKeyStream,
             stopStream: this.stopStream,
             forceEnableButtons: ()=>this.ui.forceEnableButtons(),
             clearDebugInfo: ()=>this.debug.clearDebugInfo(),
@@ -310,6 +312,40 @@
             this.ui.updateResolution(`${frame.width}x${frame.height} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
             // Display the RGBD frame (using the same method as color frame)
             this.visualization.displayColorFrame(frame);
+        });
+    }
+    /**
+   * Start depth key stream
+   */ startDepthKeyStream() {
+        this.ui.updateStreamStatus('Stream Status: Starting...');
+        this.metrics.resetMetrics();
+        this.isStreamActive = true;
+        this.currentStreamType = 'depthKey';
+        // Show p5 canvas and hide Three.js canvas
+        this.visualization.showP5Canvas();
+        // Resize canvas for depth key stream (using depth dimensions)
+        this.visualization.resizeP5Canvas(this.AZURE_DEPTH_WIDTH * this.DISPLAY_SCALE, this.AZURE_DEPTH_HEIGHT * this.DISPLAY_SCALE);
+        this.debug.addDebugInfo('Starting depth key stream...', true);
+        // Enable debug logging to help diagnose any data structure issues
+        window.DEBUG.DATA = true;
+        this.kinectron.startDepthKey((frame)=>{
+            // Update stream status
+            this.ui.updateStreamStatus('Active (Depth Key)', true);
+            // Update metrics
+            this.metrics.updateFrameMetrics(frame);
+            // Log the frame data to verify structure
+            if (window.DEBUG.DATA) {
+                console.group('Depth Key Frame Data');
+                console.log('Frame received:', frame);
+                console.log('Frame type:', typeof frame);
+                console.log('Has src:', !!frame.src);
+                console.log('Dimensions:', frame.width, 'x', frame.height);
+                console.groupEnd();
+            }
+            // Update resolution info
+            this.ui.updateResolution(`${frame.width}x${frame.height} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
+            // We're not implementing visualization yet, just log the frame
+            console.log('Received depth key frame:', frame);
         });
     }
     /**

@@ -12,6 +12,7 @@
             startSkeletonBtn: document.getElementById('startSkeletonBtn'),
             startKeyBtn: document.getElementById('startKeyBtn'),
             startRGBDBtn: document.getElementById('startRGBDBtn'),
+            startDepthKeyBtn: document.getElementById('startDepthKeyBtn'),
             stopStreamBtn: document.getElementById('stopStreamBtn'),
             connectionStatus: document.getElementById('connectionStatus'),
             streamStatus: document.getElementById('streamStatus'),
@@ -46,6 +47,7 @@
         if (this.elements.startSkeletonBtn && handlers.startSkeletonStream) this.elements.startSkeletonBtn.addEventListener('click', handlers.startSkeletonStream);
         if (this.elements.startKeyBtn && handlers.startKeyStream) this.elements.startKeyBtn.addEventListener('click', handlers.startKeyStream);
         if (this.elements.startRGBDBtn && handlers.startRGBDStream) this.elements.startRGBDBtn.addEventListener('click', handlers.startRGBDStream);
+        if (this.elements.startDepthKeyBtn && handlers.startDepthKeyStream) this.elements.startDepthKeyBtn.addEventListener('click', handlers.startDepthKeyStream);
         if (this.elements.stopStreamBtn && handlers.stopStream) this.elements.stopStreamBtn.addEventListener('click', handlers.stopStream);
         // Debug panel buttons
         const forceEnableBtn = document.getElementById('forceEnableBtn');
@@ -103,6 +105,7 @@
             if (this.elements.startSkeletonBtn) this.elements.startSkeletonBtn.disabled = false;
             if (this.elements.startKeyBtn) this.elements.startKeyBtn.disabled = false;
             if (this.elements.startRGBDBtn) this.elements.startRGBDBtn.disabled = false;
+            if (this.elements.startDepthKeyBtn) this.elements.startDepthKeyBtn.disabled = false;
             if (this.elements.stopStreamBtn) this.elements.stopStreamBtn.disabled = false;
         } else console.log('Not enabling buttons - Kinect not initialized and not forced');
     }
@@ -122,6 +125,7 @@
         if (this.elements.startSkeletonBtn) this.elements.startSkeletonBtn.disabled = true;
         if (this.elements.startKeyBtn) this.elements.startKeyBtn.disabled = true;
         if (this.elements.startRGBDBtn) this.elements.startRGBDBtn.disabled = true;
+        if (this.elements.startDepthKeyBtn) this.elements.startDepthKeyBtn.disabled = true;
         if (this.elements.stopStreamBtn) this.elements.stopStreamBtn.disabled = true;
     }
     /**
@@ -134,7 +138,7 @@
    * Check if buttons are disabled
    * @returns {boolean} - True if any stream button is disabled
    */ areButtonsDisabled() {
-        return this.elements.startColorBtn && this.elements.startColorBtn.disabled || this.elements.startDepthBtn && this.elements.startDepthBtn.disabled || this.elements.startRawDepthBtn && this.elements.startRawDepthBtn.disabled || this.elements.startSkeletonBtn && this.elements.startSkeletonBtn.disabled || this.elements.startKeyBtn && this.elements.startKeyBtn.disabled || this.elements.startRGBDBtn && this.elements.startRGBDBtn.disabled || this.elements.stopStreamBtn && this.elements.stopStreamBtn.disabled;
+        return this.elements.startColorBtn && this.elements.startColorBtn.disabled || this.elements.startDepthBtn && this.elements.startDepthBtn.disabled || this.elements.startRawDepthBtn && this.elements.startRawDepthBtn.disabled || this.elements.startSkeletonBtn && this.elements.startSkeletonBtn.disabled || this.elements.startKeyBtn && this.elements.startKeyBtn.disabled || this.elements.startRGBDBtn && this.elements.startRGBDBtn.disabled || this.elements.startDepthKeyBtn && this.elements.startDepthKeyBtn.disabled || this.elements.stopStreamBtn && this.elements.stopStreamBtn.disabled;
     }
     /**
    * Enable debug controls
