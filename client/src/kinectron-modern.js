@@ -44,6 +44,8 @@ export class Kinectron {
       const handler = this.messageHandlers.get(event);
 
       if (handler) {
+        // if (event === 'bodyFrame') debugger;
+
         handler(eventData);
       } else {
         console.warn('Kinectron: No handler found for event:', event);

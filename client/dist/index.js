@@ -10293,6 +10293,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                 // If no specific handler is found, forward the event to the data handler
                 // This ensures all events are forwarded to the Kinectron class
                 const dataHandler = this.messageHandlers.get('data');
+                // if (data.event === 'bodyFrame') debugger;
                 if (dataHandler) dataHandler(data);
                 else console.warn('PeerConnection: No data handler found for event:', data.event);
             }
@@ -10534,7 +10535,9 @@ function $bea288e8dbb006c6$export$e4d1bd1c23c09b9e(callback, unpackFunction) {
     };
 }
 function $bea288e8dbb006c6$export$2105b7696d7712ee(callback) {
-    return (data)=>{
+    console.log(callback);
+    return (eventData)=>{
+        const data = eventData.data;
         if (data && data.bodies) // Body data is already in a usable format (array of body objects)
         // Just add timestamp and pass it through
         callback({
@@ -10615,7 +10618,8 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
         this.peer.on('data', (data)=>{
             const { event: event, data: eventData } = data;
             const handler = this.messageHandlers.get(event);
-            if (handler) handler(eventData);
+            if (handler) // if (event === 'bodyFrame') debugger;
+            handler(eventData);
             else console.warn('Kinectron: No handler found for event:', event);
         });
     }

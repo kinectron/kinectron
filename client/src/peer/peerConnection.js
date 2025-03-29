@@ -616,6 +616,7 @@ export class PeerConnection {
 
       // First, try to find a specific handler for this event
       const handler = this.messageHandlers.get(data.event);
+
       if (handler) {
         if (DEBUG.PEER) {
           console.log(
@@ -639,6 +640,9 @@ export class PeerConnection {
         // If no specific handler is found, forward the event to the data handler
         // This ensures all events are forwarded to the Kinectron class
         const dataHandler = this.messageHandlers.get('data');
+
+        // if (data.event === 'bodyFrame') debugger;
+
         if (dataHandler) {
           dataHandler(data);
         } else {

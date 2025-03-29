@@ -92,7 +92,10 @@ export function createRawDepthHandler(callback, unpackFunction) {
  * @returns {Function} - The body handler function
  */
 export function createBodyHandler(callback) {
-  return (data) => {
+  console.log(callback);
+
+  return (eventData) => {
+    const data = eventData.data;
     if (data && data.bodies) {
       // Body data is already in a usable format (array of body objects)
       // Just add timestamp and pass it through

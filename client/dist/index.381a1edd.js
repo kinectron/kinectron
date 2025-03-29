@@ -9,6 +9,7 @@
         this.visualization = dependencies.visualization;
         this.isStreamActive = false;
         this.currentStreamType = null;
+        this.bodyFrameCallback = null;
         // Constants
         this.AZURE_COLOR_WIDTH = 1280;
         this.AZURE_COLOR_HEIGHT = 720;
@@ -209,19 +210,17 @@
         // Resize canvas for skeleton stream (using depth dimensions)
         this.visualization.resizeP5Canvas(this.AZURE_DEPTH_WIDTH * this.DISPLAY_SCALE, this.AZURE_DEPTH_HEIGHT * this.DISPLAY_SCALE);
         this.debug.addDebugInfo('Starting skeleton stream...', true);
-        // Add direct event listener for debugging
-        this.kinectron.on('data', (data)=>{
-            if (window.DEBUG.DATA) console.log('Raw data event received:', data);
-        });
-        // Add direct event listener for bodyFrame events
-        this.kinectron.on('bodyFrame', (data)=>{
-            if (window.DEBUG.DATA) console.log('Direct bodyFrame event received:', data);
-        });
+        // Use the standard callback approach instead of direct event listeners
         this.kinectron.startBodies((frame)=>{
             // Update stream status
             this.ui.updateStreamStatus('Active (Skeleton)', true);
             // Update metrics
             this.metrics.updateFrameMetrics(frame);
+            // Always log this regardless of debug flags to help diagnose the issue
+            console.error('KinectController: Received skeleton frame');
+            console.error('Frame type:', typeof frame);
+            console.error('Frame has bodies:', frame && !!frame.bodies);
+            if (frame && frame.bodies) console.error('Bodies count:', frame.bodies.length);
             // Log the skeleton data to verify it's working
             if (window.DEBUG.DATA) {
                 console.group('Skeleton Frame Data');
@@ -232,9 +231,8 @@
             // Update resolution info
             this.ui.updateResolution(`Bodies: ${frame.bodies ? frame.bodies.length : 0} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
             // Display the skeleton frame using the P5Visualizer
+            console.error('Calling visualization.displaySkeletonFrame');
             this.visualization.displaySkeletonFrame(frame);
-            // Enable debug flag to see data
-            window.DEBUG.DATA = true;
         });
         // Enable debug logging for this stream
         window.DEBUG.DATA = true;

@@ -710,7 +710,8 @@ class Kinectron {
         this.peer.on('data', (data)=>{
             const { event, data: eventData } = data;
             const handler = this.messageHandlers.get(event);
-            if (handler) handler(eventData);
+            if (handler) // if (event === 'bodyFrame') debugger;
+            handler(eventData);
             else console.warn('Kinectron: No handler found for event:', event);
         });
     }
@@ -1384,6 +1385,7 @@ class PeerConnection {
                 // If no specific handler is found, forward the event to the data handler
                 // This ensures all events are forwarded to the Kinectron class
                 const dataHandler = this.messageHandlers.get('data');
+                // if (data.event === 'bodyFrame') debugger;
                 if (dataHandler) dataHandler(data);
                 else console.warn('PeerConnection: No data handler found for event:', data.event);
             }
@@ -11729,7 +11731,9 @@ function createRawDepthHandler(callback, unpackFunction) {
     };
 }
 function createBodyHandler(callback) {
-    return (data)=>{
+    console.log(callback);
+    return (eventData)=>{
+        const data = eventData.data;
         if (data && data.bodies) // Body data is already in a usable format (array of body objects)
         // Just add timestamp and pass it through
         callback({

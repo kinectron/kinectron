@@ -172,7 +172,7 @@ class P5Visualizer {
    */
   displaySkeletonFrame(frame) {
     if (!this.p5Instance) {
-      console.warn(
+      console.error(
         'Cannot display skeleton: p5 instance not available',
       );
       return;
@@ -180,6 +180,32 @@ class P5Visualizer {
 
     // Clear canvas
     this.p5Instance.background(255);
+
+    // Always log this regardless of debug flags to help diagnose the issue
+    console.error('P5Visualizer: displaySkeletonFrame called');
+    console.error('Frame:', frame);
+    console.error('Bodies:', frame.bodies ? frame.bodies.length : 0);
+
+    if (frame.bodies && frame.bodies.length > 0) {
+      const firstBody = frame.bodies[0];
+      console.error('First body ID:', firstBody.id);
+      console.error('Has skeleton:', !!firstBody.skeleton);
+
+      if (firstBody.skeleton && firstBody.skeleton.joints) {
+        console.error(
+          'Joints count:',
+          firstBody.skeleton.joints.length,
+        );
+        console.error('First joint:', firstBody.skeleton.joints[0]);
+
+        // Check for specific properties we need
+        const firstJoint = firstBody.skeleton.joints[0];
+        console.error('Joint has depthX:', 'depthX' in firstJoint);
+        console.error('Joint has depthY:', 'depthY' in firstJoint);
+        console.error('Joint has cameraX:', 'cameraX' in firstJoint);
+        console.error('Joint has cameraY:', 'cameraY' in firstJoint);
+      }
+    }
 
     // Draw skeletons if bodies exist
     if (frame.bodies && frame.bodies.length > 0) {
@@ -193,23 +219,27 @@ class P5Visualizer {
         this.p5Instance.color(255, 0, 255), // Magenta
       ];
 
-      // Draw each body
-      frame.bodies.forEach((body, index) => {
-        const color = colors[index % colors.length];
-        this._drawSkeleton(body, color);
-      });
+      try {
+        // Draw each body
+        frame.bodies.forEach((body, index) => {
+          const color = colors[index % colors.length];
+          this._drawSimpleSkeleton(body, color);
+        });
 
-      // Update frame count
-      this.frameCount++;
+        // Update frame count
+        this.frameCount++;
 
-      // Set active state
-      this.setActive(true);
+        // Set active state
+        this.setActive(true);
 
-      if (window.DEBUG && window.DEBUG.DATA) {
-        console.log(`Skeleton drawn: ${frame.bodies.length} bodies`);
+        console.error(
+          `Skeleton drawn: ${frame.bodies.length} bodies`,
+        );
+      } catch (error) {
+        console.error('Error drawing skeleton:', error);
       }
     } else {
-      console.warn('No bodies in skeleton frame');
+      console.error('No bodies in skeleton frame');
     }
   }
 
@@ -228,17 +258,60 @@ class P5Visualizer {
     const p5 = this.p5Instance;
     const joints = body.skeleton.joints;
 
+    if (window.DEBUG && window.DEBUG.DATA) {
+      console.group('P5Visualizer: _drawSkeleton');
+      console.log('Body ID:', body.id);
+      console.log('Joints count:', joints.length);
+      console.log('First few joints:', joints.slice(0, 3));
+      console.groupEnd();
+    }
+
     // Draw joints
     p5.fill(color);
     p5.noStroke();
 
-    joints.forEach((joint) => {
-      // Scale joint coordinates to canvas size
-      const x = joint.depthX * p5.width;
-      const y = joint.depthY * p5.height;
+    joints.forEach((joint, index) => {
+      // Check if we have depthX/depthY coordinates
+      if ('depthX' in joint && 'depthY' in joint) {
+        // Scale joint coordinates to canvas size
+        const x = joint.depthX * p5.width;
+        const y = joint.depthY * p5.height;
 
-      // Draw joint
-      p5.ellipse(x, y, 10, 10);
+        // Draw joint
+        p5.ellipse(x, y, 10, 10);
+      } else if ('cameraX' in joint && 'cameraY' in joint) {
+        // If we don't have depthX/depthY but have cameraX/cameraY, use those instead
+        // This is a fallback that uses a simple scaling approach
+
+        // Get canvas dimensions
+        const canvasWidth = p5.width;
+        const canvasHeight = p5.height;
+
+        // Scale camera coordinates to fit canvas
+        // Note: This is a very simplified approach and might need adjustment
+        const scaleFactor = 0.5; // Adjust this value as needed
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+
+        const x = centerX + joint.cameraX * scaleFactor;
+        const y = centerY + joint.cameraY * scaleFactor;
+
+        // Draw joint
+        p5.ellipse(x, y, 10, 10);
+
+        if (window.DEBUG && window.DEBUG.DATA && index === 0) {
+          console.log(
+            `Using camera coordinates for joint ${index}: x=${x}, y=${y}`,
+          );
+        }
+      } else {
+        if (window.DEBUG && window.DEBUG.DATA && index === 0) {
+          console.warn(
+            `Joint ${index} missing coordinate data:`,
+            joint,
+          );
+        }
+      }
     });
 
     // Draw connections between joints (bone structure)
@@ -281,12 +354,108 @@ class P5Visualizer {
     // Draw lines for connections
     connections.forEach(([i, j]) => {
       if (joints[i] && joints[j]) {
-        p5.line(
-          joints[i].depthX * p5.width,
-          joints[i].depthY * p5.height,
-          joints[j].depthX * p5.width,
-          joints[j].depthY * p5.height,
-        );
+        // Check if we have depthX/depthY coordinates
+        if (
+          'depthX' in joints[i] &&
+          'depthY' in joints[i] &&
+          'depthX' in joints[j] &&
+          'depthY' in joints[j]
+        ) {
+          p5.line(
+            joints[i].depthX * p5.width,
+            joints[i].depthY * p5.height,
+            joints[j].depthX * p5.width,
+            joints[j].depthY * p5.height,
+          );
+        } else if (
+          'cameraX' in joints[i] &&
+          'cameraY' in joints[i] &&
+          'cameraX' in joints[j] &&
+          'cameraY' in joints[j]
+        ) {
+          // Fallback to camera coordinates
+          const scaleFactor = 0.5; // Adjust this value as needed
+          const centerX = p5.width / 2;
+          const centerY = p5.height / 2;
+
+          const x1 = centerX + joints[i].cameraX * scaleFactor;
+          const y1 = centerY + joints[i].cameraY * scaleFactor;
+          const x2 = centerX + joints[j].cameraX * scaleFactor;
+          const y2 = centerY + joints[j].cameraY * scaleFactor;
+
+          p5.line(x1, y1, x2, y2);
+        }
+      }
+    });
+  }
+
+  /**
+   * Draw a simplified skeleton (just dots for joints)
+   * @private
+   * @param {Object} body - Body data with skeleton information
+   * @param {p5.Color} color - Color to use for this skeleton
+   */
+  _drawSimpleSkeleton(body, color) {
+    if (!body.skeleton || !body.skeleton.joints) {
+      console.error('No skeleton joints in body data');
+      return;
+    }
+
+    const p5 = this.p5Instance;
+    const joints = body.skeleton.joints;
+
+    console.error(
+      'Drawing simple skeleton with',
+      joints.length,
+      'joints',
+    );
+
+    // Draw joints as large dots
+    p5.fill(color);
+    p5.noStroke();
+
+    joints.forEach((joint, index) => {
+      try {
+        let x, y;
+
+        // Try different coordinate systems
+        if ('depthX' in joint && 'depthY' in joint) {
+          // Use depth coordinates (normalized 0-1)
+          x = joint.depthX * p5.width;
+          y = joint.depthY * p5.height;
+          console.error(`Joint ${index} using depthX/Y: ${x}, ${y}`);
+        } else if ('cameraX' in joint && 'cameraY' in joint) {
+          // Use camera coordinates with simple scaling
+          const scaleFactor = 0.001; // Very small factor for camera coordinates (in mm)
+          const centerX = p5.width / 2;
+          const centerY = p5.height / 2;
+
+          x = centerX + joint.cameraX * scaleFactor;
+          y = centerY + joint.cameraY * scaleFactor;
+          console.error(`Joint ${index} using cameraX/Y: ${x}, ${y}`);
+        } else if ('colorX' in joint && 'colorY' in joint) {
+          // Use color coordinates (normalized 0-1)
+          x = joint.colorX * p5.width;
+          y = joint.colorY * p5.height;
+          console.error(`Joint ${index} using colorX/Y: ${x}, ${y}`);
+        } else {
+          // Skip this joint if no usable coordinates
+          console.error(`Joint ${index} has no usable coordinates`);
+          return;
+        }
+
+        // Draw a large dot for the joint
+        p5.ellipse(x, y, 20, 20);
+
+        // Draw joint index as text
+        p5.fill(255); // White text
+        p5.textSize(12);
+        p5.text(index.toString(), x, y);
+
+        // Reset fill color for next joint
+        p5.fill(color);
+      } catch (error) {
+        console.error(`Error drawing joint ${index}:`, error);
       }
     });
   }

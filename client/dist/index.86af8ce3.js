@@ -78,6 +78,48 @@
    */ updatePointCloud(depthValues) {
         if (this.threeVisualizer) this.threeVisualizer.updatePointCloud(depthValues);
     }
+    /**
+   * Display skeleton frame
+   * @param {Object} frame - Skeleton frame data with bodies array
+   */ displaySkeletonFrame(frame) {
+        // Always log this regardless of debug flags to help diagnose the issue
+        console.error('VisualizationController: displaySkeletonFrame called');
+        console.error('Frame type:', typeof frame);
+        console.error('Frame has bodies:', frame && !!frame.bodies);
+        if (frame && frame.bodies) {
+            console.error('Bodies count:', frame.bodies.length);
+            if (frame.bodies.length > 0) {
+                console.error('First body has skeleton:', !!frame.bodies[0].skeleton);
+                if (frame.bodies[0].skeleton && frame.bodies[0].skeleton.joints) {
+                    const firstJoint = frame.bodies[0].skeleton.joints[0];
+                    console.error('First joint:', firstJoint);
+                    console.error('Joint properties:', Object.keys(firstJoint));
+                    console.error('Joint has depthX:', 'depthX' in firstJoint);
+                    console.error('Joint has depthY:', 'depthY' in firstJoint);
+                    console.error('Joint has cameraX:', 'cameraX' in firstJoint);
+                    console.error('Joint has cameraY:', 'cameraY' in firstJoint);
+                }
+            }
+        }
+        if (window.DEBUG && window.DEBUG.DATA) {
+            console.group('VisualizationController: displaySkeletonFrame');
+            console.log('Frame received:', frame);
+            console.log('Bodies:', frame.bodies ? frame.bodies.length : 0);
+            if (frame.bodies && frame.bodies.length > 0 && frame.bodies[0].skeleton) {
+                console.log('First joint:', frame.bodies[0].skeleton.joints[0]);
+                console.log('Joint properties:', Object.keys(frame.bodies[0].skeleton.joints[0]));
+            }
+            console.groupEnd();
+        }
+        if (this.p5Visualizer) {
+            console.error('Calling p5Visualizer.displaySkeletonFrame');
+            try {
+                this.p5Visualizer.displaySkeletonFrame(frame);
+            } catch (error) {
+                console.error('Error in p5Visualizer.displaySkeletonFrame:', error);
+            }
+        } else console.warn('P5Visualizer not initialized');
+    }
 }
 
 //# sourceMappingURL=index.86af8ce3.js.map
