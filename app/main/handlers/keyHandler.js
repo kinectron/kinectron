@@ -111,22 +111,73 @@ export class KeyStreamHandler extends BaseStreamHandler {
 
     ipcMain.handle('start-key-stream', async (event) => {
       try {
-        const success = await this.startStream();
+        console.log(
+          'KeyStreamHandler: Received start-key-stream request',
+        );
+
+        // First, ensure any previous tracking is stopped
+        if (this.isActive) {
+          console.log(
+            'KeyStreamHandler: Stopping previous key stream session',
+          );
+          await this.stopStream();
+
+          // Wait a bit to avoid ThreadSafeFunction error when switching feeds
+          console.log(
+            'KeyStreamHandler: Waiting for resources to be released',
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+
+        // Start the key stream with a simpler approach based on legacy code
+        console.log(
+          'KeyStreamHandler: Starting key stream with options:',
+          KinectOptions.KEY,
+        );
+
+        // Start cameras with the right options
+        const success = this.kinectController.startKeyCamera({
+          ...KinectOptions.KEY,
+        });
 
         if (success) {
+          console.log(
+            'KeyStreamHandler: Key stream started successfully',
+          );
+          this.isActive = true;
+
           // Wait for body tracker to initialize
+          console.log(
+            'KeyStreamHandler: Waiting for body tracker to initialize',
+          );
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          // Create frame callback
+          // Create the frame callback
+          console.log('KeyStreamHandler: Creating frame callback');
           this.createFrameCallback(event);
 
-          // Start listening if not in multiframe mode
+          // Start listening for frames
           if (!this.isMultiFrame) {
+            console.log(
+              'KeyStreamHandler: Starting to listen for Kinect frames',
+            );
             this.kinectController.startListening(this.frameCallback);
+            console.log(
+              'KeyStreamHandler: Successfully started listening for Kinect frames',
+            );
           }
+        } else {
+          console.error(
+            'KeyStreamHandler: Failed to start key stream',
+          );
         }
+
         return success;
       } catch (error) {
+        console.error(
+          'KeyStreamHandler: Error in start-key-stream:',
+          error,
+        );
         return this.handleError(error, 'starting key stream');
       }
     });
@@ -148,16 +199,25 @@ export class KeyStreamHandler extends BaseStreamHandler {
    */
   async startStream() {
     try {
+      console.log('KeyStreamHandler: startStream called');
+
+      // Start cameras with the right options
       const success = this.kinectController.startKeyCamera({
         ...KinectOptions.KEY,
       });
 
       if (success) {
+        console.log(
+          'KeyStreamHandler: Key camera started successfully',
+        );
         this.isActive = true;
+      } else {
+        console.error('KeyStreamHandler: Failed to start key camera');
       }
 
       return success;
     } catch (error) {
+      console.error('KeyStreamHandler: Error in startStream:', error);
       return this.handleError(error, 'starting key camera');
     }
   }
@@ -177,21 +237,49 @@ export class KeyStreamHandler extends BaseStreamHandler {
    */
   async stopStream() {
     try {
+      console.log('KeyStreamHandler: Stopping key stream');
+
+      // Only try to stop listening if we have a callback
       if (this.frameCallback) {
-        await this.kinectController.stopListening();
+        try {
+          console.log('KeyStreamHandler: Stopping frame listening');
+          await this.kinectController.stopListening();
+        } catch (error) {
+          console.warn(
+            'KeyStreamHandler: Error stopping listening (may be normal):',
+            error.message,
+          );
+        }
         this.frameCallback = null;
       }
-      await this.kinectController.stopCameras();
+
+      // Stop cameras
+      try {
+        console.log('KeyStreamHandler: Stopping cameras');
+        await this.kinectController.stopCameras();
+      } catch (error) {
+        console.warn(
+          'KeyStreamHandler: Error stopping cameras:',
+          error.message,
+        );
+      }
+
       this.isActive = false;
 
       // Notify peers that stream has stopped
       if (this.peerManager && this.peerManager.isConnected) {
+        console.log(
+          'KeyStreamHandler: Notifying peers that stream has stopped',
+        );
         this.peerManager.broadcast('feed', {
           feed: 'stop',
           type: 'key',
         });
       }
+
+      console.log('KeyStreamHandler: Key stream stopped');
     } catch (error) {
+      console.error('KeyStreamHandler: Error in stopStream:', error);
       this.handleError(error, 'stopping key stream');
     }
   }
