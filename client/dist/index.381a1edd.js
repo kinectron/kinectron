@@ -15,6 +15,8 @@
         this.AZURE_COLOR_HEIGHT = 720;
         this.AZURE_DEPTH_WIDTH = 640;
         this.AZURE_DEPTH_HEIGHT = 576;
+        this.AZURE_RGBD_WIDTH = 512;
+        this.AZURE_RGBD_HEIGHT = 512;
         this.DISPLAY_SCALE = 0.5;
         // Bind methods to maintain 'this' context
         this.initKinect = this.initKinect.bind(this);
@@ -23,6 +25,7 @@
         this.startRawDepthStream = this.startRawDepthStream.bind(this);
         this.startSkeletonStream = this.startSkeletonStream.bind(this);
         this.startKeyStream = this.startKeyStream.bind(this);
+        this.startRGBDStream = this.startRGBDStream.bind(this);
         this.stopStream = this.stopStream.bind(this);
         // Set up UI event handlers
         this._setupUIEventHandlers();
@@ -59,6 +62,7 @@
             startRawDepthStream: this.startRawDepthStream,
             startSkeletonStream: this.startSkeletonStream,
             startKeyStream: this.startKeyStream,
+            startRGBDStream: this.startRGBDStream,
             stopStream: this.stopStream,
             forceEnableButtons: ()=>this.ui.forceEnableButtons(),
             clearDebugInfo: ()=>this.debug.clearDebugInfo(),
@@ -271,6 +275,40 @@
             // Update resolution info
             this.ui.updateResolution(`${frame.width}x${frame.height} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
             // Display the key frame (using the same method as color frame)
+            this.visualization.displayColorFrame(frame);
+        });
+    }
+    /**
+   * Start RGBD stream
+   */ startRGBDStream() {
+        this.ui.updateStreamStatus('Stream Status: Starting...');
+        this.metrics.resetMetrics();
+        this.isStreamActive = true;
+        this.currentStreamType = 'rgbd';
+        // Show p5 canvas and hide Three.js canvas
+        this.visualization.showP5Canvas();
+        // Resize canvas for RGBD stream
+        this.visualization.resizeP5Canvas(this.AZURE_RGBD_WIDTH, this.AZURE_RGBD_HEIGHT);
+        this.debug.addDebugInfo('Starting RGBD stream...', true);
+        // Enable debug logging to help diagnose any data structure issues
+        window.DEBUG.DATA = true;
+        this.kinectron.startRGBD((frame)=>{
+            // Update stream status
+            this.ui.updateStreamStatus('Active (RGBD)', true);
+            // Update metrics
+            this.metrics.updateFrameMetrics(frame);
+            // Log the frame data to verify structure
+            if (window.DEBUG.DATA) {
+                console.group('RGBD Frame Data');
+                console.log('Frame received:', frame);
+                console.log('Frame type:', typeof frame);
+                console.log('Has src:', !!frame.src);
+                console.log('Dimensions:', frame.width, 'x', frame.height);
+                console.groupEnd();
+            }
+            // Update resolution info
+            this.ui.updateResolution(`${frame.width}x${frame.height} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
+            // Display the RGBD frame (using the same method as color frame)
             this.visualization.displayColorFrame(frame);
         });
     }
