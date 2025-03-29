@@ -22,6 +22,20 @@ class KinectronApp {
       },
     };
 
+    // Set up direct event listeners for frames from main process
+    if (window.electron && window.electron.ipcRenderer) {
+      window.electron.ipcRenderer.on(
+        'rgbd-frame',
+        (event, frameData) => {
+          console.log(
+            'Received RGBD frame from main process:',
+            frameData.name,
+          );
+          this.processRGBDFrame(frameData);
+        },
+      );
+    }
+
     // Create and initialize peer controller
     this.peerController = new PeerController();
     this.peerController.ipc = this.ipc;
@@ -1323,23 +1337,81 @@ class KinectronApp {
   }
 
   processRGBDFrame(frameData) {
+    console.log('Processing RGBD frame:', frameData);
     const canvas = document.getElementById('rgbd-canvas');
-    if (!canvas) return;
+    if (!canvas) {
+      console.error('RGBD canvas not found');
+      return;
+    }
 
     const context = canvas.getContext('2d');
-    if (frameData.imageData && frameData.imageData.data) {
+    // Check for both imageData and imagedata formats
+    const imageData = frameData.imageData || frameData.imagedata;
+
+    console.log(
+      'RGBD frame image data:',
+      imageData
+        ? {
+            width: imageData.width,
+            height: imageData.height,
+            dataType: typeof imageData.data,
+            hasData: !!imageData.data,
+          }
+        : 'null',
+    );
+
+    if (imageData && imageData.data) {
       try {
-        // For RGBD, we want to preserve the alpha channel exactly as it comes from the backend
-        // so we'll draw directly to the canvas without scaling
-        const imageData = new ImageData(
-          new Uint8ClampedArray(frameData.imageData.data),
-          frameData.imageData.width,
-          frameData.imageData.height,
-        );
-        context.putImageData(imageData, 0, 0);
+        // Check if data is a string (data URL)
+        if (typeof imageData.data === 'string') {
+          console.log('RGBD frame data is a data URL');
+          // Create an image from the data URL
+          const img = new Image();
+          img.onload = () => {
+            console.log(
+              'RGBD image loaded successfully, dimensions:',
+              img.width,
+              'x',
+              img.height,
+            );
+            // Clear the canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            // Draw the image to the canvas
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            console.log('RGBD image drawn to canvas');
+          };
+          img.onerror = (err) => {
+            console.error('Error loading RGBD image:', err);
+            console.error(
+              'Data URL starts with:',
+              imageData.data.substring(0, 50) + '...',
+            );
+          };
+          img.src = imageData.data;
+        } else {
+          console.log('RGBD frame data is raw pixel data');
+          // For RGBD, we want to preserve the alpha channel exactly as it comes from the backend
+          // so we'll draw directly to the canvas without scaling
+          const imgData = new ImageData(
+            new Uint8ClampedArray(imageData.data),
+            imageData.width,
+            imageData.height,
+          );
+          context.putImageData(imgData, 0, 0);
+          console.log('RGBD raw pixel data drawn to canvas');
+        }
       } catch (error) {
         console.error('Error drawing RGBD frame:', error);
+        console.error('Frame data type:', typeof imageData.data);
+        if (typeof imageData.data === 'string') {
+          console.error(
+            'Data URL starts with:',
+            imageData.data.substring(0, 50) + '...',
+          );
+        }
       }
+    } else {
+      console.error('RGBD frame missing image data:', frameData);
     }
   }
 

@@ -22,7 +22,43 @@
         <button disabled id="startRGBDBtn">Start RGBD Stream</button>
         <button disabled id="stopStreamBtn">Stop Stream</button>
     </div>
-    <div id="canvas-container"></div>
+    <div id="canvas-container">
+        <!-- Stream canvases will be created here by p5.js -->
+        <!-- Color stream canvas -->
+        <div id="color-div" style="display: none;">
+            <canvas id="color-canvas"></canvas>
+        </div>
+
+        <!-- Depth stream canvas -->
+        <div id="depth-div" style="display: none;">
+            <canvas id="depth-canvas"></canvas>
+        </div>
+
+        <!-- Raw depth stream canvas -->
+        <div id="raw-depth-div" style="display: none;">
+            <canvas id="raw-depth-canvas"></canvas>
+        </div>
+
+        <!-- Skeleton stream canvas -->
+        <div id="skeleton-div" style="display: none;">
+            <canvas id="skeleton-canvas"></canvas>
+        </div>
+
+        <!-- Key stream canvas -->
+        <div id="key-div" style="display: none;">
+            <canvas id="key-canvas"></canvas>
+        </div>
+
+        <!-- Depth key stream canvas -->
+        <div id="depth-key-div" style="display: none;">
+            <canvas id="depth-key-canvas"></canvas>
+        </div>
+
+        <!-- RGBD stream canvas -->
+        <div id="rgbd-div" style="display: none;">
+            <canvas id="rgbd-canvas"></canvas>
+        </div>
+    </div>
     <div id="three-container">
         <canvas id="threeCanvas"></canvas>
     </div>
