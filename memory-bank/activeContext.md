@@ -1,8 +1,8 @@
 # Active Context
 
-## Current Focus: Depth-Key Stream Implementation
+## Current Focus: Enhancing Visualization and Standardizing Naming Conventions
 
-We've completed the raw depth stream implementation, added a comprehensive debugging system, finished refactoring the kinectron-modern client, fixed the skeleton feed initialization issue, successfully implemented the skeleton visualization in the streamTest client, completed the key stream implementation, and now successfully implemented the RGBD stream.
+We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and now depth key. All streams are working correctly in both the application and client API. Our focus now shifts to enhancing visualizations and addressing technical debt such as inconsistent naming conventions.
 
 ### Current Status
 
@@ -39,6 +39,14 @@ We've completed the raw depth stream implementation, added a comprehensive debug
      - Added RGBD canvas div to streamTest HTML
      - Ensured proper data handling and visualization
      - Successfully streaming RGBD data from application to client
+   - Depth key stream fully implemented:
+     - Fixed naming convention mismatch between server and client
+     - Updated server to use 'depth-key' consistently in both frame name and broadcast event
+     - Updated client to register handler with 'depth-key' to match server's broadcast event name
+     - Implemented Three.js point cloud visualization with body pixel filtering
+     - Modified ThreeVisualizer to support filtering out zero values
+     - Successfully streaming depth key data from application to client
+     - Visualization shows only the person's depth information with background filtered out
 
 3. **Debugging System**:
 
@@ -63,15 +71,23 @@ We've completed the raw depth stream implementation, added a comprehensive debug
 
 ### Next Steps
 
-- **Implement Depth-Key Stream in Client**
+- **Enhance Visualizations**
 
-  - Add depth-key stream visualization to streamTest client
-  - Ensure proper data handling and visualization
-  - Apply lessons learned from key and RGBD stream implementations
-
-- **Enhance Raw Depth Visualization**
-  - Improve point cloud visualization quality
+  - Improve point cloud visualization quality for depth-based streams
   - Explore alternative visualization techniques if needed
+  - Consider adding smoothing or filtering options
+
+- **Address Technical Debt**
+
+  - Review all stream naming conventions across the codebase
+  - Standardize on a single naming pattern (either hyphenated or camelCase)
+  - Create a comprehensive refactoring plan to implement consistent naming
+
+- **Consider Advanced Features**
+  - Joint tracking confidence visualization
+  - Motion tracking and analysis
+  - Gesture recognition
+  - Recording and playback of skeleton data
 
 ## Active Decisions
 
@@ -120,9 +136,17 @@ We've completed the raw depth stream implementation, added a comprehensive debug
   2. Improved maintainability through clearer project structure
 
 - **Robust stream initialization pattern**:
+
   1. Follow a more sequential and predictable flow for starting streams
   2. Ensure proper cleanup of previous sessions before starting new ones
   3. Improve error handling and state management
   4. Use a simpler approach based on the legacy code pattern
   5. Add detailed logging at each step of the initialization process
   6. Implement proper resource cleanup on stream stop
+
+- **Addressing naming convention inconsistencies**:
+  1. Identified critical issue where naming conventions don't match between server and client
+  2. For depth key stream, server was using 'depthKey' but client expected 'depth-key'
+  3. Fixed by updating server to use 'depth-key' consistently
+  4. Recognized need for systematic approach to naming conventions
+  5. Added to known issues and future work for comprehensive resolution

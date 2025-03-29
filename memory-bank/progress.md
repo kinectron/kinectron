@@ -173,21 +173,38 @@
   - RGBD visualization is displayed in the client
   - The "Stop Stream" button properly stops the stream on both client and server sides
 
+### Depth Key Stream Implementation
+
+- **Status**: Completed and working correctly
+- **Implementation**:
+  - Fixed data structure mismatch between server and client:
+    - Server was using 'depthKey' (camelCase) but client expected 'depth-key' (hyphenated)
+    - Updated server to use 'depth-key' consistently in both frame name and broadcast event
+    - Updated client to register handler with 'depth-key' to match server's broadcast event name
+  - Implemented robust initialization pattern based on the key handler:
+    - Ensured proper cleanup of previous sessions before starting new ones
+    - Added sequential and predictable flow for starting the depth key stream
+    - Improved error handling with try/catch blocks around critical operations
+    - Enhanced state management to prevent multiple overlapping initialization attempts
+  - Added detailed logging throughout the initialization and streaming process
+  - Implemented Three.js-based point cloud visualization:
+    - Modified ThreeVisualizer to support filtering out zero values
+    - Added special handling for depth key data to only show body pixels
+    - Reused the same visualization approach as raw depth for consistency
+  - Used Sharp for image compression with identical settings to raw depth:
+    - Lossless WebP compression to preserve depth precision
+    - Consistent image processing pipeline for all depth-based streams
+  - Successfully streaming depth key data from application to client
+- **Current Behavior**:
+  - Users can start the depth key stream from the client, which activates the Kinect hardware
+  - The depth key stream works correctly on the first button click and stays active
+  - Depth key data is successfully transmitted from hardware to client
+  - Point cloud visualization shows only the person's depth information (background filtered out)
+  - The "Stop Stream" button properly stops the stream on both client and server sides
+
 ## In Progress
 
-1. **Depth-Key Stream Implementation in Client**:
-
-   - **Status**: In progress
-   - **Current Focus**:
-     - Implementing depth-key stream visualization in the client
-     - Ensuring proper data handling and visualization
-     - Applying lessons learned from key and RGBD stream implementations
-   - **Next Steps**:
-     - Add depth-key stream visualization to streamTest client
-     - Ensure proper data structure handling
-     - Implement visualization in P5Visualizer
-
-2. **UI Refinements**:
+1. **UI Refinements**:
    - **Status**: In progress
    - **Current Focus**:
      - Ensuring consistent UI behavior across all components
@@ -217,13 +234,24 @@
    - **Solution**: Added clean script to package.json and documented the issue in DEVELOPMENT.md
    - **Current Status**: Resolved with workaround, but requires awareness during development
 
-3. **Data Structure Mismatches**:
+3. **Data Structure and Naming Convention Inconsistencies**:
 
-   - **Issue**: Inconsistent naming conventions between server and client (imageData vs. imagedata)
-   - **Symptoms**: Stream handlers fail to process data correctly
-   - **Solution**: Standardized approach to handle both formats for backward compatibility
-   - **Current Status**: Working with current solution, but needs to be maintained for all new stream implementations
-   - **Next Steps**: Consider standardizing naming conventions in future refactoring
+   - **Issue**: Inconsistent naming conventions between server and client:
+     - Case differences (imageData vs. imagedata)
+     - Format differences (depth-key vs depthKey)
+     - Inconsistent use of hyphens vs camelCase
+   - **Symptoms**:
+     - Stream handlers fail to process data correctly
+     - "No handler found for event" errors
+     - Data not being properly visualized
+   - **Solution**:
+     - Implemented workarounds for specific streams
+     - Added normalization code to handle both formats for backward compatibility
+   - **Current Status**: Working with current solutions, but needs a systematic approach
+   - **Next Steps**:
+     - Review all stream naming conventions across the codebase
+     - Standardize on a single naming pattern (either hyphenated or camelCase)
+     - Create a comprehensive refactoring plan to implement consistent naming
 
 4. **Unpacking Issues in Client Handlers**:
 
@@ -249,7 +277,14 @@
    - Consider adding smoothing or filtering options
 
 2. **Add Advanced Features**:
+
    - Joint tracking confidence visualization
    - Motion tracking and analysis
    - Gesture recognition
    - Recording and playback of skeleton data
+
+3. **Standardize Naming Conventions**:
+   - Review all stream names, event names, and data structure properties
+   - Choose a consistent naming convention (hyphenated or camelCase)
+   - Implement changes systematically across all files
+   - Update documentation to reflect standardized naming
