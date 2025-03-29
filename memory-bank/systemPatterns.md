@@ -138,6 +138,29 @@ flowchart TD
     end
 ```
 
+### RGBD Stream Data Flow
+
+```mermaid
+flowchart TD
+    subgraph "Server-Side"
+        KinectHW[Kinect Hardware] --> ColorImage2[Color Image]
+        KinectHW --> DepthData[Depth Data]
+        ColorImage2 --> RGBDProcessor[RGBD Frame Processor]
+        DepthData --> RGBDProcessor
+        RGBDProcessor --> AlignmentProcess[Alignment Process]
+        AlignmentProcess --> ImageCompression2[Sharp Image Compression]
+        ImageCompression2 --> DataURL2[Data URL Creation]
+        DataURL2 --> FramePackaging2[Frame Packaging]
+    end
+
+    subgraph "Client-Side"
+        FramePackaging2 --> ClientAPI2[Client API]
+        ClientAPI2 --> RGBDFrameHandler[RGBD Frame Handler]
+        RGBDFrameHandler --> ImageProcessing2[Image Processing]
+        ImageProcessing2 --> RGBDVisualization[RGBD Visualization]
+    end
+```
+
 ### Body Tracking Initialization Pattern
 
 1. **Sequential Initialization**:
