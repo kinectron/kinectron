@@ -73,11 +73,13 @@
   - Enhanced state management to prevent multiple overlapping initialization attempts
   - Added detailed logging to help diagnose issues
   - Ensured proper cleanup of previous tracking sessions before starting new ones
+  - Fixed data structure mismatch in bodyFrame handler by extracting nested data
+  - Implemented proper skeleton visualization in the client
 - **Current Behavior**:
   - Users can start the skeleton feed from the client, which activates the Kinect body tracking
   - The skeleton feed works correctly on the first button click
   - Body data is successfully transmitted from hardware to client
-  - Basic skeleton visualization is displayed in the client
+  - Skeleton visualization is displayed in the client with joints and connections
   - The "Stop Stream" button properly stops the stream on both client and server sides
 
 ### Debugging System Implementation
@@ -130,17 +132,17 @@
 
 ## In Progress
 
-1. **Skeleton Visualization Enhancement**:
+1. **Key Stream Implementation in Client**:
 
    - **Status**: In progress
    - **Current Focus**:
-     - Improving the visualization of skeleton data in the client
-     - Adding more features like joint labels or different visualization modes
-     - Ensuring proper rendering of multiple bodies
+     - Implementing key stream visualization in the client
+     - Ensuring proper data handling and visualization
+     - Applying lessons learned from skeleton stream implementation
    - **Next Steps**:
-     - Enhance the P5 visualizer to better represent the skeleton data
-     - Add options for different visualization styles
-     - Implement proper handling of multiple bodies
+     - Add key stream visualization to streamTest client
+     - Ensure proper data structure handling
+     - Implement visualization in P5Visualizer
 
 2. **UI Refinements**:
    - **Status**: In progress

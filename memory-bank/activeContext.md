@@ -1,8 +1,8 @@
 # Active Context
 
-## Current Focus: Skeleton Feed Visualization
+## Current Focus: Key Stream Implementation
 
-We've completed the raw depth stream implementation, added a comprehensive debugging system for both application and client, finished refactoring the kinectron-modern client, and successfully fixed the skeleton feed initialization issue.
+We've completed the raw depth stream implementation, added a comprehensive debugging system, finished refactoring the kinectron-modern client, fixed the skeleton feed initialization issue, and successfully implemented the skeleton visualization in the streamTest client.
 
 ### Current Status
 
@@ -51,17 +51,25 @@ We've completed the raw depth stream implementation, added a comprehensive debug
 
 ### Next Steps
 
-- **Enhance Skeleton Visualization**
+- **Implement Key Stream in Client**
 
-  - Improve the visualization of skeleton data in the client
-  - Add more features like joint labels or different visualization modes
-  - Ensure proper rendering of multiple bodies
+  - Add key stream visualization to streamTest client
+  - Ensure proper data handling and visualization
+  - Apply lessons learned from skeleton stream implementation
 
 - **Enhance Raw Depth Visualization**
   - Improve point cloud visualization quality
   - Explore alternative visualization techniques if needed
 
 ## Active Decisions
+
+- **Handling data structure mismatches in stream handlers**:
+
+  1. Identified critical issue where data structures don't match between event producers and consumers
+  2. In bodyFrame handler, data was nested as `{data: {bodies: [...]}}` but handler expected `{bodies: [...]}`
+  3. Fixed by extracting nested data with `const bodyData = eventData.data`
+  4. Need to standardize this approach across all stream handlers
+  5. Add proper logging to prevent similar issues in the future
 
 - Using a consistent approach for all data streams:
 

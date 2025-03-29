@@ -95,15 +95,15 @@ export function createBodyHandler(callback) {
   console.log(callback);
 
   return (eventData) => {
-    const data = eventData.data;
-    if (data && data.bodies) {
+    const bodyData = eventData.data;
+    if (bodyData && bodyData.bodies) {
       // Body data is already in a usable format (array of body objects)
       // Just add timestamp and pass it through
       callback({
-        bodies: data.bodies,
-        timestamp: data.timestamp || Date.now(),
-        floorClipPlane: data.floorClipPlane,
-        trackingId: data.trackingId,
+        bodies: bodyData.bodies,
+        timestamp: bodyData.timestamp || Date.now(),
+        floorClipPlane: bodyData.floorClipPlane,
+        trackingId: bodyData.trackingId,
       });
     }
   };

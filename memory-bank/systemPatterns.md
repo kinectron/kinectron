@@ -163,6 +163,54 @@ flowchart TD
 5. **Adapter Pattern**: Converting between data formats
 6. **Facade Pattern**: Simplified debugging interface
 
+## Data Structure Handling Patterns
+
+### Event Data Structure Mismatches
+
+A critical pattern to be aware of is the potential mismatch between data structures in the event pipeline:
+
+```mermaid
+flowchart LR
+    Server[Server Event] --> PeerConn[Peer Connection] --> ClientAPI[Client API] --> Handler[Stream Handler] --> Callback[User Callback]
+```
+
+**Problem**: Data structures can be nested differently than expected between event producers and consumers.
+
+**Example**: In the bodyFrame handler, data was coming in as:
+
+```javascript
+{
+  data: {
+    bodies: [...],
+    numBodies: 1
+  },
+  name: "bodyFrame",
+  timestamp: 1743208345517
+}
+```
+
+But the handler was looking for `data.bodies` directly, causing the callback to never be called.
+
+**Solution**: Extract the nested data before processing:
+
+```javascript
+export function createBodyHandler(callback) {
+  return (eventData) => {
+    const bodyData = eventData.data;
+    if (bodyData && bodyData.bodies) {
+      callback({
+        bodies: bodyData.bodies,
+        timestamp: bodyData.timestamp || Date.now(),
+        floorClipPlane: bodyData.floorClipPlane,
+        trackingId: bodyData.trackingId,
+      });
+    }
+  };
+}
+```
+
+**Best Practice**: Add proper logging at the beginning of handler functions to verify data structure. Consider standardizing data extraction across all handlers.
+
 ## Debugging System Architecture
 
 ```mermaid
