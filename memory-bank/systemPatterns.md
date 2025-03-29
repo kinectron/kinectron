@@ -116,6 +116,28 @@ flowchart TD
     end
 ```
 
+### Key Stream Data Flow
+
+```mermaid
+flowchart TD
+    subgraph "Server-Side"
+        KinectHW[Kinect Hardware] --> ColorImage[Color Image]
+        KinectHW --> BodyIndex[Body Index Map]
+        ColorImage --> KeyProcessor[Key Frame Processor]
+        BodyIndex --> KeyProcessor
+        KeyProcessor --> ImageCompression[Sharp Image Compression]
+        ImageCompression --> DataURL[Data URL Creation]
+        DataURL --> FramePackaging[Frame Packaging]
+    end
+
+    subgraph "Client-Side"
+        FramePackaging --> ClientAPI[Client API]
+        ClientAPI --> KeyFrameHandler[Key Frame Handler]
+        KeyFrameHandler --> ImageProcessing[Image Processing]
+        ImageProcessing --> KeyVisualization[Key Visualization]
+    end
+```
+
 ### Body Tracking Initialization Pattern
 
 1. **Sequential Initialization**:
@@ -135,6 +157,97 @@ flowchart TD
 3. **State Management**:
    - Track active state to prevent multiple overlapping initialization attempts
    - Ensure proper cleanup before starting new sessions
+
+### Robust Stream Initialization Pattern
+
+This pattern was developed for the key stream and should be applied to all streams:
+
+1. **Sequential Initialization**:
+
+   ```javascript
+   // First, ensure any previous tracking is stopped
+   if (this.isActive) {
+     console.log('Stopping previous session');
+     await this.stopStream();
+
+     // Wait a bit to avoid ThreadSafeFunction error when switching feeds
+     await new Promise((resolve) => setTimeout(resolve, 500));
+   }
+
+   // Start cameras with the right options
+   const success = this.kinectController.startKeyCamera({
+     ...KinectOptions.KEY,
+   });
+
+   if (success) {
+     this.isActive = true;
+
+     // Wait for body tracker to initialize if needed
+     await new Promise((resolve) => setTimeout(resolve, 1000));
+
+     // Create the frame callback
+     this.createFrameCallback(event);
+
+     // Start listening for frames
+     if (!this.isMultiFrame) {
+       this.kinectController.startListening(this.frameCallback);
+     }
+   }
+   ```
+
+2. **Comprehensive Error Handling**:
+
+   ```javascript
+   try {
+     // Stream initialization code
+   } catch (error) {
+     console.error('Error in stream initialization:', error);
+     return this.handleError(error, 'starting stream');
+   }
+   ```
+
+3. **Robust Stream Stopping**:
+
+   ```javascript
+   async stopStream() {
+     try {
+       // Only try to stop listening if we have a callback
+       if (this.frameCallback) {
+         try {
+           await this.kinectController.stopListening();
+         } catch (error) {
+           console.warn('Error stopping listening (may be normal):', error.message);
+         }
+         this.frameCallback = null;
+       }
+
+       // Stop cameras
+       try {
+         await this.kinectController.stopCameras();
+       } catch (error) {
+         console.warn('Error stopping cameras:', error.message);
+       }
+
+       this.isActive = false;
+
+       // Notify peers that stream has stopped
+       if (this.peerManager && this.peerManager.isConnected) {
+         this.peerManager.broadcast('feed', {
+           feed: 'stop',
+           type: 'key',
+         });
+       }
+     } catch (error) {
+       console.error('Error in stopStream:', error);
+       this.handleError(error, 'stopping stream');
+     }
+   }
+   ```
+
+4. **Detailed Logging**:
+   - Log each step of the initialization process
+   - Log success or failure of each operation
+   - Include relevant data in logs for debugging
 
 ### Raw Depth Packing Strategy
 
@@ -176,7 +289,7 @@ flowchart LR
 
 **Problem**: Data structures can be nested differently than expected between event producers and consumers.
 
-**Example**: In the bodyFrame handler, data was coming in as:
+**Example 1**: In the bodyFrame handler, data was coming in as:
 
 ```javascript
 {
@@ -209,7 +322,26 @@ export function createBodyHandler(callback) {
 }
 ```
 
-**Best Practice**: Add proper logging at the beginning of handler functions to verify data structure. Consider standardizing data extraction across all handlers.
+**Example 2**: In the key stream handler, the server was sending `imageData` (capital 'D') but the client was expecting `imagedata` (lowercase 'd').
+
+**Solution**: Normalize the data structure in the client to handle both formats:
+
+```javascript
+// Check for both imagedata and imageData formats
+const imageData = frameData.imagedata || frameData.imageData;
+
+if (imageData && imageData.data) {
+  // Process the image data
+}
+```
+
+**Best Practices**:
+
+1. Add proper logging at the beginning of handler functions to verify data structure
+2. Standardize data extraction across all handlers
+3. Make handlers resilient to different data formats
+4. Use consistent naming conventions for data properties
+5. Document expected data structures in code comments
 
 ## Debugging System Architecture
 
