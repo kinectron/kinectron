@@ -26,6 +26,7 @@ class KinectController {
     this.startDepthStream = this.startDepthStream.bind(this);
     this.startRawDepthStream = this.startRawDepthStream.bind(this);
     this.startSkeletonStream = this.startSkeletonStream.bind(this);
+    this.startKeyStream = this.startKeyStream.bind(this);
     this.stopStream = this.stopStream.bind(this);
 
     // Set up UI event handlers
@@ -75,6 +76,7 @@ class KinectController {
       startDepthStream: this.startDepthStream,
       startRawDepthStream: this.startRawDepthStream,
       startSkeletonStream: this.startSkeletonStream,
+      startKeyStream: this.startKeyStream,
       stopStream: this.stopStream,
       forceEnableButtons: () => this.ui.forceEnableButtons(),
       clearDebugInfo: () => this.debug.clearDebugInfo(),
@@ -396,6 +398,58 @@ class KinectController {
       'Debug logging enabled for skeleton stream',
       true,
     );
+  }
+
+  /**
+   * Start key stream
+   */
+  startKeyStream() {
+    this.ui.updateStreamStatus('Stream Status: Starting...');
+    this.metrics.resetMetrics();
+    this.isStreamActive = true;
+    this.currentStreamType = 'key';
+
+    // Show p5 canvas and hide Three.js canvas
+    this.visualization.showP5Canvas();
+
+    // Resize canvas for key stream (using color dimensions since key is based on color)
+    this.visualization.resizeP5Canvas(
+      this.AZURE_COLOR_WIDTH * this.DISPLAY_SCALE,
+      this.AZURE_COLOR_HEIGHT * this.DISPLAY_SCALE,
+    );
+
+    this.debug.addDebugInfo('Starting key stream...', true);
+
+    // Enable debug logging to help diagnose any data structure issues
+    window.DEBUG.DATA = true;
+
+    this.kinectron.startKey((frame) => {
+      // Update stream status
+      this.ui.updateStreamStatus('Active (Key)', true);
+
+      // Update metrics
+      this.metrics.updateFrameMetrics(frame);
+
+      // Log the frame data to verify structure
+      if (window.DEBUG.DATA) {
+        console.group('Key Frame Data');
+        console.log('Frame received:', frame);
+        console.log('Frame type:', typeof frame);
+        console.log('Has src:', !!frame.src);
+        console.log('Dimensions:', frame.width, 'x', frame.height);
+        console.groupEnd();
+      }
+
+      // Update resolution info
+      this.ui.updateResolution(
+        `${frame.width}x${
+          frame.height
+        } | Avg Latency: ${this.metrics.getAverageLatency()}ms`,
+      );
+
+      // Display the key frame (using the same method as color frame)
+      this.visualization.displayColorFrame(frame);
+    });
   }
 
   /**

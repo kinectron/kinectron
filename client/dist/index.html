@@ -18,6 +18,7 @@
         <button disabled="" id="startDepthBtn">Start Depth Stream</button>
         <button disabled="" id="startRawDepthBtn">Start Raw Depth Stream</button>
         <button disabled="" id="startSkeletonBtn">Start Skeleton Stream</button>
+        <button disabled="" id="startKeyBtn">Start Key Stream</button>
         <button disabled="" id="stopStreamBtn">Stop Stream</button>
     </div>
     <div id="canvas-container"></div>
@@ -209,14 +210,14 @@
       this[globalName] = mainExports;
     }
   }
-})({"dNInp":[function(require,module,exports,__globalThis) {
+})({"4Vmg0":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
 var HMR_USE_SSE = false;
-module.bundle.HMR_BUNDLE_ID = "b035c1ff07034b0b";
+module.bundle.HMR_BUNDLE_ID = "47de3314493a9cce";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -662,7 +663,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     }
 }
 
-},{}],"kTPFN":[function(require,module,exports,__globalThis) {
+},{}],"ef16w":[function(require,module,exports,__globalThis) {
 var _kinectronModernJs = require("../../src/kinectron-modern.js");
 var _debugJs = require("../../src/utils/debug.js");
 window.Kinectron = (0, _kinectronModernJs.Kinectron);
@@ -11689,10 +11690,16 @@ function createFrameHandler(streamType, callback) {
     return (data)=>{
         // Extract the actual frame data
         const frameData = data.data || data;
+        console.log(`Frame handler for ${streamType} received:`, frameData);
+        // Check for both imagedata and imageData formats
+        const hasImageData = frameData.imagedata || frameData.imageData;
         // Only process frames with matching name
-        if (frameData.name === streamType && frameData.imagedata) // Process the image data
-        _imageProcessingJs.processImageData(frameData, callback);
-        else console.warn(`Received frame event but it's not a valid ${streamType} frame:`, 'name=', frameData.name, 'has imagedata=', !!frameData.imagedata);
+        if (frameData.name === streamType && hasImageData) {
+            // Normalize the data structure to ensure imagedata exists
+            if (frameData.imageData && !frameData.imagedata) frameData.imagedata = frameData.imageData;
+            // Process the image data
+            _imageProcessingJs.processImageData(frameData, callback);
+        } else console.warn(`Received frame event but it's not a valid ${streamType} frame:`, 'name=', frameData.name, 'has imagedata=', !!(frameData.imagedata || frameData.imageData));
     };
 }
 function createRawDepthHandler(callback, unpackFunction) {
@@ -11807,11 +11814,13 @@ parcelHelpers.export(exports, "processImageData", ()=>processImageData);
  * @returns {Uint8ClampedArray} - The converted data
  */ parcelHelpers.export(exports, "convertToUint8ClampedArray", ()=>convertToUint8ClampedArray);
 function processImageData(frameData, callback) {
-    if (!frameData || !frameData.imagedata) {
+    // Check for both imagedata and imageData formats
+    const imagedata = frameData.imagedata || frameData.imageData;
+    if (!frameData || !imagedata) {
         console.warn('Invalid frame data received:', frameData);
         return;
     }
-    const { width, height } = frameData.imagedata;
+    const { width, height } = imagedata;
     // Create a canvas to convert image data to a data URL
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -11819,29 +11828,32 @@ function processImageData(frameData, callback) {
     canvas.height = height;
     try {
         // Check if data is a string (data URL)
-        if (typeof frameData.imagedata.data === 'string') createImageFromDataUrl(frameData.imagedata.data, width, height, (src)=>{
-            // Call the user callback with processed frame
-            callback({
-                src,
-                width,
-                height,
-                raw: frameData.imagedata,
-                timestamp: frameData.timestamp || Date.now()
+        if (typeof imagedata.data === 'string') {
+            console.log('Processing image data from data URL');
+            createImageFromDataUrl(imagedata.data, width, height, (src)=>{
+                // Call the user callback with processed frame
+                callback({
+                    src,
+                    width,
+                    height,
+                    raw: imagedata,
+                    timestamp: frameData.timestamp || Date.now()
+                });
+            }, (err)=>{
+                console.error('Error loading image from data URL:', err);
+                // Try to call callback anyway with the raw data
+                callback({
+                    src: imagedata.data,
+                    width,
+                    height,
+                    raw: imagedata,
+                    timestamp: frameData.timestamp || Date.now()
+                });
             });
-        }, (err)=>{
-            console.error('Error loading image from data URL:', err);
-            // Try to call callback anyway with the raw data
-            callback({
-                src: frameData.imagedata.data,
-                width,
-                height,
-                raw: frameData.imagedata,
-                timestamp: frameData.timestamp || Date.now()
-            });
-        });
-        else {
+        } else {
+            console.log('Processing image data from raw pixel data');
             // Handle raw pixel data
-            const pixelData = convertToUint8ClampedArray(frameData.imagedata.data);
+            const pixelData = convertToUint8ClampedArray(imagedata.data);
             const imgData = new ImageData(pixelData, width, height);
             // Put the image data on the canvas
             ctx.putImageData(imgData, 0, 0);
@@ -11852,13 +11864,13 @@ function processImageData(frameData, callback) {
                 src,
                 width,
                 height,
-                raw: frameData.imagedata,
+                raw: imagedata,
                 timestamp: frameData.timestamp || Date.now()
             });
         }
     } catch (error) {
         console.error('Error processing frame:', error);
-        console.error('Frame data:', frameData.imagedata);
+        console.error('Frame data:', imagedata);
     }
 }
 function createImageFromDataUrl(dataUrl, width, height, onSuccess, onError) {
@@ -11892,7 +11904,7 @@ function convertToUint8ClampedArray(data) {
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"eL2yo":[function(require,module,exports,__globalThis) {
 module.exports = Promise.resolve(module.bundle.root("eqMIC"));
 
-},{"eqMIC":"eqMIC"}]},["dNInp","kTPFN"], "kTPFN", "parcelRequire94c2")
+},{"eqMIC":"eqMIC"}]},["4Vmg0","ef16w"], "ef16w", "parcelRequire94c2")
 
 </script>
 

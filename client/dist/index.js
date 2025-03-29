@@ -10406,11 +10406,13 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
  * @param {number} height - The height of the image
  * @param {Function} callback - Callback to receive the processed image
  */ function $c98be0bef0e4b75f$export$6bfa04708e643828(frameData, callback) {
-    if (!frameData || !frameData.imagedata) {
+    // Check for both imagedata and imageData formats
+    const imagedata = frameData.imagedata || frameData.imageData;
+    if (!frameData || !imagedata) {
         console.warn('Invalid frame data received:', frameData);
         return;
     }
-    const { width: width, height: height } = frameData.imagedata;
+    const { width: width, height: height } = imagedata;
     // Create a canvas to convert image data to a data URL
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -10418,29 +10420,32 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
     canvas.height = height;
     try {
         // Check if data is a string (data URL)
-        if (typeof frameData.imagedata.data === 'string') $c98be0bef0e4b75f$export$708bda43d64f1409(frameData.imagedata.data, width, height, (src)=>{
-            // Call the user callback with processed frame
-            callback({
-                src: src,
-                width: width,
-                height: height,
-                raw: frameData.imagedata,
-                timestamp: frameData.timestamp || Date.now()
+        if (typeof imagedata.data === 'string') {
+            console.log('Processing image data from data URL');
+            $c98be0bef0e4b75f$export$708bda43d64f1409(imagedata.data, width, height, (src)=>{
+                // Call the user callback with processed frame
+                callback({
+                    src: src,
+                    width: width,
+                    height: height,
+                    raw: imagedata,
+                    timestamp: frameData.timestamp || Date.now()
+                });
+            }, (err)=>{
+                console.error('Error loading image from data URL:', err);
+                // Try to call callback anyway with the raw data
+                callback({
+                    src: imagedata.data,
+                    width: width,
+                    height: height,
+                    raw: imagedata,
+                    timestamp: frameData.timestamp || Date.now()
+                });
             });
-        }, (err)=>{
-            console.error('Error loading image from data URL:', err);
-            // Try to call callback anyway with the raw data
-            callback({
-                src: frameData.imagedata.data,
-                width: width,
-                height: height,
-                raw: frameData.imagedata,
-                timestamp: frameData.timestamp || Date.now()
-            });
-        });
-        else {
+        } else {
+            console.log('Processing image data from raw pixel data');
             // Handle raw pixel data
-            const pixelData = $c98be0bef0e4b75f$export$3f12cadb607c10de(frameData.imagedata.data);
+            const pixelData = $c98be0bef0e4b75f$export$3f12cadb607c10de(imagedata.data);
             const imgData = new ImageData(pixelData, width, height);
             // Put the image data on the canvas
             ctx.putImageData(imgData, 0, 0);
@@ -10451,13 +10456,13 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                 src: src,
                 width: width,
                 height: height,
-                raw: frameData.imagedata,
+                raw: imagedata,
                 timestamp: frameData.timestamp || Date.now()
             });
         }
     } catch (error) {
         console.error('Error processing frame:', error);
-        console.error('Frame data:', frameData.imagedata);
+        console.error('Frame data:', imagedata);
     }
 }
 function $c98be0bef0e4b75f$export$708bda43d64f1409(dataUrl, width, height, onSuccess, onError) {
@@ -10493,10 +10498,16 @@ function $bea288e8dbb006c6$export$1a5215a6a049f7d8(streamType, callback) {
     return (data)=>{
         // Extract the actual frame data
         const frameData = data.data || data;
+        console.log(`Frame handler for ${streamType} received:`, frameData);
+        // Check for both imagedata and imageData formats
+        const hasImageData = frameData.imagedata || frameData.imageData;
         // Only process frames with matching name
-        if (frameData.name === streamType && frameData.imagedata) // Process the image data
-        $c98be0bef0e4b75f$export$6bfa04708e643828(frameData, callback);
-        else console.warn(`Received frame event but it's not a valid ${streamType} frame:`, 'name=', frameData.name, 'has imagedata=', !!frameData.imagedata);
+        if (frameData.name === streamType && hasImageData) {
+            // Normalize the data structure to ensure imagedata exists
+            if (frameData.imageData && !frameData.imagedata) frameData.imagedata = frameData.imageData;
+            // Process the image data
+            $c98be0bef0e4b75f$export$6bfa04708e643828(frameData, callback);
+        } else console.warn(`Received frame event but it's not a valid ${streamType} frame:`, 'name=', frameData.name, 'has imagedata=', !!(frameData.imagedata || frameData.imageData));
     };
 }
 function $bea288e8dbb006c6$export$e4d1bd1c23c09b9e(callback, unpackFunction) {

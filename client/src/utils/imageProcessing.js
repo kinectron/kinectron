@@ -10,12 +10,15 @@
  * @param {Function} callback - Callback to receive the processed image
  */
 export function processImageData(frameData, callback) {
-  if (!frameData || !frameData.imagedata) {
+  // Check for both imagedata and imageData formats
+  const imagedata = frameData.imagedata || frameData.imageData;
+
+  if (!frameData || !imagedata) {
     console.warn('Invalid frame data received:', frameData);
     return;
   }
 
-  const { width, height } = frameData.imagedata;
+  const { width, height } = imagedata;
 
   // Create a canvas to convert image data to a data URL
   const canvas = document.createElement('canvas');
@@ -26,9 +29,10 @@ export function processImageData(frameData, callback) {
 
   try {
     // Check if data is a string (data URL)
-    if (typeof frameData.imagedata.data === 'string') {
+    if (typeof imagedata.data === 'string') {
+      console.log('Processing image data from data URL');
       createImageFromDataUrl(
-        frameData.imagedata.data,
+        imagedata.data,
         width,
         height,
         (src) => {
@@ -37,7 +41,7 @@ export function processImageData(frameData, callback) {
             src,
             width,
             height,
-            raw: frameData.imagedata,
+            raw: imagedata,
             timestamp: frameData.timestamp || Date.now(),
           });
         },
@@ -45,19 +49,18 @@ export function processImageData(frameData, callback) {
           console.error('Error loading image from data URL:', err);
           // Try to call callback anyway with the raw data
           callback({
-            src: frameData.imagedata.data,
+            src: imagedata.data,
             width,
             height,
-            raw: frameData.imagedata,
+            raw: imagedata,
             timestamp: frameData.timestamp || Date.now(),
           });
         },
       );
     } else {
+      console.log('Processing image data from raw pixel data');
       // Handle raw pixel data
-      const pixelData = convertToUint8ClampedArray(
-        frameData.imagedata.data,
-      );
+      const pixelData = convertToUint8ClampedArray(imagedata.data);
       const imgData = new ImageData(pixelData, width, height);
 
       // Put the image data on the canvas
@@ -71,13 +74,13 @@ export function processImageData(frameData, callback) {
         src,
         width,
         height,
-        raw: frameData.imagedata,
+        raw: imagedata,
         timestamp: frameData.timestamp || Date.now(),
       });
     }
   } catch (error) {
     console.error('Error processing frame:', error);
-    console.error('Frame data:', frameData.imagedata);
+    console.error('Frame data:', imagedata);
   }
 }
 

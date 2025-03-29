@@ -15,8 +15,21 @@ export function createFrameHandler(streamType, callback) {
     // Extract the actual frame data
     const frameData = data.data || data;
 
+    console.log(
+      `Frame handler for ${streamType} received:`,
+      frameData,
+    );
+
+    // Check for both imagedata and imageData formats
+    const hasImageData = frameData.imagedata || frameData.imageData;
+
     // Only process frames with matching name
-    if (frameData.name === streamType && frameData.imagedata) {
+    if (frameData.name === streamType && hasImageData) {
+      // Normalize the data structure to ensure imagedata exists
+      if (frameData.imageData && !frameData.imagedata) {
+        frameData.imagedata = frameData.imageData;
+      }
+
       // Process the image data
       imageUtils.processImageData(frameData, callback);
     } else {
@@ -25,7 +38,7 @@ export function createFrameHandler(streamType, callback) {
         'name=',
         frameData.name,
         'has imagedata=',
-        !!frameData.imagedata,
+        !!(frameData.imagedata || frameData.imageData),
       );
     }
   };
