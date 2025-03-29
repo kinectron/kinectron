@@ -1273,44 +1273,98 @@ class KinectronApp {
   }
 
   processDepthKeyFrame(frameData) {
+    console.log('Processing depth key frame:', frameData);
     const canvas = document.getElementById('depth-key-canvas');
-    if (!canvas) return;
+    if (!canvas) {
+      console.error('Depth key canvas not found');
+      return;
+    }
 
     const context = canvas.getContext('2d');
+    if (!context) {
+      console.error('Could not get 2D context from depth key canvas');
+      return;
+    }
+
+    // Check for the imageData property
     if (frameData.imageData && frameData.imageData.data) {
       try {
-        // Create a temporary canvas to hold the full-size image
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = frameData.imageData.width;
-        tempCanvas.height = frameData.imageData.height;
-        const tempContext = tempCanvas.getContext('2d');
+        // Check if data is a string (data URL)
+        if (typeof frameData.imageData.data === 'string') {
+          console.log('Depth key frame data is a data URL');
+          // Create an image from the data URL
+          const img = new Image();
+          img.onload = () => {
+            console.log(
+              'Depth key image loaded successfully, dimensions:',
+              img.width,
+              'x',
+              img.height,
+            );
+            // Clear the canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            // Draw the image to the canvas
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            console.log('Depth key image drawn to canvas');
+          };
+          img.onerror = (err) => {
+            console.error('Error loading depth key image:', err);
+            console.error(
+              'Data URL starts with:',
+              frameData.imageData.data.substring(0, 50) + '...',
+            );
+          };
+          img.src = frameData.imageData.data;
+        } else {
+          console.log('Depth key frame data is raw pixel data');
+          // Create a temporary canvas to hold the full-size image
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = frameData.imageData.width;
+          tempCanvas.height = frameData.imageData.height;
+          const tempContext = tempCanvas.getContext('2d');
 
-        // Draw the full-size image to the temporary canvas
-        const imageData = new ImageData(
-          new Uint8ClampedArray(frameData.imageData.data),
-          frameData.imageData.width,
-          frameData.imageData.height,
-        );
-        tempContext.putImageData(imageData, 0, 0);
+          // Draw the full-size image to the temporary canvas
+          const imageData = new ImageData(
+            new Uint8ClampedArray(frameData.imageData.data),
+            frameData.imageData.width,
+            frameData.imageData.height,
+          );
+          tempContext.putImageData(imageData, 0, 0);
 
-        // Clear the target canvas
-        context.clearRect(0, 0, canvas.width, canvas.height);
+          // Clear the target canvas
+          context.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw the scaled image from the temporary canvas to the target canvas
-        context.drawImage(
-          tempCanvas,
-          0,
-          0,
-          frameData.imageData.width,
-          frameData.imageData.height,
-          0,
-          0,
-          canvas.width,
-          canvas.height,
-        );
+          // Draw the scaled image from the temporary canvas to the target canvas
+          context.drawImage(
+            tempCanvas,
+            0,
+            0,
+            frameData.imageData.width,
+            frameData.imageData.height,
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+          );
+          console.log(
+            'Depth key image drawn to canvas from raw pixel data',
+          );
+        }
       } catch (error) {
         console.error('Error drawing depth key frame:', error);
+        console.error(
+          'Frame data type:',
+          typeof frameData.imageData.data,
+        );
+        if (typeof frameData.imageData.data === 'string') {
+          console.error(
+            'Data URL starts with:',
+            frameData.imageData.data.substring(0, 50) + '...',
+          );
+        }
       }
+    } else {
+      console.error('Depth key frame missing image data:', frameData);
     }
   }
 

@@ -322,7 +322,7 @@ export class Kinectron {
     if (callback) {
       // Set up handler to process depth key frames
       this.messageHandlers.set(
-        'depthKey',
+        'depth-key', // Changed from 'depthKey' to match server's broadcast event name
         createFrameHandler('depth-key', callback),
       );
     }

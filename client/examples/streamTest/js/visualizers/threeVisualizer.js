@@ -164,8 +164,9 @@ class ThreeVisualizer {
   /**
    * Update point cloud with depth data
    * @param {Uint16Array} depthValues - Raw depth values
+   * @param {boolean} filterZeros - Whether to filter out zero values (for depth key)
    */
-  updatePointCloud(depthValues) {
+  updatePointCloud(depthValues, filterZeros = false) {
     if (!this.particles) return;
 
     // Set desired depth range
@@ -250,7 +251,12 @@ class ThreeVisualizer {
         const i = y * this.DEPTHWIDTH + x;
         const depth = depthValues[i];
 
-        if (depth < minDepth || depth > maxDepth) {
+        // Hide points if they're outside the depth range or if they're zero and we're filtering zeros
+        if (
+          depth < minDepth ||
+          depth > maxDepth ||
+          (filterZeros && depth === 0)
+        ) {
           // Push the particle far away so we don't see it
           this.particles.vertices[i].z = -10000; // Use negative value to hide
         } else {

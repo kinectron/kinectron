@@ -10811,7 +10811,7 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
     }
     startDepthKey(callback) {
         if (callback) // Set up handler to process depth key frames
-        this.messageHandlers.set('depthKey', (0, $bea288e8dbb006c6$export$1a5215a6a049f7d8)('depth-key', callback));
+        this.messageHandlers.set('depth-key', (0, $bea288e8dbb006c6$export$1a5215a6a049f7d8)('depth-key', callback));
         this.send('feed', {
             feed: 'depth-key'
         });

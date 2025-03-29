@@ -931,7 +931,7 @@ class Kinectron {
     }
     startDepthKey(callback) {
         if (callback) // Set up handler to process depth key frames
-        this.messageHandlers.set('depthKey', (0, _streamHandlersJs.createFrameHandler)('depth-key', callback));
+        this.messageHandlers.set('depth-key', (0, _streamHandlersJs.createFrameHandler)('depth-key', callback));
         this.send('feed', {
             feed: 'depth-key'
         });

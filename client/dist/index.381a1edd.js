@@ -321,10 +321,8 @@
         this.metrics.resetMetrics();
         this.isStreamActive = true;
         this.currentStreamType = 'depthKey';
-        // Show p5 canvas and hide Three.js canvas
-        this.visualization.showP5Canvas();
-        // Resize canvas for depth key stream (using depth dimensions)
-        this.visualization.resizeP5Canvas(this.AZURE_DEPTH_WIDTH * this.DISPLAY_SCALE, this.AZURE_DEPTH_HEIGHT * this.DISPLAY_SCALE);
+        // Hide p5 canvas and show Three.js canvas (same as raw depth)
+        this.visualization.showThreeCanvas();
         this.debug.addDebugInfo('Starting depth key stream...', true);
         // Enable debug logging to help diagnose any data structure issues
         window.DEBUG.DATA = true;
@@ -344,8 +342,41 @@
             }
             // Update resolution info
             this.ui.updateResolution(`${frame.width}x${frame.height} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
-            // We're not implementing visualization yet, just log the frame
-            console.log('Received depth key frame:', frame);
+            // Extract the depth values from the frame
+            if (frame.src) {
+                // Create an image to load the data URL
+                const img = new Image();
+                img.onload = ()=>{
+                    // Create a canvas to extract the pixel data
+                    const canvas = document.createElement('canvas');
+                    canvas.width = frame.width;
+                    canvas.height = frame.height;
+                    const ctx = canvas.getContext('2d');
+                    // Draw the image to the canvas
+                    ctx.drawImage(img, 0, 0);
+                    // Get the pixel data
+                    const imageData = ctx.getImageData(0, 0, frame.width, frame.height);
+                    const pixelData = imageData.data;
+                    // Create array for depth values
+                    const depthValues = new Uint16Array(frame.width * frame.height);
+                    // Process the depth key data - only include pixels that belong to a body
+                    // (non-transparent pixels)
+                    let j = 0;
+                    for(let i = 0; i < pixelData.length; i += 4)// Check if the pixel is not transparent (belongs to a body)
+                    if (pixelData[i + 3] > 0) {
+                        // Extract depth value from R and G channels (same as raw depth)
+                        const depth = pixelData[i + 1] << 8 | pixelData[i];
+                        depthValues[j++] = depth;
+                    } else // For transparent pixels (not part of a body), set depth to 0
+                    depthValues[j++] = 0;
+                    // Update the point cloud with the depth values
+                    this.visualization.updatePointCloud(depthValues, true); // true = filter out zero values
+                };
+                img.onerror = (err)=>{
+                    console.error('Error loading depth key image:', err);
+                };
+                img.src = frame.src;
+            }
         });
     }
     /**
