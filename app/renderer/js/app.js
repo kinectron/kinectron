@@ -374,9 +374,10 @@ class KinectronApp {
             'Failed to initialize Kinect via API:',
             data.error,
           );
-          // Disable stream controls and reset button state on failure
+          // Disable stream controls but keep the Open Kinect button active
           this.enableStreamControls(false);
-          this.updateButtonState('start-kinect-azure', false);
+          // Keep button active so users can click it again to retry
+          this.updateButtonState('start-kinect-azure', true);
         }
       },
     );
@@ -469,22 +470,68 @@ class KinectronApp {
 
   async initializeKinect() {
     try {
+      // Import the notification manager
+      const { notificationManager } = await import(
+        './utils/notificationManager.js'
+      );
+
+      // Force initialization of the notification manager
+      // This ensures the DOM elements are set up before we need them
+      setTimeout(() => {
+        console.log('Ensuring notification manager is initialized');
+        notificationManager._ensureInitialized();
+      }, 0);
+
       const initialized = await window.kinectron.initializeKinect();
       if (initialized) {
         console.log('Kinect initialized successfully');
         this.enableStreamControls(true);
         this.updateButtonState('start-kinect-azure', true);
+
+        // Update status indicator
+        notificationManager.updateStatus('connected', 'Connected');
       } else {
         console.error('Failed to initialize Kinect');
-        // Disable stream controls and reset button state on failure
+        // Disable stream controls but keep the Open Kinect button active
         this.enableStreamControls(false);
-        this.updateButtonState('start-kinect-azure', false);
+        // Keep button active so users can click it again to retry
+        this.updateButtonState('start-kinect-azure', true);
+
+        // Update status indicator
+        notificationManager.updateStatus('error', 'Error');
+
+        // Show error notification with troubleshooting steps
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+          notificationManager.showKinectInitError(
+            'Failed to initialize Kinect device. The device may not be connected properly.',
+          );
+        }, 100);
       }
     } catch (error) {
       console.error('Error initializing Kinect:', error);
       // Also handle errors in the catch block
       this.enableStreamControls(false);
-      this.updateButtonState('start-kinect-azure', false);
+      // Keep button active so users can click it again to retry
+      this.updateButtonState('start-kinect-azure', true);
+
+      // Import the notification manager
+      const { notificationManager } = await import(
+        './utils/notificationManager.js'
+      );
+
+      // Update status indicator
+      notificationManager.updateStatus('error', 'Error');
+
+      // Show error notification with troubleshooting steps
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        notificationManager.showKinectInitError(
+          `Error initializing Kinect: ${
+            error.message || 'Unknown error'
+          }`,
+        );
+      }, 100);
     }
   }
 

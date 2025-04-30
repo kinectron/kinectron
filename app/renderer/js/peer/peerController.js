@@ -514,6 +514,40 @@ export class PeerController {
             'PeerController: Received kinectInitialized event with data:',
             data.data,
           );
+
+          // Show notification for failed initialization
+          if (data.data && data.data.success === false) {
+            // Import the notification manager
+            import('../utils/notificationManager.js')
+              .then(({ notificationManager }) => {
+                // Update status indicator
+                notificationManager.updateStatus('error', 'Error');
+
+                // Force initialization of the notification manager
+                setTimeout(() => {
+                  console.log(
+                    'PeerController: Ensuring notification manager is initialized',
+                  );
+                  notificationManager._ensureInitialized();
+                }, 0);
+
+                // Show error notification with troubleshooting steps
+                // Use setTimeout to ensure DOM is ready
+                setTimeout(() => {
+                  notificationManager.showKinectInitError(
+                    data.data.error ||
+                      'Failed to initialize Kinect device.',
+                  );
+                }, 100);
+              })
+              .catch((err) => {
+                console.error(
+                  'Error importing notification manager:',
+                  err,
+                );
+              });
+          }
+
           this.emit(this.EVENTS.KINECT_INITIALIZED, data.data);
           break;
 
