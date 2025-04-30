@@ -1,8 +1,8 @@
 # Active Context
 
-## Current Focus: Enhancing Visualization and Standardizing Naming Conventions
+## Current Focus: Enhancing User Experience and Error Handling
 
-We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and now depth key. All streams are working correctly in both the application and client API. Our focus now shifts to enhancing visualizations and addressing technical debt such as inconsistent naming conventions.
+We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and depth key. All streams are working correctly in both the application and client API. We've now implemented a robust notification system for error handling and improved the user experience when the Kinect device isn't connected. Our focus continues to be on enhancing visualizations, improving error handling, and addressing technical debt such as inconsistent naming conventions.
 
 ### Current Status
 
@@ -57,6 +57,7 @@ We've completed all stream implementations including color, depth, raw depth, sk
    - Enhanced logging in body tracking system for better diagnostics
 
 4. **StreamTest Refactoring**:
+
    - Reorganized example files into dedicated examples/ directory structure
    - Moved streamTest and test files to their respective subdirectories
    - Updated all references and import paths to maintain functionality
@@ -68,6 +69,16 @@ We've completed all stream implementations including color, depth, raw depth, sk
    - Implemented proper p5.js instance mode usage
    - Fixed visualization issues with color stream
    - Resolved frameRate error in metrics controller
+
+5. **Error Notification System**:
+   - Implemented a reusable notification system for the application
+   - Created a NotificationManager class using the singleton pattern
+   - Added modal dialog for displaying error messages and troubleshooting steps
+   - Implemented DOM-aware initialization that works regardless of when the code runs
+   - Added fallback to console notifications when the modal can't be shown
+   - Fixed inconsistency between server and renderer error handling
+   - Improved user experience by keeping the "Open Kinect" button active even when initialization fails
+   - Added clear troubleshooting steps for users when the Kinect device isn't connected
 
 ### Next Steps
 
@@ -145,8 +156,18 @@ We've completed all stream implementations including color, depth, raw depth, sk
   6. Implement proper resource cleanup on stream stop
 
 - **Addressing naming convention inconsistencies**:
+
   1. Identified critical issue where naming conventions don't match between server and client
   2. For depth key stream, server was using 'depthKey' but client expected 'depth-key'
   3. Fixed by updating server to use 'depth-key' consistently
   4. Recognized need for systematic approach to naming conventions
   5. Added to known issues and future work for comprehensive resolution
+
+- **Implementing a robust notification system**:
+  1. Created a reusable NotificationManager class using the singleton pattern
+  2. Implemented DOM-aware initialization that works regardless of when the code runs
+  3. Added fallback to console notifications when the modal can't be shown
+  4. Used setTimeout to ensure the DOM is ready before showing notifications
+  5. Kept the "Open Kinect" button active even when initialization fails for better UX
+  6. Added clear troubleshooting steps for users when the Kinect device isn't connected
+  7. Ensured consistent error handling between direct and peer-to-peer initialization paths

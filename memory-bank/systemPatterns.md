@@ -298,6 +298,96 @@ This pattern was developed for the key stream and should be applied to all strea
 4. **Template Method**: Base classes defining algorithms
 5. **Adapter Pattern**: Converting between data formats
 6. **Facade Pattern**: Simplified debugging interface
+7. **Singleton Pattern**: NotificationManager for centralized error handling
+
+## Notification System Architecture
+
+```mermaid
+flowchart TD
+    subgraph "Notification System"
+        NM[NotificationManager]
+        Modal[Modal Dialog]
+        Status[Status Indicator]
+        Console[Console Fallback]
+    end
+
+    subgraph "Application Components"
+        App[App.js]
+        PeerController[PeerController.js]
+        KinectInit[Kinect Initialization]
+        ErrorHandling[Error Handling]
+    end
+
+    NM --> Modal
+    NM --> Status
+    NM --> Console
+
+    App --> NM
+    PeerController --> NM
+    KinectInit --> ErrorHandling --> NM
+```
+
+### Notification System Implementation
+
+1. **Singleton Pattern**:
+
+   - Single NotificationManager instance shared across the application
+   - Ensures consistent notification handling regardless of entry point
+   - Prevents multiple modal dialogs from appearing simultaneously
+
+2. **DOM-Aware Initialization**:
+
+   ```javascript
+   initializeModal() {
+     // Check if document is already loaded
+     if (
+       document.readyState === 'complete' ||
+       document.readyState === 'interactive'
+     ) {
+       this._setupModalElements();
+     } else {
+       // Wait for DOM to be fully loaded
+       document.addEventListener('DOMContentLoaded', () => {
+         this._setupModalElements();
+       });
+     }
+   }
+   ```
+
+3. **Fallback Mechanism**:
+
+   ```javascript
+   showModal(options) {
+     // Ensure modal elements are initialized
+     if (!this._ensureInitialized()) {
+       console.error('Modal elements could not be initialized');
+       // Fallback to console notification
+       console.warn(
+         'NOTIFICATION:',
+         options.title,
+         '-',
+         options.message,
+       );
+       if (options.details) {
+         console.warn('Details:', options.details);
+       }
+       return;
+     }
+
+     // Modal display code...
+   }
+   ```
+
+4. **Asynchronous DOM Handling**:
+
+   - Uses setTimeout to ensure the DOM is ready before showing notifications
+   - Prevents race conditions between initialization and notification display
+   - Ensures consistent behavior across different initialization paths
+
+5. **User Experience Considerations**:
+   - Keeps the "Open Kinect" button active even when initialization fails
+   - Provides clear troubleshooting steps for users
+   - Ensures consistent error handling between direct and peer-to-peer initialization paths
 
 ## Data Structure Handling Patterns
 
