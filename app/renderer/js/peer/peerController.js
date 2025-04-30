@@ -509,7 +509,11 @@ export class PeerController {
           break;
 
         case 'kinectInitialized':
-          // Handle Kinect initialization response
+          // Forward the exact data received from the server without modification
+          console.log(
+            'PeerController: Received kinectInitialized event with data:',
+            data.data,
+          );
           this.emit(this.EVENTS.KINECT_INITIALIZED, data.data);
           break;
 

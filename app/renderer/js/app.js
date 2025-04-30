@@ -374,6 +374,9 @@ class KinectronApp {
             'Failed to initialize Kinect via API:',
             data.error,
           );
+          // Disable stream controls and reset button state on failure
+          this.enableStreamControls(false);
+          this.updateButtonState('start-kinect-azure', false);
         }
       },
     );
@@ -473,9 +476,15 @@ class KinectronApp {
         this.updateButtonState('start-kinect-azure', true);
       } else {
         console.error('Failed to initialize Kinect');
+        // Disable stream controls and reset button state on failure
+        this.enableStreamControls(false);
+        this.updateButtonState('start-kinect-azure', false);
       }
     } catch (error) {
       console.error('Error initializing Kinect:', error);
+      // Also handle errors in the catch block
+      this.enableStreamControls(false);
+      this.updateButtonState('start-kinect-azure', false);
     }
   }
 

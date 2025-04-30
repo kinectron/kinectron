@@ -45,7 +45,23 @@ contextBridge.exposeInMainWorld('electron', {
 // specific IPC channels via a 'kinectron' global variable
 contextBridge.exposeInMainWorld('kinectron', {
   // Kinect Control
-  initializeKinect: () => ipcRenderer.invoke('initialize-kinect'),
+  initializeKinect: async () => {
+    console.log('Preload: Invoking initialize-kinect IPC call');
+    const result = await ipcRenderer.invoke('initialize-kinect');
+    console.log('Preload: initialize-kinect returned:', result);
+    // Make sure we're returning a boolean false for failure, not an object with success: false
+    if (
+      result &&
+      typeof result === 'object' &&
+      result.success === false
+    ) {
+      console.log(
+        'Preload: Detected failure object, returning false',
+      );
+      return false;
+    }
+    return result;
+  },
   closeKinect: () => ipcRenderer.invoke('close-kinect'),
 
   // Stream Controls
