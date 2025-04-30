@@ -81,15 +81,6 @@ export class IpcHandler {
           this.peerManager.broadcast('kinectInitialized', {
             success: true,
           });
-        } else if (result.alreadyInitialized) {
-          console.log('IpcHandler: Kinect is already initialized');
-
-          // Broadcast specific message to clients
-          this.peerManager.broadcast('kinectInitialized', {
-            success: false,
-            error: 'Kinect is already initialized',
-            alreadyInitialized: true,
-          });
         } else {
           console.warn('IpcHandler: Kinect initialization failed');
           // Broadcast failure to all connected clients

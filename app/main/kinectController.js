@@ -72,12 +72,20 @@ export class KinectController {
 
   initialize() {
     try {
-      // Check if Kinect is already initialized
+      // If Kinect instance exists, always close it and try again
       if (this.kinect) {
         console.log(
-          'KinectController: Kinect is already initialized',
+          'KinectController: Closing existing Kinect instance to reinitialize',
         );
-        return { success: false, alreadyInitialized: true };
+        try {
+          this.kinect.close();
+        } catch (closeError) {
+          console.warn(
+            'KinectController: Error closing existing instance (may be normal):',
+            closeError,
+          );
+        }
+        this.kinect = null;
       }
 
       console.log(
