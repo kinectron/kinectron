@@ -330,10 +330,40 @@ export class StreamManager {
    */
   async cleanup() {
     await this.stopAllStreams();
+
     // Remove IPC handlers
     ipcMain.removeHandler('stop-stream');
     ipcMain.removeHandler('start-multi-stream');
+
+    // Remove all stream-specific handlers
+    const streamTypes = [
+      'color',
+      'depth',
+      'raw-depth',
+      'skeleton',
+      'key',
+      'depth-key',
+      'rgbd',
+    ];
+
+    streamTypes.forEach((type) => {
+      console.log(
+        `StreamManager: Removing handler for start-${type}-stream`,
+      );
+      ipcMain.removeHandler(`start-${type}-stream`);
+    });
+
+    // Also remove the body tracking handler which has a different naming pattern
+    console.log(
+      'StreamManager: Removing handler for start-body-tracking',
+    );
+    ipcMain.removeHandler('start-body-tracking');
+
     // Clear all handlers
     this.handlers.clear();
+
+    console.log(
+      'StreamManager: Cleanup complete, all handlers removed',
+    );
   }
 }

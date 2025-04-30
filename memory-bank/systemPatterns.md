@@ -389,6 +389,55 @@ flowchart TD
    - Provides clear troubleshooting steps for users
    - Ensures consistent error handling between direct and peer-to-peer initialization paths
 
+## Refresh Handling Pattern
+
+```mermaid
+flowchart TD
+    subgraph "Refresh Process"
+        Refresh[Ctrl+R Refresh] --> WillNavigate[will-navigate Event]
+        WillNavigate --> CleanupIPC[Clean up IPC Handlers]
+        CleanupIPC --> CloseKinect[Close Kinect Resources]
+        CloseKinect --> ClosePeer[Close Peer Resources]
+        ClosePeer --> Reload[Renderer Reloads]
+        Reload --> DidFinishLoad[did-finish-load Event]
+        DidFinishLoad --> ReinitPeer[Reinitialize Peer Server]
+        ReinitPeer --> ReinitIPC[Reinitialize IPC Handler]
+    end
+```
+
+1. **Sequential Cleanup**:
+
+   - First clean up the StreamManager to remove all IPC handlers
+   - Then close Kinect and peer resources
+   - Allow the renderer process to reload
+
+2. **Comprehensive IPC Handler Removal**:
+
+   ```javascript
+   // Remove all stream-specific handlers
+   const streamTypes = [
+     'color',
+     'depth',
+     'raw-depth',
+     'skeleton',
+     'key',
+     'depth-key',
+     'rgbd',
+   ];
+
+   streamTypes.forEach((type) => {
+     ipcMain.removeHandler(`start-${type}-stream`);
+   });
+
+   // Also remove handlers with different naming patterns
+   ipcMain.removeHandler('start-body-tracking');
+   ```
+
+3. **Resource Reinitialization**:
+   - Check if peer server needs to be reinitialized after reload
+   - Reinitialize IPC handler to ensure all event listeners are set up
+   - Ensure proper error handling during reinitialization
+
 ## Data Structure Handling Patterns
 
 ### Event Data Structure Mismatches

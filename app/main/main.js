@@ -63,8 +63,54 @@ function createWindow() {
   );
   win.loadFile(indexPath);
 
-  // Ensure devtools always opens by waiting for the window to load completely
-  win.webContents.on('did-finish-load', () => {
+  // Handle refresh (will-navigate)
+  win.webContents.on('will-navigate', async (event, url) => {
+    console.log(
+      'Renderer navigating/refreshing, cleaning up resources...',
+    );
+    try {
+      // First clean up the StreamManager to remove all IPC handlers
+      console.log(
+        'Cleaning up StreamManager and removing IPC handlers...',
+      );
+      await ipcHandler.streamManager.cleanup();
+
+      // Then close Kinect and peer resources
+      await Promise.all([
+        kinectController.close(),
+        peerManager.close(),
+      ]);
+      console.log('Cleanup before refresh complete');
+    } catch (error) {
+      console.error('Error during refresh cleanup:', error);
+    }
+  });
+
+  // Handle after refresh (did-finish-load)
+  win.webContents.on('did-finish-load', async () => {
+    console.log(
+      'Renderer reloaded, reinitializing resources if needed...',
+    );
+
+    // Check if peer server needs to be reinitialized
+    if (peerManager.getState() !== 'running') {
+      try {
+        console.log('Reinitializing peer server after refresh...');
+        await peerManager.initialize();
+        console.log('Peer server reinitialized after refresh');
+
+        // Reinitialize IPC handler to ensure all event listeners are set up
+        ipcHandler.initialize();
+        console.log('IPC handler reinitialized after refresh');
+      } catch (error) {
+        console.error(
+          'Error reinitializing resources after refresh:',
+          error,
+        );
+      }
+    }
+
+    // Always open DevTools
     win.openDevTools();
   });
 }

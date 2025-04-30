@@ -221,6 +221,29 @@
   - Point cloud visualization shows only the person's depth information (background filtered out)
   - The "Stop Stream" button properly stops the stream on both client and server sides
 
+### Kinect Refresh Handling
+
+- **Status**: Completed and working correctly
+- **Implementation**:
+  - Modified StreamManager's `cleanup` method to remove all stream-specific handlers:
+    - Added removal of standard stream handlers like 'start-color-stream', 'start-depth-stream', etc.
+    - Added special handling for 'start-body-tracking' which follows a different naming pattern
+    - Ensured all IPC handlers are properly removed before refresh
+  - Updated the `will-navigate` event handler in main.js to ensure proper cleanup sequence:
+    - First clean up the StreamManager to remove all IPC handlers
+    - Then close Kinect and peer resources
+    - Added detailed logging throughout the cleanup process
+  - Enhanced the `did-finish-load` event handler to reinitialize resources after refresh:
+    - Check if peer server needs to be reinitialized
+    - Reinitialize IPC handler to ensure all event listeners are set up
+    - Added proper error handling during reinitialization
+- **Current Behavior**:
+  - Users can refresh the application with Ctrl+R
+  - All IPC handlers are properly removed during refresh
+  - Resources are properly reinitialized after refresh
+  - Kinect can be initialized after refresh without errors
+  - All streams work correctly after refresh
+
 ## In Progress
 
 1. **UI Refinements**:

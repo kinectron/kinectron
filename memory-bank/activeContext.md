@@ -164,6 +164,7 @@ We've completed all stream implementations including color, depth, raw depth, sk
   5. Added to known issues and future work for comprehensive resolution
 
 - **Implementing a robust notification system**:
+
   1. Created a reusable NotificationManager class using the singleton pattern
   2. Implemented DOM-aware initialization that works regardless of when the code runs
   3. Added fallback to console notifications when the modal can't be shown
@@ -171,3 +172,10 @@ We've completed all stream implementations including color, depth, raw depth, sk
   5. Kept the "Open Kinect" button active even when initialization fails for better UX
   6. Added clear troubleshooting steps for users when the Kinect device isn't connected
   7. Ensured consistent error handling between direct and peer-to-peer initialization paths
+
+- **Implementing robust refresh handling**:
+  1. Identified issue where Ctrl+R refresh didn't properly clean up IPC handlers
+  2. Implemented comprehensive cleanup in StreamManager to remove all stream-specific handlers
+  3. Added special handling for 'start-body-tracking' which follows a different naming pattern
+  4. Modified the main process to properly sequence cleanup operations during refresh
+  5. Ensured proper reinitialization of resources after renderer reload
