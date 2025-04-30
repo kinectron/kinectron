@@ -175,8 +175,11 @@ export class IpcHandler {
       let ipAddresses = [];
 
       Object.keys(interfaces).forEach(function (ifname) {
-        // Only use Ethernet or Wi-Fi interfaces
-        if (ifname !== 'Ethernet' && ifname !== 'Wi-Fi') {
+        // Updated to use includes() instead of strict equality
+        if (
+          !ifname.includes('Ethernet') &&
+          !ifname.includes('Wi-Fi')
+        ) {
           return;
         }
 
