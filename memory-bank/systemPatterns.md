@@ -509,10 +509,18 @@ if (imageData && imageData.data) {
 
 ```mermaid
 flowchart TD
-    subgraph "Application"
+    subgraph "Main Process"
         AppDebug[DEBUG Object]
         DebugFlags[Debug Flags]
-        LogFunctions[Conditional Logging]
+        LogFunctions[Log Utility Functions]
+        ConditionalLogs[Conditional Logging]
+    end
+
+    subgraph "Renderer Process"
+        RendererDebug[DEBUG Object]
+        RendererFlags[Debug Flags]
+        RendererLogFunctions[Log Utility Functions]
+        RendererLogs[Conditional Logging]
     end
 
     subgraph "Client"
@@ -522,7 +530,8 @@ flowchart TD
         ClientLogs[Conditional Logging]
     end
 
-    AppDebug --> DebugFlags --> LogFunctions
+    AppDebug --> DebugFlags --> LogFunctions --> ConditionalLogs
+    RendererDebug --> RendererFlags --> RendererLogFunctions --> RendererLogs
     ClientDebug --> ClientFlags --> ClientLogs
     ClientUI --> ClientFlags
 ```
@@ -531,20 +540,40 @@ flowchart TD
 
 1. **Flag-Based Control**:
 
-   - Master flags for component-level control (e.g., RAW_DEPTH)
-   - Category flags for specific log types (PERFORMANCE, DATA, PEER)
+   - Category-based flags for specific log types:
+     - FRAMES: For frame processing and transmission logs
+     - UI: For UI-related logs
+     - PEER: For peer connection logs
+     - PERFORMANCE: For performance-related logs
+     - DATA: For data integrity logs
+     - NETWORK: For network-related logs
+     - HANDLERS: For stream handler operations
    - All flags default to false (disabled)
+   - Helper methods to enable/disable all flags at once
 
-2. **UI Integration**:
+2. **Log Utility Functions**:
+
+   - `log.error()`: Always visible, for error messages
+   - `log.warn()`: Always visible, for warning messages
+   - `log.info()`: Always visible, for important information
+   - `log.frame()`: Only visible when FRAMES flag is enabled
+   - `log.ui()`: Only visible when UI flag is enabled
+   - `log.peer()`: Only visible when PEER flag is enabled
+   - `log.debug(flag, message)`: Only visible when specified flag is enabled
+   - `log.handler()`: Only visible when HANDLERS flag is enabled
+
+3. **UI Integration**:
 
    - Checkbox controls in streamTest.html
    - Master toggle enables/disables all debugging
    - Category toggles for fine-grained control
 
-3. **Conditional Logging**:
+4. **Conditional Logging**:
    - Console logs wrapped with flag checks
    - Console.group() for organizing related logs
-   - Essential vs. non-essential message differentiation
+   - Essential logs (errors, warnings, important info) always visible
+   - Non-essential logs (debug, frame, UI) only visible when flags are enabled
+   - Consistent logging pattern across all components
 
 ## Build System and Development Workflow
 

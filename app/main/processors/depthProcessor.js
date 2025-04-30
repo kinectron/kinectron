@@ -1,6 +1,7 @@
 // main/processors/depthProcessor.js
 import { BaseFrameProcessor } from './baseProcessor.js';
 import { KinectConstants } from '../kinectController.js';
+import { DEBUG, log } from '../utils/debug.js';
 
 /**
  * Processes depth frames from the Kinect
@@ -15,7 +16,7 @@ export class DepthFrameProcessor extends BaseFrameProcessor {
   processFrame(frame, depthRange) {
     try {
       if (!frame?.imageData?.buffer || !depthRange) {
-        console.error(
+        log.error(
           'DepthProcessor: Invalid frame data or depth range',
         );
         throw new Error('Invalid frame data or depth range');
@@ -63,7 +64,7 @@ export class DepthFrameProcessor extends BaseFrameProcessor {
       this.frameCount = (this.frameCount + 1) % 30;
 
       if (this.frameCount === 0) {
-        console.log('DepthProcessor: Frame statistics:', {
+        log.debug('DATA', 'DepthProcessor: Frame statistics:', {
           minDepth: minValue,
           maxDepth: maxValue,
           validPixels,
@@ -79,7 +80,7 @@ export class DepthFrameProcessor extends BaseFrameProcessor {
         },
       };
     } catch (error) {
-      console.error(
+      log.error(
         'DepthProcessor: Error processing depth frame:',
         error,
       );

@@ -41,7 +41,7 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
       let j = 0;
       for (let i = 0; i < processedData.length; i += 4) {
         // Store test values at specific indices (if enabled)
-        if (DEBUG.RAW_DEPTH && DEBUG.DATA) {
+        if (DEBUG.DATA) {
           const pixelIndex = i / 4;
           if (pixelIndex === 1000)
             testValue1000 = depthData[pixelIndex];
@@ -62,7 +62,7 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
       }
 
       // Log the test values (if enabled)
-      if (DEBUG.RAW_DEPTH && DEBUG.DATA) {
+      if (DEBUG.DATA) {
         console.log('Test values before packing:', {
           'Value at index 1000': testValue1000,
           'Value at index 2000': testValue2000,
@@ -77,14 +77,13 @@ export class RawDepthFrameProcessor extends BaseFrameProcessor {
           height: originalHeight,
           isPacked: false, // Not using the packed format anymore
           // Include test values in the returned object (if enabled)
-          ...(DEBUG.RAW_DEPTH &&
-            DEBUG.DATA && {
-              testValues: {
-                index1000: testValue1000,
-                index2000: testValue2000,
-                index3000: testValue3000,
-              },
-            }),
+          ...(DEBUG.DATA && {
+            testValues: {
+              index1000: testValue1000,
+              index2000: testValue2000,
+              index3000: testValue3000,
+            },
+          }),
         },
       };
     } catch (error) {

@@ -5,6 +5,7 @@ const BUTTON_ACTIVE_COLOR = '#1daad8';
 
 import { PeerController } from './peer/peerController.js';
 import { stopAllStreamsForDebug } from './utils/frameDebugger.js';
+import { DEBUG, log } from './utils/debug.js';
 
 class KinectronApp {
   constructor() {
@@ -692,7 +693,7 @@ class KinectronApp {
   }
 
   async startColorStream() {
-    console.log('startColorStream called');
+    log.info('startColorStream called');
     try {
       // Set up canvas with correct dimensions before starting stream
       const canvas = document.getElementById('color-canvas');
@@ -700,45 +701,46 @@ class KinectronApp {
         // Color image is reduced by half for efficiency
         canvas.width = 1280 / 2; // Azure Kinect color width
         canvas.height = 720 / 2; // Azure Kinect color height
-        console.log(
+        log.info(
           'Canvas dimensions set:',
           canvas.width,
           'x',
           canvas.height,
         );
       } else {
-        console.error('Color canvas element not found!');
+        log.error('Color canvas element not found!');
       }
 
-      console.log('Calling window.kinectron.startColorStream()');
+      log.info('Calling window.kinectron.startColorStream()');
       const success = await window.kinectron.startColorStream();
-      console.log(
+      log.info(
         'window.kinectron.startColorStream() returned:',
         success,
       );
 
       if (success) {
-        console.log('Setting up onColorFrame callback');
+        log.info('Setting up onColorFrame callback');
         const cleanup = window.kinectron.onColorFrame((frameData) => {
-          console.log('onColorFrame callback received frame data');
+          log.frame('onColorFrame callback received frame data');
           this.processColorFrame(frameData);
         });
-        console.log('Callback registered, storing cleanup function');
+        log.info('Callback registered, storing cleanup function');
         this.cleanupFunctions.set('color', cleanup);
       } else {
-        console.error('Failed to start color stream');
+        log.error('Failed to start color stream');
       }
       return success;
     } catch (error) {
-      console.error('Error starting color stream:', error);
+      log.error('Error starting color stream:', error);
       return false;
     }
   }
 
   processColorFrame(frameData) {
+    log.frame('Processing color frame:', frameData);
     const canvas = document.getElementById('color-canvas');
     if (!canvas) {
-      console.error('Color canvas not found');
+      log.error('Color canvas not found');
       return;
     }
 
@@ -748,19 +750,32 @@ class KinectronApp {
     const imageData = frameData.imagedata || frameData.imageData;
 
     if (imageData) {
+      log.frame('Color frame has imageData:', {
+        width: imageData.width,
+        height: imageData.height,
+        dataType: typeof imageData.data,
+      });
+
       try {
         // Check if data is a string (data URL)
         if (typeof imageData.data === 'string') {
+          log.frame('Color frame data is a data URL');
           // Create an image from the data URL
           const img = new Image();
           img.onload = () => {
+            log.frame('Color image loaded successfully');
             // Clear the canvas
             context.clearRect(0, 0, canvas.width, canvas.height);
             // Draw the image to the canvas
             context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            log.frame('Color image drawn to canvas');
+          };
+          img.onerror = (err) => {
+            log.error('Error loading color image:', err);
           };
           img.src = imageData.data;
         } else {
+          log.frame('Color frame data is raw pixel data');
           // Original code for handling raw pixel data
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = imageData.width;
@@ -790,64 +805,64 @@ class KinectronApp {
             canvas.width,
             canvas.height,
           );
+          log.frame(
+            'Color image drawn to canvas from raw pixel data',
+          );
         }
       } catch (error) {
-        console.error('Error drawing color frame:', error);
+        log.error('Error drawing color frame:', error);
       }
     } else {
-      console.error('Color frame missing image data:', frameData);
+      log.error('Color frame missing image data:', frameData);
     }
   }
 
   async startDepthStream() {
-    console.log('startDepthStream called');
+    log.info('startDepthStream called');
     try {
       const canvas = document.getElementById('depth-canvas');
       if (canvas) {
         canvas.width = 640; // Azure Kinect depth width
         canvas.height = 576; // Azure Kinect depth height
-        console.log(
+        log.info(
           'Depth canvas dimensions set:',
           canvas.width,
           'x',
           canvas.height,
         );
       } else {
-        console.error('Depth canvas element not found!');
+        log.error('Depth canvas element not found!');
       }
 
-      console.log('Calling window.kinectron.startDepthStream()');
+      log.info('Calling window.kinectron.startDepthStream()');
       const success = await window.kinectron.startDepthStream();
-      console.log(
+      log.info(
         'window.kinectron.startDepthStream() returned:',
         success,
       );
 
       if (success) {
-        console.log('Setting up onDepthFrame callback');
+        log.info('Setting up onDepthFrame callback');
         const cleanup = window.kinectron.onDepthFrame((frameData) => {
-          console.log('onDepthFrame callback received frame data');
+          log.frame('onDepthFrame callback received frame data');
           this.processDepthFrame(frameData);
         });
-        console.log('Callback registered, storing cleanup function');
+        log.info('Callback registered, storing cleanup function');
         this.cleanupFunctions.set('depth', cleanup);
       } else {
-        console.error('Failed to start depth stream');
+        log.error('Failed to start depth stream');
       }
       return success;
     } catch (error) {
-      console.error('Error starting depth stream:', error);
+      log.error('Error starting depth stream:', error);
       return false;
     }
   }
 
   processDepthFrame(frameData) {
-    console.log(
-      'APP: processDepthFrame called with data:',
-      frameData,
-    );
-    console.log(
-      'APP: Frame data structure:',
+    log.frame('processDepthFrame called with data:', frameData);
+    log.frame(
+      'Frame data structure:',
       frameData
         ? `name=${frameData.name}, has imagedata=${
             !!frameData.imagedata || !!frameData.imageData
@@ -857,11 +872,11 @@ class KinectronApp {
 
     const canvas = document.getElementById('depth-canvas');
     if (!canvas) {
-      console.error('APP: Depth canvas not found');
+      log.error('Depth canvas not found');
       return;
     }
-    console.log(
-      'APP: Found depth canvas with dimensions:',
+    log.frame(
+      'Found depth canvas with dimensions:',
       canvas.width,
       'x',
       canvas.height,
@@ -869,9 +884,7 @@ class KinectronApp {
 
     const context = canvas.getContext('2d');
     if (!context) {
-      console.error(
-        'APP: Could not get 2D context from depth canvas',
-      );
+      log.error('Could not get 2D context from depth canvas');
       return;
     }
 
@@ -879,8 +892,8 @@ class KinectronApp {
     const imageData = frameData.imagedata || frameData.imageData;
 
     if (imageData) {
-      console.log(
-        'APP: Depth frame has imageData, dimensions:',
+      log.frame(
+        'Depth frame has imageData, dimensions:',
         imageData.width,
         'x',
         imageData.height,
@@ -897,13 +910,13 @@ class KinectronApp {
       try {
         // Check if data is a string (data URL)
         if (typeof imageData.data === 'string') {
-          console.log('APP: Depth frame data is a string (data URL)');
+          log.frame('Depth frame data is a string (data URL)');
           // Create an image from the data URL
           const img = new Image();
 
           img.onload = () => {
-            console.log(
-              'APP: Depth image loaded successfully, drawing to canvas',
+            log.frame(
+              'Depth image loaded successfully, drawing to canvas',
               img.width,
               'x',
               img.height,
@@ -912,24 +925,22 @@ class KinectronApp {
             context.clearRect(0, 0, canvas.width, canvas.height);
             // Draw the image to the canvas
             context.drawImage(img, 0, 0, canvas.width, canvas.height);
-            console.log('APP: Image drawn to canvas');
+            log.frame('Image drawn to canvas');
           };
 
           img.onerror = (err) => {
-            console.error('APP: Error loading depth image:', err);
-            console.error(
-              'APP: Data URL starts with:',
+            log.error('Error loading depth image:', err);
+            log.error(
+              'Data URL starts with:',
               imageData.data.substring(0, 50) + '...',
             );
           };
 
-          console.log('APP: Setting image src to data URL');
+          log.frame('Setting image src to data URL');
           img.src = imageData.data;
-          console.log('APP: Image src set');
+          log.frame('Image src set');
         } else {
-          console.log(
-            'APP: Processing raw pixel data for depth frame',
-          );
+          log.frame('Processing raw pixel data for depth frame');
           // Original code for handling raw pixel data
           const imgData = new ImageData(
             new Uint8ClampedArray(imageData.data),
@@ -937,23 +948,20 @@ class KinectronApp {
             imageData.height,
           );
           context.putImageData(imgData, 0, 0);
-          console.log('APP: Raw pixel data drawn to canvas');
+          log.frame('Raw pixel data drawn to canvas');
         }
       } catch (error) {
-        console.error('APP: Error drawing depth frame:', error);
-        console.error('APP: Frame data type:', typeof imageData.data);
+        log.error('Error drawing depth frame:', error);
+        log.error('Frame data type:', typeof imageData.data);
         if (typeof imageData.data === 'string') {
-          console.error(
-            'APP: Data URL starts with:',
+          log.error(
+            'Data URL starts with:',
             imageData.data.substring(0, 50) + '...',
           );
         }
       }
     } else {
-      console.error(
-        'APP: Depth frame missing image data:',
-        frameData,
-      );
+      log.error('Depth frame missing image data:', frameData);
     }
   }
 
@@ -982,15 +990,16 @@ class KinectronApp {
   }
 
   processRawDepthFrame(frameData) {
+    log.frame('Processing raw depth frame:', frameData);
     const canvas = document.getElementById('raw-depth-canvas');
     if (!canvas) {
-      console.error('Raw depth canvas not found');
+      log.error('Raw depth canvas not found');
       return;
     }
 
     const context = canvas.getContext('2d');
     if (!context) {
-      console.error('Could not get 2D context from raw depth canvas');
+      log.error('Could not get 2D context from raw depth canvas');
       return;
     }
 
@@ -1003,6 +1012,7 @@ class KinectronApp {
         const img = new Image();
 
         img.onload = () => {
+          log.frame('Raw depth image loaded successfully');
           // Set canvas dimensions to match the image
           canvas.width = frameData.width;
           canvas.height = frameData.height;
@@ -1052,8 +1062,8 @@ class KinectronApp {
             const unpackedValue2000 = processedData[2000];
             const unpackedValue3000 = processedData[3000];
 
-            console.log('APP TEST VALUES COMPARISON:');
-            console.table({
+            log.debug('DATA', 'APP TEST VALUES COMPARISON:');
+            log.debug('DATA', {
               'Index 1000': {
                 Original: testValues.index1000,
                 Unpacked: unpackedValue1000,
@@ -1078,8 +1088,8 @@ class KinectronApp {
             const idx2000 = getPixelIndex(2000);
             const idx3000 = getPixelIndex(3000);
 
-            console.log('RAW PIXEL DATA FOR TEST INDICES:');
-            console.table({
+            log.debug('DATA', 'RAW PIXEL DATA FOR TEST INDICES:');
+            log.debug('DATA', {
               'Index 1000': {
                 'R Channel': imageData.data[idx1000],
                 'G Channel': imageData.data[idx1000 + 1],
@@ -1106,19 +1116,19 @@ class KinectronApp {
 
           // Draw the depth data
           context.putImageData(depthImageData, 0, 0);
-          console.log('Raw depth data processed and drawn to canvas');
+          log.frame('Raw depth data processed and drawn to canvas');
         };
 
         img.onerror = (err) => {
-          console.error('Error loading raw depth image:', err);
+          log.error('Error loading raw depth image:', err);
         };
 
         img.src = imageDataUrl;
       } catch (error) {
-        console.error('Error drawing raw depth frame:', error);
+        log.error('Error drawing raw depth frame:', error);
       }
     } else {
-      console.error('Raw depth frame missing image data:', frameData);
+      log.error('Raw depth frame missing image data:', frameData);
     }
   }
 
@@ -1145,13 +1155,22 @@ class KinectronApp {
   }
 
   processBodyFrame(frameData) {
+    log.frame('Processing body frame:', frameData);
     const canvas = document.getElementById('skeleton-canvas');
-    if (!canvas) return;
+    if (!canvas) {
+      log.error('Skeleton canvas not found');
+      return;
+    }
 
     const context = canvas.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (!frameData.bodies || frameData.bodies.length === 0) return;
+    if (!frameData.bodies || frameData.bodies.length === 0) {
+      log.frame('No bodies detected in frame');
+      return;
+    }
+
+    log.frame(`Detected ${frameData.bodies.length} bodies in frame`);
 
     const colors = [
       '#ff0000',
@@ -1171,6 +1190,8 @@ class KinectronApp {
         );
       }
     });
+
+    log.frame('Body frame drawn to canvas');
   }
 
   drawSkeleton(context, joints, color) {
@@ -1213,10 +1234,10 @@ class KinectronApp {
   }
 
   processKeyFrame(frameData) {
-    console.log('Processing key frame:', frameData);
+    log.frame('Processing key frame:', frameData);
     const canvas = document.getElementById('key-canvas');
     if (!canvas) {
-      console.error('Key canvas not found');
+      log.error('Key canvas not found');
       return;
     }
 
@@ -1224,17 +1245,17 @@ class KinectronApp {
     // Check for both imageData and imagedata formats
     const imageData = frameData.imageData || frameData.imagedata;
 
-    console.log('Key frame image data:', imageData);
+    log.frame('Key frame image data:', imageData);
 
     if (imageData && imageData.data) {
       try {
         // Check if data is a string (data URL)
         if (typeof imageData.data === 'string') {
-          console.log('Key frame data is a data URL');
+          log.frame('Key frame data is a data URL');
           // Create an image from the data URL
           const img = new Image();
           img.onload = () => {
-            console.log(
+            log.frame(
               'Key image loaded successfully, dimensions:',
               img.width,
               'x',
@@ -1244,18 +1265,18 @@ class KinectronApp {
             context.clearRect(0, 0, canvas.width, canvas.height);
             // Draw the image to the canvas
             context.drawImage(img, 0, 0, canvas.width, canvas.height);
-            console.log('Key image drawn to canvas');
+            log.frame('Key image drawn to canvas');
           };
           img.onerror = (err) => {
-            console.error('Error loading key image:', err);
-            console.error(
+            log.error('Error loading key image:', err);
+            log.error(
               'Data URL starts with:',
               imageData.data.substring(0, 50) + '...',
             );
           };
           img.src = imageData.data;
         } else {
-          console.log('Key frame data is raw pixel data');
+          log.frame('Key frame data is raw pixel data');
           // Create a temporary canvas to hold the full-size image
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = imageData.width;
@@ -1285,22 +1306,20 @@ class KinectronApp {
             canvas.width,
             canvas.height,
           );
-          console.log(
-            'Key image drawn to canvas from raw pixel data',
-          );
+          log.frame('Key image drawn to canvas from raw pixel data');
         }
       } catch (error) {
-        console.error('Error drawing key frame:', error);
-        console.error('Frame data type:', typeof imageData.data);
+        log.error('Error drawing key frame:', error);
+        log.error('Frame data type:', typeof imageData.data);
         if (typeof imageData.data === 'string') {
-          console.error(
+          log.error(
             'Data URL starts with:',
             imageData.data.substring(0, 50) + '...',
           );
         }
       }
     } else {
-      console.error('Key frame missing image data:', frameData);
+      log.error('Key frame missing image data:', frameData);
     }
   }
 
@@ -1329,16 +1348,16 @@ class KinectronApp {
   }
 
   processDepthKeyFrame(frameData) {
-    console.log('Processing depth key frame:', frameData);
+    log.frame('Processing depth key frame:', frameData);
     const canvas = document.getElementById('depth-key-canvas');
     if (!canvas) {
-      console.error('Depth key canvas not found');
+      log.error('Depth key canvas not found');
       return;
     }
 
     const context = canvas.getContext('2d');
     if (!context) {
-      console.error('Could not get 2D context from depth key canvas');
+      log.error('Could not get 2D context from depth key canvas');
       return;
     }
 
@@ -1347,11 +1366,11 @@ class KinectronApp {
       try {
         // Check if data is a string (data URL)
         if (typeof frameData.imageData.data === 'string') {
-          console.log('Depth key frame data is a data URL');
+          log.frame('Depth key frame data is a data URL');
           // Create an image from the data URL
           const img = new Image();
           img.onload = () => {
-            console.log(
+            log.frame(
               'Depth key image loaded successfully, dimensions:',
               img.width,
               'x',
@@ -1361,18 +1380,18 @@ class KinectronApp {
             context.clearRect(0, 0, canvas.width, canvas.height);
             // Draw the image to the canvas
             context.drawImage(img, 0, 0, canvas.width, canvas.height);
-            console.log('Depth key image drawn to canvas');
+            log.frame('Depth key image drawn to canvas');
           };
           img.onerror = (err) => {
-            console.error('Error loading depth key image:', err);
-            console.error(
+            log.error('Error loading depth key image:', err);
+            log.error(
               'Data URL starts with:',
               frameData.imageData.data.substring(0, 50) + '...',
             );
           };
           img.src = frameData.imageData.data;
         } else {
-          console.log('Depth key frame data is raw pixel data');
+          log.frame('Depth key frame data is raw pixel data');
           // Create a temporary canvas to hold the full-size image
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = frameData.imageData.width;
@@ -1402,25 +1421,25 @@ class KinectronApp {
             canvas.width,
             canvas.height,
           );
-          console.log(
+          log.frame(
             'Depth key image drawn to canvas from raw pixel data',
           );
         }
       } catch (error) {
-        console.error('Error drawing depth key frame:', error);
-        console.error(
+        log.error('Error drawing depth key frame:', error);
+        log.error(
           'Frame data type:',
           typeof frameData.imageData.data,
         );
         if (typeof frameData.imageData.data === 'string') {
-          console.error(
+          log.error(
             'Data URL starts with:',
             frameData.imageData.data.substring(0, 50) + '...',
           );
         }
       }
     } else {
-      console.error('Depth key frame missing image data:', frameData);
+      log.error('Depth key frame missing image data:', frameData);
     }
   }
 
@@ -1447,10 +1466,10 @@ class KinectronApp {
   }
 
   processRGBDFrame(frameData) {
-    console.log('Processing RGBD frame:', frameData);
+    log.frame('Processing RGBD frame:', frameData);
     const canvas = document.getElementById('rgbd-canvas');
     if (!canvas) {
-      console.error('RGBD canvas not found');
+      log.error('RGBD canvas not found');
       return;
     }
 
@@ -1458,7 +1477,7 @@ class KinectronApp {
     // Check for both imageData and imagedata formats
     const imageData = frameData.imageData || frameData.imagedata;
 
-    console.log(
+    log.frame(
       'RGBD frame image data:',
       imageData
         ? {
@@ -1474,11 +1493,11 @@ class KinectronApp {
       try {
         // Check if data is a string (data URL)
         if (typeof imageData.data === 'string') {
-          console.log('RGBD frame data is a data URL');
+          log.frame('RGBD frame data is a data URL');
           // Create an image from the data URL
           const img = new Image();
           img.onload = () => {
-            console.log(
+            log.frame(
               'RGBD image loaded successfully, dimensions:',
               img.width,
               'x',
@@ -1488,18 +1507,18 @@ class KinectronApp {
             context.clearRect(0, 0, canvas.width, canvas.height);
             // Draw the image to the canvas
             context.drawImage(img, 0, 0, canvas.width, canvas.height);
-            console.log('RGBD image drawn to canvas');
+            log.frame('RGBD image drawn to canvas');
           };
           img.onerror = (err) => {
-            console.error('Error loading RGBD image:', err);
-            console.error(
+            log.error('Error loading RGBD image:', err);
+            log.error(
               'Data URL starts with:',
               imageData.data.substring(0, 50) + '...',
             );
           };
           img.src = imageData.data;
         } else {
-          console.log('RGBD frame data is raw pixel data');
+          log.frame('RGBD frame data is raw pixel data');
           // For RGBD, we want to preserve the alpha channel exactly as it comes from the backend
           // so we'll draw directly to the canvas without scaling
           const imgData = new ImageData(
@@ -1508,20 +1527,20 @@ class KinectronApp {
             imageData.height,
           );
           context.putImageData(imgData, 0, 0);
-          console.log('RGBD raw pixel data drawn to canvas');
+          log.frame('RGBD raw pixel data drawn to canvas');
         }
       } catch (error) {
-        console.error('Error drawing RGBD frame:', error);
-        console.error('Frame data type:', typeof imageData.data);
+        log.error('Error drawing RGBD frame:', error);
+        log.error('Frame data type:', typeof imageData.data);
         if (typeof imageData.data === 'string') {
-          console.error(
+          log.error(
             'Data URL starts with:',
             imageData.data.substring(0, 50) + '...',
           );
         }
       }
     } else {
-      console.error('RGBD frame missing image data:', frameData);
+      log.error('RGBD frame missing image data:', frameData);
     }
   }
 
@@ -1549,15 +1568,15 @@ class KinectronApp {
   }
 
   toggleFeedDiv(streamType, display) {
-    console.log(
+    log.ui(
       `toggleFeedDiv called for ${streamType} with display=${display}`,
     );
     const divId = streamType === 'skeleton' ? 'skeleton' : streamType;
     const feedDiv = document.getElementById(`${divId}-div`);
-    console.log(`Looking for element with ID: ${divId}-div`);
+    log.ui(`Looking for element with ID: ${divId}-div`);
 
     if (feedDiv) {
-      console.log(
+      log.ui(
         `Found feed div for ${streamType}, setting display to ${display}`,
       );
       feedDiv.style.display = display;
@@ -1565,14 +1584,14 @@ class KinectronApp {
       // Also check if the canvas exists
       const canvas = document.getElementById(`${divId}-canvas`);
       if (canvas) {
-        console.log(
+        log.ui(
           `Found canvas for ${streamType}, dimensions: ${canvas.width}x${canvas.height}`,
         );
       } else {
-        console.error(`Canvas not found for ${streamType}`);
+        log.error(`Canvas not found for ${streamType}`);
       }
     } else {
-      console.error(`Feed div not found for ${streamType}`);
+      log.error(`Feed div not found for ${streamType}`);
     }
   }
 

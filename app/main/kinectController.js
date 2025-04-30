@@ -1,5 +1,6 @@
 // main/kinectController.js
 import KinectAzure from 'kinect-azure';
+import { DEBUG, log } from './utils/debug.js';
 
 // Define all Kinect Azure constants we need
 export const KinectConstants = {
@@ -74,13 +75,13 @@ export class KinectController {
     try {
       // If Kinect instance exists, always close it and try again
       if (this.kinect) {
-        console.log(
+        log.info(
           'KinectController: Closing existing Kinect instance to reinitialize',
         );
         try {
           this.kinect.close();
         } catch (closeError) {
-          console.warn(
+          log.warn(
             'KinectController: Error closing existing instance (may be normal):',
             closeError,
           );
@@ -88,41 +89,32 @@ export class KinectController {
         this.kinect = null;
       }
 
-      console.log(
-        'KinectController: Creating new KinectAzure instance',
-      );
+      log.info('KinectController: Creating new KinectAzure instance');
       this.kinect = new KinectAzure();
 
-      console.log('KinectController: Calling kinect.open()');
+      log.info('KinectController: Calling kinect.open()');
       const result = this.kinect.open();
 
-      console.log(
-        'KinectController: kinect.open() returned:',
-        result,
-      );
+      log.info('KinectController: kinect.open() returned:', result);
 
       if (result) {
-        console.log(
-          'KinectController: Kinect initialized successfully',
-        );
+        log.info('KinectController: Kinect initialized successfully');
         return { success: true };
       } else {
-        console.warn(
-          'KinectController: kinect.open() returned false',
-        );
+        log.warn('KinectController: kinect.open() returned false');
         return {
           success: false,
           error: 'Failed to open Kinect device',
         };
       }
     } catch (error) {
-      console.error('Failed to initialize Kinect:', error);
+      log.error('Failed to initialize Kinect:', error);
       return { success: false, error: error.message };
     }
   }
 
   startColorCamera(options = {}) {
-    console.log(
+    log.info(
       'KinectController: startColorCamera called with options:',
       options,
     );
@@ -132,20 +124,20 @@ export class KinectController {
         ...options,
       };
 
-      console.log(
+      log.info(
         'KinectController: Starting cameras with options:',
         cameraOptions,
       );
 
       // Check if cameras are already running
       try {
-        console.log(
+        log.info(
           'KinectController: Stopping cameras first to ensure clean start',
         );
         this.kinect.stopCameras();
-        console.log('KinectController: Cameras stopped successfully');
+        log.info('KinectController: Cameras stopped successfully');
       } catch (stopError) {
-        console.warn(
+        log.warn(
           'KinectController: Error stopping cameras (may be normal if not started):',
           stopError,
         );
@@ -153,13 +145,13 @@ export class KinectController {
 
       // Start the cameras
       this.kinect.startCameras(cameraOptions);
-      console.log(
+      log.info(
         'KinectController: Color cameras started successfully',
       );
 
       return true;
     } catch (error) {
-      console.error(
+      log.error(
         'KinectController: Failed to start color camera:',
         error,
       );
@@ -168,7 +160,7 @@ export class KinectController {
   }
 
   startDepthCamera(options = {}) {
-    console.log(
+    log.info(
       'KinectController: startDepthCamera called with options:',
       options,
     );
@@ -178,20 +170,20 @@ export class KinectController {
         ...options,
       };
 
-      console.log(
+      log.info(
         'KinectController: Starting depth camera with options:',
         depthOptions,
       );
 
       // Check if cameras are already running
       try {
-        console.log(
+        log.info(
           'KinectController: Stopping cameras first to ensure clean start',
         );
         this.kinect.stopCameras();
-        console.log('KinectController: Cameras stopped successfully');
+        log.info('KinectController: Cameras stopped successfully');
       } catch (stopError) {
-        console.warn(
+        log.warn(
           'KinectController: Error stopping cameras (may be normal if not started):',
           stopError,
         );
@@ -199,22 +191,21 @@ export class KinectController {
 
       // Start the cameras
       this.kinect.startCameras(depthOptions);
-      console.log(
-        'KinectController: Depth camera started successfully',
-      );
+      log.info('KinectController: Depth camera started successfully');
 
       // Get depth mode range for debugging
       const depthRange = this.kinect.getDepthModeRange(
         depthOptions.depth_mode,
       );
-      console.log(
+      log.debug(
+        'DATA',
         'KinectController: Depth range for current mode:',
         depthRange,
       );
 
       return true;
     } catch (error) {
-      console.error(
+      log.error(
         'KinectController: Failed to start depth camera:',
         error,
       );
@@ -223,7 +214,7 @@ export class KinectController {
   }
 
   startRawDepthCamera(options = {}) {
-    console.log(
+    log.info(
       'KinectController: startRawDepthCamera called with options:',
       options,
     );
@@ -233,20 +224,20 @@ export class KinectController {
         ...options,
       };
 
-      console.log(
+      log.info(
         'KinectController: Starting raw depth camera with options:',
         rawDepthOptions,
       );
 
       // Check if cameras are already running
       try {
-        console.log(
+        log.info(
           'KinectController: Stopping cameras first to ensure clean start',
         );
         this.kinect.stopCameras();
-        console.log('KinectController: Cameras stopped successfully');
+        log.info('KinectController: Cameras stopped successfully');
       } catch (stopError) {
-        console.warn(
+        log.warn(
           'KinectController: Error stopping cameras (may be normal if not started):',
           stopError,
         );
@@ -254,7 +245,7 @@ export class KinectController {
 
       // Start the cameras
       this.kinect.startCameras(rawDepthOptions);
-      console.log(
+      log.info(
         'KinectController: Raw depth camera started successfully',
       );
 
@@ -262,14 +253,15 @@ export class KinectController {
       const depthRange = this.kinect.getDepthModeRange(
         rawDepthOptions.depth_mode,
       );
-      console.log(
+      log.debug(
+        'DATA',
         'KinectController: Depth range for current mode:',
         depthRange,
       );
 
       return true;
     } catch (error) {
-      console.error(
+      log.error(
         'KinectController: Failed to start raw depth camera:',
         error,
       );
@@ -283,7 +275,7 @@ export class KinectController {
       this.kinect.createTracker();
       return true;
     } catch (error) {
-      console.error('Failed to start body tracking:', error);
+      log.error('Failed to start body tracking:', error);
       return false;
     }
   }
@@ -317,7 +309,7 @@ export class KinectController {
 
       return true;
     } catch (error) {
-      console.error('Failed to start key camera:', error);
+      log.error('Failed to start key camera:', error);
       return false;
     }
   }
@@ -336,7 +328,7 @@ export class KinectController {
       this.kinect.createTracker();
       return true;
     } catch (error) {
-      console.error('Failed to start depth key camera:', error);
+      log.error('Failed to start depth key camera:', error);
       return false;
     }
   }
@@ -349,28 +341,26 @@ export class KinectController {
       });
       return true;
     } catch (error) {
-      console.error('Failed to start RGBD camera:', error);
+      log.error('Failed to start RGBD camera:', error);
       return false;
     }
   }
 
   startListening(callback) {
     if (this.isListening) {
-      console.warn(
-        'KinectController: Already listening for Kinect data',
-      );
+      log.warn('KinectController: Already listening for Kinect data');
       return false;
     }
 
     if (!callback) {
-      console.error(
+      log.error(
         'KinectController: No callback provided to startListening',
       );
       return false;
     }
 
     try {
-      console.log(
+      log.info(
         'KinectController: Starting to listen for Kinect frames',
       );
 
@@ -390,7 +380,8 @@ export class KinectController {
         // Log frame statistics every 5 seconds
         const now = Date.now();
         if (now - lastLogTime >= 5000) {
-          console.log(
+          log.debug(
+            'PERFORMANCE',
             `KinectController: Frame stats (5s): ${frameCount} total (${depthFrameCount} depth, ${colorFrameCount} color)`,
           );
 
@@ -405,12 +396,12 @@ export class KinectController {
         callback(data);
       });
 
-      console.log(
+      log.info(
         'KinectController: Successfully started listening for Kinect frames',
       );
       return true;
     } catch (error) {
-      console.error(
+      log.error(
         'KinectController: Failed to start listening:',
         error,
       );
@@ -426,7 +417,7 @@ export class KinectController {
       await this.kinect.stopListening();
       this.isListening = false;
     } catch (error) {
-      console.error('Error stopping Kinect listening:', error);
+      log.error('Error stopping Kinect listening:', error);
     }
   }
 
@@ -443,7 +434,7 @@ export class KinectController {
         this.kinect.stopCameras();
       }
     } catch (error) {
-      console.error('Error stopping cameras:', error);
+      log.error('Error stopping cameras:', error);
     }
   }
 
@@ -466,7 +457,7 @@ export class KinectController {
         this.kinect = null;
       }
     } catch (error) {
-      console.error('Error closing Kinect:', error);
+      log.error('Error closing Kinect:', error);
     }
   }
 }

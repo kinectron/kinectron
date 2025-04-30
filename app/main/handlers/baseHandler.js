@@ -1,5 +1,6 @@
 // main/handlers/baseHandler.js
 import { ipcMain } from 'electron';
+import { DEBUG, log } from '../utils/debug.js';
 
 /**
  * Base class for all stream handlers
@@ -51,25 +52,25 @@ export class BaseStreamHandler {
    */
   broadcastFrame(event, data, lossy = false) {
     try {
-      console.log(`BaseStreamHandler: Broadcasting ${event} frame`);
+      log.frame(`BaseStreamHandler: Broadcasting ${event} frame`);
 
       // Calculate FPS for debugging
       const now = Date.now();
       if (now - this.lastFrameTime >= 1000) {
-        console.debug(`${event} FPS:`, this.frameCount);
+        log.debug('PERFORMANCE', `${event} FPS:`, this.frameCount);
         this.frameCount = 0;
         this.lastFrameTime = now;
       }
       this.frameCount++;
 
       // Log frame data structure
-      console.log(
+      log.frame(
         `BaseStreamHandler: Frame data structure:`,
         data ? `name=${data.name}, has data=${!!data.data}` : 'null',
       );
 
       if (data && data.data && data.data.name === 'depth') {
-        console.log(
+        log.frame(
           `BaseStreamHandler: Broadcasting depth frame with dimensions:`,
           data.data.imagedata
             ? `${data.data.imagedata.width}x${data.data.imagedata.height}`
@@ -79,7 +80,7 @@ export class BaseStreamHandler {
 
       // Use both methods to broadcast the frame data
       // 1. Use the PeerConnectionManager's broadcast method
-      console.log(
+      log.frame(
         `BaseStreamHandler: Broadcasting via PeerConnectionManager`,
       );
       this.peerManager.broadcast(event, data, lossy);
@@ -87,7 +88,7 @@ export class BaseStreamHandler {
       // 2. Use the IPC channel to broadcast to the renderer process
       // This will allow the renderer process to broadcast to its peer connections
       try {
-        console.log(
+        log.frame(
           `BaseStreamHandler: Broadcasting via IPC to renderer process`,
         );
         // Import BrowserWindow using ES modules
@@ -103,24 +104,24 @@ export class BaseStreamHandler {
                 });
               }
             });
-            console.log(
+            log.frame(
               `BaseStreamHandler: Successfully sent to ${windows.length} windows`,
             );
           })
           .catch((error) => {
-            console.error(
+            log.error(
               'BaseStreamHandler: Error importing electron:',
               error,
             );
           });
       } catch (error) {
-        console.error(
+        log.error(
           'BaseStreamHandler: Error sending to renderer:',
           error,
         );
       }
     } catch (error) {
-      console.error(
+      log.error(
         'BaseStreamHandler: Error broadcasting frame:',
         error,
       );
@@ -219,7 +220,7 @@ export class BaseStreamHandler {
    * @param {string} operation The operation that failed
    */
   handleError(error, operation) {
-    console.error(
+    log.error(
       `Error in ${this.constructor.name} during ${operation}:`,
       error,
     );

@@ -1,8 +1,8 @@
 # Active Context
 
-## Current Focus: Enhancing User Experience and Error Handling
+## Current Focus: Enhancing User Experience, Error Handling, and Logging
 
-We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and depth key. All streams are working correctly in both the application and client API. We've now implemented a robust notification system for error handling and improved the user experience when the Kinect device isn't connected. Our focus continues to be on enhancing visualizations, improving error handling, and addressing technical debt such as inconsistent naming conventions.
+We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and depth key. All streams are working correctly in both the application and client API. We've implemented a robust notification system for error handling and improved the user experience when the Kinect device isn't connected. We've also implemented a comprehensive logging system that puts all debug logs behind flags while keeping essential logs visible. Our focus continues to be on enhancing visualizations, improving error handling, and addressing technical debt such as inconsistent naming conventions.
 
 ### Current Status
 
@@ -52,9 +52,13 @@ We've completed all stream implementations including color, depth, raw depth, sk
 
    - Implemented flag-based debugging system for both application and client
    - Added UI controls in streamTest.html for toggling debug flags
-   - Created categories for different types of logs (performance, data, network)
+   - Created categories for different types of logs (performance, data, network, frames, UI)
    - Reduced console noise by making logs conditional on debug flags
    - Enhanced logging in body tracking system for better diagnostics
+   - Implemented comprehensive logging cleanup across all stream handlers
+   - Created dedicated debug.js files for both main and renderer processes
+   - Added detailed documentation in README_LOGGING.md files
+   - Replaced all console.log calls with appropriate conditional logging functions
 
 4. **StreamTest Refactoring**:
 

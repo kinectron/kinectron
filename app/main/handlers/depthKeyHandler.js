@@ -3,7 +3,7 @@ import { ipcMain } from 'electron';
 import { BaseStreamHandler } from './baseHandler.js';
 import { DepthKeyFrameProcessor } from '../processors/depthKeyProcessor.js';
 import { KinectOptions } from '../kinectController.js';
-import { DEBUG } from '../utils/debug.js';
+import { DEBUG, log } from '../utils/debug.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const sharp = require('sharp');
@@ -58,8 +58,9 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
             })
             .toBuffer()
             .then((compressedBuffer) => {
-              if (DEBUG.RAW_DEPTH && DEBUG.PERFORMANCE) {
-                console.log(
+              if (DEBUG.PERFORMANCE) {
+                log.debug(
+                  'PERFORMANCE',
                   `DepthKeyStreamHandler: Compressed buffer size: ${compressedBuffer.length} bytes`,
                 );
               }
@@ -90,18 +91,18 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
               this.broadcastFrame('depth-key', frameData, true);
             })
             .catch((err) => {
-              console.error(
+              log.error(
                 'DepthKeyStreamHandler: Error processing image with Sharp:',
                 err,
               );
             });
         } else {
-          console.error(
+          log.error(
             'DepthKeyStreamHandler: Failed to process depth key frame, processedData is null or missing imageData',
           );
         }
       } else {
-        console.warn(
+        log.warn(
           'DepthKeyStreamHandler: Received frame callback without required data',
         );
       }
@@ -114,7 +115,7 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
   setupHandler() {
     // Check if handler is already registered
     if (ipcMain.listenerCount('start-depth-key-stream') > 0) {
-      console.log(
+      log.handler(
         'Handler for start-depth-key-stream already registered',
       );
       return;
@@ -122,26 +123,26 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
 
     ipcMain.handle('start-depth-key-stream', async (event) => {
       try {
-        console.log(
+        log.info(
           'DepthKeyStreamHandler: Received start-depth-key-stream request',
         );
 
         // First, ensure any previous tracking is stopped
         if (this.isActive) {
-          console.log(
+          log.handler(
             'DepthKeyStreamHandler: Stopping previous depth key stream session',
           );
           await this.stopStream();
 
           // Wait a bit to avoid ThreadSafeFunction error when switching feeds
-          console.log(
+          log.handler(
             'DepthKeyStreamHandler: Waiting for resources to be released',
           );
           await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
         // Start cameras with the right options
-        console.log(
+        log.handler(
           'DepthKeyStreamHandler: Starting depth key stream with options:',
           KinectOptions.DEPTH_KEY,
         );
@@ -150,42 +151,42 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
         });
 
         if (success) {
-          console.log(
+          log.info(
             'DepthKeyStreamHandler: Depth key stream started successfully',
           );
           this.isActive = true;
 
           // Wait for body tracker to initialize
-          console.log(
+          log.handler(
             'DepthKeyStreamHandler: Waiting for body tracker to initialize',
           );
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
           // Create the frame callback
-          console.log(
+          log.handler(
             'DepthKeyStreamHandler: Creating frame callback',
           );
           this.createFrameCallback(event);
 
           // Start listening for frames
           if (!this.isMultiFrame) {
-            console.log(
+            log.handler(
               'DepthKeyStreamHandler: Starting to listen for Kinect frames',
             );
             this.kinectController.startListening(this.frameCallback);
-            console.log(
+            log.info(
               'DepthKeyStreamHandler: Successfully started listening for Kinect frames',
             );
           }
         } else {
-          console.error(
+          log.error(
             'DepthKeyStreamHandler: Failed to start depth key stream',
           );
         }
 
         return success;
       } catch (error) {
-        console.error(
+        log.error(
           'DepthKeyStreamHandler: Error in start-depth-key-stream:',
           error,
         );
@@ -210,7 +211,7 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
    */
   async startStream() {
     try {
-      console.log('DepthKeyStreamHandler: startStream called');
+      log.handler('DepthKeyStreamHandler: startStream called');
 
       // Start cameras with the right options
       const success = this.kinectController.startDepthKeyCamera({
@@ -218,19 +219,19 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
       });
 
       if (success) {
-        console.log(
+        log.info(
           'DepthKeyStreamHandler: Depth key camera started successfully',
         );
         this.isActive = true;
       } else {
-        console.error(
+        log.error(
           'DepthKeyStreamHandler: Failed to start depth key camera',
         );
       }
 
       return success;
     } catch (error) {
-      console.error(
+      log.error(
         'DepthKeyStreamHandler: Error in startStream:',
         error,
       );
@@ -253,17 +254,17 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
    */
   async stopStream() {
     try {
-      console.log('DepthKeyStreamHandler: Stopping depth key stream');
+      log.info('DepthKeyStreamHandler: Stopping depth key stream');
 
       // Only try to stop listening if we have a callback
       if (this.frameCallback) {
         try {
-          console.log(
+          log.handler(
             'DepthKeyStreamHandler: Stopping frame listening',
           );
           await this.kinectController.stopListening();
         } catch (error) {
-          console.warn(
+          log.warn(
             'DepthKeyStreamHandler: Error stopping listening (may be normal):',
             error.message,
           );
@@ -273,10 +274,10 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
 
       // Stop cameras
       try {
-        console.log('DepthKeyStreamHandler: Stopping cameras');
+        log.handler('DepthKeyStreamHandler: Stopping cameras');
         await this.kinectController.stopCameras();
       } catch (error) {
-        console.warn(
+        log.warn(
           'DepthKeyStreamHandler: Error stopping cameras:',
           error.message,
         );
@@ -286,7 +287,7 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
 
       // Notify peers that stream has stopped
       if (this.peerManager && this.peerManager.isConnected) {
-        console.log(
+        log.handler(
           'DepthKeyStreamHandler: Notifying peers that stream has stopped',
         );
         this.peerManager.broadcast('feed', {
@@ -295,12 +296,9 @@ export class DepthKeyStreamHandler extends BaseStreamHandler {
         });
       }
 
-      console.log('DepthKeyStreamHandler: Depth key stream stopped');
+      log.info('DepthKeyStreamHandler: Depth key stream stopped');
     } catch (error) {
-      console.error(
-        'DepthKeyStreamHandler: Error in stopStream:',
-        error,
-      );
+      log.error('DepthKeyStreamHandler: Error in stopStream:', error);
       this.handleError(error, 'stopping depth key stream');
     }
   }

@@ -3,6 +3,7 @@ import { ipcMain } from 'electron';
 import { BaseStreamHandler } from './baseHandler.js';
 import { BodyFrameProcessor } from '../processors/bodyProcessor.js';
 import { KinectOptions } from '../kinectController.js';
+import { log } from '../utils/debug.js';
 
 /**
  * Handles body tracking stream operations and IPC communication
@@ -35,9 +36,8 @@ export class BodyStreamHandler extends BaseStreamHandler {
           // Broadcast to peers - use 'bodyFrame' event to match client listener
           this.broadcastFrame('bodyFrame', framePackage, true);
 
-          console.log(
-            'BodyStreamHandler: Broadcasting body frame data',
-            `Bodies: ${
+          log.frame(
+            `BodyStreamHandler: Broadcasting body frame data Bodies: ${
               processedData.bodies ? processedData.bodies.length : 0
             }`,
           );
@@ -52,7 +52,7 @@ export class BodyStreamHandler extends BaseStreamHandler {
   setupHandler() {
     // Check if handler is already registered
     if (ipcMain.listenerCount('start-body-tracking') > 0) {
-      console.log(
+      log.handler(
         'Handler for start-body-tracking already registered',
       );
       return;
@@ -60,20 +60,20 @@ export class BodyStreamHandler extends BaseStreamHandler {
 
     ipcMain.handle('start-body-tracking', async (event) => {
       try {
-        console.log(
+        log.info(
           'BodyStreamHandler: Received start-body-tracking request',
         );
 
         // First, ensure any previous tracking is stopped
         if (this.isActive) {
-          console.log(
+          log.handler(
             'BodyStreamHandler: Stopping previous body tracking session',
           );
           await this.stopStream();
         }
 
         // Start the body tracking with a simpler approach based on legacy code
-        console.log(
+        log.handler(
           'BodyStreamHandler: Starting body tracking with options:',
           KinectOptions.BODY,
         );
@@ -84,34 +84,34 @@ export class BodyStreamHandler extends BaseStreamHandler {
         });
 
         if (success) {
-          console.log(
+          log.info(
             'BodyStreamHandler: Body tracking started successfully',
           );
           this.isActive = true;
 
           // Create the frame callback
-          console.log('BodyStreamHandler: Creating frame callback');
+          log.handler('BodyStreamHandler: Creating frame callback');
           this.createFrameCallback(event);
 
           // Start listening for frames
           if (!this.isMultiFrame) {
-            console.log(
+            log.handler(
               'BodyStreamHandler: Starting to listen for Kinect frames',
             );
             this.kinectController.startListening(this.frameCallback);
-            console.log(
+            log.info(
               'BodyStreamHandler: Successfully started listening for Kinect frames',
             );
           }
         } else {
-          console.error(
+          log.error(
             'BodyStreamHandler: Failed to start body tracking',
           );
         }
 
         return success;
       } catch (error) {
-        console.error(
+        log.error(
           'BodyStreamHandler: Error in start-body-tracking:',
           error,
         );
@@ -136,7 +136,7 @@ export class BodyStreamHandler extends BaseStreamHandler {
   async startStream() {
     try {
       // This is now a simpler wrapper around the IPC handler logic
-      console.log('BodyStreamHandler: startStream called');
+      log.handler('BodyStreamHandler: startStream called');
 
       // Start cameras with the right options
       const success = this.kinectController.startBodyTracking({
@@ -149,10 +149,7 @@ export class BodyStreamHandler extends BaseStreamHandler {
 
       return success;
     } catch (error) {
-      console.error(
-        'BodyStreamHandler: Error in startStream:',
-        error,
-      );
+      log.error('BodyStreamHandler: Error in startStream:', error);
       return this.handleError(error, 'starting body tracking');
     }
   }
@@ -172,15 +169,15 @@ export class BodyStreamHandler extends BaseStreamHandler {
    */
   async stopStream() {
     try {
-      console.log('BodyStreamHandler: Stopping body tracking stream');
+      log.info('BodyStreamHandler: Stopping body tracking stream');
 
       // Only try to stop listening if we have a callback
       if (this.frameCallback) {
         try {
-          console.log('BodyStreamHandler: Stopping frame listening');
+          log.handler('BodyStreamHandler: Stopping frame listening');
           await this.kinectController.stopListening();
         } catch (error) {
-          console.warn(
+          log.warn(
             'BodyStreamHandler: Error stopping listening (may be normal):',
             error.message,
           );
@@ -190,19 +187,19 @@ export class BodyStreamHandler extends BaseStreamHandler {
 
       // Stop cameras
       try {
-        console.log('BodyStreamHandler: Stopping cameras');
+        log.handler('BodyStreamHandler: Stopping cameras');
         await this.kinectController.stopCameras();
       } catch (error) {
-        console.warn(
+        log.warn(
           'BodyStreamHandler: Error stopping cameras:',
           error.message,
         );
       }
 
       this.isActive = false;
-      console.log('BodyStreamHandler: Body tracking stream stopped');
+      log.info('BodyStreamHandler: Body tracking stream stopped');
     } catch (error) {
-      console.error('BodyStreamHandler: Error in stopStream:', error);
+      log.error('BodyStreamHandler: Error in stopStream:', error);
       this.handleError(error, 'stopping body tracking');
     }
   }

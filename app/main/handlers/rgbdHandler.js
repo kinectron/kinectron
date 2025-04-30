@@ -3,6 +3,7 @@ import { ipcMain } from 'electron';
 import { BaseStreamHandler } from './baseHandler.js';
 import { RGBDFrameProcessor } from '../processors/rgbdProcessor.js';
 import { KinectOptions } from '../kinectController.js';
+import { DEBUG, log } from '../utils/debug.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const sharp = require('sharp');
@@ -67,7 +68,7 @@ export class RGBDStreamHandler extends BaseStreamHandler {
                 timestamp: Date.now(),
               };
 
-              console.log(
+              log.frame(
                 'RGBDStreamHandler: Sending frame to renderer with data:',
                 {
                   name: frameData.name,
@@ -84,7 +85,7 @@ export class RGBDStreamHandler extends BaseStreamHandler {
               event.sender.send('rgbd-frame', frameData);
 
               // Log the frame data being sent to the renderer
-              console.log(
+              log.frame(
                 'RGBDStreamHandler: Sending frame to renderer with event name: rgbd-frame',
               );
 
@@ -96,18 +97,18 @@ export class RGBDStreamHandler extends BaseStreamHandler {
               this.broadcastFrame('frame', framePackage, true);
             })
             .catch((err) => {
-              console.error(
+              log.error(
                 'RGBDStreamHandler: Error processing image with Sharp:',
                 err,
               );
             });
         } else {
-          console.error(
+          log.error(
             'RGBDStreamHandler: Failed to process RGBD frame, processedData is null or missing imageData',
           );
         }
       } else {
-        console.warn(
+        log.warn(
           'RGBDStreamHandler: Received frame callback without required data',
         );
       }
@@ -120,32 +121,32 @@ export class RGBDStreamHandler extends BaseStreamHandler {
   setupHandler() {
     // Check if handler is already registered
     if (ipcMain.listenerCount('start-rgbd-stream') > 0) {
-      console.log('Handler for start-rgbd-stream already registered');
+      log.handler('Handler for start-rgbd-stream already registered');
       return;
     }
 
     ipcMain.handle('start-rgbd-stream', async (event) => {
       try {
-        console.log(
+        log.info(
           'RGBDStreamHandler: Received start-rgbd-stream request',
         );
 
         // First, ensure any previous tracking is stopped
         if (this.isActive) {
-          console.log(
+          log.info(
             'RGBDStreamHandler: Stopping previous RGBD stream session',
           );
           await this.stopStream();
 
           // Wait a bit to avoid ThreadSafeFunction error when switching feeds
-          console.log(
+          log.info(
             'RGBDStreamHandler: Waiting for resources to be released',
           );
           await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
         // Start the RGBD stream with a simpler approach based on legacy code
-        console.log(
+        log.info(
           'RGBDStreamHandler: Starting RGBD stream with options:',
           KinectOptions.RGBD,
         );
@@ -156,7 +157,7 @@ export class RGBDStreamHandler extends BaseStreamHandler {
         });
 
         if (success) {
-          console.log(
+          log.info(
             'RGBDStreamHandler: RGBD stream started successfully',
           );
           this.isActive = true;
@@ -165,34 +166,33 @@ export class RGBDStreamHandler extends BaseStreamHandler {
           this.depthRange = this.kinectController.getDepthModeRange(
             KinectOptions.RGBD.depth_mode,
           );
-          console.log(
+          log.debug(
+            'DATA',
             'RGBDStreamHandler: Depth range for current mode:',
             this.depthRange,
           );
 
           // Create the frame callback
-          console.log('RGBDStreamHandler: Creating frame callback');
+          log.info('RGBDStreamHandler: Creating frame callback');
           this.createFrameCallback(event);
 
           // Start listening for frames
           if (!this.isMultiFrame) {
-            console.log(
+            log.info(
               'RGBDStreamHandler: Starting to listen for Kinect frames',
             );
             this.kinectController.startListening(this.frameCallback);
-            console.log(
+            log.info(
               'RGBDStreamHandler: Successfully started listening for Kinect frames',
             );
           }
         } else {
-          console.error(
-            'RGBDStreamHandler: Failed to start RGBD stream',
-          );
+          log.error('RGBDStreamHandler: Failed to start RGBD stream');
         }
 
         return success;
       } catch (error) {
-        console.error(
+        log.error(
           'RGBDStreamHandler: Error in start-rgbd-stream:',
           error,
         );
@@ -250,15 +250,15 @@ export class RGBDStreamHandler extends BaseStreamHandler {
    */
   async stopStream() {
     try {
-      console.log('RGBDStreamHandler: Stopping RGBD stream');
+      log.info('RGBDStreamHandler: Stopping RGBD stream');
 
       // Only try to stop listening if we have a callback
       if (this.frameCallback) {
         try {
-          console.log('RGBDStreamHandler: Stopping frame listening');
+          log.info('RGBDStreamHandler: Stopping frame listening');
           await this.kinectController.stopListening();
         } catch (error) {
-          console.warn(
+          log.warn(
             'RGBDStreamHandler: Error stopping listening (may be normal):',
             error.message,
           );
@@ -268,10 +268,10 @@ export class RGBDStreamHandler extends BaseStreamHandler {
 
       // Stop cameras
       try {
-        console.log('RGBDStreamHandler: Stopping cameras');
+        log.info('RGBDStreamHandler: Stopping cameras');
         await this.kinectController.stopCameras();
       } catch (error) {
-        console.warn(
+        log.warn(
           'RGBDStreamHandler: Error stopping cameras:',
           error.message,
         );
@@ -282,7 +282,7 @@ export class RGBDStreamHandler extends BaseStreamHandler {
 
       // Notify peers that stream has stopped
       if (this.peerManager && this.peerManager.isConnected) {
-        console.log(
+        log.info(
           'RGBDStreamHandler: Notifying peers that stream has stopped',
         );
         this.peerManager.broadcast('feed', {
@@ -291,9 +291,9 @@ export class RGBDStreamHandler extends BaseStreamHandler {
         });
       }
 
-      console.log('RGBDStreamHandler: RGBD stream stopped');
+      log.info('RGBDStreamHandler: RGBD stream stopped');
     } catch (error) {
-      console.error('RGBDStreamHandler: Error in stopStream:', error);
+      log.error('RGBDStreamHandler: Error in stopStream:', error);
       this.handleError(error, 'stopping RGBD stream');
     }
   }

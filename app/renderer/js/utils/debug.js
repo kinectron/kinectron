@@ -1,12 +1,12 @@
 /**
- * Debug configuration for Kinectron client
+ * Debug configuration for Kinectron renderer
  * Controls logging output for different components
  */
 
 export const DEBUG = {
   // Master switches for components
   FRAMES: false, // Master switch for frame-related logging
-  HANDLERS: false, // Master switch for handler-related logging
+  UI: false, // Master switch for UI-related logging
   PEER: false, // Master switch for peer connection logs
 
   // Specific logging categories
@@ -62,10 +62,17 @@ export const log = {
     }
   },
 
-  // Only log handler-related messages if HANDLERS flag is enabled
-  handler: function (message, ...args) {
-    if (DEBUG.HANDLERS) {
-      console.debug(`[HANDLERS] ${message}`, ...args);
+  // Only log UI-related messages if UI flag is enabled
+  ui: function (message, ...args) {
+    if (DEBUG.UI) {
+      console.debug(`[UI] ${message}`, ...args);
+    }
+  },
+
+  // Only log peer-related messages if PEER flag is enabled
+  peer: function (message, ...args) {
+    if (DEBUG.PEER) {
+      console.debug(`[PEER] ${message}`, ...args);
     }
   },
 };

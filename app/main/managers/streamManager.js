@@ -7,6 +7,7 @@ import { BodyStreamHandler } from '../handlers/bodyHandler.js';
 import { KeyStreamHandler } from '../handlers/keyHandler.js';
 import { DepthKeyStreamHandler } from '../handlers/depthKeyHandler.js';
 import { RGBDStreamHandler } from '../handlers/rgbdHandler.js';
+import { log } from '../utils/debug.js';
 
 /**
  * Manages all stream handlers and their lifecycle
@@ -47,10 +48,10 @@ export class StreamManager {
           this.handleMultiStreamRequest(payload);
           break;
         default:
-          console.warn('Unknown peer event:', event);
+          log.warn('Unknown peer event:', event);
       }
     } catch (error) {
-      console.error('Error handling peer data:', error);
+      log.error('Error handling peer data:', error);
     }
   }
 
@@ -67,7 +68,7 @@ export class StreamManager {
         await this.startStream(payload.feed);
       }
     } catch (error) {
-      console.error('Error handling feed request:', error);
+      log.error('Error handling feed request:', error);
     }
   }
 
@@ -112,14 +113,14 @@ export class StreamManager {
       for (const stream of streams) {
         const handler = this.getHandler(stream);
         if (!handler) {
-          console.error(`No handler found for stream: ${stream}`);
+          log.error(`No handler found for stream: ${stream}`);
           success = false;
           break;
         }
 
         const streamSuccess = await handler.startStream();
         if (!streamSuccess) {
-          console.error(`Failed to start stream: ${stream}`);
+          log.error(`Failed to start stream: ${stream}`);
           success = false;
           break;
         }
@@ -146,7 +147,7 @@ export class StreamManager {
       this.kinectController.startListening(multiFrameCallback);
       return true;
     } catch (error) {
-      console.error('Error starting multiple streams:', error);
+      log.error('Error starting multiple streams:', error);
       await this.stopAllStreams();
       return false;
     }
@@ -186,7 +187,7 @@ export class StreamManager {
         }
         return true;
       } catch (error) {
-        console.error(`Error stopping ${streamType} stream:`, error);
+        log.error(`Error stopping ${streamType} stream:`, error);
         throw error;
       }
     });
@@ -245,11 +246,11 @@ export class StreamManager {
    * @returns {Promise<boolean>} Success status
    */
   async startStream(streamType) {
-    console.log(`StreamManager: Starting stream: ${streamType}`);
+    log.info(`StreamManager: Starting stream: ${streamType}`);
     try {
       const handler = this.getHandler(streamType);
       if (!handler) {
-        console.error(
+        log.error(
           `StreamManager: No handler found for stream type: ${streamType}`,
         );
         throw new Error(
@@ -257,32 +258,32 @@ export class StreamManager {
         );
       }
 
-      console.log(
+      log.handler(
         `StreamManager: Found handler for ${streamType}, calling startStream()`,
       );
       const success = await handler.startStream();
-      console.log(
+      log.handler(
         `StreamManager: Handler.startStream() returned: ${success}`,
       );
 
       if (success) {
         this.activeStreams.add(streamType);
-        console.log(
+        log.handler(
           `StreamManager: Added ${streamType} to active streams`,
         );
-        console.log(
+        log.handler(
           `StreamManager: Active streams: ${Array.from(
             this.activeStreams,
           ).join(', ')}`,
         );
       } else {
-        console.warn(
+        log.warn(
           `StreamManager: Failed to start ${streamType} stream`,
         );
       }
       return success;
     } catch (error) {
-      console.error(
+      log.error(
         `StreamManager: Error starting ${streamType} stream:`,
         error,
       );
@@ -303,7 +304,7 @@ export class StreamManager {
         this.activeStreams.delete(streamType);
       }
     } catch (error) {
-      console.error(`Error stopping ${streamType} stream:`, error);
+      log.error(`Error stopping ${streamType} stream:`, error);
     }
   }
 
@@ -347,14 +348,14 @@ export class StreamManager {
     ];
 
     streamTypes.forEach((type) => {
-      console.log(
+      log.handler(
         `StreamManager: Removing handler for start-${type}-stream`,
       );
       ipcMain.removeHandler(`start-${type}-stream`);
     });
 
     // Also remove the body tracking handler which has a different naming pattern
-    console.log(
+    log.handler(
       'StreamManager: Removing handler for start-body-tracking',
     );
     ipcMain.removeHandler('start-body-tracking');
@@ -362,8 +363,6 @@ export class StreamManager {
     // Clear all handlers
     this.handlers.clear();
 
-    console.log(
-      'StreamManager: Cleanup complete, all handlers removed',
-    );
+    log.info('StreamManager: Cleanup complete, all handlers removed');
   }
 }

@@ -3,6 +3,7 @@ import { ipcMain } from 'electron';
 import { BaseStreamHandler } from './baseHandler.js';
 import { DepthFrameProcessor } from '../processors/depthProcessor.js';
 import { KinectOptions } from '../kinectController.js';
+import { DEBUG, log } from '../utils/debug.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const sharp = require('sharp');
@@ -28,15 +29,13 @@ export class DepthStreamHandler extends BaseStreamHandler {
     );
 
     this.frameCallback = (data) => {
-      console.log('DepthStreamHandler: Received frame callback');
+      log.frame('DepthStreamHandler: Received frame callback');
       if (data.depthImageFrame) {
-        console.log(
-          'DepthStreamHandler: Processing depth image frame',
-        );
+        log.frame('DepthStreamHandler: Processing depth image frame');
         const processedData = this.processFrame(data.depthImageFrame);
 
         if (processedData && processedData.imageData) {
-          console.log(
+          log.frame(
             'DepthStreamHandler: Successfully processed depth frame, dimensions:',
             processedData.imageData.width,
             'x',
@@ -50,7 +49,7 @@ export class DepthStreamHandler extends BaseStreamHandler {
             processedData.imageData.data.buffer,
           );
 
-          console.log(
+          log.frame(
             'DepthStreamHandler: Processing depth frame with Sharp, buffer size:',
             rgba.length,
             'dimensions:',
@@ -70,7 +69,7 @@ export class DepthStreamHandler extends BaseStreamHandler {
             .webp({ quality: 90 }) // Convert to WebP with 90% quality
             .toBuffer()
             .then((compressedBuffer) => {
-              console.log(
+              log.frame(
                 'DepthStreamHandler: Successfully compressed depth frame, buffer size:',
                 compressedBuffer.length,
               );
@@ -79,7 +78,7 @@ export class DepthStreamHandler extends BaseStreamHandler {
               const dataUrl = `data:image/webp;base64,${compressedBuffer.toString(
                 'base64',
               )}`;
-              console.log(
+              log.frame(
                 'DepthStreamHandler: Created data URL for depth frame, length:',
                 dataUrl.length,
                 'starts with:',
@@ -98,20 +97,20 @@ export class DepthStreamHandler extends BaseStreamHandler {
               };
 
               // Send the frame data to renderer
-              console.log(
+              log.frame(
                 'DepthStreamHandler: Sending depth frame to renderer via IPC',
               );
               event.sender.send('depth-frame', frameData);
 
               // Broadcast to peers with the same compressed data
-              console.log(
+              log.frame(
                 'DepthStreamHandler: Broadcasting depth frame to peers via broadcastFrame',
               );
               const framePackage = this.createDataPackage(
                 'frame',
                 frameData,
               );
-              console.log(
+              log.frame(
                 'DepthStreamHandler: Frame package created:',
                 'name:',
                 framePackage.name,
@@ -124,27 +123,27 @@ export class DepthStreamHandler extends BaseStreamHandler {
               this.broadcastFrame('frame', framePackage, true);
             })
             .catch((err) => {
-              console.error(
+              log.error(
                 'DepthStreamHandler: Error processing image with Sharp:',
                 err,
               );
             });
         } else {
-          console.error(
+          log.error(
             'DepthStreamHandler: Failed to process depth frame, processedData is null or missing imageData',
           );
           if (processedData) {
-            console.error(
+            log.error(
               'DepthStreamHandler: processedData:',
               processedData,
             );
           }
         }
       } else {
-        console.warn(
+        log.warn(
           'DepthStreamHandler: Received frame callback without depthImageFrame',
         );
-        console.warn('DepthStreamHandler: Data received:', data);
+        log.warn('DepthStreamHandler: Data received:', data);
       }
     };
   }
@@ -155,7 +154,7 @@ export class DepthStreamHandler extends BaseStreamHandler {
   setupHandler() {
     // Check if handler is already registered
     if (ipcMain.listenerCount('start-depth-stream') > 0) {
-      console.log(
+      log.handler(
         'Handler for start-depth-stream already registered',
       );
       return;

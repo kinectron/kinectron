@@ -116,7 +116,7 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
             .toBuffer()
             .then((compressedBuffer) => {
               // Log the size of the compressed buffer
-              if (DEBUG.RAW_DEPTH && DEBUG.PERFORMANCE) {
+              if (DEBUG.PERFORMANCE) {
                 console.log(
                   `Compressed buffer size: ${compressedBuffer.length} bytes`,
                 );
@@ -141,7 +141,7 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
               };
 
               // Calculate and log the size information
-              if (DEBUG.RAW_DEPTH && DEBUG.PERFORMANCE) {
+              if (DEBUG.PERFORMANCE) {
                 const sizeInfo = calculateDataSize(frameData);
                 console.log('Raw Depth Frame Size Information:');
                 console.log(
@@ -163,7 +163,7 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
               }
 
               // Run compression comparison test if enabled
-              if (DEBUG.RAW_DEPTH && DEBUG.PERFORMANCE) {
+              if (DEBUG.PERFORMANCE) {
                 console.log(
                   'Running WebP lossless vs lossy comparison...',
                 );
@@ -233,11 +233,7 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
               }
 
               // Test WebP compression if enabled
-              if (
-                DEBUG.RAW_DEPTH &&
-                DEBUG.DATA &&
-                processedData.imageData.testValues
-              ) {
+              if (DEBUG.DATA && processedData.imageData.testValues) {
                 console.log('Running complete pipeline test...');
 
                 // Step 1: Get the original test values
@@ -466,14 +462,14 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
               );
             });
         } else {
-          if (DEBUG.RAW_DEPTH) {
+          if (DEBUG.HANDLERS) {
             console.error(
               'RawDepthStreamHandler: Failed to process raw depth frame, processedData is null or missing imageData',
             );
           }
         }
       } else {
-        if (DEBUG.RAW_DEPTH) {
+        if (DEBUG.HANDLERS) {
           console.warn(
             'RawDepthStreamHandler: Received frame callback without depthImageFrame',
           );
@@ -488,7 +484,7 @@ export class RawDepthStreamHandler extends BaseStreamHandler {
   setupHandler() {
     // Check if handler is already registered
     if (ipcMain.listenerCount('start-raw-depth-stream') > 0) {
-      if (DEBUG.RAW_DEPTH) {
+      if (DEBUG.HANDLERS) {
         console.log(
           'Handler for start-raw-depth-stream already registered',
         );

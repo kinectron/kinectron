@@ -15,6 +15,45 @@
 
 ## Completed Features
 
+### Logging System Cleanup
+
+- **Status**: Completed and working correctly
+- **Implementation**:
+  - Created dedicated debug.js files for both main and renderer processes
+  - Implemented a consistent DEBUG object structure across both environments
+  - Added category-based flags for different logging types:
+    - FRAMES: For frame processing and transmission logs
+    - UI: For UI-related logs
+    - PEER: For peer connection logs
+    - PERFORMANCE: For performance-related logs
+    - DATA: For data integrity logs
+    - NETWORK: For network-related logs
+  - Updated all stream handlers to use the new logging system:
+    - depthHandler.js
+    - rgbdHandler.js
+    - bodyHandler.js
+    - keyHandler.js
+    - depthKeyHandler.js
+    - rawDepthHandler.js
+  - Updated all frame processing methods in app.js:
+    - processDepthFrame
+    - processKeyFrame
+    - processDepthKeyFrame
+    - processRGBDFrame
+    - processRawDepthFrame
+    - processBodyFrame
+    - processColorFrame
+  - Added detailed documentation in README_LOGGING.md files
+  - Put frame statistics logs behind the DEBUG.DATA flag
+  - Put frame rate statistics logs behind the DEBUG.PERFORMANCE flag
+- **Current Behavior**:
+  - Debug logging is disabled by default
+  - Essential logs (errors, warnings, important info) are always visible
+  - Verbose debug logs are only shown when specific flags are enabled
+  - Console output is clean and organized
+  - Developers can enable specific categories of logging as needed
+  - Consistent logging behavior across the application
+
 ### Error Notification System
 
 - **Status**: Completed and working correctly
