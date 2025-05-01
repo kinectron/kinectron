@@ -296,7 +296,17 @@
 
 ## Known Issues
 
-1. **Raw Depth Visualization Quality**:
+1. **NgrokClientError: Invalid state transition from connected to connected**:
+
+   - **Issue**: Error occurs when opening the stream test example in the client
+   - **Symptoms**: Console error about invalid state transition from connected to connected
+   - **Root Cause**: NgrokClientState class didn't allow a transition from 'connected' to 'connected' state
+   - **Solution**:
+     - Modified NgrokClientState.VALID_TRANSITIONS to allow self-transition from 'connected' to 'connected'
+     - Added a comment in peerConnection.js to explain why this transition is needed
+   - **Current Status**: Resolved - error no longer appears when opening the stream test example
+
+2. **Raw Depth Visualization Quality**:
 
    - **Issue**: Depth data appears in distinct planes rather than smooth contours
    - **Symptoms**: Banding/quantization effect in the point cloud visualization
@@ -308,7 +318,7 @@
    - **Current Status**: Visualization quality can be improved now that data integrity issues are resolved
    - **Next Steps**: Enhance visualization techniques for better quality
 
-2. **UI Feedback for Error Conditions**:
+3. **UI Feedback for Error Conditions**:
 
    - **Issue**: Inconsistent error handling and user feedback when Kinect device isn't connected
    - **Symptoms**:
@@ -322,14 +332,14 @@
      - Fixed inconsistency between server and renderer error handling
    - **Current Status**: Resolved - users now receive clear error messages and can easily retry
 
-3. **Parcel Build System Caching**:
+4. **Parcel Build System Caching**:
 
    - **Issue**: Parcel's caching mechanism can cause issues with directly included JavaScript files
    - **Symptoms**: Changes to files in the `examples/streamTest/js/controllers/` directory don't appear in the browser
    - **Solution**: Added clean script to package.json and documented the issue in DEVELOPMENT.md
    - **Current Status**: Resolved with workaround, but requires awareness during development
 
-4. **Data Structure and Naming Convention Inconsistencies**:
+5. **Data Structure and Naming Convention Inconsistencies**:
 
    - **Issue**: Inconsistent naming conventions between server and client:
      - Case differences (imageData vs. imagedata)
@@ -348,7 +358,7 @@
      - Standardize on a single naming pattern (either hyphenated or camelCase)
      - Create a comprehensive refactoring plan to implement consistent naming
 
-5. **Unpacking Issues in Client Handlers**:
+6. **Unpacking Issues in Client Handlers**:
 
    - **Issue**: Raw data unpacking can be error-prone if not handled consistently
    - **Symptoms**: Incorrect depth values or visualization artifacts
@@ -356,7 +366,7 @@
    - **Current Status**: Working correctly but requires careful implementation for each stream type
    - **Next Steps**: Consider creating a unified unpacking utility for all stream types
 
-6. **Stream Initialization Pattern**:
+7. **Stream Initialization Pattern**:
    - **Issue**: Stream initialization can be complex and error-prone
    - **Symptoms**: Streams fail to start or stop correctly
    - **Solution**: Implemented robust initialization pattern with proper cleanup

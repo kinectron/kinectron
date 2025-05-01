@@ -438,6 +438,58 @@ flowchart TD
    - Reinitialize IPC handler to ensure all event listeners are set up
    - Ensure proper error handling during reinitialization
 
+## State Management Patterns
+
+### NgrokClientState Transitions
+
+The NgrokClientState class implements a state machine pattern to manage the connection state of ngrok tunnels. The state machine defines valid transitions between states to ensure the system maintains a consistent state.
+
+```mermaid
+flowchart TD
+    NULL[null] --> VALIDATING
+    NULL --> CONNECTING
+    VALIDATING --> CONNECTING
+    VALIDATING --> ERROR
+    CONNECTING --> CONNECTED
+    CONNECTING --> RECONNECTING
+    CONNECTING --> ERROR
+    CONNECTING --> CONNECTING
+    CONNECTED --> DISCONNECTED
+    CONNECTED --> RECONNECTING
+    CONNECTED --> ERROR
+    CONNECTED --> CONNECTED
+    RECONNECTING --> CONNECTED
+    RECONNECTING --> CONNECTING
+    RECONNECTING --> ERROR
+    ERROR --> DISCONNECTED
+    ERROR --> CONNECTING
+```
+
+Key design decisions:
+
+1. **Self-Transitions**: Some states allow transitions to themselves (e.g., CONNECTED → CONNECTED)
+
+   - This handles cases where multiple data channels open on the same connection
+   - Prevents errors when refreshing state metadata without changing the actual state
+   - Simplifies client code by not requiring state checks before setState calls
+
+2. **Validation**: The setState method validates transitions using the VALID_TRANSITIONS map
+
+   - Throws NgrokClientError for invalid transitions
+   - Ensures the state machine follows the defined flow
+   - Helps catch programming errors early
+
+3. **Metadata Updates**: Each state transition updates relevant metadata
+
+   - CONNECTED: Updates startTime if not already set
+   - RECONNECTING: Increments reconnect count and records attempt time
+   - All transitions: Update lastStateChange timestamp
+
+4. **Event Emission**: State changes trigger events that components can listen for
+   - Allows UI components to react to state changes
+   - Enables logging and monitoring of state transitions
+   - Facilitates debugging of connection issues
+
 ## Data Structure Handling Patterns
 
 ### Event Data Structure Mismatches

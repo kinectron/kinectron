@@ -53,6 +53,7 @@ export class NgrokClientState {
       NgrokClientState.STATES.DISCONNECTED,
       NgrokClientState.STATES.RECONNECTING,
       NgrokClientState.STATES.ERROR,
+      NgrokClientState.STATES.CONNECTED, // Allow self-transition to refresh state
     ],
     [NgrokClientState.STATES.RECONNECTING]: [
       NgrokClientState.STATES.CONNECTED,

@@ -178,8 +178,17 @@ We've completed all stream implementations including color, depth, raw depth, sk
   7. Ensured consistent error handling between direct and peer-to-peer initialization paths
 
 - **Implementing robust refresh handling**:
+
   1. Identified issue where Ctrl+R refresh didn't properly clean up IPC handlers
   2. Implemented comprehensive cleanup in StreamManager to remove all stream-specific handlers
   3. Added special handling for 'start-body-tracking' which follows a different naming pattern
   4. Modified the main process to properly sequence cleanup operations during refresh
   5. Ensured proper reinitialization of resources after renderer reload
+
+- **Fixing NgrokClientState transition error**:
+  1. Identified error in stream test example: "Invalid state transition from connected to connected"
+  2. Root cause was NgrokClientState not allowing self-transitions from 'connected' to 'connected'
+  3. Modified NgrokClientState.VALID_TRANSITIONS to allow self-transition for the 'connected' state
+  4. Added a comment in peerConnection.js to explain the purpose of allowing self-transitions
+  5. Documented the state machine pattern in systemPatterns.md for future reference
+  6. This fix allows multiple data channels to open on the same connection without errors

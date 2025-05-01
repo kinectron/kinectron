@@ -49,7 +49,8 @@ $parcel$export(module.exports, "DEBUG", () => $f33ae462b482966d$export$3f32c2013
  * Controls logging output for different components
  */ const $f33ae462b482966d$export$3f32c2013f0dcc1e = {
     // Master switches for components
-    RAW_DEPTH: false,
+    FRAMES: false,
+    HANDLERS: false,
     PEER: false,
     // Specific logging categories
     PERFORMANCE: false,
@@ -66,6 +67,32 @@ $parcel$export(module.exports, "DEBUG", () => $f33ae462b482966d$export$3f32c2013
         Object.keys(this).forEach((key)=>{
             if (typeof this[key] === 'boolean') this[key] = false;
         });
+    }
+};
+const $f33ae462b482966d$export$bef1f36f5486a6a3 = {
+    // Always log errors regardless of debug flags
+    error: function(message, ...args) {
+        console.error(message, ...args);
+    },
+    // Always log warnings regardless of debug flags
+    warn: function(message, ...args) {
+        console.warn(message, ...args);
+    },
+    // Always log info messages regardless of debug flags
+    info: function(message, ...args) {
+        console.log(message, ...args);
+    },
+    // Only log if the specified debug flag is enabled
+    debug: function(flag, message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e[flag]) console.debug(`[${flag}] ${message}`, ...args);
+    },
+    // Only log frame-related messages if FRAMES flag is enabled
+    frame: function(message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.FRAMES) console.debug(`[FRAMES] ${message}`, ...args);
+    },
+    // Only log handler-related messages if HANDLERS flag is enabled
+    handler: function(message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.HANDLERS) console.debug(`[HANDLERS] ${message}`, ...args);
     }
 };
 
@@ -9628,7 +9655,8 @@ class $b0904cb4b6312074$export$575c13c422fb6041 {
         [$b0904cb4b6312074$export$575c13c422fb6041.STATES.CONNECTED]: [
             $b0904cb4b6312074$export$575c13c422fb6041.STATES.DISCONNECTED,
             $b0904cb4b6312074$export$575c13c422fb6041.STATES.RECONNECTING,
-            $b0904cb4b6312074$export$575c13c422fb6041.STATES.ERROR
+            $b0904cb4b6312074$export$575c13c422fb6041.STATES.ERROR,
+            $b0904cb4b6312074$export$575c13c422fb6041.STATES.CONNECTED
         ],
         [$b0904cb4b6312074$export$575c13c422fb6041.STATES.RECONNECTING]: [
             $b0904cb4b6312074$export$575c13c422fb6041.STATES.CONNECTED,
@@ -10220,7 +10248,8 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
    */ setupConnectionHandlers() {
         this.connection.on('open', ()=>{
             if ((0, $kSHSU.DEBUG).PEER) console.log('Connected to peer:', this.targetPeerId);
-            // Update state
+            // Update state - Note: NgrokClientState allows connected->connected transition
+            // to handle multiple data channels opening on the same connection
             this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.CONNECTED, {
                 peerId: this.targetPeerId,
                 timestamp: new Date()

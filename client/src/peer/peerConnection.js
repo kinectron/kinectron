@@ -535,7 +535,8 @@ export class PeerConnection {
         console.log('Connected to peer:', this.targetPeerId);
       }
 
-      // Update state
+      // Update state - Note: NgrokClientState allows connected->connected transition
+      // to handle multiple data channels opening on the same connection
       this.state.setState(NgrokClientState.STATES.CONNECTED, {
         peerId: this.targetPeerId,
         timestamp: new Date(),
