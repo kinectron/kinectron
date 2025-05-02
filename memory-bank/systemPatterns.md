@@ -281,6 +281,46 @@ This pattern was developed for the key stream and should be applied to all strea
    - B and A channels unused (set to 0 and 255)
    - Unpacking: `depth = (G << 8) | R`
 
+### Frame Dropping and Buffering Strategy
+
+1. **Lossy Transmission**:
+
+   - All streams use lossy transmission by default
+   - Frames are dropped when the network can't keep up
+   - Implemented in the `broadcastFrame` method of `BaseStreamHandler`
+   - Each stream handler passes `lossy=true` to the `broadcastFrame` method
+
+2. **Buffer Checking**:
+
+   - Before sending a frame, the system checks if there's data in the buffer
+   - If the buffer is not empty and the stream is marked as lossy, the frame is dropped
+   - This prevents buffer bloat and reduces latency
+
+3. **Implementation**:
+
+   ```javascript
+   // In PeerConnectionManager.broadcast method
+   this.peer_connections.forEach((connection) => {
+     // Check if there is still data in the buffer before adding more information to it.
+     // This prevents bandwidth issues from causing latency.
+     if (
+       lossy &&
+       connection.dataChannel &&
+       connection.dataChannel.bufferedAmount > 0
+     ) {
+       return;
+     }
+
+     connection.send(message);
+   });
+   ```
+
+4. **Benefits**:
+   - Maintains real-time performance even on slower networks
+   - Prioritizes fresh data over complete data
+   - Reduces latency by preventing buffer bloat
+   - Particularly important for streams like depth, color, and body tracking where real-time feedback is critical
+
 ## Component Relationships
 
 1. **KinectController**: Manages hardware interface

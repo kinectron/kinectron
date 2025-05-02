@@ -207,9 +207,19 @@ We've completed all stream implementations including color, depth, raw depth, sk
   5. Ensured proper reinitialization of resources after renderer reload
 
 - **Fixing NgrokClientState transition error**:
+
   1. Identified error in stream test example: "Invalid state transition from connected to connected"
   2. Root cause was NgrokClientState not allowing self-transitions from 'connected' to 'connected'
   3. Modified NgrokClientState.VALID_TRANSITIONS to allow self-transition for the 'connected' state
   4. Added a comment in peerConnection.js to explain the purpose of allowing self-transitions
   5. Documented the state machine pattern in systemPatterns.md for future reference
   6. This fix allows multiple data channels to open on the same connection without errors
+
+- **Implementing frame dropping and buffering strategy**:
+  1. Verified that all stream handlers use lossy transmission by default
+  2. Confirmed that each stream handler passes `lossy=true` to the `broadcastFrame` method
+  3. Validated buffer checking mechanism in PeerConnectionManager that prevents buffer bloat
+  4. Documented the frame dropping strategy in systemPatterns.md
+  5. Made all streams lossy by default to prioritize real-time performance over complete data
+  6. This approach maintains real-time performance even on slower networks
+  7. Prioritizes fresh data over complete data, which is critical for interactive applications

@@ -338,6 +338,28 @@
   - Kinect can be initialized after refresh without errors
   - All streams work correctly after refresh
 
+### Frame Dropping and Buffering Implementation
+
+- **Status**: Completed and working correctly
+- **Implementation**:
+  - Verified that all stream handlers use lossy transmission by default:
+    - Each stream handler passes `lossy=true` to the `broadcastFrame` method
+    - This enables frame dropping when the network can't keep up
+  - Confirmed buffer checking mechanism in PeerConnectionManager:
+    - Before sending a frame, the system checks if there's data in the buffer
+    - If the buffer is not empty and the stream is marked as lossy, the frame is dropped
+    - This prevents buffer bloat and reduces latency
+  - Documented the frame dropping strategy in systemPatterns.md:
+    - Added a new section explaining the buffering and frame dropping mechanism
+    - Included code examples and benefits of this approach
+  - Made all streams lossy by default to prioritize real-time performance
+- **Current Behavior**:
+  - All streams automatically drop frames when the network can't keep up
+  - Real-time performance is maintained even on slower networks
+  - Fresh data is prioritized over complete data
+  - Latency is reduced by preventing buffer bloat
+  - Particularly important for streams like depth, color, and body tracking where real-time feedback is critical
+
 ## In Progress
 
 1. **UI Refinements**:
