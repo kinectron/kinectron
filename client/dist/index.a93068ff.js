@@ -116,12 +116,12 @@
         if (frame.bodies && frame.bodies.length > 0) {
             // Colors for different bodies
             const colors = [
-                this.p5Instance.color(255, 0, 0),
-                this.p5Instance.color(0, 255, 0),
-                this.p5Instance.color(0, 0, 255),
-                this.p5Instance.color(255, 255, 0),
-                this.p5Instance.color(0, 255, 255),
-                this.p5Instance.color(255, 0, 255)
+                this.p5Instance.color(0, 180, 180),
+                this.p5Instance.color(180, 180, 0),
+                this.p5Instance.color(180, 0, 180),
+                this.p5Instance.color(180, 0, 0),
+                this.p5Instance.color(0, 180, 0),
+                this.p5Instance.color(0, 0, 180)
             ];
             try {
                 // Draw each body
@@ -326,7 +326,7 @@
         }
         const p51 = this.p5Instance;
         const joints = body.skeleton.joints;
-        // Draw joints as large dots
+        // Draw joints as dots
         p51.fill(color);
         p51.noStroke();
         joints.forEach((joint, index)=>{
@@ -364,14 +364,8 @@
                     if (window.DEBUG && window.DEBUG.DATA && window.DEBUG.FRAMES) console.warn(`Joint ${index} has no usable coordinates`);
                     return;
                 }
-                // Draw a large dot for the joint
-                p51.ellipse(x, y, 20, 20);
-                // Draw joint index as text
-                p51.fill(255); // White text
-                p51.textSize(12);
-                p51.text(index.toString(), x, y);
-                // Reset fill color for next joint
-                p51.fill(color);
+                // Draw a smaller dot for the joint
+                p51.ellipse(x, y, 10, 10);
             } catch (error) {
                 if (window.DEBUG && window.DEBUG.DATA && window.DEBUG.FRAMES) console.error(`Error drawing joint ${index}:`, error);
             }

@@ -185,12 +185,12 @@ class P5Visualizer {
     if (frame.bodies && frame.bodies.length > 0) {
       // Colors for different bodies
       const colors = [
-        this.p5Instance.color(255, 0, 0), // Red
-        this.p5Instance.color(0, 255, 0), // Green
-        this.p5Instance.color(0, 0, 255), // Blue
-        this.p5Instance.color(255, 255, 0), // Yellow
-        this.p5Instance.color(0, 255, 255), // Cyan
-        this.p5Instance.color(255, 0, 255), // Magenta
+        this.p5Instance.color(0, 180, 180), // Cyan
+        this.p5Instance.color(180, 180, 0), // Yellow
+        this.p5Instance.color(180, 0, 180), // Magenta
+        this.p5Instance.color(180, 0, 0), // Red
+        this.p5Instance.color(0, 180, 0), // Green
+        this.p5Instance.color(0, 0, 180), // Blue
       ];
 
       try {
@@ -383,7 +383,7 @@ class P5Visualizer {
     const p5 = this.p5Instance;
     const joints = body.skeleton.joints;
 
-    // Draw joints as large dots
+    // Draw joints as dots
     p5.fill(color);
     p5.noStroke();
 
@@ -453,16 +453,8 @@ class P5Visualizer {
           return;
         }
 
-        // Draw a large dot for the joint
-        p5.ellipse(x, y, 20, 20);
-
-        // Draw joint index as text
-        p5.fill(255); // White text
-        p5.textSize(12);
-        p5.text(index.toString(), x, y);
-
-        // Reset fill color for next joint
-        p5.fill(color);
+        // Draw a smaller dot for the joint
+        p5.ellipse(x, y, 10, 10);
       } catch (error) {
         if (
           window.DEBUG &&
