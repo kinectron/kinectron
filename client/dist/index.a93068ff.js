@@ -112,25 +112,6 @@
         }
         // Clear canvas
         this.p5Instance.background(255);
-        // Always log this regardless of debug flags to help diagnose the issue
-        console.error('P5Visualizer: displaySkeletonFrame called');
-        console.error('Frame:', frame);
-        console.error('Bodies:', frame.bodies ? frame.bodies.length : 0);
-        if (frame.bodies && frame.bodies.length > 0) {
-            const firstBody = frame.bodies[0];
-            console.error('First body ID:', firstBody.id);
-            console.error('Has skeleton:', !!firstBody.skeleton);
-            if (firstBody.skeleton && firstBody.skeleton.joints) {
-                console.error('Joints count:', firstBody.skeleton.joints.length);
-                console.error('First joint:', firstBody.skeleton.joints[0]);
-                // Check for specific properties we need
-                const firstJoint = firstBody.skeleton.joints[0];
-                console.error('Joint has depthX:', 'depthX' in firstJoint);
-                console.error('Joint has depthY:', 'depthY' in firstJoint);
-                console.error('Joint has cameraX:', 'cameraX' in firstJoint);
-                console.error('Joint has cameraY:', 'cameraY' in firstJoint);
-            }
-        }
         // Draw skeletons if bodies exist
         if (frame.bodies && frame.bodies.length > 0) {
             // Colors for different bodies
@@ -152,11 +133,12 @@
                 this.frameCount++;
                 // Set active state
                 this.setActive(true);
-                console.error(`Skeleton drawn: ${frame.bodies.length} bodies`);
+                // Only log when both DATA and FRAMES debugging are enabled
+                if (window.DEBUG && window.DEBUG.DATA && window.DEBUG.FRAMES) console.log(`Skeleton drawn: ${frame.bodies.length} bodies`);
             } catch (error) {
                 console.error('Error drawing skeleton:', error);
             }
-        } else console.error('No bodies in skeleton frame');
+        }
     }
     /**
    * Draw a single skeleton
@@ -339,24 +321,33 @@
    * @param {p5.Color} color - Color to use for this skeleton
    */ _drawSimpleSkeleton(body, color) {
         if (!body.skeleton || !body.skeleton.joints) {
-            console.error('No skeleton joints in body data');
+            console.warn('No skeleton joints in body data');
             return;
         }
         const p51 = this.p5Instance;
         const joints = body.skeleton.joints;
-        console.error('Drawing simple skeleton with', joints.length, 'joints');
         // Draw joints as large dots
         p51.fill(color);
         p51.noStroke();
         joints.forEach((joint, index)=>{
             try {
                 let x, y;
-                // Try different coordinate systems
+                let coordsFound = false;
+                // Try different coordinate systems in order of preference
                 if ('depthX' in joint && 'depthY' in joint) {
                     // Use depth coordinates (normalized 0-1)
                     x = joint.depthX * p51.width;
                     y = joint.depthY * p51.height;
-                    console.error(`Joint ${index} using depthX/Y: ${x}, ${y}`);
+                    coordsFound = true;
+                    // Only log when both DATA and FRAMES debugging are enabled
+                    if (window.DEBUG && window.DEBUG.DATA && window.DEBUG.FRAMES) console.log(`Joint ${index} using depthX/Y: ${x}, ${y}`);
+                } else if ('colorX' in joint && 'colorY' in joint) {
+                    // Use color coordinates (normalized 0-1)
+                    x = joint.colorX * p51.width;
+                    y = joint.colorY * p51.height;
+                    coordsFound = true;
+                    // Only log when both DATA and FRAMES debugging are enabled
+                    if (window.DEBUG && window.DEBUG.DATA && window.DEBUG.FRAMES) console.log(`Joint ${index} using colorX/Y: ${x}, ${y}`);
                 } else if ('cameraX' in joint && 'cameraY' in joint) {
                     // Use camera coordinates with simple scaling
                     const scaleFactor = 0.001; // Very small factor for camera coordinates (in mm)
@@ -364,15 +355,13 @@
                     const centerY = p51.height / 2;
                     x = centerX + joint.cameraX * scaleFactor;
                     y = centerY + joint.cameraY * scaleFactor;
-                    console.error(`Joint ${index} using cameraX/Y: ${x}, ${y}`);
-                } else if ('colorX' in joint && 'colorY' in joint) {
-                    // Use color coordinates (normalized 0-1)
-                    x = joint.colorX * p51.width;
-                    y = joint.colorY * p51.height;
-                    console.error(`Joint ${index} using colorX/Y: ${x}, ${y}`);
-                } else {
-                    // Skip this joint if no usable coordinates
-                    console.error(`Joint ${index} has no usable coordinates`);
+                    coordsFound = true;
+                    // Only log when both DATA and FRAMES debugging are enabled
+                    if (window.DEBUG && window.DEBUG.DATA && window.DEBUG.FRAMES) console.log(`Joint ${index} using cameraX/Y: ${x}, ${y}`);
+                }
+                // Skip this joint if no usable coordinates
+                if (!coordsFound) {
+                    if (window.DEBUG && window.DEBUG.DATA && window.DEBUG.FRAMES) console.warn(`Joint ${index} has no usable coordinates`);
                     return;
                 }
                 // Draw a large dot for the joint
@@ -384,7 +373,7 @@
                 // Reset fill color for next joint
                 p51.fill(color);
             } catch (error) {
-                console.error(`Error drawing joint ${index}:`, error);
+                if (window.DEBUG && window.DEBUG.DATA && window.DEBUG.FRAMES) console.error(`Error drawing joint ${index}:`, error);
             }
         });
     }

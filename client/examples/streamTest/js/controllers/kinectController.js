@@ -412,15 +412,8 @@ class KinectController {
       this.visualization.displaySkeletonFrame(frame);
     });
 
-    // Enable debug logging for this stream if not already enabled
-    if (!window.DEBUG.DATA) {
-      window.DEBUG.DATA = true;
-      this.debug.elements.debugData.checked = true;
-    }
-    this.debug.addDebugInfo(
-      'Debug logging enabled for skeleton stream',
-      true,
-    );
+    // Debug info
+    this.debug.addDebugInfo('Skeleton stream started', true);
   }
 
   /**
@@ -443,11 +436,8 @@ class KinectController {
 
     this.debug.addDebugInfo('Starting key stream...', true);
 
-    // Enable debug logging to help diagnose any data structure issues if not already enabled
-    if (!window.DEBUG.DATA) {
-      window.DEBUG.DATA = true;
-      this.debug.elements.debugData.checked = true;
-    }
+    // Debug info
+    this.debug.addDebugInfo('Key stream started', true);
 
     this.kinectron.startKey((frame) => {
       // Update stream status
@@ -502,11 +492,8 @@ class KinectController {
 
     this.debug.addDebugInfo('Starting RGBD stream...', true);
 
-    // Enable debug logging to help diagnose any data structure issues if not already enabled
-    if (!window.DEBUG.DATA) {
-      window.DEBUG.DATA = true;
-      this.debug.elements.debugData.checked = true;
-    }
+    // Debug info
+    this.debug.addDebugInfo('RGBD stream started', true);
 
     this.kinectron.startRGBD((frame) => {
       // Update stream status
@@ -555,11 +542,8 @@ class KinectController {
 
     this.debug.addDebugInfo('Starting depth key stream...', true);
 
-    // Enable debug logging to help diagnose any data structure issues if not already enabled
-    if (!window.DEBUG.DATA) {
-      window.DEBUG.DATA = true;
-      this.debug.elements.debugData.checked = true;
-    }
+    // Debug info
+    this.debug.addDebugInfo('Depth key stream started', true);
 
     this.kinectron.startDepthKey((frame) => {
       // Update stream status

@@ -246,12 +246,8 @@
             if (window.DEBUG.FRAMES) window.log.frame('Calling visualization.displaySkeletonFrame');
             this.visualization.displaySkeletonFrame(frame);
         });
-        // Enable debug logging for this stream if not already enabled
-        if (!window.DEBUG.DATA) {
-            window.DEBUG.DATA = true;
-            this.debug.elements.debugData.checked = true;
-        }
-        this.debug.addDebugInfo('Debug logging enabled for skeleton stream', true);
+        // Debug info
+        this.debug.addDebugInfo('Skeleton stream started', true);
     }
     /**
    * Start key stream
@@ -265,11 +261,8 @@
         // Resize canvas for key stream (using color dimensions since key is based on color)
         this.visualization.resizeP5Canvas(this.AZURE_COLOR_WIDTH * this.DISPLAY_SCALE, this.AZURE_COLOR_HEIGHT * this.DISPLAY_SCALE);
         this.debug.addDebugInfo('Starting key stream...', true);
-        // Enable debug logging to help diagnose any data structure issues if not already enabled
-        if (!window.DEBUG.DATA) {
-            window.DEBUG.DATA = true;
-            this.debug.elements.debugData.checked = true;
-        }
+        // Debug info
+        this.debug.addDebugInfo('Key stream started', true);
         this.kinectron.startKey((frame)=>{
             // Update stream status
             this.ui.updateStreamStatus('Active (Key)', true);
@@ -301,11 +294,8 @@
         // Resize canvas for RGBD stream
         this.visualization.resizeP5Canvas(this.AZURE_RGBD_WIDTH, this.AZURE_RGBD_HEIGHT);
         this.debug.addDebugInfo('Starting RGBD stream...', true);
-        // Enable debug logging to help diagnose any data structure issues if not already enabled
-        if (!window.DEBUG.DATA) {
-            window.DEBUG.DATA = true;
-            this.debug.elements.debugData.checked = true;
-        }
+        // Debug info
+        this.debug.addDebugInfo('RGBD stream started', true);
         this.kinectron.startRGBD((frame)=>{
             // Update stream status
             this.ui.updateStreamStatus('Active (RGBD)', true);
@@ -335,11 +325,8 @@
         // Hide p5 canvas and show Three.js canvas (same as raw depth)
         this.visualization.showThreeCanvas();
         this.debug.addDebugInfo('Starting depth key stream...', true);
-        // Enable debug logging to help diagnose any data structure issues if not already enabled
-        if (!window.DEBUG.DATA) {
-            window.DEBUG.DATA = true;
-            this.debug.elements.debugData.checked = true;
-        }
+        // Debug info
+        this.debug.addDebugInfo('Depth key stream started', true);
         this.kinectron.startDepthKey((frame)=>{
             // Update stream status
             this.ui.updateStreamStatus('Active (Depth Key)', true);
