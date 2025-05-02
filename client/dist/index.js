@@ -7,97 +7,6 @@ function $parcel$export(e, n, v, s) {
 function $parcel$interopDefault(a) {
   return a && a.__esModule ? a.default : a;
 }
-
-      var $parcel$global = globalThis;
-    
-var $parcel$modules = {};
-var $parcel$inits = {};
-
-var parcelRequire = $parcel$global["parcelRequire94c2"];
-
-if (parcelRequire == null) {
-  parcelRequire = function(id) {
-    if (id in $parcel$modules) {
-      return $parcel$modules[id].exports;
-    }
-    if (id in $parcel$inits) {
-      var init = $parcel$inits[id];
-      delete $parcel$inits[id];
-      var module = {id: id, exports: {}};
-      $parcel$modules[id] = module;
-      init.call(module.exports, module, module.exports);
-      return module.exports;
-    }
-    var err = new Error("Cannot find module '" + id + "'");
-    err.code = 'MODULE_NOT_FOUND';
-    throw err;
-  };
-
-  parcelRequire.register = function register(id, init) {
-    $parcel$inits[id] = init;
-  };
-
-  $parcel$global["parcelRequire94c2"] = parcelRequire;
-}
-
-var parcelRegister = parcelRequire.register;
-parcelRegister("kSHSU", function(module, exports) {
-
-$parcel$export(module.exports, "DEBUG", () => $f33ae462b482966d$export$3f32c2013f0dcc1e);
-/**
- * Debug configuration for Kinectron client
- * Controls logging output for different components
- */ const $f33ae462b482966d$export$3f32c2013f0dcc1e = {
-    // Master switches for components
-    FRAMES: false,
-    HANDLERS: false,
-    PEER: false,
-    // Specific logging categories
-    PERFORMANCE: false,
-    DATA: false,
-    NETWORK: false,
-    // Helper method to enable all logs
-    enableAll: function() {
-        Object.keys(this).forEach((key)=>{
-            if (typeof this[key] === 'boolean') this[key] = true;
-        });
-    },
-    // Helper method to disable all logs
-    disableAll: function() {
-        Object.keys(this).forEach((key)=>{
-            if (typeof this[key] === 'boolean') this[key] = false;
-        });
-    }
-};
-const $f33ae462b482966d$export$bef1f36f5486a6a3 = {
-    // Always log errors regardless of debug flags
-    error: function(message, ...args) {
-        console.error(message, ...args);
-    },
-    // Always log warnings regardless of debug flags
-    warn: function(message, ...args) {
-        console.warn(message, ...args);
-    },
-    // Always log info messages regardless of debug flags
-    info: function(message, ...args) {
-        console.log(message, ...args);
-    },
-    // Only log if the specified debug flag is enabled
-    debug: function(flag, message, ...args) {
-        if ($f33ae462b482966d$export$3f32c2013f0dcc1e[flag]) console.debug(`[${flag}] ${message}`, ...args);
-    },
-    // Only log frame-related messages if FRAMES flag is enabled
-    frame: function(message, ...args) {
-        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.FRAMES) console.debug(`[FRAMES] ${message}`, ...args);
-    },
-    // Only log handler-related messages if HANDLERS flag is enabled
-    handler: function(message, ...args) {
-        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.HANDLERS) console.debug(`[HANDLERS] ${message}`, ...args);
-    }
-};
-
-});
-
 /**
  * @fileoverview Main entry point for the Kinectron client library
  * @version 0.3.9
@@ -9870,8 +9779,75 @@ class $b0904cb4b6312074$export$575c13c422fb6041 {
 }
 
 
+/**
+ * Debug configuration for Kinectron client
+ * Controls logging output for different components
+ */ const $f33ae462b482966d$export$3f32c2013f0dcc1e = {
+    // Master switches for components
+    FRAMES: false,
+    HANDLERS: false,
+    PEER: false,
+    // Specific logging categories
+    PERFORMANCE: false,
+    DATA: false,
+    NETWORK: false,
+    // Helper method to enable all logs
+    enableAll: function() {
+        Object.keys(this).forEach((key)=>{
+            if (typeof this[key] === 'boolean') this[key] = true;
+        });
+    },
+    // Helper method to disable all logs
+    disableAll: function() {
+        Object.keys(this).forEach((key)=>{
+            if (typeof this[key] === 'boolean') this[key] = false;
+        });
+    }
+};
+const $f33ae462b482966d$export$bef1f36f5486a6a3 = {
+    // Always log errors regardless of debug flags
+    error: function(message, ...args) {
+        console.error(message, ...args);
+    },
+    // Always log warnings regardless of debug flags
+    warn: function(message, ...args) {
+        console.warn(message, ...args);
+    },
+    // Always log info messages regardless of debug flags
+    info: function(message, ...args) {
+        console.log(message, ...args);
+    },
+    // Only log if the specified debug flag is enabled
+    debug: function(flag, message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e[flag]) console.debug(`[${flag}] ${message}`, ...args);
+    },
+    // Only log frame-related messages if FRAMES flag is enabled
+    frame: function(message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.FRAMES) console.debug(`[FRAMES] ${message}`, ...args);
+    },
+    // Only log handler-related messages if HANDLERS flag is enabled
+    handler: function(message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.HANDLERS) console.debug(`[HANDLERS] ${message}`, ...args);
+    },
+    // Only log peer-related messages if PEER flag is enabled
+    peer: function(message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.PEER) console.debug(`[PEER] ${message}`, ...args);
+    },
+    // Only log performance-related messages if PERFORMANCE flag is enabled
+    performance: function(message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.PERFORMANCE) console.debug(`[PERFORMANCE] ${message}`, ...args);
+    },
+    // Only log data-related messages if DATA flag is enabled
+    data: function(message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.DATA) console.debug(`[DATA] ${message}`, ...args);
+    },
+    // Only log network-related messages if NETWORK flag is enabled
+    network: function(message, ...args) {
+        if ($f33ae462b482966d$export$3f32c2013f0dcc1e.NETWORK) console.debug(`[NETWORK] ${message}`, ...args);
+    }
+};
 
-var $kSHSU = parcelRequire("kSHSU");
+
 class $4d767ee87242f6c3$export$d84cf184fade0488 {
     /**
    * @param {string|PeerNetworkConfig} [networkConfig] - Network configuration or host address
@@ -9931,7 +9907,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                 console.warn('Peer already initialized');
                 return;
             }
-            if ((0, $kSHSU.DEBUG).PEER) console.log('Initializing peer with config:', this.config);
+            if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Initializing peer with config:', this.config);
             // Check if this is an ngrok connection
             const isNgrok = typeof this.config.host === 'string' && this.config.host.includes('ngrok');
             if (isNgrok) {
@@ -9970,7 +9946,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
    * @private
    */ setupPeerEventHandlers() {
         this.peer.on('open', (id)=>{
-            if ((0, $kSHSU.DEBUG).PEER) console.log('My peer ID is:', id);
+            if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('My peer ID is:', id);
             // Already in CONNECTING state, proceed with connection
             this.connect();
         });
@@ -9978,7 +9954,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
             console.error('Peer connection error:', error);
             // Handle ID taken error by generating new ID
             if (error.type === 'unavailable-id') {
-                if ((0, $kSHSU.DEBUG).PEER) console.log('Client ID taken, generating new ID');
+                if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Client ID taken, generating new ID');
                 this.clientId = this.generateClientId();
                 this._cleanup(false);
                 this.initialize();
@@ -9994,7 +9970,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
             if (this.shouldAttemptReconnection(error)) this._handleReconnection(error);
         });
         this.peer.on('disconnected', ()=>{
-            if ((0, $kSHSU.DEBUG).PEER) console.log('Peer disconnected from server');
+            if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Peer disconnected from server');
             this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.DISCONNECTED, {
                 reason: 'peer_disconnected'
             });
@@ -10140,7 +10116,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
         const timeoutDuration = 15000; // 15 second timeout for ngrok connections
         setTimeout(()=>{
             if (this.state.getState() !== (0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.CONNECTED) {
-                if ((0, $kSHSU.DEBUG).PEER) console.log('Connection attempt timed out');
+                if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Connection attempt timed out');
                 if (this.shouldAttemptReconnection({
                     type: 'timeout'
                 })) this._handleReconnection({
@@ -10167,11 +10143,11 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
         const baseDelay = Math.min(2000 * Math.pow(1.5, this.state.getMetadata().metrics.reconnects.count), 15000);
         const jitter = baseDelay * 0.2 * (Math.random() * 2 - 1);
         const delay = Math.max(2000, baseDelay + jitter);
-        if ((0, $kSHSU.DEBUG).PEER) console.log(`Attempting reconnection ${this.state.getMetadata().metrics.reconnects.count + 1} of 3 in ${Math.round(delay)}ms`);
+        if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log(`Attempting reconnection ${this.state.getMetadata().metrics.reconnects.count + 1} of 3 in ${Math.round(delay)}ms`);
         // Wait for delay
         await new Promise((resolve)=>setTimeout(resolve, delay));
         if (this.state.getState() === (0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.RECONNECTING) {
-            if ((0, $kSHSU.DEBUG).PEER) console.log('Attempting to reconnect...');
+            if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Attempting to reconnect...');
             // Clean up existing resources
             await this._cleanup(false);
             // Only try to reconnect if we haven't exceeded max attempts
@@ -10180,7 +10156,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                 this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.CONNECTING);
                 this.initialize();
             } else {
-                if ((0, $kSHSU.DEBUG).PEER) console.log('Max reconnection attempts reached');
+                if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Max reconnection attempts reached');
                 this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.ERROR, {
                     error: 'Maximum reconnection attempts reached',
                     type: 'max_retries'
@@ -10223,14 +10199,14 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
             if (this.peer.connections[this.targetPeerId]?.length > 0) {
                 const existingConn = this.peer.connections[this.targetPeerId][0];
                 if (existingConn.open) {
-                    if ((0, $kSHSU.DEBUG).PEER) console.log('Reusing existing connection');
+                    if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Reusing existing connection');
                     this.connection = existingConn;
                     this.setupConnectionHandlers();
                     return;
                 }
             }
             // Create new connection
-            if ((0, $kSHSU.DEBUG).PEER) console.log('Creating new connection to:', this.targetPeerId);
+            if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Creating new connection to:', this.targetPeerId);
             this.connection = this.peer.connect(this.targetPeerId, {
                 reliable: true,
                 serialization: 'binary'
@@ -10247,7 +10223,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
    * @private
    */ setupConnectionHandlers() {
         this.connection.on('open', ()=>{
-            if ((0, $kSHSU.DEBUG).PEER) console.log('Connected to peer:', this.targetPeerId);
+            if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Connected to peer:', this.targetPeerId);
             // Update state - Note: NgrokClientState allows connected->connected transition
             // to handle multiple data channels opening on the same connection
             this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.CONNECTED, {
@@ -10275,11 +10251,11 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                 });
                 return;
             }
-            if ((0, $kSHSU.DEBUG).PEER) console.log('Received data from peer:', data);
+            if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Received data from peer:', data);
             this.handleIncomingData(data);
         });
         this.connection.on('close', ()=>{
-            if ((0, $kSHSU.DEBUG).PEER) console.log('Peer connection closed');
+            if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('Peer connection closed');
             if (!this._isClosing) {
                 this.state.setState((0, $b0904cb4b6312074$export$575c13c422fb6041).STATES.DISCONNECTED, {
                     reason: 'connection_closed'
@@ -10307,18 +10283,18 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
    * @param {*} data.data - Event data
    */ handleIncomingData(data) {
         try {
-            if ((0, $kSHSU.DEBUG).PEER) console.log('PeerConnection: Received event:', data.event, 'with data:', data.data);
+            if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('PeerConnection: Received event:', data.event, 'with data:', data.data);
             // First, try to find a specific handler for this event
             const handler = this.messageHandlers.get(data.event);
             if (handler) {
-                if ((0, $kSHSU.DEBUG).PEER) console.log('PeerConnection: Found specific handler for event:', data.event);
+                if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('PeerConnection: Found specific handler for event:', data.event);
                 handler({
                     ...data.data,
                     timestamp: Date.now(),
                     state: this.state.getState()
                 });
             } else {
-                if ((0, $kSHSU.DEBUG).PEER) console.log('PeerConnection: No specific handler for event:', data.event, 'forwarding to data handler');
+                if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).PEER) console.log('PeerConnection: No specific handler for event:', data.event, 'forwarding to data handler');
                 // If no specific handler is found, forward the event to the data handler
                 // This ensures all events are forwarded to the Kinectron class
                 const dataHandler = this.messageHandlers.get('data');
@@ -10424,21 +10400,17 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
 
 
 
+
 /**
  * Stream handler factory functions
  */ /**
  * Utility functions for processing image data from different streams
- */ /**
- * Process image data from a frame
- * @param {Object} frameData - The frame data containing image information
- * @param {number} width - The width of the image
- * @param {number} height - The height of the image
- * @param {Function} callback - Callback to receive the processed image
- */ function $c98be0bef0e4b75f$export$6bfa04708e643828(frameData, callback) {
+ */ 
+function $c98be0bef0e4b75f$export$6bfa04708e643828(frameData, callback) {
     // Check for both imagedata and imageData formats
     const imagedata = frameData.imagedata || frameData.imageData;
     if (!frameData || !imagedata) {
-        console.warn('Invalid frame data received:', frameData);
+        (0, $f33ae462b482966d$export$bef1f36f5486a6a3).warn('Invalid frame data received:', frameData);
         return;
     }
     const { width: width, height: height } = imagedata;
@@ -10450,7 +10422,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
     try {
         // Check if data is a string (data URL)
         if (typeof imagedata.data === 'string') {
-            console.log('Processing image data from data URL');
+            (0, $f33ae462b482966d$export$bef1f36f5486a6a3).data('Processing image data from data URL');
             $c98be0bef0e4b75f$export$708bda43d64f1409(imagedata.data, width, height, (src)=>{
                 // Call the user callback with processed frame
                 callback({
@@ -10461,7 +10433,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                     timestamp: frameData.timestamp || Date.now()
                 });
             }, (err)=>{
-                console.error('Error loading image from data URL:', err);
+                (0, $f33ae462b482966d$export$bef1f36f5486a6a3).error('Error loading image from data URL:', err);
                 // Try to call callback anyway with the raw data
                 callback({
                     src: imagedata.data,
@@ -10472,7 +10444,7 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
                 });
             });
         } else {
-            console.log('Processing image data from raw pixel data');
+            (0, $f33ae462b482966d$export$bef1f36f5486a6a3).data('Processing image data from raw pixel data');
             // Handle raw pixel data
             const pixelData = $c98be0bef0e4b75f$export$3f12cadb607c10de(imagedata.data);
             const imgData = new ImageData(pixelData, width, height);
@@ -10490,8 +10462,8 @@ class $4d767ee87242f6c3$export$d84cf184fade0488 {
             });
         }
     } catch (error) {
-        console.error('Error processing frame:', error);
-        console.error('Frame data:', imagedata);
+        (0, $f33ae462b482966d$export$bef1f36f5486a6a3).error('Error processing frame:', error);
+        (0, $f33ae462b482966d$export$bef1f36f5486a6a3).error('Frame data:', imagedata);
     }
 }
 function $c98be0bef0e4b75f$export$708bda43d64f1409(dataUrl, width, height, onSuccess, onError) {
@@ -10523,11 +10495,12 @@ function $c98be0bef0e4b75f$export$3f12cadb607c10de(data) {
 }
 
 
+
 function $bea288e8dbb006c6$export$1a5215a6a049f7d8(streamType, callback) {
     return (data)=>{
         // Extract the actual frame data
         const frameData = data.data || data;
-        console.log(`Frame handler for ${streamType} received:`, frameData);
+        (0, $f33ae462b482966d$export$bef1f36f5486a6a3).handler(`Frame handler for ${streamType} received:`, frameData);
         // Check for both imagedata and imageData formats
         const hasImageData = frameData.imagedata || frameData.imageData;
         // Only process frames with matching name
@@ -10536,7 +10509,7 @@ function $bea288e8dbb006c6$export$1a5215a6a049f7d8(streamType, callback) {
             if (frameData.imageData && !frameData.imagedata) frameData.imagedata = frameData.imageData;
             // Process the image data
             $c98be0bef0e4b75f$export$6bfa04708e643828(frameData, callback);
-        } else console.warn(`Received frame event but it's not a valid ${streamType} frame:`, 'name=', frameData.name, 'has imagedata=', !!(frameData.imagedata || frameData.imageData));
+        } else (0, $f33ae462b482966d$export$bef1f36f5486a6a3).warn(`Received frame event but it's not a valid ${streamType} frame:`, 'name=', frameData.name, 'has imagedata=', !!(frameData.imagedata || frameData.imageData));
     };
 }
 function $bea288e8dbb006c6$export$e4d1bd1c23c09b9e(callback, unpackFunction) {
@@ -10551,7 +10524,7 @@ function $bea288e8dbb006c6$export$e4d1bd1c23c09b9e(callback, unpackFunction) {
                 timestamp: data.timestamp || Date.now()
             });
         }).catch((error)=>{
-            console.error('Error unpacking raw depth data:', error);
+            (0, $f33ae462b482966d$export$bef1f36f5486a6a3).error('Error unpacking raw depth data:', error);
             // Still call the callback with the original data
             callback({
                 ...data,
@@ -10565,7 +10538,7 @@ function $bea288e8dbb006c6$export$e4d1bd1c23c09b9e(callback, unpackFunction) {
             timestamp: data.timestamp || Date.now()
         });
         else {
-            console.warn('Received raw depth frame with invalid data format:', data);
+            (0, $f33ae462b482966d$export$bef1f36f5486a6a3).warn('Received raw depth frame with invalid data format:', data);
             callback({
                 ...data,
                 error: 'Invalid data format',
@@ -10575,7 +10548,7 @@ function $bea288e8dbb006c6$export$e4d1bd1c23c09b9e(callback, unpackFunction) {
     };
 }
 function $bea288e8dbb006c6$export$2105b7696d7712ee(callback) {
-    console.log(callback);
+    (0, $f33ae462b482966d$export$bef1f36f5486a6a3).handler('Creating body handler with callback:', callback);
     return (eventData)=>{
         const bodyData = eventData.data;
         if (bodyData && bodyData.bodies) // Body data is already in a usable format (array of body objects)
@@ -10626,8 +10599,6 @@ function $bea288e8dbb006c6$export$334c6911e6336aba(callback) {
 }
 
 
-
-
 class $dc79748ed7dcc9e9$export$9369465eba7492ab {
     constructor(networkConfig){
         this.peer = new (0, $4d767ee87242f6c3$export$d84cf184fade0488)(networkConfig);
@@ -10660,7 +10631,7 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
             const handler = this.messageHandlers.get(event);
             if (handler) // if (event === 'bodyFrame') debugger;
             handler(eventData);
-            else console.warn('Kinectron: No handler found for event:', event);
+            else (0, $f33ae462b482966d$export$bef1f36f5486a6a3).warn('Kinectron: No handler found for event:', event);
         });
     }
     // Event registration
@@ -10678,7 +10649,7 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
     // Set Kinect type (azure or windows)
     setKinectType(kinectType) {
         if (!this.isConnected()) {
-            console.warn('Cannot set Kinect type: not connected');
+            (0, $f33ae462b482966d$export$bef1f36f5486a6a3).warn('Cannot set Kinect type: not connected');
             return;
         }
         this.send('setkinect', kinectType);
@@ -10686,7 +10657,7 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
     // Initialize Kinect
     initKinect(callback) {
         if (!this.isConnected()) {
-            console.warn('Cannot initialize Kinect: not connected');
+            (0, $f33ae462b482966d$export$bef1f36f5486a6a3).warn('Cannot initialize Kinect: not connected');
             return Promise.reject(new Error('Cannot initialize Kinect: not connected'));
         }
         // Create a promise that resolves when we get the kinectInitialized event
@@ -10724,7 +10695,7 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
     // Send data to peer
     send(event, data) {
         if (!this.isConnected()) {
-            console.warn('Cannot send data: not connected');
+            (0, $f33ae462b482966d$export$bef1f36f5486a6a3).warn('Cannot send data: not connected');
             return;
         }
         this.peer.send(event, data);
@@ -10754,13 +10725,8 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
    * @param {Object} testValues - Test values to verify unpacking accuracy
    * @returns {Promise<Uint16Array>} - Promise resolving to the unpacked depth values
    */ _unpackRawDepthData(dataUrl, width, height, originalWidth, testValues) {
-        // Import the debug configuration
-        Promise.resolve((parcelRequire("kSHSU"))).then(({ DEBUG: DEBUG })=>{
-            // Enable debug if needed
-            if (DEBUG.RAW_DEPTH) console.log('Unpacking raw depth data with dimensions:', width, 'x', height);
-        }).catch((err)=>{
-        // Silently fail if debug module can't be loaded
-        });
+        // Log using the imported debug module
+        if ((0, $f33ae462b482966d$export$3f32c2013f0dcc1e).DATA) (0, $f33ae462b482966d$export$bef1f36f5486a6a3).data('Unpacking raw depth data with dimensions:', width, 'x', height);
         return new Promise((resolve, reject)=>{
             // Create image to load the data URL
             const img = new Image();
@@ -10782,33 +10748,28 @@ class $dc79748ed7dcc9e9$export$9369465eba7492ab {
                     depthValues[j++] = depth;
                 }
                 // Verify test values if provided
-                if (testValues) // Import the debug configuration
-                Promise.resolve((parcelRequire("kSHSU"))).then(({ DEBUG: DEBUG })=>{
-                    if (DEBUG.RAW_DEPTH && DEBUG.DATA) {
-                        const unpackedValue1000 = depthValues[1000];
-                        const unpackedValue2000 = depthValues[2000];
-                        const unpackedValue3000 = depthValues[3000];
-                        console.log('Test values comparison:', {
-                            'Index 1000': {
-                                Original: testValues.index1000,
-                                Unpacked: unpackedValue1000,
-                                Difference: testValues.index1000 - unpackedValue1000
-                            },
-                            'Index 2000': {
-                                Original: testValues.index2000,
-                                Unpacked: unpackedValue2000,
-                                Difference: testValues.index2000 - unpackedValue2000
-                            },
-                            'Index 3000': {
-                                Original: testValues.index3000,
-                                Unpacked: unpackedValue3000,
-                                Difference: testValues.index3000 - unpackedValue3000
-                            }
-                        });
-                    }
-                }).catch((err)=>{
-                // Silently fail if debug module can't be loaded
-                });
+                if (testValues && (0, $f33ae462b482966d$export$3f32c2013f0dcc1e).DATA) {
+                    const unpackedValue1000 = depthValues[1000];
+                    const unpackedValue2000 = depthValues[2000];
+                    const unpackedValue3000 = depthValues[3000];
+                    (0, $f33ae462b482966d$export$bef1f36f5486a6a3).data('Test values comparison:', {
+                        'Index 1000': {
+                            Original: testValues.index1000,
+                            Unpacked: unpackedValue1000,
+                            Difference: testValues.index1000 - unpackedValue1000
+                        },
+                        'Index 2000': {
+                            Original: testValues.index2000,
+                            Unpacked: unpackedValue2000,
+                            Difference: testValues.index2000 - unpackedValue2000
+                        },
+                        'Index 3000': {
+                            Original: testValues.index3000,
+                            Unpacked: unpackedValue3000,
+                            Difference: testValues.index3000 - unpackedValue3000
+                        }
+                    });
+                }
                 resolve(depthValues);
             };
             img.onerror = (err)=>{

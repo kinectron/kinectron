@@ -22,9 +22,12 @@ class UIController {
       frameRate: document.getElementById('frameRate'),
       resolution: document.getElementById('resolution'),
       debugToggle: document.getElementById('debugToggle'),
+      debugFrames: document.getElementById('debugFrames'),
+      debugHandlers: document.getElementById('debugHandlers'),
       debugPerformance: document.getElementById('debugPerformance'),
       debugData: document.getElementById('debugData'),
       debugPeer: document.getElementById('debugPeer'),
+      debugNetwork: document.getElementById('debugNetwork'),
     };
 
     // Flag to track if Kinect is initialized
@@ -146,6 +149,18 @@ class UIController {
       );
     }
 
+    if (this.elements.debugFrames && handlers.toggleFramesDebug) {
+      this.elements.debugFrames.addEventListener('change', (e) =>
+        handlers.toggleFramesDebug(e.target.checked),
+      );
+    }
+
+    if (this.elements.debugHandlers && handlers.toggleHandlersDebug) {
+      this.elements.debugHandlers.addEventListener('change', (e) =>
+        handlers.toggleHandlersDebug(e.target.checked),
+      );
+    }
+
     if (
       this.elements.debugPerformance &&
       handlers.togglePerformanceDebug
@@ -164,6 +179,12 @@ class UIController {
     if (this.elements.debugPeer && handlers.togglePeerDebug) {
       this.elements.debugPeer.addEventListener('change', (e) =>
         handlers.togglePeerDebug(e.target.checked),
+      );
+    }
+
+    if (this.elements.debugNetwork && handlers.toggleNetworkDebug) {
+      this.elements.debugNetwork.addEventListener('change', (e) =>
+        handlers.toggleNetworkDebug(e.target.checked),
       );
     }
   }
@@ -329,6 +350,14 @@ class UIController {
    * @param {boolean} enabled - Whether debug is enabled
    */
   enableDebugControls(enabled) {
+    if (this.elements.debugFrames) {
+      this.elements.debugFrames.disabled = !enabled;
+    }
+
+    if (this.elements.debugHandlers) {
+      this.elements.debugHandlers.disabled = !enabled;
+    }
+
     if (this.elements.debugPerformance) {
       this.elements.debugPerformance.disabled = !enabled;
     }
@@ -339,6 +368,10 @@ class UIController {
 
     if (this.elements.debugPeer) {
       this.elements.debugPeer.disabled = !enabled;
+    }
+
+    if (this.elements.debugNetwork) {
+      this.elements.debugNetwork.disabled = !enabled;
     }
   }
 }

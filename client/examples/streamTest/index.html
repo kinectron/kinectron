@@ -84,6 +84,16 @@
                 </label>
                 <div style="margin-top: 5px;">
                     <label>
+                        <input type="checkbox" id="debugFrames">
+                        Frames Logs
+                    </label>
+                    <label style="margin-left: 10px;">
+                        <input type="checkbox" id="debugHandlers">
+                        Handlers Logs
+                    </label>
+                </div>
+                <div style="margin-top: 5px;">
+                    <label>
                         <input type="checkbox" id="debugPerformance">
                         Performance Logs
                     </label>
@@ -91,9 +101,15 @@
                         <input type="checkbox" id="debugData">
                         Data Integrity Logs
                     </label>
-                    <label style="margin-left: 10px;">
+                </div>
+                <div style="margin-top: 5px;">
+                    <label>
                         <input type="checkbox" id="debugPeer">
                         Peer Connection Logs
+                    </label>
+                    <label style="margin-left: 10px;">
+                        <input type="checkbox" id="debugNetwork">
+                        Network Logs
                     </label>
                 </div>
             </div>
@@ -106,15 +122,18 @@
     <!-- Import Kinectron and DEBUG -->
     <script type="module">
         import { Kinectron } from '../../src/kinectron-modern.js';
-        import { DEBUG } from '../../src/utils/debug.js';
+        import { DEBUG, log } from '../../src/utils/debug.js';
         window.Kinectron = Kinectron;
         window.DEBUG = DEBUG;
+        window.log = log;
 
         // Initialize DEBUG flags to false by default
-        DEBUG.RAW_DEPTH = false;
+        DEBUG.FRAMES = false;
+        DEBUG.HANDLERS = false;
         DEBUG.PERFORMANCE = false;
         DEBUG.DATA = false;
         DEBUG.PEER = false;
+        DEBUG.NETWORK = false;
     </script>
 
     <!-- Visualizers -->

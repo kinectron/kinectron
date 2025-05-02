@@ -2,6 +2,8 @@
  * Utility functions for processing image data from different streams
  */
 
+import { DEBUG, log } from './debug.js';
+
 /**
  * Process image data from a frame
  * @param {Object} frameData - The frame data containing image information
@@ -14,7 +16,7 @@ export function processImageData(frameData, callback) {
   const imagedata = frameData.imagedata || frameData.imageData;
 
   if (!frameData || !imagedata) {
-    console.warn('Invalid frame data received:', frameData);
+    log.warn('Invalid frame data received:', frameData);
     return;
   }
 
@@ -30,7 +32,7 @@ export function processImageData(frameData, callback) {
   try {
     // Check if data is a string (data URL)
     if (typeof imagedata.data === 'string') {
-      console.log('Processing image data from data URL');
+      log.data('Processing image data from data URL');
       createImageFromDataUrl(
         imagedata.data,
         width,
@@ -46,7 +48,7 @@ export function processImageData(frameData, callback) {
           });
         },
         (err) => {
-          console.error('Error loading image from data URL:', err);
+          log.error('Error loading image from data URL:', err);
           // Try to call callback anyway with the raw data
           callback({
             src: imagedata.data,
@@ -58,7 +60,7 @@ export function processImageData(frameData, callback) {
         },
       );
     } else {
-      console.log('Processing image data from raw pixel data');
+      log.data('Processing image data from raw pixel data');
       // Handle raw pixel data
       const pixelData = convertToUint8ClampedArray(imagedata.data);
       const imgData = new ImageData(pixelData, width, height);
@@ -79,8 +81,8 @@ export function processImageData(frameData, callback) {
       });
     }
   } catch (error) {
-    console.error('Error processing frame:', error);
-    console.error('Frame data:', imagedata);
+    log.error('Error processing frame:', error);
+    log.error('Frame data:', imagedata);
   }
 }
 

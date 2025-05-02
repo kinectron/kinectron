@@ -69,9 +69,12 @@
             forceEnableButtons: ()=>this.ui.forceEnableButtons(),
             clearDebugInfo: ()=>this.debug.clearDebugInfo(),
             toggleDebug: (enabled)=>this.debug.toggleDebug(enabled),
+            toggleFramesDebug: (enabled)=>this.debug.toggleFramesDebug(enabled),
+            toggleHandlersDebug: (enabled)=>this.debug.toggleHandlersDebug(enabled),
             togglePerformanceDebug: (enabled)=>this.debug.togglePerformanceDebug(enabled),
             toggleDataDebug: (enabled)=>this.debug.toggleDataDebug(enabled),
-            togglePeerDebug: (enabled)=>this.debug.togglePeerDebug(enabled)
+            togglePeerDebug: (enabled)=>this.debug.togglePeerDebug(enabled),
+            toggleNetworkDebug: (enabled)=>this.debug.toggleNetworkDebug(enabled)
         });
     }
     /**
@@ -83,7 +86,7 @@
             // Initialize Kinect on the server
             this.debug.addDebugInfo('Calling kinectron.initKinect()', true);
             const result = await this.kinectron.initKinect();
-            if (window.DEBUG.RAW_DEPTH) console.log('Kinect initialization result:', result);
+            if (window.DEBUG.DATA) window.log.data('Kinect initialization result:', result);
             // Check for success in the normalized result
             if (result.success || result.alreadyInitialized) {
                 this.debug.addDebugInfo('Kinect initialized successfully - enabling buttons', true);
@@ -138,7 +141,7 @@
         });
         // Add a data event listener to capture all peer messages
         this.kinectron.on('data', (data)=>{
-            if (window.DEBUG.RAW_DEPTH) console.log('Raw data event received:', data);
+            if (window.DEBUG.DATA) window.log.data('Raw data event received:', data);
         });
     }
     /**
@@ -202,7 +205,7 @@
                 this.visualization.updatePointCloud(frame.depthValues);
                 // Update resolution info
                 this.ui.updateResolution(`${frame.width}x${frame.height} | Depth Values: ${frame.depthValues.length} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
-                if (window.DEBUG.RAW_DEPTH && window.DEBUG.DATA) this._logDepthStatistics(frame.depthValues);
+                if (window.DEBUG.DATA) this._logDepthStatistics(frame.depthValues);
             }
         });
     }
@@ -224,26 +227,30 @@
             this.ui.updateStreamStatus('Active (Skeleton)', true);
             // Update metrics
             this.metrics.updateFrameMetrics(frame);
-            // Always log this regardless of debug flags to help diagnose the issue
-            console.error('KinectController: Received skeleton frame');
-            console.error('Frame type:', typeof frame);
-            console.error('Frame has bodies:', frame && !!frame.bodies);
-            if (frame && frame.bodies) console.error('Bodies count:', frame.bodies.length);
+            // Log this with debug flags to help diagnose the issue
+            if (window.DEBUG.FRAMES) {
+                window.log.frame('KinectController: Received skeleton frame');
+                window.log.frame('Frame type:', typeof frame);
+                window.log.frame('Frame has bodies:', frame && !!frame.bodies);
+                if (frame && frame.bodies) window.log.frame('Bodies count:', frame.bodies.length);
+            }
             // Log the skeleton data to verify it's working
             if (window.DEBUG.DATA) {
-                console.group('Skeleton Frame Data');
-                console.log('Bodies:', frame.bodies ? frame.bodies.length : 0);
-                console.log('Frame data:', frame);
-                console.groupEnd();
+                window.log.data('Skeleton Frame Data:');
+                window.log.data('Bodies:', frame.bodies ? frame.bodies.length : 0);
+                window.log.data('Frame data:', frame);
             }
             // Update resolution info
             this.ui.updateResolution(`Bodies: ${frame.bodies ? frame.bodies.length : 0} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
             // Display the skeleton frame using the P5Visualizer
-            console.error('Calling visualization.displaySkeletonFrame');
+            if (window.DEBUG.FRAMES) window.log.frame('Calling visualization.displaySkeletonFrame');
             this.visualization.displaySkeletonFrame(frame);
         });
-        // Enable debug logging for this stream
-        window.DEBUG.DATA = true;
+        // Enable debug logging for this stream if not already enabled
+        if (!window.DEBUG.DATA) {
+            window.DEBUG.DATA = true;
+            this.debug.elements.debugData.checked = true;
+        }
         this.debug.addDebugInfo('Debug logging enabled for skeleton stream', true);
     }
     /**
@@ -258,8 +265,11 @@
         // Resize canvas for key stream (using color dimensions since key is based on color)
         this.visualization.resizeP5Canvas(this.AZURE_COLOR_WIDTH * this.DISPLAY_SCALE, this.AZURE_COLOR_HEIGHT * this.DISPLAY_SCALE);
         this.debug.addDebugInfo('Starting key stream...', true);
-        // Enable debug logging to help diagnose any data structure issues
-        window.DEBUG.DATA = true;
+        // Enable debug logging to help diagnose any data structure issues if not already enabled
+        if (!window.DEBUG.DATA) {
+            window.DEBUG.DATA = true;
+            this.debug.elements.debugData.checked = true;
+        }
         this.kinectron.startKey((frame)=>{
             // Update stream status
             this.ui.updateStreamStatus('Active (Key)', true);
@@ -267,12 +277,11 @@
             this.metrics.updateFrameMetrics(frame);
             // Log the frame data to verify structure
             if (window.DEBUG.DATA) {
-                console.group('Key Frame Data');
-                console.log('Frame received:', frame);
-                console.log('Frame type:', typeof frame);
-                console.log('Has src:', !!frame.src);
-                console.log('Dimensions:', frame.width, 'x', frame.height);
-                console.groupEnd();
+                window.log.data('Key Frame Data:');
+                window.log.data('Frame received:', frame);
+                window.log.data('Frame type:', typeof frame);
+                window.log.data('Has src:', !!frame.src);
+                window.log.data('Dimensions:', frame.width, 'x', frame.height);
             }
             // Update resolution info
             this.ui.updateResolution(`${frame.width}x${frame.height} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
@@ -292,8 +301,11 @@
         // Resize canvas for RGBD stream
         this.visualization.resizeP5Canvas(this.AZURE_RGBD_WIDTH, this.AZURE_RGBD_HEIGHT);
         this.debug.addDebugInfo('Starting RGBD stream...', true);
-        // Enable debug logging to help diagnose any data structure issues
-        window.DEBUG.DATA = true;
+        // Enable debug logging to help diagnose any data structure issues if not already enabled
+        if (!window.DEBUG.DATA) {
+            window.DEBUG.DATA = true;
+            this.debug.elements.debugData.checked = true;
+        }
         this.kinectron.startRGBD((frame)=>{
             // Update stream status
             this.ui.updateStreamStatus('Active (RGBD)', true);
@@ -301,12 +313,11 @@
             this.metrics.updateFrameMetrics(frame);
             // Log the frame data to verify structure
             if (window.DEBUG.DATA) {
-                console.group('RGBD Frame Data');
-                console.log('Frame received:', frame);
-                console.log('Frame type:', typeof frame);
-                console.log('Has src:', !!frame.src);
-                console.log('Dimensions:', frame.width, 'x', frame.height);
-                console.groupEnd();
+                window.log.data('RGBD Frame Data:');
+                window.log.data('Frame received:', frame);
+                window.log.data('Frame type:', typeof frame);
+                window.log.data('Has src:', !!frame.src);
+                window.log.data('Dimensions:', frame.width, 'x', frame.height);
             }
             // Update resolution info
             this.ui.updateResolution(`${frame.width}x${frame.height} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
@@ -324,8 +335,11 @@
         // Hide p5 canvas and show Three.js canvas (same as raw depth)
         this.visualization.showThreeCanvas();
         this.debug.addDebugInfo('Starting depth key stream...', true);
-        // Enable debug logging to help diagnose any data structure issues
-        window.DEBUG.DATA = true;
+        // Enable debug logging to help diagnose any data structure issues if not already enabled
+        if (!window.DEBUG.DATA) {
+            window.DEBUG.DATA = true;
+            this.debug.elements.debugData.checked = true;
+        }
         this.kinectron.startDepthKey((frame)=>{
             // Update stream status
             this.ui.updateStreamStatus('Active (Depth Key)', true);
@@ -333,12 +347,11 @@
             this.metrics.updateFrameMetrics(frame);
             // Log the frame data to verify structure
             if (window.DEBUG.DATA) {
-                console.group('Depth Key Frame Data');
-                console.log('Frame received:', frame);
-                console.log('Frame type:', typeof frame);
-                console.log('Has src:', !!frame.src);
-                console.log('Dimensions:', frame.width, 'x', frame.height);
-                console.groupEnd();
+                window.log.data('Depth Key Frame Data:');
+                window.log.data('Frame received:', frame);
+                window.log.data('Frame type:', typeof frame);
+                window.log.data('Has src:', !!frame.src);
+                window.log.data('Dimensions:', frame.width, 'x', frame.height);
             }
             // Update resolution info
             this.ui.updateResolution(`${frame.width}x${frame.height} | Avg Latency: ${this.metrics.getAverageLatency()}ms`);
@@ -373,7 +386,7 @@
                     this.visualization.updatePointCloud(depthValues, true); // true = filter out zero values
                 };
                 img.onerror = (err)=>{
-                    console.error('Error loading depth key image:', err);
+                    window.log.error('Error loading depth key image:', err);
                 };
                 img.src = frame.src;
             }
@@ -413,10 +426,9 @@
             }
         }
         const avg = validCount > 0 ? sum / validCount : 0;
-        console.group('Raw Depth Frame Data');
-        console.log(`Depth values: ${depthValues.length} points, ${validCount} valid points`);
-        console.log(`Depth range: min=${min}, max=${max}, avg=${avg.toFixed(2)}`);
-        console.groupEnd();
+        window.log.data('Raw Depth Frame Data:');
+        window.log.data(`Depth values: ${depthValues.length} points, ${validCount} valid points`);
+        window.log.data(`Depth range: min=${min}, max=${max}, avg=${avg.toFixed(2)}`);
     }
 }
 

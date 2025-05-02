@@ -19,9 +19,12 @@
             frameRate: document.getElementById('frameRate'),
             resolution: document.getElementById('resolution'),
             debugToggle: document.getElementById('debugToggle'),
+            debugFrames: document.getElementById('debugFrames'),
+            debugHandlers: document.getElementById('debugHandlers'),
             debugPerformance: document.getElementById('debugPerformance'),
             debugData: document.getElementById('debugData'),
-            debugPeer: document.getElementById('debugPeer')
+            debugPeer: document.getElementById('debugPeer'),
+            debugNetwork: document.getElementById('debugNetwork')
         };
         // Flag to track if Kinect is initialized
         this.isKinectInitialized = false;
@@ -56,9 +59,12 @@
         if (clearDebugBtn && handlers.clearDebugInfo) clearDebugBtn.addEventListener('click', handlers.clearDebugInfo);
         // Debug checkboxes
         if (this.elements.debugToggle && handlers.toggleDebug) this.elements.debugToggle.addEventListener('change', (e)=>handlers.toggleDebug(e.target.checked));
+        if (this.elements.debugFrames && handlers.toggleFramesDebug) this.elements.debugFrames.addEventListener('change', (e)=>handlers.toggleFramesDebug(e.target.checked));
+        if (this.elements.debugHandlers && handlers.toggleHandlersDebug) this.elements.debugHandlers.addEventListener('change', (e)=>handlers.toggleHandlersDebug(e.target.checked));
         if (this.elements.debugPerformance && handlers.togglePerformanceDebug) this.elements.debugPerformance.addEventListener('change', (e)=>handlers.togglePerformanceDebug(e.target.checked));
         if (this.elements.debugData && handlers.toggleDataDebug) this.elements.debugData.addEventListener('change', (e)=>handlers.toggleDataDebug(e.target.checked));
         if (this.elements.debugPeer && handlers.togglePeerDebug) this.elements.debugPeer.addEventListener('change', (e)=>handlers.togglePeerDebug(e.target.checked));
+        if (this.elements.debugNetwork && handlers.toggleNetworkDebug) this.elements.debugNetwork.addEventListener('change', (e)=>handlers.toggleNetworkDebug(e.target.checked));
     }
     /**
    * Update connection status display
@@ -144,9 +150,12 @@
    * Enable debug controls
    * @param {boolean} enabled - Whether debug is enabled
    */ enableDebugControls(enabled) {
+        if (this.elements.debugFrames) this.elements.debugFrames.disabled = !enabled;
+        if (this.elements.debugHandlers) this.elements.debugHandlers.disabled = !enabled;
         if (this.elements.debugPerformance) this.elements.debugPerformance.disabled = !enabled;
         if (this.elements.debugData) this.elements.debugData.disabled = !enabled;
         if (this.elements.debugPeer) this.elements.debugPeer.disabled = !enabled;
+        if (this.elements.debugNetwork) this.elements.debugNetwork.disabled = !enabled;
     }
 }
 

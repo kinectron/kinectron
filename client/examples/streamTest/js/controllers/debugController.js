@@ -11,6 +11,9 @@ class DebugController {
       debugPerformance: document.getElementById('debugPerformance'),
       debugData: document.getElementById('debugData'),
       debugPeer: document.getElementById('debugPeer'),
+      debugFrames: document.getElementById('debugFrames'),
+      debugHandlers: document.getElementById('debugHandlers'),
+      debugNetwork: document.getElementById('debugNetwork'),
     };
 
     // Bind methods to maintain 'this' context
@@ -21,6 +24,9 @@ class DebugController {
       this.togglePerformanceDebug.bind(this);
     this.toggleDataDebug = this.toggleDataDebug.bind(this);
     this.togglePeerDebug = this.togglePeerDebug.bind(this);
+    this.toggleFramesDebug = this.toggleFramesDebug.bind(this);
+    this.toggleHandlersDebug = this.toggleHandlersDebug.bind(this);
+    this.toggleNetworkDebug = this.toggleNetworkDebug.bind(this);
 
     // Set up event listeners
     this._setupEventListeners();
@@ -46,27 +52,49 @@ class DebugController {
     window.togglePerformanceDebug = this.togglePerformanceDebug;
     window.toggleDataDebug = this.toggleDataDebug;
     window.togglePeerDebug = this.togglePeerDebug;
+    window.toggleFramesDebug = this.toggleFramesDebug;
+    window.toggleHandlersDebug = this.toggleHandlersDebug;
+    window.toggleNetworkDebug = this.toggleNetworkDebug;
 
-    // Set initial state
+    // Set initial state - check if any debug flags are enabled
+    const anyDebugEnabled = Object.keys(window.DEBUG).some(
+      (key) =>
+        typeof window.DEBUG[key] === 'boolean' && window.DEBUG[key],
+    );
+
     if (this.elements.debugToggle) {
-      this.elements.debugToggle.checked = window.DEBUG.RAW_DEPTH;
+      this.elements.debugToggle.checked = anyDebugEnabled;
     }
 
     if (this.elements.debugPerformance) {
       this.elements.debugPerformance.checked =
         window.DEBUG.PERFORMANCE;
-      this.elements.debugPerformance.disabled =
-        !window.DEBUG.RAW_DEPTH;
+      this.elements.debugPerformance.disabled = !anyDebugEnabled;
     }
 
     if (this.elements.debugData) {
       this.elements.debugData.checked = window.DEBUG.DATA;
-      this.elements.debugData.disabled = !window.DEBUG.RAW_DEPTH;
+      this.elements.debugData.disabled = !anyDebugEnabled;
     }
 
     if (this.elements.debugPeer) {
       this.elements.debugPeer.checked = window.DEBUG.PEER;
-      this.elements.debugPeer.disabled = !window.DEBUG.RAW_DEPTH;
+      this.elements.debugPeer.disabled = !anyDebugEnabled;
+    }
+
+    if (this.elements.debugFrames) {
+      this.elements.debugFrames.checked = window.DEBUG.FRAMES;
+      this.elements.debugFrames.disabled = !anyDebugEnabled;
+    }
+
+    if (this.elements.debugHandlers) {
+      this.elements.debugHandlers.checked = window.DEBUG.HANDLERS;
+      this.elements.debugHandlers.disabled = !anyDebugEnabled;
+    }
+
+    if (this.elements.debugNetwork) {
+      this.elements.debugNetwork.checked = window.DEBUG.NETWORK;
+      this.elements.debugNetwork.disabled = !anyDebugEnabled;
     }
   }
 
@@ -76,8 +104,13 @@ class DebugController {
    * @param {boolean} isEssential - Whether the message is essential (shown even when debugging is disabled)
    */
   addDebugInfo(message, isEssential = false) {
-    // Only log essential messages or when debugging is enabled
-    if (!isEssential && !window.DEBUG.RAW_DEPTH) {
+    // Only log essential messages or when any debugging is enabled
+    const anyDebugEnabled = Object.keys(window.DEBUG).some(
+      (key) =>
+        typeof window.DEBUG[key] === 'boolean' && window.DEBUG[key],
+    );
+
+    if (!isEssential && !anyDebugEnabled) {
       return; // Skip non-essential logs when debugging is disabled
     }
 
@@ -107,37 +140,29 @@ class DebugController {
    * @param {boolean} enabled - Whether debug should be enabled
    */
   toggleDebug(enabled) {
-    window.DEBUG.RAW_DEPTH = enabled;
-
-    if (this.elements.debugPerformance) {
-      this.elements.debugPerformance.disabled = !enabled;
+    if (enabled) {
+      window.DEBUG.enableAll();
+    } else {
+      window.DEBUG.disableAll();
     }
 
-    if (this.elements.debugData) {
-      this.elements.debugData.disabled = !enabled;
-    }
+    // Update UI elements
+    const debugElements = [
+      'debugPerformance',
+      'debugData',
+      'debugPeer',
+      'debugFrames',
+      'debugHandlers',
+      'debugNetwork',
+    ];
 
-    if (this.elements.debugPeer) {
-      this.elements.debugPeer.disabled = !enabled;
-    }
-
-    if (!enabled) {
-      window.DEBUG.PERFORMANCE = false;
-      window.DEBUG.DATA = false;
-      window.DEBUG.PEER = false;
-
-      if (this.elements.debugPerformance) {
-        this.elements.debugPerformance.checked = false;
+    debugElements.forEach((elementId) => {
+      const element = this.elements[elementId];
+      if (element) {
+        element.disabled = !enabled;
+        element.checked = enabled;
       }
-
-      if (this.elements.debugData) {
-        this.elements.debugData.checked = false;
-      }
-
-      if (this.elements.debugPeer) {
-        this.elements.debugPeer.checked = false;
-      }
-    }
+    });
 
     this.addDebugInfo(
       `Debug logging ${enabled ? 'enabled' : 'disabled'}`,
@@ -177,6 +202,42 @@ class DebugController {
     window.DEBUG.PEER = enabled;
     this.addDebugInfo(
       `Peer connection logging ${enabled ? 'enabled' : 'disabled'}`,
+      true,
+    );
+  }
+
+  /**
+   * Toggle frames debug flag
+   * @param {boolean} enabled - Whether frames debugging should be enabled
+   */
+  toggleFramesDebug(enabled) {
+    window.DEBUG.FRAMES = enabled;
+    this.addDebugInfo(
+      `Frames logging ${enabled ? 'enabled' : 'disabled'}`,
+      true,
+    );
+  }
+
+  /**
+   * Toggle handlers debug flag
+   * @param {boolean} enabled - Whether handlers debugging should be enabled
+   */
+  toggleHandlersDebug(enabled) {
+    window.DEBUG.HANDLERS = enabled;
+    this.addDebugInfo(
+      `Handlers logging ${enabled ? 'enabled' : 'disabled'}`,
+      true,
+    );
+  }
+
+  /**
+   * Toggle network debug flag
+   * @param {boolean} enabled - Whether network debugging should be enabled
+   */
+  toggleNetworkDebug(enabled) {
+    window.DEBUG.NETWORK = enabled;
+    this.addDebugInfo(
+      `Network logging ${enabled ? 'enabled' : 'disabled'}`,
       true,
     );
   }

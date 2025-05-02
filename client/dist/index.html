@@ -84,6 +84,16 @@
                 </label>
                 <div style="margin-top: 5px">
                     <label>
+                        <input type="checkbox" id="debugFrames">
+                        Frames Logs
+                    </label>
+                    <label style="margin-left: 10px">
+                        <input type="checkbox" id="debugHandlers">
+                        Handlers Logs
+                    </label>
+                </div>
+                <div style="margin-top: 5px">
+                    <label>
                         <input type="checkbox" id="debugPerformance">
                         Performance Logs
                     </label>
@@ -91,9 +101,15 @@
                         <input type="checkbox" id="debugData">
                         Data Integrity Logs
                     </label>
-                    <label style="margin-left: 10px">
+                </div>
+                <div style="margin-top: 5px">
+                    <label>
                         <input type="checkbox" id="debugPeer">
                         Peer Connection Logs
+                    </label>
+                    <label style="margin-left: 10px">
+                        <input type="checkbox" id="debugNetwork">
+                        Network Logs
                     </label>
                 </div>
             </div>
@@ -248,14 +264,14 @@
       this[globalName] = mainExports;
     }
   }
-})({"MgHSc":[function(require,module,exports,__globalThis) {
+})({"dbVjN":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
 var HMR_USE_SSE = false;
-module.bundle.HMR_BUNDLE_ID = "3ce8b0b1a3aa9880";
+module.bundle.HMR_BUNDLE_ID = "6387bd28946e780c";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -701,16 +717,19 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     }
 }
 
-},{}],"fy0Vz":[function(require,module,exports,__globalThis) {
+},{}],"97BBt":[function(require,module,exports,__globalThis) {
 var _kinectronModernJs = require("../../src/kinectron-modern.js");
 var _debugJs = require("../../src/utils/debug.js");
 window.Kinectron = (0, _kinectronModernJs.Kinectron);
 window.DEBUG = (0, _debugJs.DEBUG);
+window.log = (0, _debugJs.log);
 // Initialize DEBUG flags to false by default
-(0, _debugJs.DEBUG).RAW_DEPTH = false;
+(0, _debugJs.DEBUG).FRAMES = false;
+(0, _debugJs.DEBUG).HANDLERS = false;
 (0, _debugJs.DEBUG).PERFORMANCE = false;
 (0, _debugJs.DEBUG).DATA = false;
 (0, _debugJs.DEBUG).PEER = false;
+(0, _debugJs.DEBUG).NETWORK = false;
 
 },{"../../src/kinectron-modern.js":"iYYl9","../../src/utils/debug.js":"eqMIC"}],"iYYl9":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -718,6 +737,7 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Kinectron", ()=>Kinectron);
 var _peerConnectionJs = require("./peer/peerConnection.js");
 var _ngrokStateJs = require("./peer/ngrokState.js");
+var _debugJs = require("./utils/debug.js");
 var _streamHandlersJs = require("./streams/streamHandlers.js");
 class Kinectron {
     constructor(networkConfig){
@@ -751,7 +771,7 @@ class Kinectron {
             const handler = this.messageHandlers.get(event);
             if (handler) // if (event === 'bodyFrame') debugger;
             handler(eventData);
-            else console.warn('Kinectron: No handler found for event:', event);
+            else (0, _debugJs.log).warn('Kinectron: No handler found for event:', event);
         });
     }
     // Event registration
@@ -769,7 +789,7 @@ class Kinectron {
     // Set Kinect type (azure or windows)
     setKinectType(kinectType) {
         if (!this.isConnected()) {
-            console.warn('Cannot set Kinect type: not connected');
+            (0, _debugJs.log).warn('Cannot set Kinect type: not connected');
             return;
         }
         this.send('setkinect', kinectType);
@@ -777,7 +797,7 @@ class Kinectron {
     // Initialize Kinect
     initKinect(callback) {
         if (!this.isConnected()) {
-            console.warn('Cannot initialize Kinect: not connected');
+            (0, _debugJs.log).warn('Cannot initialize Kinect: not connected');
             return Promise.reject(new Error('Cannot initialize Kinect: not connected'));
         }
         // Create a promise that resolves when we get the kinectInitialized event
@@ -815,7 +835,7 @@ class Kinectron {
     // Send data to peer
     send(event, data) {
         if (!this.isConnected()) {
-            console.warn('Cannot send data: not connected');
+            (0, _debugJs.log).warn('Cannot send data: not connected');
             return;
         }
         this.peer.send(event, data);
@@ -845,13 +865,8 @@ class Kinectron {
    * @param {Object} testValues - Test values to verify unpacking accuracy
    * @returns {Promise<Uint16Array>} - Promise resolving to the unpacked depth values
    */ _unpackRawDepthData(dataUrl, width, height, originalWidth, testValues) {
-        // Import the debug configuration
-        require("d12e2e21a193128b").then(({ DEBUG })=>{
-            // Enable debug if needed
-            if (DEBUG.RAW_DEPTH) console.log('Unpacking raw depth data with dimensions:', width, 'x', height);
-        }).catch((err)=>{
-        // Silently fail if debug module can't be loaded
-        });
+        // Log using the imported debug module
+        if ((0, _debugJs.DEBUG).DATA) (0, _debugJs.log).data('Unpacking raw depth data with dimensions:', width, 'x', height);
         return new Promise((resolve, reject)=>{
             // Create image to load the data URL
             const img = new Image();
@@ -873,33 +888,28 @@ class Kinectron {
                     depthValues[j++] = depth;
                 }
                 // Verify test values if provided
-                if (testValues) // Import the debug configuration
-                require("d12e2e21a193128b").then(({ DEBUG })=>{
-                    if (DEBUG.RAW_DEPTH && DEBUG.DATA) {
-                        const unpackedValue1000 = depthValues[1000];
-                        const unpackedValue2000 = depthValues[2000];
-                        const unpackedValue3000 = depthValues[3000];
-                        console.log('Test values comparison:', {
-                            'Index 1000': {
-                                Original: testValues.index1000,
-                                Unpacked: unpackedValue1000,
-                                Difference: testValues.index1000 - unpackedValue1000
-                            },
-                            'Index 2000': {
-                                Original: testValues.index2000,
-                                Unpacked: unpackedValue2000,
-                                Difference: testValues.index2000 - unpackedValue2000
-                            },
-                            'Index 3000': {
-                                Original: testValues.index3000,
-                                Unpacked: unpackedValue3000,
-                                Difference: testValues.index3000 - unpackedValue3000
-                            }
-                        });
-                    }
-                }).catch((err)=>{
-                // Silently fail if debug module can't be loaded
-                });
+                if (testValues && (0, _debugJs.DEBUG).DATA) {
+                    const unpackedValue1000 = depthValues[1000];
+                    const unpackedValue2000 = depthValues[2000];
+                    const unpackedValue3000 = depthValues[3000];
+                    (0, _debugJs.log).data('Test values comparison:', {
+                        'Index 1000': {
+                            Original: testValues.index1000,
+                            Unpacked: unpackedValue1000,
+                            Difference: testValues.index1000 - unpackedValue1000
+                        },
+                        'Index 2000': {
+                            Original: testValues.index2000,
+                            Unpacked: unpackedValue2000,
+                            Difference: testValues.index2000 - unpackedValue2000
+                        },
+                        'Index 3000': {
+                            Original: testValues.index3000,
+                            Unpacked: unpackedValue3000,
+                            Difference: testValues.index3000 - unpackedValue3000
+                        }
+                    });
+                }
                 resolve(depthValues);
             };
             img.onerror = (err)=>{
@@ -962,7 +972,7 @@ class Kinectron {
     }
 }
 
-},{"./peer/peerConnection.js":"1H7n3","./peer/ngrokState.js":"gdc09","./streams/streamHandlers.js":"6TzzH","d12e2e21a193128b":"eL2yo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1H7n3":[function(require,module,exports,__globalThis) {
+},{"./peer/peerConnection.js":"1H7n3","./peer/ngrokState.js":"gdc09","./utils/debug.js":"eqMIC","./streams/streamHandlers.js":"6TzzH","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1H7n3":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -11723,6 +11733,22 @@ const log = {
     // Only log handler-related messages if HANDLERS flag is enabled
     handler: function(message, ...args) {
         if (DEBUG.HANDLERS) console.debug(`[HANDLERS] ${message}`, ...args);
+    },
+    // Only log peer-related messages if PEER flag is enabled
+    peer: function(message, ...args) {
+        if (DEBUG.PEER) console.debug(`[PEER] ${message}`, ...args);
+    },
+    // Only log performance-related messages if PERFORMANCE flag is enabled
+    performance: function(message, ...args) {
+        if (DEBUG.PERFORMANCE) console.debug(`[PERFORMANCE] ${message}`, ...args);
+    },
+    // Only log data-related messages if DATA flag is enabled
+    data: function(message, ...args) {
+        if (DEBUG.DATA) console.debug(`[DATA] ${message}`, ...args);
+    },
+    // Only log network-related messages if NETWORK flag is enabled
+    network: function(message, ...args) {
+        if (DEBUG.NETWORK) console.debug(`[NETWORK] ${message}`, ...args);
     }
 };
 
@@ -11754,11 +11780,12 @@ parcelHelpers.defineInteropFlag(exports);
  * @returns {Function} - The multi-frame handler function
  */ parcelHelpers.export(exports, "createMultiFrameHandler", ()=>createMultiFrameHandler);
 var _imageProcessingJs = require("../utils/imageProcessing.js");
+var _debugJs = require("../utils/debug.js");
 function createFrameHandler(streamType, callback) {
     return (data)=>{
         // Extract the actual frame data
         const frameData = data.data || data;
-        console.log(`Frame handler for ${streamType} received:`, frameData);
+        (0, _debugJs.log).handler(`Frame handler for ${streamType} received:`, frameData);
         // Check for both imagedata and imageData formats
         const hasImageData = frameData.imagedata || frameData.imageData;
         // Only process frames with matching name
@@ -11767,7 +11794,7 @@ function createFrameHandler(streamType, callback) {
             if (frameData.imageData && !frameData.imagedata) frameData.imagedata = frameData.imageData;
             // Process the image data
             _imageProcessingJs.processImageData(frameData, callback);
-        } else console.warn(`Received frame event but it's not a valid ${streamType} frame:`, 'name=', frameData.name, 'has imagedata=', !!(frameData.imagedata || frameData.imageData));
+        } else (0, _debugJs.log).warn(`Received frame event but it's not a valid ${streamType} frame:`, 'name=', frameData.name, 'has imagedata=', !!(frameData.imagedata || frameData.imageData));
     };
 }
 function createRawDepthHandler(callback, unpackFunction) {
@@ -11782,7 +11809,7 @@ function createRawDepthHandler(callback, unpackFunction) {
                 timestamp: data.timestamp || Date.now()
             });
         }).catch((error)=>{
-            console.error('Error unpacking raw depth data:', error);
+            (0, _debugJs.log).error('Error unpacking raw depth data:', error);
             // Still call the callback with the original data
             callback({
                 ...data,
@@ -11796,7 +11823,7 @@ function createRawDepthHandler(callback, unpackFunction) {
             timestamp: data.timestamp || Date.now()
         });
         else {
-            console.warn('Received raw depth frame with invalid data format:', data);
+            (0, _debugJs.log).warn('Received raw depth frame with invalid data format:', data);
             callback({
                 ...data,
                 error: 'Invalid data format',
@@ -11806,7 +11833,7 @@ function createRawDepthHandler(callback, unpackFunction) {
     };
 }
 function createBodyHandler(callback) {
-    console.log(callback);
+    (0, _debugJs.log).handler('Creating body handler with callback:', callback);
     return (eventData)=>{
         const bodyData = eventData.data;
         if (bodyData && bodyData.bodies) // Body data is already in a usable format (array of body objects)
@@ -11856,18 +11883,18 @@ function createMultiFrameHandler(callback) {
     };
 }
 
-},{"../utils/imageProcessing.js":"979ko","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"979ko":[function(require,module,exports,__globalThis) {
+},{"../utils/imageProcessing.js":"979ko","../utils/debug.js":"eqMIC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"979ko":[function(require,module,exports,__globalThis) {
 /**
  * Utility functions for processing image data from different streams
- */ /**
+ */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+/**
  * Process image data from a frame
  * @param {Object} frameData - The frame data containing image information
  * @param {number} width - The width of the image
  * @param {number} height - The height of the image
  * @param {Function} callback - Callback to receive the processed image
- */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "processImageData", ()=>processImageData);
+ */ parcelHelpers.export(exports, "processImageData", ()=>processImageData);
 /**
  * Create an image from a data URL
  * @param {string} dataUrl - The data URL
@@ -11881,11 +11908,12 @@ parcelHelpers.export(exports, "processImageData", ()=>processImageData);
  * @param {*} data - The data to convert
  * @returns {Uint8ClampedArray} - The converted data
  */ parcelHelpers.export(exports, "convertToUint8ClampedArray", ()=>convertToUint8ClampedArray);
+var _debugJs = require("./debug.js");
 function processImageData(frameData, callback) {
     // Check for both imagedata and imageData formats
     const imagedata = frameData.imagedata || frameData.imageData;
     if (!frameData || !imagedata) {
-        console.warn('Invalid frame data received:', frameData);
+        (0, _debugJs.log).warn('Invalid frame data received:', frameData);
         return;
     }
     const { width, height } = imagedata;
@@ -11897,7 +11925,7 @@ function processImageData(frameData, callback) {
     try {
         // Check if data is a string (data URL)
         if (typeof imagedata.data === 'string') {
-            console.log('Processing image data from data URL');
+            (0, _debugJs.log).data('Processing image data from data URL');
             createImageFromDataUrl(imagedata.data, width, height, (src)=>{
                 // Call the user callback with processed frame
                 callback({
@@ -11908,7 +11936,7 @@ function processImageData(frameData, callback) {
                     timestamp: frameData.timestamp || Date.now()
                 });
             }, (err)=>{
-                console.error('Error loading image from data URL:', err);
+                (0, _debugJs.log).error('Error loading image from data URL:', err);
                 // Try to call callback anyway with the raw data
                 callback({
                     src: imagedata.data,
@@ -11919,7 +11947,7 @@ function processImageData(frameData, callback) {
                 });
             });
         } else {
-            console.log('Processing image data from raw pixel data');
+            (0, _debugJs.log).data('Processing image data from raw pixel data');
             // Handle raw pixel data
             const pixelData = convertToUint8ClampedArray(imagedata.data);
             const imgData = new ImageData(pixelData, width, height);
@@ -11937,8 +11965,8 @@ function processImageData(frameData, callback) {
             });
         }
     } catch (error) {
-        console.error('Error processing frame:', error);
-        console.error('Frame data:', imagedata);
+        (0, _debugJs.log).error('Error processing frame:', error);
+        (0, _debugJs.log).error('Frame data:', imagedata);
     }
 }
 function createImageFromDataUrl(dataUrl, width, height, onSuccess, onError) {
@@ -11969,10 +11997,7 @@ function convertToUint8ClampedArray(data) {
     return new Uint8ClampedArray(Object.values(data));
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"eL2yo":[function(require,module,exports,__globalThis) {
-module.exports = Promise.resolve(module.bundle.root("eqMIC"));
-
-},{"eqMIC":"eqMIC"}]},["MgHSc","fy0Vz"], "fy0Vz", "parcelRequire94c2")
+},{"./debug.js":"eqMIC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["dbVjN","97BBt"], "97BBt", "parcelRequire94c2")
 
 </script>
 

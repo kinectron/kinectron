@@ -580,12 +580,14 @@ flowchart TD
         ClientFlags[Debug Flags]
         ClientUI[Debug UI Controls]
         ClientLogs[Conditional Logging]
+        GlobalLog[window.log]
     end
 
     AppDebug --> DebugFlags --> LogFunctions --> ConditionalLogs
     RendererDebug --> RendererFlags --> RendererLogFunctions --> RendererLogs
     ClientDebug --> ClientFlags --> ClientLogs
     ClientUI --> ClientFlags
+    ClientDebug --> GlobalLog --> ClientLogs
 ```
 
 ### Debugging System Implementation
@@ -611,8 +613,11 @@ flowchart TD
    - `log.frame()`: Only visible when FRAMES flag is enabled
    - `log.ui()`: Only visible when UI flag is enabled
    - `log.peer()`: Only visible when PEER flag is enabled
-   - `log.debug(flag, message)`: Only visible when specified flag is enabled
+   - `log.performance()`: Only visible when PERFORMANCE flag is enabled
+   - `log.data()`: Only visible when DATA flag is enabled
+   - `log.network()`: Only visible when NETWORK flag is enabled
    - `log.handler()`: Only visible when HANDLERS flag is enabled
+   - `log.debug(flag, message)`: Only visible when specified flag is enabled
 
 3. **UI Integration**:
 
@@ -626,6 +631,32 @@ flowchart TD
    - Essential logs (errors, warnings, important info) always visible
    - Non-essential logs (debug, frame, UI) only visible when flags are enabled
    - Consistent logging pattern across all components
+
+### Global Logging Pattern
+
+To handle the limitations of classic scripts and ES modules in the browser environment, we implemented a global logging pattern:
+
+1. **Export and Expose**:
+
+   ```javascript
+   // In module script
+   import { DEBUG, log } from '../../src/utils/debug.js';
+   window.DEBUG = DEBUG;
+   window.log = log;
+   ```
+
+2. **Global Access**:
+
+   ```javascript
+   // In classic script
+   window.log.data('Processing data...');
+   ```
+
+3. **Benefits**:
+   - Avoids ES module import errors in classic scripts
+   - Maintains consistent logging interface across all files
+   - Allows for centralized control of debug flags
+   - Works with bundlers like Parcel without requiring type="module" on all scripts
 
 ## Build System and Development Workflow
 

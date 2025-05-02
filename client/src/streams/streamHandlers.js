@@ -3,6 +3,7 @@
  */
 
 import * as imageUtils from '../utils/imageProcessing.js';
+import { DEBUG, log } from '../utils/debug.js';
 
 /**
  * Create a frame handler for image-based streams
@@ -15,7 +16,7 @@ export function createFrameHandler(streamType, callback) {
     // Extract the actual frame data
     const frameData = data.data || data;
 
-    console.log(
+    log.handler(
       `Frame handler for ${streamType} received:`,
       frameData,
     );
@@ -33,7 +34,7 @@ export function createFrameHandler(streamType, callback) {
       // Process the image data
       imageUtils.processImageData(frameData, callback);
     } else {
-      console.warn(
+      log.warn(
         `Received frame event but it's not a valid ${streamType} frame:`,
         'name=',
         frameData.name,
@@ -71,7 +72,7 @@ export function createRawDepthHandler(callback, unpackFunction) {
           });
         })
         .catch((error) => {
-          console.error('Error unpacking raw depth data:', error);
+          log.error('Error unpacking raw depth data:', error);
           // Still call the callback with the original data
           callback({
             ...data,
@@ -86,7 +87,7 @@ export function createRawDepthHandler(callback, unpackFunction) {
         timestamp: data.timestamp || Date.now(),
       });
     } else {
-      console.warn(
+      log.warn(
         'Received raw depth frame with invalid data format:',
         data,
       );
@@ -105,7 +106,7 @@ export function createRawDepthHandler(callback, unpackFunction) {
  * @returns {Function} - The body handler function
  */
 export function createBodyHandler(callback) {
-  console.log(callback);
+  log.handler('Creating body handler with callback:', callback);
 
   return (eventData) => {
     const bodyData = eventData.data;

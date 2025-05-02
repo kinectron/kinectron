@@ -1,5 +1,6 @@
 import { PeerConnection } from './peer/peerConnection.js';
 import { NgrokClientState } from './peer/ngrokState.js';
+import { DEBUG, log } from './utils/debug.js';
 import {
   createFrameHandler,
   createRawDepthHandler,
@@ -48,7 +49,7 @@ export class Kinectron {
 
         handler(eventData);
       } else {
-        console.warn('Kinectron: No handler found for event:', event);
+        log.warn('Kinectron: No handler found for event:', event);
       }
     });
   }
@@ -71,7 +72,7 @@ export class Kinectron {
   // Set Kinect type (azure or windows)
   setKinectType(kinectType) {
     if (!this.isConnected()) {
-      console.warn('Cannot set Kinect type: not connected');
+      log.warn('Cannot set Kinect type: not connected');
       return;
     }
     this.send('setkinect', kinectType);
@@ -80,7 +81,7 @@ export class Kinectron {
   // Initialize Kinect
   initKinect(callback) {
     if (!this.isConnected()) {
-      console.warn('Cannot initialize Kinect: not connected');
+      log.warn('Cannot initialize Kinect: not connected');
       return Promise.reject(
         new Error('Cannot initialize Kinect: not connected'),
       );
@@ -147,7 +148,7 @@ export class Kinectron {
   // Send data to peer
   send(event, data) {
     if (!this.isConnected()) {
-      console.warn('Cannot send data: not connected');
+      log.warn('Cannot send data: not connected');
       return;
     }
     this.peer.send(event, data);
@@ -193,22 +194,15 @@ export class Kinectron {
     originalWidth,
     testValues,
   ) {
-    // Import the debug configuration
-    import('./utils/debug.js')
-      .then(({ DEBUG }) => {
-        // Enable debug if needed
-        if (DEBUG.RAW_DEPTH) {
-          console.log(
-            'Unpacking raw depth data with dimensions:',
-            width,
-            'x',
-            height,
-          );
-        }
-      })
-      .catch((err) => {
-        // Silently fail if debug module can't be loaded
-      });
+    // Log using the imported debug module
+    if (DEBUG.DATA) {
+      log.data(
+        'Unpacking raw depth data with dimensions:',
+        width,
+        'x',
+        height,
+      );
+    }
     return new Promise((resolve, reject) => {
       // Create image to load the data URL
       const img = new Image();
@@ -235,40 +229,28 @@ export class Kinectron {
         }
 
         // Verify test values if provided
-        if (testValues) {
-          // Import the debug configuration
-          import('./utils/debug.js')
-            .then(({ DEBUG }) => {
-              if (DEBUG.RAW_DEPTH && DEBUG.DATA) {
-                const unpackedValue1000 = depthValues[1000];
-                const unpackedValue2000 = depthValues[2000];
-                const unpackedValue3000 = depthValues[3000];
+        if (testValues && DEBUG.DATA) {
+          const unpackedValue1000 = depthValues[1000];
+          const unpackedValue2000 = depthValues[2000];
+          const unpackedValue3000 = depthValues[3000];
 
-                console.log('Test values comparison:', {
-                  'Index 1000': {
-                    Original: testValues.index1000,
-                    Unpacked: unpackedValue1000,
-                    Difference:
-                      testValues.index1000 - unpackedValue1000,
-                  },
-                  'Index 2000': {
-                    Original: testValues.index2000,
-                    Unpacked: unpackedValue2000,
-                    Difference:
-                      testValues.index2000 - unpackedValue2000,
-                  },
-                  'Index 3000': {
-                    Original: testValues.index3000,
-                    Unpacked: unpackedValue3000,
-                    Difference:
-                      testValues.index3000 - unpackedValue3000,
-                  },
-                });
-              }
-            })
-            .catch((err) => {
-              // Silently fail if debug module can't be loaded
-            });
+          log.data('Test values comparison:', {
+            'Index 1000': {
+              Original: testValues.index1000,
+              Unpacked: unpackedValue1000,
+              Difference: testValues.index1000 - unpackedValue1000,
+            },
+            'Index 2000': {
+              Original: testValues.index2000,
+              Unpacked: unpackedValue2000,
+              Difference: testValues.index2000 - unpackedValue2000,
+            },
+            'Index 3000': {
+              Original: testValues.index3000,
+              Unpacked: unpackedValue3000,
+              Difference: testValues.index3000 - unpackedValue3000,
+            },
+          });
         }
 
         resolve(depthValues);

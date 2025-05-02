@@ -68,4 +68,32 @@ export const log = {
       console.debug(`[HANDLERS] ${message}`, ...args);
     }
   },
+
+  // Only log peer-related messages if PEER flag is enabled
+  peer: function (message, ...args) {
+    if (DEBUG.PEER) {
+      console.debug(`[PEER] ${message}`, ...args);
+    }
+  },
+
+  // Only log performance-related messages if PERFORMANCE flag is enabled
+  performance: function (message, ...args) {
+    if (DEBUG.PERFORMANCE) {
+      console.debug(`[PERFORMANCE] ${message}`, ...args);
+    }
+  },
+
+  // Only log data-related messages if DATA flag is enabled
+  data: function (message, ...args) {
+    if (DEBUG.DATA) {
+      console.debug(`[DATA] ${message}`, ...args);
+    }
+  },
+
+  // Only log network-related messages if NETWORK flag is enabled
+  network: function (message, ...args) {
+    if (DEBUG.NETWORK) {
+      console.debug(`[NETWORK] ${message}`, ...args);
+    }
+  },
 };

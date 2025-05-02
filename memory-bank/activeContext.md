@@ -2,7 +2,7 @@
 
 ## Current Focus: Enhancing User Experience, Error Handling, and Logging
 
-We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and depth key. All streams are working correctly in both the application and client API. We've implemented a robust notification system for error handling and improved the user experience when the Kinect device isn't connected. We've also implemented a comprehensive logging system that puts all debug logs behind flags while keeping essential logs visible. Our focus continues to be on enhancing visualizations, improving error handling, and addressing technical debt such as inconsistent naming conventions.
+We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and depth key. All streams are working correctly in both the application and client API. We've implemented a robust notification system for error handling and improved the user experience when the Kinect device isn't connected. We've also implemented a comprehensive logging system that puts all debug logs behind flags while keeping essential logs visible. We've now extended this logging system to the client-side code, ensuring consistent logging behavior across the entire application. Our focus continues to be on enhancing visualizations, improving error handling, and addressing technical debt such as inconsistent naming conventions.
 
 ### Current Status
 
@@ -52,13 +52,21 @@ We've completed all stream implementations including color, depth, raw depth, sk
 
    - Implemented flag-based debugging system for both application and client
    - Added UI controls in streamTest.html for toggling debug flags
-   - Created categories for different types of logs (performance, data, network, frames, UI)
+   - Created categories for different types of logs (performance, data, network, frames, UI, handlers)
    - Reduced console noise by making logs conditional on debug flags
    - Enhanced logging in body tracking system for better diagnostics
    - Implemented comprehensive logging cleanup across all stream handlers
    - Created dedicated debug.js files for both main and renderer processes
    - Added detailed documentation in README_LOGGING.md files
    - Replaced all console.log calls with appropriate conditional logging functions
+   - Extended the client-side debug.js with additional logging functions (log.peer, log.performance, log.data, log.network)
+   - Updated client-side code to use the debug logging system:
+     - Updated streamHandlers.js to use log.handler, log.warn, and log.error
+     - Updated imageProcessing.js to use log.data and log.error
+     - Updated kinectron-modern.js to use window.log instead of direct imports
+     - Created client/src/utils/README_LOGGING.md to document the client-side logging system
+   - Fixed build issues by exposing the log object globally through window.log
+   - Updated the streamTest example UI with additional debug flag toggles
 
 4. **StreamTest Refactoring**:
 
@@ -144,6 +152,8 @@ We've completed all stream implementations including color, depth, raw depth, sk
   1. Use clean script to prevent Parcel caching issues
   2. Document development workflows for consistent results
   3. Implement proper UI state management for stream buttons
+  4. Handle ES module imports in classic scripts by exposing objects globally
+  5. Use window.log instead of direct imports to maintain compatibility with Parcel bundling
 
 - **Implementing clear separation between core API and examples**:
 
