@@ -1602,6 +1602,35 @@ class KinectronApp {
     }
   }
 
+  /**
+   * Toggle the API blocker state
+   * This prevents clients from controlling the Kinect through API calls
+   * but still allows streaming data to clients
+   */
+  toggleAPIBlocker() {
+    const apiButton = document.getElementById('api-blocker');
+    const apiText = document.getElementById('api-blocker-intro');
+
+    // Toggle the state
+    const blockAPI = !this.peerController.blockAPI;
+
+    // Update UI
+    if (blockAPI) {
+      apiButton.value = 'Allow API Calls';
+      apiText.innerHTML = 'API Calls Are Blocked';
+    } else {
+      apiButton.value = 'Block API Calls';
+      apiText.innerHTML = 'API Calls Are Allowed';
+    }
+
+    // Update controller state
+    this.peerController.setBlockAPI(blockAPI);
+
+    console.log(
+      `API calls are now ${blockAPI ? 'blocked' : 'allowed'}`,
+    );
+  }
+
   async cleanup() {
     await this.stopCurrentStream();
     for (const [_, cleanup] of this.cleanupFunctions) {

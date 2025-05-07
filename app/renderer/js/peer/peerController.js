@@ -21,6 +21,7 @@ export class PeerController {
     this.reconnectDelay = 2000;
     this.messageQueue = new Map(); // clientId -> message[]
     this.maxQueueSize = 100;
+    this.blockAPI = false; // Flag to control whether API calls from clients are blocked
 
     // Enhanced events
     this.EVENTS = {
@@ -81,6 +82,15 @@ export class PeerController {
         0,
       ),
     };
+  }
+
+  /**
+   * Set whether API calls from clients should be blocked
+   * @param {boolean} block - Whether to block API calls
+   */
+  setBlockAPI(block) {
+    this.blockAPI = block;
+    console.log(`API calls are now ${block ? 'blocked' : 'allowed'}`);
   }
 
   /**
@@ -362,6 +372,12 @@ export class PeerController {
    * @param {Object} data - The received data
    */
   handleIncomingData(conn, data) {
+    // Block only incoming API control calls, not outgoing streams
+    if (this.blockAPI) {
+      console.log('API call blocked:', data.event);
+      return;
+    }
+
     try {
       switch (data.event) {
         case 'setkinect':
