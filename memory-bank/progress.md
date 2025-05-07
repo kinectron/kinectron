@@ -15,6 +15,22 @@
 
 ## Completed Features
 
+### Block API Calls Button Implementation
+
+- **Status**: Completed and working correctly
+- **Implementation**:
+  - Added a `blockAPI` state variable to the `PeerController` class to track whether API calls should be blocked
+  - Added a `setBlockAPI` method to the `PeerController` class to update this state
+  - Modified the `handleIncomingData` method in `PeerController` to check the `blockAPI` flag and return early if API calls are blocked
+  - Implemented the `toggleAPIBlocker` method in the `KinectronApp` class to toggle the state and update the UI
+  - Ensured the button text toggles between "Block API Calls" and "Allow API Calls"
+  - Ensured the status text toggles between "API Calls Are Allowed" and "API Calls Are Blocked"
+- **Current Behavior**:
+  - When the "Block API Calls" button is clicked, the button text and status text update appropriately
+  - When API calls are blocked, incoming API calls from clients are blocked, but outgoing streams continue to function
+  - When API calls are allowed, clients can control the Kinect through API calls
+  - This feature enhances security by allowing users to prevent clients from controlling the Kinect while still allowing streaming data
+
 ### Example Code Logging Cleanup
 
 - **Status**: Completed and working correctly

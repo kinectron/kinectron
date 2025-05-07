@@ -1,8 +1,8 @@
 # Active Context
 
-## Current Focus: Enhancing User Experience, Error Handling, and Logging
+## Current Focus: Enhancing User Experience, Error Handling, and Security
 
-We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and depth key. All streams are working correctly in both the application and client API. We've implemented a robust notification system for error handling and improved the user experience when the Kinect device isn't connected. We've also implemented a comprehensive logging system that puts all debug logs behind flags while keeping essential logs visible. We've now extended this logging system to the client-side code, ensuring consistent logging behavior across the entire application. We've further improved the skeleton stream by fixing excessive console logging in the example code. Our focus continues to be on enhancing visualizations, improving error handling, and addressing technical debt such as inconsistent naming conventions.
+We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and depth key. All streams are working correctly in both the application and client API. We've implemented a robust notification system for error handling and improved the user experience when the Kinect device isn't connected. We've also implemented a comprehensive logging system that puts all debug logs behind flags while keeping essential logs visible. We've now extended this logging system to the client-side code, ensuring consistent logging behavior across the entire application. We've further improved the skeleton stream by fixing excessive console logging in the example code. We've implemented the "Block API Calls" button functionality to enhance security by allowing users to prevent clients from controlling the Kinect while still allowing streaming data. Our focus continues to be on enhancing visualizations, improving error handling, and addressing technical debt such as inconsistent naming conventions.
 
 ### Current Status
 
