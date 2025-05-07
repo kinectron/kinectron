@@ -1,0 +1,28 @@
+# Dependencies
+
+node_modules/
+
+# Dev tools
+
+.prettierrc
+.gitignore
+.gitattributes
+
+# Docs
+
+CONTRIBUTE.md
+LICENSE
+README.md
+
+# Build outputs
+
+/dist/
+client/.cache/
+client/.parcel-cache/
+
+# Old example code
+
+# Large data files
+
+app/_.dll
+app/_.onnx

@@ -1,0 +1,59 @@
+# Cline Rules for Kinectron Project
+
+## MVP Development Approach
+
+1. **Minimum Viable Product**: This is an MVP focused on core functionality
+2. **Lean Solutions**: Prioritize simplicity and speed over completeness
+3. **Short Development Times**: Optimize for quick implementation cycles
+4. **Acceptable Trade-offs**:
+   - Sacrifice robustness when necessary
+   - No need to handle all edge cases
+   - API breaking changes are acceptable
+
+## Project Components
+
+1. **Application (`app/`)**: Electron-based desktop app with main/renderer processes
+2. **Client API (`client/`)**: Modern JavaScript API using PeerJS
+3. **Testing**: Peer connection and stream testing
+
+## Working Method
+
+1. **Understand Context**: Analyze architecture and data flows
+2. **Break Tasks Into Units**: Focus on one component at a time
+3. **Review Legacy Code**: Analyze existing implementations
+4. **Follow Patterns**: Apply consistent architecture
+5. **Implement Changes**: Make focused changes with clear purpose
+
+## Code Guidelines
+
+1. **Modern JavaScript**: ES6+, JSDoc for types
+2. **Modular Architecture**: Simple modules with clear responsibilities
+3. **Performance**: Optimize for real-time, mind memory usage
+4. **Error Handling**: Basic handling for common cases only
+5. **Documentation**: Document public methods and interfaces
+
+## Stream Implementation Pattern
+
+1. Server-side processor (app/main/processors/[stream]Processor.js)
+2. Server-side handler (app/main/handlers/[stream]Handler.js)
+3. Client-side API methods in kinectron-modern.js
+4. Testing in streamTest.html
+
+## Current Priority
+
+Raw Depth stream, followed by Key, Depth Key, and RGBD
+
+## UI and API Guidelines
+
+1. **Application Interface**: Consistent UI, clear feedback
+2. **API Design**: Intuitive methods, breaking changes acceptable
+
+## Peer Connection Guidelines
+
+1. **Connection Management**: Handle establishment/termination
+2. **Data Transmission**: Focus on functionality over optimization
+
+## Documentation Guidelines
+
+1. **Code Documentation**: Comment complex logic, use JSDoc
+2. **User Documentation**: Clear examples, configuration options

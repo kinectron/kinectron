@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>Kinectron</title>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script type="module">
+    import { initializeUI } from './js/app.js';
+    initializeUI();
+  </script>
+  <link rel="stylesheet" href="./styles/style.css">
+</head>
+
+<body style="background-color: white;">
+
+  <div class="intro">
+    <div id="ip-display">
+      <div id="peer-status">
+        <h3>Peer Connection Status</h3>
+        <div id="connection-details">
+          <p>Server Status: <span class="highlight" id="server-status">Disconnected</span></p>
+          <p>Local Address: <span class="highlight" id="ipaddress">xxxx</span></p>
+          <p>Peer ID: <span class="highlight" id="peerid">xxxx</span></p>
+          <p>Port: <span class="highlight" id="port">xxxx</span></p>
+          <p>Connected Peers: <span class="highlight" id="peer-count">0</span></p>
+        </div>
+      </div>
+
+      <div id="public-access">
+        <h3>Public Access</h3>
+        <div id="ngrok-setup">
+          <input type="text" placeholder="Add ngrok auth token" id="ngrokAuthToken">
+          <input type="button" class="control-button" id="startngrok" value="Create Public Address">
+          <p>Public Address: <span class="highlight" id="ngrokaddress">xxxx</span></p>
+        </div>
+      </div>
+    </div>
+    <div id="controls">
+      <div id="start-kinect">
+        <input type="button" class="kinect-type azure-option" id="start-kinect-azure" value="Open Kinect">
+      </div>
+      <div id="additional-controls">
+        <div id="choose-frame">
+          <div id="single-frame">
+            <p>Choose a frame to begin stream. Click stop all to end stream.</p>
+            <div id="options">
+              <input type="button" class="option frame-option azure-option" id="color" value="Color">
+              <input type="button" class="option frame-option azure-option" id="depth" value="Depth">
+              <input type="button" class="option frame-option azure-option" id="raw-depth" value="Raw Depth">
+              <input type="button" class="option frame-option azure-option" id="skeleton" value="Skeleton">
+              <input type="button" class="option frame-option azure-option" id="key" value="Key">
+              <input type="button" class="option frame-option azure-option" id="depth-key" value="Depth Key">
+              <input type="button" class="option frame-option azure-option" id="rgbd" value="RGBD">
+              <input type="button" class="option frame-option azure-option" id="stop-all" value="Stop All">
+            </div>
+          </div>
+          <!-- Multiframe functionality is currently not working and under development 
+               Issues to resolve:
+               1. Camera initialization in multiframe mode
+               2. Frame callback management
+               3. Resource cleanup
+               4. Kinect Azure SDK multiframe requirements
+          -->
+          <div id="multi-frame" style="display: none;">
+            <p>Choose frames then click start multiframe to broadcast. Click stop multiframe to end broadcast.</p>
+            <div class="styleCheckBox">
+              <input class="cb-multi" type="checkbox" id="cbox-color" value="color"> <label for="cbox-color"><span
+                  class="label-text">Color</label>
+            </div>
+            <div class="styleCheckBox">
+              <input class="cb-multi" type="checkbox" id="cbox-depth" value="depth"> <label
+                for="cbox-depth">Depth</label>
+            </div>
+            <div class="styleCheckBox">
+              <input class="cb-multi" type="checkbox" id="cbox-skeleton" value="body"> <label
+                for="cbox-skeleton">Skeleton</label>
+            </div>
+            <div class="styleCheckBox">
+              <input class="cb-multi" type="checkbox" id="cbox-rawdepth" value="raw-depth"> <label
+                for="cbox-rawdepth">RawDepth</label>
+            </div>
+            <div class="clear-class" style="clear:both"></div>
+            <input type="button" class="frame-option" id="multi" value="Start Multiframe">
+          </div>
+          <!-- <div class="option azure-option" id="record-control">
+            <p>Record stream</p>
+            <input type="button" class="frame-option" id="record" value="Start Record">
+          </div> -->
+        </div>
+
+        <div id="api-calls">
+          <p id="api-blocker-intro">API Calls Are Allowed</p>
+          <input type="button" class="frame-option" id="api-blocker" value="Block API Calls">
+        </div>
+      </div>
+    </div>
+    <div id="feed-images">
+      <h4>Feed Output</h4>
+      <div id="feed-canvases">
+        <div id="color-div">
+          <h5 id="color-canvas-label">Color Feed</h5>
+          <img id="color-img">
+          <canvas id="color-canvas"></canvas>
+        </div>
+        <div id="depth-div">
+          <h5 id="depth-canvas-label">Depth Feed</h5>
+          <canvas id="depth-canvas"></canvas>
+        </div>
+        <div id="raw-depth-div">
+          <h5 id="raw-depth-canvas-label">Raw Deth Feed</h5>
+          <canvas id="raw-depth-canvas"></canvas>
+        </div>
+        <!-- skeleton used for all bodies and tracked bodies -->
+        <div id="skeleton-div">
+          <h5 id="skeleton-canvas-label">Skeleton/Bodies Feed</h5>
+          <canvas id="skeleton-canvas"></canvas>
+        </div>
+        <div id="infrared-div">
+          <h5 id="infrared-canvas-label">Infrared Feed</h5>
+          <canvas id="infrared-canvas"></canvas>
+        </div>
+        <div id="le-infrared-div">
+          <h5 id="le-infrared-canvas-label">Long Exposure Infrared Feed</h5>
+          <canvas id="le-infrared-canvas"></canvas>
+        </div>
+        <div id="key-div">
+          <h5 id="key-canvas-label">Key Feed</h5>
+          <canvas id="key-canvas"></canvas>
+        </div>
+        <div id="depth-key-div">
+          <h5 id="depth-key-canvas-label">Key Feed</h5>
+          <canvas id="depth-key-canvas"></canvas>
+        </div>
+        <div id="rgbd-div">
+          <h5 id="rgbd-canvas-label">RGBD Feed</h5>
+          <canvas id="rgbd-canvas"></canvas>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal" class="notification-modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-title">Notification Title</h3>
+        </div>
+        <div class="modal-body">
+          <p id="modal-message">Notification message goes here.</p>
+          <div id="modal-details"></div>
+        </div>
+        <div class="modal-footer" id="modal-actions">
+          <button id="modal-close" class="modal-btn modal-btn-secondary">Close</button>
+        </div>
+      </div>
+    </div>
+</body>
+
+</html>
