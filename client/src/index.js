@@ -1,6 +1,6 @@
 /**
  * @fileoverview Main entry point for the Kinectron client library
- * @version 0.3.9
+ * @version 1.0.0
  */
 
 import { PeerConnection } from './peer/peerConnection.js';
@@ -11,7 +11,7 @@ import {
 import { Kinectron as ModernKinectron } from './kinectron-modern.js';
 import { NgrokClientState } from './peer/ngrokState.js';
 
-console.log('You are running Kinectron API version 0.3.9');
+console.log('You are running Kinectron API version 1.0.0');
 
 /**
  * Legacy Kinectron class for backward compatibility

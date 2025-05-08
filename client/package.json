@@ -1,6 +1,6 @@
 {
   "name": "kinectron-client",
-  "version": "0.3.9",
+  "version": "1.0.0",
   "description": "Client for Kinectron peer server",
   "bin": {
     "kinectron-client": "kinectron-client.js"
@@ -12,7 +12,7 @@
   "scripts": {
     "clean": "rm -rf .parcel-cache dist",
     "start": "npm run clean && parcel watch src/index.js",
-    "build": "npm run clean && parcel build src/index.js --no-optimize",
+    "build": "npm run clean && parcel build src/index.js",
     "test": "npm run clean && parcel serve examples/test/index.html --open",
     "test:stream": "npm run clean && parcel build src/index.js --no-optimize && parcel serve examples/streamTest/index.html --open"
   },

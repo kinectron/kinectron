@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Kinectron For Three.js - Simple Example</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <!-- Origin Trial Token, feature = WebVR (For Chrome M59+), origin = https://juniorxsound.github.io, expires = 2017-08-16 -->
+    <meta
+      http-equiv="origin-trial"
+      data-feature="WebVR (For Chrome M59+)"
+      data-expires="2017-08-16"
+      content="Ahwo2B0LoM2bLB015eLJ4CAvJa0xF9VVn0FO1/AaYfPklvBUwcfYFkXKenD57vhGo1WQt9Hg9IFauhKdRgLN8w8AAABreyJvcmlnaW4iOiJodHRwczovL2p1bmlvcnhzb3VuZC5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYlZSMS4xIiwiZXhwaXJ5IjoxNTAyOTEyNTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZX0="
+    />
+    <style>
+      body {
+        background: #000;
+        color: #fff;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+        font-family: georgia;
+        text-align: center;
+      }
+
+      a {
+        color: skyblue;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!--Three.js - TODO - swap with hosted versions so example serve from Github pages-->
+    <script src="../shared/three.min.js"></script>
+    <script src="../shared/OrbitControls.js"></script>
+    <script src="../shared/stats.min.js"></script>
+
+    <!-- Kinectron client side library -->
+    <script src="../../../../client/dist/kinectron-client.js"></script>
+
+    <!--Three.js Kinectron plugin-->
+    <script src="../shared/three.kinectron.js"></script>
+
+    <script src="sketch.js"></script>
+  </body>
+</html>
