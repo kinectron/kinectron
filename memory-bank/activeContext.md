@@ -1,8 +1,8 @@
 # Active Context
 
-## Current Focus: MVP Launch Preparation
+## Current Focus: MVP Launch Preparation for Version 1.0.0
 
-We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and depth key. All streams are working correctly in both the application and client API. We've implemented a robust notification system for error handling and improved the user experience when the Kinect device isn't connected. We've also implemented a comprehensive logging system that puts all debug logs behind flags while keeping essential logs visible. We've now extended this logging system to the client-side code, ensuring consistent logging behavior across the entire application. We've further improved the skeleton stream by fixing excessive console logging in the example code. We've implemented the "Block API Calls" button functionality to enhance security by allowing users to prevent clients from controlling the Kinect while still allowing streaming data.
+We've completed all stream implementations including color, depth, raw depth, skeleton, key, RGBD, and depth key. All streams are working correctly in both the application and client API. We've implemented a robust notification system for error handling and improved the user experience when the Kinect device isn't connected. We've also implemented a comprehensive logging system that puts all debug logs behind flags while keeping essential logs visible. We've now extended this logging system to the client-side code, ensuring consistent logging behavior across the entire application. We've further improved the skeleton stream by fixing excessive console logging in the example code. We've implemented the "Block API Calls" button functionality to enhance security by allowing users to prevent clients from controlling the Kinect while still allowing streaming data. We're now finalizing version 1.0.0 of the client API, which represents a clean break from the legacy code with a modern, streamlined implementation.
 
 With all core features implemented and thoroughly tested, we're now ready for the MVP launch. We've updated the README.md to reflect the current state of the project and to highlight that it's ready for launch. Our focus continues to be on enhancing visualizations, improving error handling, and addressing technical debt such as inconsistent naming conventions.
 
@@ -232,6 +232,7 @@ With all core features implemented and thoroughly tested, we're now ready for th
   6. This fix allows multiple data channels to open on the same connection without errors
 
 - **Implementing frame dropping and buffering strategy**:
+
   1. Verified that all stream handlers use lossy transmission by default
   2. Confirmed that each stream handler passes `lossy=true` to the `broadcastFrame` method
   3. Validated buffer checking mechanism in PeerConnectionManager that prevents buffer bloat
@@ -239,3 +240,12 @@ With all core features implemented and thoroughly tested, we're now ready for th
   5. Made all streams lossy by default to prioritize real-time performance over complete data
   6. This approach maintains real-time performance even on slower networks
   7. Prioritizes fresh data over complete data, which is critical for interactive applications
+
+- **Removing legacy API from client implementation**:
+  1. Identified issue where the legacy API was included in the modern code
+  2. Removed the legacy `Kinectron` class implementation from `index.js`
+  3. Renamed `kinectron-modern.js` to `kinectron.js` to establish it as the only implementation
+  4. Updated import paths and removed code that attached to the window object
+  5. Simplified exports to only include the modern API components
+  6. This change supports our version 1.0.0 release as a clean break from legacy code
+  7. Benefits include reduced bundle size, simplified maintenance, and a cleaner API

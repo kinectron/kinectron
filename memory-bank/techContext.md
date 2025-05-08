@@ -9,6 +9,7 @@
 3. **Azure Kinect SDK**: Native SDK for interfacing with hardware
 4. **Modern JavaScript (ES6+)**: Classes, modules, async/await
 5. **Parcel**: Zero-configuration bundler for client-side code
+6. **Kinectron Client API**: Version 1.0.0, modern ES module implementation
 
 ## Development Environment
 
