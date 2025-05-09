@@ -5,9 +5,10 @@
   "description": "A realtime peer server for Kinect 2 and Azure Kinect.",
   "main": "./main/main.js",
   "scripts": {
+    "clean": "rimraf dist",
     "start": "electron .",
     "build": "node .\\node_modules\\kinect2\\tools\\electronbuild.js --target=1.4.13 --arch=x64",
-    "package": "electron-packager . --overwrite"
+    "package": "npm run clean && electron-packager . --overwrite"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
     "webp-wasm": "^1.0.6"
   },
   "devDependencies": {
-    "electron-reload": "^2.0.0-alpha.1"
+    "electron-reload": "^2.0.0-alpha.1",
+    "rimraf": "^5.0.5"
   }
 }

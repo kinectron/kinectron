@@ -698,6 +698,65 @@ To handle the limitations of classic scripts and ES modules in the browser envir
    - Allows for centralized control of debug flags
    - Works with bundlers like Parcel without requiring type="module" on all scripts
 
+## Module Export Pattern
+
+```mermaid
+flowchart TD
+    subgraph "Export Strategy"
+        SrcFiles[Source Files]
+        DefaultExport[Default Export]
+        ESM[ESM Format]
+        CJS[CommonJS Format]
+        UMD[UMD Format]
+    end
+
+    subgraph "Import Methods"
+        ESImport[import Kinectron from 'kinectron-client']
+        CJSImport[const Kinectron = require('kinectron-client')]
+        ScriptImport[<script src="kinectron.umd.js"></script>]
+    end
+
+    SrcFiles --> DefaultExport
+    DefaultExport --> ESM --> ESImport
+    DefaultExport --> CJS --> CJSImport
+    DefaultExport --> UMD --> ScriptImport
+```
+
+### Module Export Implementation
+
+1. **Default Export Only**:
+
+   - The Kinectron class is exported as the default export only
+   - This follows best practices for libraries with a single primary class
+   - Provides a cleaner, more intuitive API for consumers
+
+   ```javascript
+   // In client/src/index.js
+   import { Kinectron } from './kinectron.js';
+   console.log('You are running Kinectron API version 1.0.0');
+   export default Kinectron;
+   ```
+
+2. **Import Methods**:
+
+   - ES Modules: `import Kinectron from 'kinectron-client'`
+   - CommonJS: `const Kinectron = require('kinectron-client')`
+   - Script tag: `<script src="kinectron.umd.js"></script>` (global `Kinectron`)
+
+3. **Benefits**:
+
+   - Cleaner, more idiomatic API for consumers of the library
+   - Better interoperability between ESM and CommonJS environments
+   - Eliminates confusing warning messages during build
+   - Follows modern JavaScript best practices for library exports
+   - Simplifies usage for developers
+
+4. **Implementation Details**:
+   - Rollup configured to output three formats (ESM, CJS, UMD)
+   - Package.json configured with appropriate entry points
+   - Examples updated to use the new import style
+   - Backward compatible with existing code that uses the default export
+
 ## Build System and Development Workflow
 
 ```mermaid

@@ -1,0 +1,17 @@
+{
+  "name": "kinectron-monorepo",
+  "private": true,
+  "workspaces": [
+    "app",
+    "client",
+    "examples"
+  ],
+  "scripts": {
+    "start:app": "npm run start --workspace=app",
+    "build:app": "npm run build --workspace=app",
+    "build:client": "npm run build --workspace=client",
+    "dev:client": "npm run start --workspace=client",
+    "examples": "npm run start --workspace=examples",
+    "build:all": "npm run build --workspace=client && npm run build --workspace=app"
+  }
+}

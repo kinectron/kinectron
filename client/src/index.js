@@ -7,8 +7,5 @@ import { Kinectron } from './kinectron.js';
 
 console.log('You are running Kinectron API version 1.0.0');
 
-// Export the Kinectron class as the main API
-export { Kinectron };
-
-// Also provide as default export for more flexible importing
+// Export the Kinectron class as the default export
 export default Kinectron;

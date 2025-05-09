@@ -2,17 +2,39 @@
   "name": "kinectron-client",
   "version": "1.0.0",
   "description": "Client for Kinectron peer server",
+  "type": "module",
+  "main": "dist/kinectron.cjs.js",
+  "module": "dist/kinectron.esm.js",
+  "browser": "dist/kinectron.umd.js",
+  "unpkg": "dist/kinectron.umd.js",
+  "jsdelivr": "dist/kinectron.umd.js",
+  "exports": {
+    "import": "./dist/kinectron.esm.js",
+    "require": "./dist/kinectron.cjs.js",
+    "default": "./dist/kinectron.umd.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "bin": {
     "kinectron-client": "kinectron-client.js"
   },
   "devDependencies": {
     "parcel": "^2.13.3",
-    "process": "^0.11.10"
+    "process": "^0.11.10",
+    "rimraf": "^5.0.5",
+    "rollup": "^4.12.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-terser": "^0.4.4"
   },
   "scripts": {
-    "clean": "rm -rf .parcel-cache dist",
+    "clean": "rimraf .parcel-cache dist",
     "start": "npm run clean && parcel watch src/index.js",
-    "build": "npm run clean && parcel build src/index.js",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
     "test": "npm run clean && parcel serve tools/connection-tester/index.html --open",
     "test:stream": "npm run clean && parcel build src/index.js --no-optimize && parcel serve tools/stream-tester/index.html --open"
   },
@@ -21,7 +43,11 @@
     "url": "https://github.com/kinectron/kinectron/tree/master/client"
   },
   "keywords": [
-    "kinect2",
+    "kinect",
+    "azure-kinect",
+    "motion-tracking",
+    "depth-camera",
+    "webrtc",
     "peerjs"
   ],
   "author": "Lisa Jamhoury and Shawn Van Every",

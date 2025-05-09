@@ -1,0 +1,18 @@
+{
+  "name": "kinectron-examples",
+  "version": "1.0.0",
+  "description": "Examples for Kinectron",
+  "scripts": {
+    "clean": "rimraf .parcel-cache dist",
+    "start": "npm run clean && parcel serve p5_examples/gettingstarted/index.html --open",
+    "serve:p5": "npm run clean && parcel serve p5_examples/*/index.html",
+    "serve:threejs": "npm run clean && parcel serve threejs_examples/*/index.html"
+  },
+  "dependencies": {
+    "kinectron-client": "^1.0.0"
+  },
+  "devDependencies": {
+    "parcel": "^2.13.3",
+    "rimraf": "^5.0.5"
+  }
+}

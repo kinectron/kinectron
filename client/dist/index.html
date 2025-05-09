@@ -4,111 +4,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kinectron Client Test</title>
-    <style>body {
-  max-width: 800px;
-  margin: 20px auto;
-  padding: 0 20px;
-  font-family: Arial, sans-serif;
-}
-
-#status {
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  margin: 10px 0;
-  padding: 10px;
-}
-
-.error {
-  color: #c62828;
-  background-color: #ffebee !important;
-}
-
-.success {
-  color: #2e7d32;
-  background-color: #e8f5e9 !important;
-}
-
-.interface-test {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin: 20px 0;
-  padding: 15px;
-}
-
-h2 {
-  color: #333;
-  margin-top: 0;
-}
-
-pre {
-  background: #f8f9fa;
-  border-radius: 4px;
-  padding: 10px;
-  overflow-x: auto;
-}
-
-button {
-  cursor: pointer;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin: 5px;
-  padding: 8px 16px;
-}
-
-button:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-button:hover:not(:disabled) {
-  background: #f0f0f0;
-}
-
-.troubleshooting {
-  background: #fff3e0;
-  border-radius: 4px;
-  margin-top: 10px;
-  padding: 10px;
-}
-
-.troubleshooting ul {
-  margin: 5px 0;
-  padding-left: 20px;
-}
-
-.troubleshooting li {
-  margin: 5px 0;
-}
-</style>
+    <title>Kinectron Stream Test</title>
+    <link rel="stylesheet" href="/stream-tester.69e5ec0d.css">
+    <!-- Three.js dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.109.0/examples/js/controls/TrackballControls.js"></script>
 </head>
 
 <body>
-    <h1>Kinectron Client Test</h1>
+    <div id="controls">
+        <button disabled="" id="initializeKinectBtn">Initialize Kinect</button>
+        <button disabled="" id="startColorBtn">Start Color Stream</button>
+        <button disabled="" id="startDepthBtn">Start Depth Stream</button>
+        <button disabled="" id="startRawDepthBtn">Start Raw Depth Stream</button>
+        <button disabled="" id="startSkeletonBtn">Start Skeleton Stream</button>
+        <button disabled="" id="startKeyBtn">Start Key Stream</button>
+        <button disabled="" id="startRGBDBtn">Start RGBD Stream</button>
+        <button disabled="" id="startDepthKeyBtn">Start Depth Key Stream</button>
+        <button disabled="" id="stopStreamBtn">Stop Stream</button>
+    </div>
+    <div id="canvas-container">
+        <!-- Stream canvases will be created here by p5.js -->
+        <!-- Color stream canvas -->
+        <div id="color-div" style="display: none">
+            <canvas id="color-canvas"></canvas>
+        </div>
 
-    <div class="interface-test">
-        <h2>Modern Interface Test</h2>
-        <div id="modern-status">Status: Initializing...</div>
-        <pre id="modern-details"></pre>
+        <!-- Depth stream canvas -->
+        <div id="depth-div" style="display: none">
+            <canvas id="depth-canvas"></canvas>
+        </div>
+
+        <!-- Raw depth stream canvas -->
+        <div id="raw-depth-div" style="display: none">
+            <canvas id="raw-depth-canvas"></canvas>
+        </div>
+
+        <!-- Skeleton stream canvas -->
+        <div id="skeleton-div" style="display: none">
+            <canvas id="skeleton-canvas"></canvas>
+        </div>
+
+        <!-- Key stream canvas -->
+        <div id="key-div" style="display: none">
+            <canvas id="key-canvas"></canvas>
+        </div>
+
+        <!-- Depth key stream canvas -->
+        <div id="depth-key-div" style="display: none">
+            <canvas id="depth-key-canvas"></canvas>
+        </div>
+
+        <!-- RGBD stream canvas -->
+        <div id="rgbd-div" style="display: none">
+            <canvas id="rgbd-canvas"></canvas>
+        </div>
+    </div>
+    <div id="three-container">
+        <canvas id="threeCanvas"></canvas>
+    </div>
+    <div id="stats">
+        <div id="connectionStatus" class="stat-item">Connection Status: Disconnected</div>
+        <div id="streamStatus" class="stat-item">Stream Status: Inactive</div>
+        <div id="frameRate" class="stat-item">Frame Rate: 0 fps</div>
+        <div id="resolution" class="stat-item">Resolution: -</div>
+    </div>
+
+    <!-- Debug Panel -->
+    <div id="debugPanel">
+        <h3>Debug Panel</h3>
+        <div id="debugInfo"></div>
         <div>
-            <button id="modern-reconnect" disabled="">Reconnect</button>
-            <button id="modern-disconnect">Disconnect</button>
+            <button id="forceEnableBtn">Force Enable Buttons</button>
+            <button id="clearDebugBtn">Clear Debug Info</button>
+            <div style="margin-top: 10px">
+                <label>
+                    <input type="checkbox" id="debugToggle">
+                    Enable Debug Logging
+                </label>
+                <div style="margin-top: 5px">
+                    <label>
+                        <input type="checkbox" id="debugFrames">
+                        Frames Logs
+                    </label>
+                    <label style="margin-left: 10px">
+                        <input type="checkbox" id="debugHandlers">
+                        Handlers Logs
+                    </label>
+                </div>
+                <div style="margin-top: 5px">
+                    <label>
+                        <input type="checkbox" id="debugPerformance">
+                        Performance Logs
+                    </label>
+                    <label style="margin-left: 10px">
+                        <input type="checkbox" id="debugData">
+                        Data Integrity Logs
+                    </label>
+                </div>
+                <div style="margin-top: 5px">
+                    <label>
+                        <input type="checkbox" id="debugPeer">
+                        Peer Connection Logs
+                    </label>
+                    <label style="margin-left: 10px">
+                        <input type="checkbox" id="debugNetwork">
+                        Network Logs
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="interface-test">
-        <h2>Ngrok Connection Test</h2>
-        <div>
-            <input type="text" id="ngrok-url" placeholder="Enter ngrok URL" style="width: 300px; margin-right: 5px; padding: 8px">
-            <button id="ngrok-connect">Connect</button>
-            <button id="ngrok-disconnect" disabled="">Disconnect</button>
-        </div>
-        <div id="ngrok-status">Status: Not connected</div>
-        <pre id="ngrok-details"></pre>
-    </div>
+    <!-- p5.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
 
-
+    <!-- Import Kinectron and DEBUG -->
     <script>// modules are defined as an array
 // [ module function, map of requires ]
 //
@@ -117,7 +128,16 @@ button:hover:not(:disabled) {
 // anything defined in a previous bundle is accessed via the
 // orig method which is the require for previous bundles
 
-(function (modules, entry, mainEntry, parcelRequireName, globalName) {
+(function (
+  modules,
+  entry,
+  mainEntry,
+  parcelRequireName,
+  externals,
+  distDir,
+  publicUrl,
+  devServer
+) {
   /* eslint-disable no-undef */
   var globalObject =
     typeof globalThis !== 'undefined'
@@ -136,6 +156,7 @@ button:hover:not(:disabled) {
     typeof globalObject[parcelRequireName] === 'function' &&
     globalObject[parcelRequireName];
 
+  var importMap = previousRequire.i || {};
   var cache = previousRequire.cache || {};
   // Do not use `require` to prevent Webpack from trying to bundle this call
   var nodeRequire =
@@ -146,6 +167,9 @@ button:hover:not(:disabled) {
   function newRequire(name, jumped) {
     if (!cache[name]) {
       if (!modules[name]) {
+        if (externals[name]) {
+          return externals[name];
+        }
         // if we cannot find the module within our internal map or
         // cache jump to the current global require ie. the last bundle
         // that was added to the page.
@@ -204,6 +228,7 @@ button:hover:not(:disabled) {
   function Module(moduleName) {
     this.id = moduleName;
     this.bundle = newRequire;
+    this.require = nodeRequire;
     this.exports = {};
   }
 
@@ -212,6 +237,10 @@ button:hover:not(:disabled) {
   newRequire.modules = modules;
   newRequire.cache = cache;
   newRequire.parent = previousRequire;
+  newRequire.distDir = distDir;
+  newRequire.publicUrl = publicUrl;
+  newRequire.devServer = devServer;
+  newRequire.i = importMap;
   newRequire.register = function (id, exports) {
     modules[id] = [
       function (require, module) {
@@ -220,6 +249,10 @@ button:hover:not(:disabled) {
       {},
     ];
   };
+
+  // Only insert newRequire.load when it is actually used.
+  // The code in this file is linted against ES5, so dynamic import is not allowed.
+  // INSERT_LOAD_HERE
 
   Object.defineProperty(newRequire, 'root', {
     get: function () {
@@ -247,22 +280,19 @@ button:hover:not(:disabled) {
       define(function () {
         return mainExports;
       });
-
-      // <script>
-    } else if (globalName) {
-      this[globalName] = mainExports;
     }
   }
-})({"dDsIj":[function(require,module,exports,__globalThis) {
+})({"6dsOb":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
+var HMR_SERVER_PORT = 52920;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
 var HMR_USE_SSE = false;
-module.bundle.HMR_BUNDLE_ID = "8aaba173851f026a";
+module.bundle.HMR_BUNDLE_ID = "0cd2f9147d492de1";
 "use strict";
-/* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
+/* global HMR_HOST, HMR_PORT, HMR_SERVER_PORT, HMR_ENV_HASH, HMR_SECURE, HMR_USE_SSE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
   HMRAsset,
   HMRMessage,
@@ -299,6 +329,7 @@ interface ExtensionContext {
 declare var module: {bundle: ParcelRequire, ...};
 declare var HMR_HOST: string;
 declare var HMR_PORT: string;
+declare var HMR_SERVER_PORT: string;
 declare var HMR_ENV_HASH: string;
 declare var HMR_SECURE: boolean;
 declare var HMR_USE_SSE: boolean;
@@ -327,31 +358,31 @@ function Module(moduleName) {
 }
 module.bundle.Module = Module;
 module.bundle.hotData = {};
-var checkedAssets /*: {|[string]: boolean|} */ , disposedAssets /*: {|[string]: boolean|} */ , assetsToDispose /*: Array<[ParcelRequire, string]> */ , assetsToAccept /*: Array<[ParcelRequire, string]> */ ;
+var checkedAssets /*: {|[string]: boolean|} */ , disposedAssets /*: {|[string]: boolean|} */ , assetsToDispose /*: Array<[ParcelRequire, string]> */ , assetsToAccept /*: Array<[ParcelRequire, string]> */ , bundleNotFound = false;
 function getHostname() {
-    return HMR_HOST || (location.protocol.indexOf('http') === 0 ? location.hostname : 'localhost');
+    return HMR_HOST || (typeof location !== 'undefined' && location.protocol.indexOf('http') === 0 ? location.hostname : 'localhost');
 }
 function getPort() {
-    return HMR_PORT || location.port;
+    return HMR_PORT || (typeof location !== 'undefined' ? location.port : HMR_SERVER_PORT);
 }
 // eslint-disable-next-line no-redeclare
+let WebSocket = globalThis.WebSocket;
+if (!WebSocket && typeof module.bundle.root === 'function') try {
+    // eslint-disable-next-line no-global-assign
+    WebSocket = module.bundle.root('ws');
+} catch  {
+// ignore.
+}
+var hostname = getHostname();
+var port = getPort();
+var protocol = HMR_SECURE || typeof location !== 'undefined' && location.protocol === 'https:' && ![
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0'
+].includes(hostname) ? 'wss' : 'ws';
+// eslint-disable-next-line no-redeclare
 var parent = module.bundle.parent;
-if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
-    var hostname = getHostname();
-    var port = getPort();
-    var protocol = HMR_SECURE || location.protocol == 'https:' && ![
-        'localhost',
-        '127.0.0.1',
-        '0.0.0.0'
-    ].includes(hostname) ? 'wss' : 'ws';
-    var ws;
-    if (HMR_USE_SSE) ws = new EventSource('/__parcel_hmr');
-    else try {
-        ws = new WebSocket(protocol + '://' + hostname + (port ? ':' + port : '') + '/');
-    } catch (err) {
-        if (err.message) console.error(err.message);
-        ws = {};
-    }
+if (!parent || !parent.isParcelRequire) {
     // Web extension context
     var extCtx = typeof browser === 'undefined' ? typeof chrome === 'undefined' ? null : chrome : browser;
     // Safari doesn't support sourceURL in error stacks.
@@ -362,61 +393,100 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
     } catch (err) {
         supportsSourceURL = err.stack.includes('test.js');
     }
-    // $FlowFixMe
-    ws.onmessage = async function(event /*: {data: string, ...} */ ) {
-        checkedAssets = {} /*: {|[string]: boolean|} */ ;
-        disposedAssets = {} /*: {|[string]: boolean|} */ ;
-        assetsToAccept = [];
-        assetsToDispose = [];
-        var data /*: HMRMessage */  = JSON.parse(event.data);
-        if (data.type === 'reload') fullReload();
-        else if (data.type === 'update') {
-            // Remove error overlay if there is one
-            if (typeof document !== 'undefined') removeErrorOverlay();
-            let assets = data.assets.filter((asset)=>asset.envHash === HMR_ENV_HASH);
-            // Handle HMR Update
-            let handled = assets.every((asset)=>{
-                return asset.type === 'css' || asset.type === 'js' && hmrAcceptCheck(module.bundle.root, asset.id, asset.depsByBundle);
-            });
-            if (handled) {
-                console.clear();
-                // Dispatch custom event so other runtimes (e.g React Refresh) are aware.
-                if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') window.dispatchEvent(new CustomEvent('parcelhmraccept'));
-                await hmrApplyUpdates(assets);
-                hmrDisposeQueue();
-                // Run accept callbacks. This will also re-execute other disposed assets in topological order.
-                let processedAssets = {};
-                for(let i = 0; i < assetsToAccept.length; i++){
-                    let id = assetsToAccept[i][1];
-                    if (!processedAssets[id]) {
-                        hmrAccept(assetsToAccept[i][0], id);
-                        processedAssets[id] = true;
-                    }
+    var ws;
+    if (HMR_USE_SSE) ws = new EventSource('/__parcel_hmr');
+    else try {
+        // If we're running in the dev server's node runner, listen for messages on the parent port.
+        let { workerData, parentPort } = module.bundle.root('node:worker_threads') /*: any*/ ;
+        if (workerData !== null && workerData !== void 0 && workerData.__parcel) {
+            parentPort.on('message', async (message)=>{
+                try {
+                    await handleMessage(message);
+                    parentPort.postMessage('updated');
+                } catch  {
+                    parentPort.postMessage('restart');
                 }
-            } else fullReload();
+            });
+            // After the bundle has finished running, notify the dev server that the HMR update is complete.
+            queueMicrotask(()=>parentPort.postMessage('ready'));
         }
-        if (data.type === 'error') {
-            // Log parcel errors to console
-            for (let ansiDiagnostic of data.diagnostics.ansi){
-                let stack = ansiDiagnostic.codeframe ? ansiDiagnostic.codeframe : ansiDiagnostic.stack;
-                console.error("\uD83D\uDEA8 [parcel]: " + ansiDiagnostic.message + '\n' + stack + '\n\n' + ansiDiagnostic.hints.join('\n'));
-            }
-            if (typeof document !== 'undefined') {
-                // Render the fancy html overlay
-                removeErrorOverlay();
-                var overlay = createErrorOverlay(data.diagnostics.html);
-                // $FlowFixMe
-                document.body.appendChild(overlay);
-            }
+    } catch  {
+        if (typeof WebSocket !== 'undefined') try {
+            ws = new WebSocket(protocol + '://' + hostname + (port ? ':' + port : '') + '/');
+        } catch (err) {
+            // Ignore cloudflare workers error.
+            if (err.message && !err.message.includes('Disallowed operation called within global scope')) console.error(err.message);
         }
-    };
-    if (ws instanceof WebSocket) {
-        ws.onerror = function(e) {
-            if (e.message) console.error(e.message);
+    }
+    if (ws) {
+        // $FlowFixMe
+        ws.onmessage = async function(event /*: {data: string, ...} */ ) {
+            var data /*: HMRMessage */  = JSON.parse(event.data);
+            await handleMessage(data);
         };
-        ws.onclose = function() {
-            console.warn("[parcel] \uD83D\uDEA8 Connection to the HMR server was lost");
-        };
+        if (ws instanceof WebSocket) {
+            ws.onerror = function(e) {
+                if (e.message) console.error(e.message);
+            };
+            ws.onclose = function() {
+                console.warn("[parcel] \uD83D\uDEA8 Connection to the HMR server was lost");
+            };
+        }
+    }
+}
+async function handleMessage(data /*: HMRMessage */ ) {
+    checkedAssets = {} /*: {|[string]: boolean|} */ ;
+    disposedAssets = {} /*: {|[string]: boolean|} */ ;
+    assetsToAccept = [];
+    assetsToDispose = [];
+    bundleNotFound = false;
+    if (data.type === 'reload') fullReload();
+    else if (data.type === 'update') {
+        // Remove error overlay if there is one
+        if (typeof document !== 'undefined') removeErrorOverlay();
+        let assets = data.assets;
+        // Handle HMR Update
+        let handled = assets.every((asset)=>{
+            return asset.type === 'css' || asset.type === 'js' && hmrAcceptCheck(module.bundle.root, asset.id, asset.depsByBundle);
+        });
+        // Dispatch a custom event in case a bundle was not found. This might mean
+        // an asset on the server changed and we should reload the page. This event
+        // gives the client an opportunity to refresh without losing state
+        // (e.g. via React Server Components). If e.preventDefault() is not called,
+        // we will trigger a full page reload.
+        if (handled && bundleNotFound && assets.some((a)=>a.envHash !== HMR_ENV_HASH) && typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') handled = !window.dispatchEvent(new CustomEvent('parcelhmrreload', {
+            cancelable: true
+        }));
+        if (handled) {
+            console.clear();
+            // Dispatch custom event so other runtimes (e.g React Refresh) are aware.
+            if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') window.dispatchEvent(new CustomEvent('parcelhmraccept'));
+            await hmrApplyUpdates(assets);
+            hmrDisposeQueue();
+            // Run accept callbacks. This will also re-execute other disposed assets in topological order.
+            let processedAssets = {};
+            for(let i = 0; i < assetsToAccept.length; i++){
+                let id = assetsToAccept[i][1];
+                if (!processedAssets[id]) {
+                    hmrAccept(assetsToAccept[i][0], id);
+                    processedAssets[id] = true;
+                }
+            }
+        } else fullReload();
+    }
+    if (data.type === 'error') {
+        // Log parcel errors to console
+        for (let ansiDiagnostic of data.diagnostics.ansi){
+            let stack = ansiDiagnostic.codeframe ? ansiDiagnostic.codeframe : ansiDiagnostic.stack;
+            console.error("\uD83D\uDEA8 [parcel]: " + ansiDiagnostic.message + '\n' + stack + '\n\n' + ansiDiagnostic.hints.join('\n'));
+        }
+        if (typeof document !== 'undefined') {
+            // Render the fancy html overlay
+            removeErrorOverlay();
+            var overlay = createErrorOverlay(data.diagnostics.html);
+            // $FlowFixMe
+            document.body.appendChild(overlay);
+        }
     }
 }
 function removeErrorOverlay() {
@@ -433,7 +503,7 @@ function createErrorOverlay(diagnostics) {
     for (let diagnostic of diagnostics){
         let stack = diagnostic.frames.length ? diagnostic.frames.reduce((p, frame)=>{
             return `${p}
-<a href="/__parcel_launch_editor?file=${encodeURIComponent(frame.location)}" style="text-decoration: underline; color: #888" onclick="fetch(this.href); return false">${frame.location}</a>
+<a href="${protocol === 'wss' ? 'https' : 'http'}://${hostname}:${port}/__parcel_launch_editor?file=${encodeURIComponent(frame.location)}" style="text-decoration: underline; color: #888" onclick="fetch(this.href); return false">${frame.location}</a>
 ${frame.code}`;
         }, '') : diagnostic.stack;
         errorHTML += `
@@ -454,8 +524,14 @@ ${frame.code}`;
     return overlay;
 }
 function fullReload() {
-    if ('reload' in location) location.reload();
-    else if (extCtx && extCtx.runtime && extCtx.runtime.reload) extCtx.runtime.reload();
+    if (typeof location !== 'undefined' && 'reload' in location) location.reload();
+    else if (typeof extCtx !== 'undefined' && extCtx && extCtx.runtime && extCtx.runtime.reload) extCtx.runtime.reload();
+    else try {
+        let { workerData, parentPort } = module.bundle.root('node:worker_threads') /*: any*/ ;
+        if (workerData !== null && workerData !== void 0 && workerData.__parcel) parentPort.postMessage('restart');
+    } catch (err) {
+        console.error("[parcel] \u26A0\uFE0F An HMR update was not accepted. Please restart the process.");
+    }
 }
 function getParents(bundle, id) /*: Array<[ParcelRequire, string]> */ {
     var modules = bundle.modules;
@@ -487,7 +563,7 @@ function updateLink(link) {
 }
 var cssTimeout = null;
 function reloadCSS() {
-    if (cssTimeout) return;
+    if (cssTimeout || typeof document === 'undefined') return;
     cssTimeout = setTimeout(function() {
         var links = document.querySelectorAll('link[rel="stylesheet"]');
         for(var i = 0; i < links.length; i++){
@@ -617,6 +693,7 @@ function hmrDelete(bundle, id) {
     } else if (bundle.parent) hmrDelete(bundle.parent, id);
 }
 function hmrAcceptCheck(bundle /*: ParcelRequire */ , id /*: string */ , depsByBundle /*: ?{ [string]: { [string]: string } }*/ ) {
+    checkedAssets = {};
     if (hmrAcceptCheckOne(bundle, id, depsByBundle)) return true;
     // Traverse parents breadth first. All possible ancestries must accept the HMR update, or we'll reload.
     let parents = getParents(module.bundle.root, id);
@@ -626,7 +703,7 @@ function hmrAcceptCheck(bundle /*: ParcelRequire */ , id /*: string */ , depsByB
         let a = hmrAcceptCheckOne(v[0], v[1], null);
         if (a) // If this parent accepts, stop traversing upward, but still consider siblings.
         accepted = true;
-        else {
+        else if (a !== null) {
             // Otherwise, queue the parents in the next level upward.
             let p = getParents(module.bundle.root, v[1]);
             if (p.length === 0) {
@@ -645,23 +722,28 @@ function hmrAcceptCheckOne(bundle /*: ParcelRequire */ , id /*: string */ , deps
     if (depsByBundle && !depsByBundle[bundle.HMR_BUNDLE_ID]) {
         // If we reached the root bundle without finding where the asset should go,
         // there's nothing to do. Mark as "accepted" so we don't reload the page.
-        if (!bundle.parent) return true;
-        return hmrAcceptCheck(bundle.parent, id, depsByBundle);
+        if (!bundle.parent) {
+            bundleNotFound = true;
+            return true;
+        }
+        return hmrAcceptCheckOne(bundle.parent, id, depsByBundle);
     }
-    if (checkedAssets[id]) return true;
+    if (checkedAssets[id]) return null;
     checkedAssets[id] = true;
     var cached = bundle.cache[id];
+    if (!cached) return true;
     assetsToDispose.push([
         bundle,
         id
     ]);
-    if (!cached || cached.hot && cached.hot._acceptCallbacks.length) {
+    if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
         assetsToAccept.push([
             bundle,
             id
         ]);
         return true;
     }
+    return false;
 }
 function hmrDisposeQueue() {
     // Dispose all old assets.
@@ -706,231 +788,34 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     }
 }
 
-},{}],"1ygyc":[function(require,module,exports,__globalThis) {
+},{}],"2qLMK":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _indexJs = require("../../src/index.js");
-var _errorsJs = require("../../src/peer/errors.js");
-// Modern Interface Setup
-const modernStatus = document.getElementById('modern-status');
-const modernDetails = document.getElementById('modern-details');
-const modernReconnect = document.getElementById('modern-reconnect');
-const modernDisconnect = document.getElementById('modern-disconnect');
-let activeKinectron = null;
-function updateModernStatus(message, isError = false, isSuccess = false) {
-    modernStatus.textContent = 'Status: ' + message;
-    modernStatus.className = isError ? 'error' : isSuccess ? 'success' : '';
-}
-function updateModernDetails(details) {
-    modernDetails.textContent = typeof details === 'string' ? details : JSON.stringify(details, null, 2);
-}
-function initializeModernKinectron() {
-    const config = {
-        host: '127.0.0.1',
-        port: 9001,
-        path: '/',
-        secure: false,
-        debug: 3,
-        role: 'modern-test',
-        config: {
-            iceServers: [],
-            sdpSemantics: 'unified-plan'
-        }
-    };
-    // Create a Kinectron instance with the config
-    activeKinectron = new (0, _indexJs.Kinectron)(config);
-    // Access the peer connection through the Kinectron instance
-    activeKinectron.on('ready', (data)=>{
-        updateModernStatus(`Connected to peer: kinectron`, false, true);
-        updateModernDetails({
-            status: 'connected',
-            peerId: 'kinectron',
-            timestamp: data.timestamp
-        });
-        modernReconnect.disabled = true;
-        modernDisconnect.disabled = false;
-    });
-    activeKinectron.on('error', (error)=>{
-        updateModernStatus(`Error: ${error.error || error.message}`, true);
-        updateModernDetails({
-            status: 'error',
-            error: error.error || error.message,
-            details: error.details,
-            timestamp: new Date().toISOString()
-        });
-        modernReconnect.disabled = false;
-        modernDisconnect.disabled = true;
-    });
-    // Connect to the peer server
-    activeKinectron.peer.connect();
-    return activeKinectron;
-}
-// Initialize interface
-initializeModernKinectron();
-// Modern Interface Event Handlers
-modernReconnect.addEventListener('click', ()=>{
-    if (activeKinectron) activeKinectron.close();
-    updateModernStatus('Reconnecting...');
-    updateModernDetails('Initializing new connection...');
-    initializeModernKinectron();
-});
-modernDisconnect.addEventListener('click', ()=>{
-    if (activeKinectron) {
-        activeKinectron.close();
-        updateModernStatus('Disconnected', false, false);
-        updateModernDetails('Connection closed by user');
-        modernReconnect.disabled = false;
-        modernDisconnect.disabled = true;
-    }
-});
-// Ngrok Interface Setup
-const ngrokUrl = document.getElementById('ngrok-url');
-const ngrokConnect = document.getElementById('ngrok-connect');
-const ngrokDisconnect = document.getElementById('ngrok-disconnect');
-const ngrokStatus = document.getElementById('ngrok-status');
-const ngrokDetails = document.getElementById('ngrok-details');
-let ngrokKinectron = null;
-function updateNgrokStatus(message, isError = false, isSuccess = false) {
-    ngrokStatus.textContent = 'Status: ' + message;
-    ngrokStatus.className = isError ? 'error' : isSuccess ? 'success' : '';
-}
-function formatErrorDetails(error) {
-    const details = {
-        name: error.name,
-        message: error.message,
-        code: error.details?.code,
-        timestamp: error.timestamp,
-        ...error.details
-    };
-    return details;
-}
-function updateNgrokDetails(details) {
-    // If it's an error object, format it specially
-    if (details instanceof Error) {
-        const formattedDetails = formatErrorDetails(details);
-        ngrokDetails.innerHTML = `
-                    <div class="error">
-                        <strong>Error:</strong> ${formattedDetails.message}
-                        ${formattedDetails.code ? `<br><strong>Code:</strong> ${formattedDetails.code}` : ''}
-                        
-                        <div class="troubleshooting">
-                            <strong>Troubleshooting Steps:</strong>
-                            <ul>
-                                ${details.troubleshooting?.map((tip)=>`<li>${tip}</li>`).join('') || ''}
-                            </ul>
-                        </div>
-                        
-                        <strong>Technical Details:</strong>
-                        <pre>${JSON.stringify(formattedDetails, null, 2)}</pre>
-                    </div>
-                `;
-    } else ngrokDetails.textContent = typeof details === 'string' ? details : JSON.stringify(details, null, 2);
-}
-function initializeNgrokKinectron(url) {
-    if (ngrokKinectron) ngrokKinectron.close();
-    try {
-        // Create a Kinectron instance with ngrok config
-        ngrokKinectron = new (0, _indexJs.Kinectron)({
-            host: url,
-            port: '443',
-            path: '/',
-            secure: true,
-            role: 'ngrok-test'
-        });
-        ngrokKinectron.on('ready', (data)=>{
-            updateNgrokStatus(`Connected via ngrok: ${url}`, false, true);
-            updateNgrokDetails({
-                status: 'connected',
-                peerId: 'kinectron',
-                url: url,
-                timestamp: data.timestamp,
-                connectionType: 'ngrok',
-                secure: url.startsWith('https'),
-                state: ngrokKinectron.getState()
-            });
-            ngrokConnect.disabled = true;
-            ngrokDisconnect.disabled = false;
-            ngrokUrl.disabled = true;
-        });
-        // Listen for state changes
-        ngrokKinectron.on('stateChange', (data)=>{
-            if (data.to === 'reconnecting') {
-                updateNgrokStatus(`Reconnecting...`, false, false);
-                updateNgrokDetails({
-                    status: 'reconnecting',
-                    timestamp: new Date().toISOString(),
-                    state: ngrokKinectron.getState()
-                });
-            }
-        });
-        ngrokKinectron.on('error', (error)=>{
-            updateNgrokStatus(error.error || error.message, true);
-            updateNgrokDetails(error);
-            ngrokConnect.disabled = false;
-            ngrokDisconnect.disabled = true;
-            ngrokUrl.disabled = false;
-        });
-        // Connect to the peer server
-        ngrokKinectron.peer.connect();
-        return ngrokKinectron;
-    } catch (error) {
-        updateNgrokStatus(error.message, true);
-        updateNgrokDetails(error);
-        ngrokConnect.disabled = false;
-        ngrokDisconnect.disabled = true;
-        ngrokUrl.disabled = false;
-        throw error;
-    }
-}
-// Ngrok Interface Event Handlers
-ngrokConnect.addEventListener('click', ()=>{
-    const url = ngrokUrl.value.trim();
-    if (!url) {
-        const error = new (0, _errorsJs.NgrokValidationError)('Please enter an ngrok URL', {
-            code: 'NGROK_000',
-            reason: 'Empty URL'
-        });
-        updateNgrokStatus(error.message, true);
-        updateNgrokDetails(error);
-        return;
-    }
-    try {
-        updateNgrokStatus('Connecting via ngrok...');
-        updateNgrokDetails('Initializing ngrok connection...');
-        initializeNgrokKinectron(url);
-    } catch (error) {
-        // Error handling is done in initializeNgrokKinectron
-        console.error('Failed to initialize ngrok connection:', error);
-    }
-});
-ngrokDisconnect.addEventListener('click', ()=>{
-    if (ngrokKinectron) {
-        ngrokKinectron.close();
-        updateNgrokStatus('Disconnected', false, false);
-        updateNgrokDetails('Ngrok connection closed by user');
-        ngrokConnect.disabled = false;
-        ngrokDisconnect.disabled = true;
-        ngrokUrl.disabled = false;
-    }
-});
-// Clean up on page unload
-window.addEventListener('unload', ()=>{
-    if (ngrokKinectron) ngrokKinectron.close();
-    if (activeKinectron) activeKinectron.close();
-});
+var _indexJsDefault = parcelHelpers.interopDefault(_indexJs);
+var _debugJs = require("../../src/utils/debug.js");
+window.Kinectron = (0, _indexJsDefault.default);
+window.DEBUG = (0, _debugJs.DEBUG);
+window.log = (0, _debugJs.log);
+// Initialize DEBUG flags to false by default
+(0, _debugJs.DEBUG).FRAMES = false;
+(0, _debugJs.DEBUG).HANDLERS = false;
+(0, _debugJs.DEBUG).PERFORMANCE = false;
+(0, _debugJs.DEBUG).DATA = false;
+(0, _debugJs.DEBUG).PEER = false;
+(0, _debugJs.DEBUG).NETWORK = false;
 
-},{"../../src/index.js":"8lqZg","../../src/peer/errors.js":"iCCCO"}],"8lqZg":[function(require,module,exports,__globalThis) {
+},{"../../src/index.js":"iXgNX","../../src/utils/debug.js":"4Vd3Y","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"iXgNX":[function(require,module,exports,__globalThis) {
 /**
  * @fileoverview Main entry point for the Kinectron client library
  * @version 1.0.0
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-// Export the Kinectron class as the main API
-parcelHelpers.export(exports, "Kinectron", ()=>(0, _kinectronJs.Kinectron));
 var _kinectronJs = require("./kinectron.js");
 console.log('You are running Kinectron API version 1.0.0');
-// Also provide as default export for more flexible importing
+// Export the Kinectron class as the default export
 exports.default = (0, _kinectronJs.Kinectron);
 
-},{"./kinectron.js":"3gWmD","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3gWmD":[function(require,module,exports,__globalThis) {
+},{"./kinectron.js":"g31sf","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"g31sf":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Kinectron", ()=>Kinectron);
@@ -1171,7 +1056,7 @@ class Kinectron {
     }
 }
 
-},{"./peer/peerConnection.js":"1H7n3","./peer/ngrokState.js":"gdc09","./utils/debug.js":"eqMIC","./streams/streamHandlers.js":"6TzzH","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1H7n3":[function(require,module,exports,__globalThis) {
+},{"./peer/peerConnection.js":"2cEny","./peer/ngrokState.js":"h1Eng","./utils/debug.js":"4Vd3Y","./streams/streamHandlers.js":"7ERZk","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2cEny":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -1732,18 +1617,16 @@ class PeerConnection {
     }
 }
 
-},{"peerjs":"q8CCT","./peerConfig.js":"iPajw","./ngrokState.js":"gdc09","../utils/debug.js":"eqMIC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"q8CCT":[function(require,module,exports,__globalThis) {
+},{"peerjs":"q8CCT","./peerConfig.js":"6AmTH","./ngrokState.js":"h1Eng","../utils/debug.js":"4Vd3Y","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"q8CCT":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "default", ()=>$dd0187d7f28e386f$export$2e2bcd8739ae039);
 parcelHelpers.export(exports, "util", ()=>$4f4134156c446392$export$7debb50ef11d5e0b);
 parcelHelpers.export(exports, "BufferedConnection", ()=>$a229bedbcaa6ca23$export$ff7c9d4c11d94e8b);
 parcelHelpers.export(exports, "StreamConnection", ()=>$20dbe68149d7aad9$export$72aa44612e2200cd);
-parcelHelpers.export(exports, "Cbor", ()=>$dcf98445f54823f4$export$7e9583c3c8a0a2cc);
 parcelHelpers.export(exports, "MsgPack", ()=>$6e39230ab36396ad$export$80f5de1a66c4d624);
 parcelHelpers.export(exports, "Peer", ()=>$416260bce337df90$export$ecd1fc136c422448);
 parcelHelpers.export(exports, "MsgPackPeer", ()=>$1e0aff16be2c328e$export$d72c7bf8eef50853);
-parcelHelpers.export(exports, "CborPeer", ()=>$3849fc09dd8f140b$export$f6a74c7ffa2903e6);
 parcelHelpers.export(exports, "PeerError", ()=>$23779d1881157a18$export$98871882f492de82);
 parcelHelpers.export(exports, "ConnectionType", ()=>$78455e22dea96b8c$export$3157d57b4135e3bc);
 parcelHelpers.export(exports, "PeerErrorType", ()=>$78455e22dea96b8c$export$9547aaa2e39030ff);
@@ -1755,7 +1638,6 @@ parcelHelpers.export(exports, "ServerMessageType", ()=>$78455e22dea96b8c$export$
 var _peerjsJsBinarypack = require("peerjs-js-binarypack");
 var _webrtcAdapter = require("webrtc-adapter");
 var _webrtcAdapterDefault = parcelHelpers.interopDefault(_webrtcAdapter);
-var _cborX = require("cbor-x");
 var _msgpack = require("@msgpack/msgpack");
 function $parcel$export(e, n, v, s) {
     Object.defineProperty(e, n, {
@@ -1854,11 +1736,11 @@ const $fb63e766cfafaab9$export$25be9502477c137d = new class {
     isUnifiedPlanSupported:${this.isUnifiedPlanSupported()}`;
     }
     constructor(){
-        this.isIOS = [
+        this.isIOS = typeof navigator !== "undefined" ? [
             "iPad",
             "iPhone",
             "iPod"
-        ].includes(navigator.platform);
+        ].includes(navigator.platform) : false;
         this.supportedBrowsers = [
             "firefox",
             "chrome",
@@ -2369,7 +2251,7 @@ var $78455e22dea96b8c$export$adb4a1754da6f10d;
     ServerMessageType["Expire"] = "EXPIRE";
 })($78455e22dea96b8c$export$adb4a1754da6f10d || ($78455e22dea96b8c$export$adb4a1754da6f10d = {}));
 var $f5f881ec4575f1fc$exports = {};
-$f5f881ec4575f1fc$exports = JSON.parse('{"name":"peerjs","version":"1.5.2","keywords":["peerjs","webrtc","p2p","rtc"],"description":"PeerJS client","homepage":"https://peerjs.com","bugs":{"url":"https://github.com/peers/peerjs/issues"},"repository":{"type":"git","url":"https://github.com/peers/peerjs"},"license":"MIT","contributors":["Michelle Bu <michelle@michellebu.com>","afrokick <devbyru@gmail.com>","ericz <really.ez@gmail.com>","Jairo <kidandcat@gmail.com>","Jonas Gloning <34194370+jonasgloning@users.noreply.github.com>","Jairo Caro-Accino Viciana <jairo@galax.be>","Carlos Caballero <carlos.caballero.gonzalez@gmail.com>","hc <hheennrryy@gmail.com>","Muhammad Asif <capripio@gmail.com>","PrashoonB <prashoonbhattacharjee@gmail.com>","Harsh Bardhan Mishra <47351025+HarshCasper@users.noreply.github.com>","akotynski <aleksanderkotbury@gmail.com>","lmb <i@lmb.io>","Jairooo <jairocaro@msn.com>","Moritz St\xfcckler <moritz.stueckler@gmail.com>","Simon <crydotsnakegithub@gmail.com>","Denis Lukov <denismassters@gmail.com>","Philipp Hancke <fippo@andyet.net>","Hans Oksendahl <hansoksendahl@gmail.com>","Jess <jessachandler@gmail.com>","khankuan <khankuan@gmail.com>","DUODVK <kurmanov.work@gmail.com>","XiZhao <kwang1imsa@gmail.com>","Matthias Lohr <matthias@lohr.me>","=frank tree <=frnktrb@googlemail.com>","Andre Eckardt <aeckardt@outlook.com>","Chris Cowan <agentme49@gmail.com>","Alex Chuev <alex@chuev.com>","alxnull <alxnull@e.mail.de>","Yemel Jardi <angel.jardi@gmail.com>","Ben Parnell <benjaminparnell.94@gmail.com>","Benny Lichtner <bennlich@gmail.com>","fresheneesz <bitetrudpublic@gmail.com>","bob.barstead@exaptive.com <bob.barstead@exaptive.com>","chandika <chandika@gmail.com>","emersion <contact@emersion.fr>","Christopher Van <cvan@users.noreply.github.com>","eddieherm <edhermoso@gmail.com>","Eduardo Pinho <enet4mikeenet@gmail.com>","Evandro Zanatta <ezanatta@tray.net.br>","Gardner Bickford <gardner@users.noreply.github.com>","Gian Luca <gianluca.cecchi@cynny.com>","PatrickJS <github@gdi2290.com>","jonnyf <github@jonathanfoss.co.uk>","Hizkia Felix <hizkifw@gmail.com>","Hristo Oskov <hristo.oskov@gmail.com>","Isaac Madwed <i.madwed@gmail.com>","Ilya Konanykhin <ilya.konanykhin@gmail.com>","jasonbarry <jasbarry@me.com>","Jonathan Burke <jonathan.burke.1311@googlemail.com>","Josh Hamit <josh.hamit@gmail.com>","Jordan Austin <jrax86@gmail.com>","Joel Wetzell <jwetzell@yahoo.com>","xizhao <kevin.wang@cloudera.com>","Alberto Torres <kungfoobar@gmail.com>","Jonathan Mayol <mayoljonathan@gmail.com>","Jefferson Felix <me@jsfelix.dev>","Rolf Erik Lekang <me@rolflekang.com>","Kevin Mai-Husan Chia <mhchia@users.noreply.github.com>","Pepijn de Vos <pepijndevos@gmail.com>","JooYoung <qkdlql@naver.com>","Tobias Speicher <rootcommander@gmail.com>","Steve Blaurock <sblaurock@gmail.com>","Kyrylo Shegeda <shegeda@ualberta.ca>","Diwank Singh Tomer <singh@diwank.name>","So\u0308ren Balko <Soeren.Balko@gmail.com>","Arpit Solanki <solankiarpit1997@gmail.com>","Yuki Ito <yuki@gnnk.net>","Artur Zayats <zag2art@gmail.com>"],"funding":{"type":"opencollective","url":"https://opencollective.com/peer"},"collective":{"type":"opencollective","url":"https://opencollective.com/peer"},"files":["dist/*"],"sideEffects":["lib/global.ts","lib/supports.ts"],"main":"dist/bundler.cjs","module":"dist/bundler.mjs","browser-minified":"dist/peerjs.min.js","browser-unminified":"dist/peerjs.js","browser-minified-cbor":"dist/serializer.cbor.mjs","browser-minified-msgpack":"dist/serializer.msgpack.mjs","types":"dist/types.d.ts","engines":{"node":">= 14"},"targets":{"types":{"source":"lib/exports.ts"},"main":{"source":"lib/exports.ts","sourceMap":{"inlineSources":true}},"module":{"source":"lib/exports.ts","includeNodeModules":["eventemitter3"],"sourceMap":{"inlineSources":true}},"browser-minified":{"context":"browser","outputFormat":"global","optimize":true,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 80, safari >= 15"},"source":"lib/global.ts"},"browser-unminified":{"context":"browser","outputFormat":"global","optimize":false,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 80, safari >= 15"},"source":"lib/global.ts"},"browser-minified-cbor":{"context":"browser","outputFormat":"esmodule","isLibrary":true,"optimize":true,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 102, safari >= 15"},"source":"lib/dataconnection/StreamConnection/Cbor.ts"},"browser-minified-msgpack":{"context":"browser","outputFormat":"esmodule","isLibrary":true,"optimize":true,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 102, safari >= 15"},"source":"lib/dataconnection/StreamConnection/MsgPack.ts"}},"scripts":{"contributors":"git-authors-cli --print=false && prettier --write package.json && git add package.json package-lock.json && git commit -m \\"chore(contributors): update and sort contributors list\\"","check":"tsc --noEmit && tsc -p e2e/tsconfig.json --noEmit","watch":"parcel watch","build":"rm -rf dist && parcel build","prepublishOnly":"npm run build","test":"jest","test:watch":"jest --watch","coverage":"jest --coverage --collectCoverageFrom=\\"./lib/**\\"","format":"prettier --write .","format:check":"prettier --check .","semantic-release":"semantic-release","e2e":"wdio run e2e/wdio.local.conf.ts","e2e:bstack":"wdio run e2e/wdio.bstack.conf.ts"},"devDependencies":{"@parcel/config-default":"^2.9.3","@parcel/packager-ts":"^2.9.3","@parcel/transformer-typescript-tsc":"^2.9.3","@parcel/transformer-typescript-types":"^2.9.3","@semantic-release/changelog":"^6.0.1","@semantic-release/git":"^10.0.1","@swc/core":"^1.3.27","@swc/jest":"^0.2.24","@types/jasmine":"^4.3.4","@wdio/browserstack-service":"^8.11.2","@wdio/cli":"^8.11.2","@wdio/globals":"^8.11.2","@wdio/jasmine-framework":"^8.11.2","@wdio/local-runner":"^8.11.2","@wdio/spec-reporter":"^8.11.2","@wdio/types":"^8.10.4","http-server":"^14.1.1","jest":"^29.3.1","jest-environment-jsdom":"^29.3.1","mock-socket":"^9.0.0","parcel":"^2.9.3","prettier":"^3.0.0","semantic-release":"^21.0.0","ts-node":"^10.9.1","typescript":"^5.0.0","wdio-geckodriver-service":"^5.0.1"},"dependencies":{"@msgpack/msgpack":"^2.8.0","cbor-x":"1.5.4","eventemitter3":"^4.0.7","peerjs-js-binarypack":"^2.1.0","webrtc-adapter":"^8.0.0"},"alias":{"process":false,"buffer":false}}');
+$f5f881ec4575f1fc$exports = JSON.parse('{"name":"peerjs","version":"1.5.4","keywords":["peerjs","webrtc","p2p","rtc"],"description":"PeerJS client","homepage":"https://peerjs.com","bugs":{"url":"https://github.com/peers/peerjs/issues"},"repository":{"type":"git","url":"https://github.com/peers/peerjs"},"license":"MIT","contributors":["Michelle Bu <michelle@michellebu.com>","afrokick <devbyru@gmail.com>","ericz <really.ez@gmail.com>","Jairo <kidandcat@gmail.com>","Jonas Gloning <34194370+jonasgloning@users.noreply.github.com>","Jairo Caro-Accino Viciana <jairo@galax.be>","Carlos Caballero <carlos.caballero.gonzalez@gmail.com>","hc <hheennrryy@gmail.com>","Muhammad Asif <capripio@gmail.com>","PrashoonB <prashoonbhattacharjee@gmail.com>","Harsh Bardhan Mishra <47351025+HarshCasper@users.noreply.github.com>","akotynski <aleksanderkotbury@gmail.com>","lmb <i@lmb.io>","Jairooo <jairocaro@msn.com>","Moritz St\xfcckler <moritz.stueckler@gmail.com>","Simon <crydotsnakegithub@gmail.com>","Denis Lukov <denismassters@gmail.com>","Philipp Hancke <fippo@andyet.net>","Hans Oksendahl <hansoksendahl@gmail.com>","Jess <jessachandler@gmail.com>","khankuan <khankuan@gmail.com>","DUODVK <kurmanov.work@gmail.com>","XiZhao <kwang1imsa@gmail.com>","Matthias Lohr <matthias@lohr.me>","=frank tree <=frnktrb@googlemail.com>","Andre Eckardt <aeckardt@outlook.com>","Chris Cowan <agentme49@gmail.com>","Alex Chuev <alex@chuev.com>","alxnull <alxnull@e.mail.de>","Yemel Jardi <angel.jardi@gmail.com>","Ben Parnell <benjaminparnell.94@gmail.com>","Benny Lichtner <bennlich@gmail.com>","fresheneesz <bitetrudpublic@gmail.com>","bob.barstead@exaptive.com <bob.barstead@exaptive.com>","chandika <chandika@gmail.com>","emersion <contact@emersion.fr>","Christopher Van <cvan@users.noreply.github.com>","eddieherm <edhermoso@gmail.com>","Eduardo Pinho <enet4mikeenet@gmail.com>","Evandro Zanatta <ezanatta@tray.net.br>","Gardner Bickford <gardner@users.noreply.github.com>","Gian Luca <gianluca.cecchi@cynny.com>","PatrickJS <github@gdi2290.com>","jonnyf <github@jonathanfoss.co.uk>","Hizkia Felix <hizkifw@gmail.com>","Hristo Oskov <hristo.oskov@gmail.com>","Isaac Madwed <i.madwed@gmail.com>","Ilya Konanykhin <ilya.konanykhin@gmail.com>","jasonbarry <jasbarry@me.com>","Jonathan Burke <jonathan.burke.1311@googlemail.com>","Josh Hamit <josh.hamit@gmail.com>","Jordan Austin <jrax86@gmail.com>","Joel Wetzell <jwetzell@yahoo.com>","xizhao <kevin.wang@cloudera.com>","Alberto Torres <kungfoobar@gmail.com>","Jonathan Mayol <mayoljonathan@gmail.com>","Jefferson Felix <me@jsfelix.dev>","Rolf Erik Lekang <me@rolflekang.com>","Kevin Mai-Husan Chia <mhchia@users.noreply.github.com>","Pepijn de Vos <pepijndevos@gmail.com>","JooYoung <qkdlql@naver.com>","Tobias Speicher <rootcommander@gmail.com>","Steve Blaurock <sblaurock@gmail.com>","Kyrylo Shegeda <shegeda@ualberta.ca>","Diwank Singh Tomer <singh@diwank.name>","So\u0308ren Balko <Soeren.Balko@gmail.com>","Arpit Solanki <solankiarpit1997@gmail.com>","Yuki Ito <yuki@gnnk.net>","Artur Zayats <zag2art@gmail.com>"],"funding":{"type":"opencollective","url":"https://opencollective.com/peer"},"collective":{"type":"opencollective","url":"https://opencollective.com/peer"},"files":["dist/*"],"sideEffects":["lib/global.ts","lib/supports.ts"],"main":"dist/bundler.cjs","module":"dist/bundler.mjs","browser-minified":"dist/peerjs.min.js","browser-unminified":"dist/peerjs.js","browser-minified-msgpack":"dist/serializer.msgpack.mjs","types":"dist/types.d.ts","engines":{"node":">= 14"},"targets":{"types":{"source":"lib/exports.ts"},"main":{"source":"lib/exports.ts","sourceMap":{"inlineSources":true}},"module":{"source":"lib/exports.ts","includeNodeModules":["eventemitter3"],"sourceMap":{"inlineSources":true}},"browser-minified":{"context":"browser","outputFormat":"global","optimize":true,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 80, safari >= 15"},"source":"lib/global.ts"},"browser-unminified":{"context":"browser","outputFormat":"global","optimize":false,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 80, safari >= 15"},"source":"lib/global.ts"},"browser-minified-msgpack":{"context":"browser","outputFormat":"esmodule","isLibrary":true,"optimize":true,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 102, safari >= 15"},"source":"lib/dataconnection/StreamConnection/MsgPack.ts"}},"scripts":{"contributors":"git-authors-cli --print=false && prettier --write package.json && git add package.json package-lock.json && git commit -m \\"chore(contributors): update and sort contributors list\\"","check":"tsc --noEmit && tsc -p e2e/tsconfig.json --noEmit","watch":"parcel watch","build":"rm -rf dist && parcel build","prepublishOnly":"npm run build","test":"jest","test:watch":"jest --watch","coverage":"jest --coverage --collectCoverageFrom=\\"./lib/**\\"","format":"prettier --write .","format:check":"prettier --check .","semantic-release":"semantic-release","e2e":"wdio run e2e/wdio.local.conf.ts","e2e:bstack":"wdio run e2e/wdio.bstack.conf.ts"},"devDependencies":{"@parcel/config-default":"^2.9.3","@parcel/packager-ts":"^2.9.3","@parcel/transformer-typescript-tsc":"^2.9.3","@parcel/transformer-typescript-types":"^2.9.3","@semantic-release/changelog":"^6.0.1","@semantic-release/git":"^10.0.1","@swc/core":"^1.3.27","@swc/jest":"^0.2.24","@types/jasmine":"^4.3.4","@wdio/browserstack-service":"^8.11.2","@wdio/cli":"^8.11.2","@wdio/globals":"^8.11.2","@wdio/jasmine-framework":"^8.11.2","@wdio/local-runner":"^8.11.2","@wdio/spec-reporter":"^8.11.2","@wdio/types":"^8.10.4","http-server":"^14.1.1","jest":"^29.3.1","jest-environment-jsdom":"^29.3.1","mock-socket":"^9.0.0","parcel":"^2.9.3","prettier":"^3.0.0","semantic-release":"^21.0.0","ts-node":"^10.9.1","typescript":"^5.0.0","wdio-geckodriver-service":"^5.0.1"},"dependencies":{"@msgpack/msgpack":"^2.8.0","eventemitter3":"^4.0.7","peerjs-js-binarypack":"^2.1.0","webrtc-adapter":"^9.0.0"},"alias":{"process":false,"buffer":false}}');
 class $8f5bfa60836d261d$export$4798917dbf149b79 extends $c4dcfd1d1ea86647$exports.EventEmitter {
     constructor(secure, host, port, path, key, pingInterval = 5000){
         super();
@@ -2869,7 +2751,7 @@ class $abf266641927cd89$export$2c4e825dc9120f87 {
 }
 class $6366c4ca161bc297$export$d365f7ad9d7df9c9 extends $5045192fc6d387ba$export$23a2a68283c24d80 {
     static #_ = this.ID_PREFIX = "dc_";
-    static #_1 = this.MAX_BUFFERED_AMOUNT = 8388608;
+    static #_2 = this.MAX_BUFFERED_AMOUNT = 8388608;
     get type() {
         return $78455e22dea96b8c$export$3157d57b4135e3bc.Data;
     }
@@ -3562,81 +3444,6 @@ class $20dbe68149d7aad9$export$72aa44612e2200cd extends $6366c4ca161bc297$export
         this.dataChannel.bufferedAmountLowThreshold = $6366c4ca161bc297$export$d365f7ad9d7df9c9.MAX_BUFFERED_AMOUNT / 2;
     }
 }
-const $dcf98445f54823f4$var$NullValue = Symbol.for(null);
-function $dcf98445f54823f4$var$concatUint8Array(buffer1, buffer2) {
-    const tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-    tmp.set(buffer1, 0);
-    tmp.set(buffer2, buffer1.byteLength);
-    return new Uint8Array(tmp.buffer);
-}
-const $dcf98445f54823f4$var$iterateOver = async function*(stream) {
-    const reader = stream.getReader();
-    try {
-        while(true){
-            const { done: done, value: value } = await reader.read();
-            if (done) return;
-            yield value;
-        }
-    } finally{
-        reader.releaseLock();
-    }
-};
-class $dcf98445f54823f4$export$7e9583c3c8a0a2cc extends $20dbe68149d7aad9$export$72aa44612e2200cd {
-    constructor(peerId, provider, options){
-        super(peerId, provider, {
-            ...options,
-            reliable: true
-        });
-        this.serialization = "Cbor";
-        this._encoder = new (0, _cborX.Encoder)();
-        this._decoder = new (0, _cborX.Decoder)();
-        this._decoderStream = new TransformStream({
-            transform: (abchunk, controller)=>{
-                let chunk = new Uint8Array(abchunk);
-                if (this._inc) {
-                    chunk = $dcf98445f54823f4$var$concatUint8Array(this._inc, chunk);
-                    this._inc = null;
-                }
-                let values;
-                try {
-                    values = this._decoder.decodeMultiple(chunk);
-                } catch (error) {
-                    if (error.incomplete) {
-                        this._inc = chunk.subarray(error.lastPosition);
-                        values = error.values;
-                    } else throw error;
-                } finally{
-                    for (let value of values || []){
-                        if (value === null) value = $dcf98445f54823f4$var$NullValue;
-                        controller.enqueue(value);
-                    }
-                }
-            }
-        });
-        this._rawReadStream.pipeTo(this._decoderStream.writable);
-        (async ()=>{
-            for await (const msg of $dcf98445f54823f4$var$iterateOver(this._decoderStream.readable)){
-                if (msg.__peerData?.type === "close") {
-                    this.close();
-                    return;
-                }
-                this.emit("data", msg);
-            }
-        })();
-    }
-    _send(data) {
-        return this.writer.write(this._encoder.encode(data));
-    }
-}
-class $3849fc09dd8f140b$export$f6a74c7ffa2903e6 extends $416260bce337df90$export$ecd1fc136c422448 {
-    constructor(...args){
-        super(...args);
-        this._serializers = {
-            Cbor: $dcf98445f54823f4$export$7e9583c3c8a0a2cc,
-            default: $dcf98445f54823f4$export$7e9583c3c8a0a2cc
-        };
-    }
-}
 class $6e39230ab36396ad$export$80f5de1a66c4d624 extends $20dbe68149d7aad9$export$72aa44612e2200cd {
     constructor(peerId, provider, options){
         super(peerId, provider, options);
@@ -3668,7 +3475,7 @@ class $1e0aff16be2c328e$export$d72c7bf8eef50853 extends $416260bce337df90$export
 }
 var $dd0187d7f28e386f$export$2e2bcd8739ae039 = $416260bce337df90$export$ecd1fc136c422448;
 
-},{"peerjs-js-binarypack":"aM2Wn","webrtc-adapter":"btsHR","cbor-x":"eEXLc","@msgpack/msgpack":"dlMUQ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"aM2Wn":[function(require,module,exports,__globalThis) {
+},{"peerjs-js-binarypack":"aM2Wn","webrtc-adapter":"btsHR","@msgpack/msgpack":"dlMUQ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"aM2Wn":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "unpack", ()=>$0cfd7828ad59115f$export$417857010dc9287f);
@@ -4228,7 +4035,6 @@ function adapterFactory({ window } = {}, options = {
             _chromeShim.shimOnTrack(window, browserDetails);
             _chromeShim.shimAddTrackRemoveTrack(window, browserDetails);
             _chromeShim.shimGetSendersWithDtmf(window, browserDetails);
-            _chromeShim.shimGetStats(window, browserDetails);
             _chromeShim.shimSenderReceiverGetStats(window, browserDetails);
             _chromeShim.fixNegotiationNeeded(window, browserDetails);
             _commonShim.shimRTCIceCandidate(window, browserDetails);
@@ -4345,7 +4151,7 @@ let logDisabled_ = true;
 let deprecationWarnings_ = true;
 function extractVersion(uastring, expr, pos) {
     const match = uastring.match(expr);
-    return match && match.length >= pos && parseInt(match[pos], 10);
+    return match && match.length >= pos && parseFloat(match[pos], 10);
 }
 function wrapPeerConnectionEvent(window1, eventNameToWrap, wrapper) {
     if (!window1.RTCPeerConnection) return;
@@ -4428,20 +4234,32 @@ function detectBrowser(window1) {
         return result;
     }
     const { navigator } = window1;
+    // Prefer navigator.userAgentData.
+    if (navigator.userAgentData && navigator.userAgentData.brands) {
+        const chromium = navigator.userAgentData.brands.find((brand)=>{
+            return brand.brand === 'Chromium';
+        });
+        if (chromium) return {
+            browser: 'chrome',
+            version: parseInt(chromium.version, 10)
+        };
+    }
     if (navigator.mozGetUserMedia) {
         result.browser = 'firefox';
-        result.version = extractVersion(navigator.userAgent, /Firefox\/(\d+)\./, 1);
+        result.version = parseInt(extractVersion(navigator.userAgent, /Firefox\/(\d+)\./, 1));
     } else if (navigator.webkitGetUserMedia || window1.isSecureContext === false && window1.webkitRTCPeerConnection) {
         // Chrome, Chromium, Webview, Opera.
         // Version matches Chrome/WebRTC version.
         // Chrome 74 removed webkitGetUserMedia on http as well so we need the
         // more complicated fallback to webkitRTCPeerConnection.
         result.browser = 'chrome';
-        result.version = extractVersion(navigator.userAgent, /Chrom(e|ium)\/(\d+)\./, 2);
+        result.version = parseInt(extractVersion(navigator.userAgent, /Chrom(e|ium)\/(\d+)\./, 2));
     } else if (window1.RTCPeerConnection && navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) {
         result.browser = 'safari';
-        result.version = extractVersion(navigator.userAgent, /AppleWebKit\/(\d+)\./, 1);
+        result.version = parseInt(extractVersion(navigator.userAgent, /AppleWebKit\/(\d+)\./, 1));
         result.supportsUnifiedPlan = window1.RTCRtpTransceiver && 'currentDirection' in window1.RTCRtpTransceiver.prototype;
+        // Only for internal usage.
+        result._safariVersion = extractVersion(navigator.userAgent, /Version\/(\d+(\.?\d+))/, 1);
     } else {
         result.browser = 'Not a supported browser.';
         return result;
@@ -4504,11 +4322,9 @@ function filterStats(result, track, outbound) {
  */ /* eslint-env node */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "shimGetUserMedia", ()=>(0, _getusermedia.shimGetUserMedia));
-parcelHelpers.export(exports, "shimGetDisplayMedia", ()=>(0, _getdisplaymedia.shimGetDisplayMedia));
 parcelHelpers.export(exports, "shimMediaStream", ()=>shimMediaStream);
 parcelHelpers.export(exports, "shimOnTrack", ()=>shimOnTrack);
 parcelHelpers.export(exports, "shimGetSendersWithDtmf", ()=>shimGetSendersWithDtmf);
-parcelHelpers.export(exports, "shimGetStats", ()=>shimGetStats);
 parcelHelpers.export(exports, "shimSenderReceiverGetStats", ()=>shimSenderReceiverGetStats);
 parcelHelpers.export(exports, "shimAddTrackRemoveTrackWithNative", ()=>shimAddTrackRemoveTrackWithNative);
 parcelHelpers.export(exports, "shimAddTrackRemoveTrack", ()=>shimAddTrackRemoveTrack);
@@ -4517,7 +4333,6 @@ parcelHelpers.export(exports, "shimPeerConnection", ()=>shimPeerConnection);
 parcelHelpers.export(exports, "fixNegotiationNeeded", ()=>fixNegotiationNeeded);
 var _utilsJs = require("../utils.js");
 var _getusermedia = require("./getusermedia");
-var _getdisplaymedia = require("./getdisplaymedia");
 'use strict';
 function shimMediaStream(window) {
     window.MediaStream = window.MediaStream || window.webkitMediaStream;
@@ -4668,63 +4483,6 @@ function shimGetSendersWithDtmf(window) {
             }
         });
     }
-}
-function shimGetStats(window) {
-    if (!window.RTCPeerConnection) return;
-    const origGetStats = window.RTCPeerConnection.prototype.getStats;
-    window.RTCPeerConnection.prototype.getStats = function getStats() {
-        const [selector, onSucc, onErr] = arguments;
-        // If selector is a function then we are in the old style stats so just
-        // pass back the original getStats format to avoid breaking old users.
-        if (arguments.length > 0 && typeof selector === 'function') return origGetStats.apply(this, arguments);
-        // When spec-style getStats is supported, return those when called with
-        // either no arguments or the selector argument is null.
-        if (origGetStats.length === 0 && (arguments.length === 0 || typeof selector !== 'function')) return origGetStats.apply(this, []);
-        const fixChromeStats_ = function(response) {
-            const standardReport = {};
-            const reports = response.result();
-            reports.forEach((report)=>{
-                const standardStats = {
-                    id: report.id,
-                    timestamp: report.timestamp,
-                    type: {
-                        localcandidate: 'local-candidate',
-                        remotecandidate: 'remote-candidate'
-                    }[report.type] || report.type
-                };
-                report.names().forEach((name)=>{
-                    standardStats[name] = report.stat(name);
-                });
-                standardReport[standardStats.id] = standardStats;
-            });
-            return standardReport;
-        };
-        // shim getStats with maplike support
-        const makeMapStats = function(stats) {
-            return new Map(Object.keys(stats).map((key)=>[
-                    key,
-                    stats[key]
-                ]));
-        };
-        if (arguments.length >= 2) {
-            const successCallbackWrapper_ = function(response) {
-                onSucc(makeMapStats(fixChromeStats_(response)));
-            };
-            return origGetStats.apply(this, [
-                successCallbackWrapper_,
-                selector
-            ]);
-        }
-        // promise-support
-        return new Promise((resolve, reject)=>{
-            origGetStats.apply(this, [
-                function(response) {
-                    resolve(makeMapStats(fixChromeStats_(response)));
-                },
-                reject
-            ]);
-        }).then(onSucc, onErr);
-    };
 }
 function shimSenderReceiverGetStats(window) {
     if (!(typeof window === 'object' && window.RTCPeerConnection && window.RTCRtpSender && window.RTCRtpReceiver)) return;
@@ -5042,7 +4800,7 @@ function fixNegotiationNeeded(window, browserDetails) {
     });
 }
 
-},{"../utils.js":"9QTnM","./getusermedia":"3Feo1","./getdisplaymedia":"kMeXs","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3Feo1":[function(require,module,exports,__globalThis) {
+},{"../utils.js":"9QTnM","./getusermedia":"3Feo1","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3Feo1":[function(require,module,exports,__globalThis) {
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -5203,46 +4961,7 @@ function shimGetUserMedia(window, browserDetails) {
     }
 }
 
-},{"../utils.js":"9QTnM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kMeXs":[function(require,module,exports,__globalThis) {
-/*
- *  Copyright (c) 2018 The adapter.js project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
- */ /* eslint-env node */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "shimGetDisplayMedia", ()=>shimGetDisplayMedia);
-'use strict';
-function shimGetDisplayMedia(window, getSourceId) {
-    if (window.navigator.mediaDevices && 'getDisplayMedia' in window.navigator.mediaDevices) return;
-    if (!window.navigator.mediaDevices) return;
-    // getSourceId is a function that returns a promise resolving with
-    // the sourceId of the screen/window/tab to be shared.
-    if (typeof getSourceId !== 'function') {
-        console.error("shimGetDisplayMedia: getSourceId argument is not a function");
-        return;
-    }
-    window.navigator.mediaDevices.getDisplayMedia = function getDisplayMedia(constraints) {
-        return getSourceId(constraints).then((sourceId)=>{
-            const widthSpecified = constraints.video && constraints.video.width;
-            const heightSpecified = constraints.video && constraints.video.height;
-            const frameRateSpecified = constraints.video && constraints.video.frameRate;
-            constraints.video = {
-                mandatory: {
-                    chromeMediaSource: 'desktop',
-                    chromeMediaSourceId: sourceId,
-                    maxFrameRate: frameRateSpecified || 3
-                }
-            };
-            if (widthSpecified) constraints.video.mandatory.maxWidth = widthSpecified;
-            if (heightSpecified) constraints.video.mandatory.maxHeight = heightSpecified;
-            return window.navigator.mediaDevices.getUserMedia(constraints);
-        });
-    };
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4WnAE":[function(require,module,exports,__globalThis) {
+},{"../utils.js":"9QTnM","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4WnAE":[function(require,module,exports,__globalThis) {
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -6090,7 +5809,7 @@ function shimConnectionState(window) {
 function removeExtmapAllowMixed(window, browserDetails) {
     /* remove a=extmap-allow-mixed for webrtc.org < M71 */ if (!window.RTCPeerConnection) return;
     if (browserDetails.browser === 'chrome' && browserDetails.version >= 71) return;
-    if (browserDetails.browser === 'safari' && browserDetails.version >= 605) return;
+    if (browserDetails.browser === 'safari' && browserDetails._safariVersion >= 13.1) return;
     const nativeSRD = window.RTCPeerConnection.prototype.setRemoteDescription;
     window.RTCPeerConnection.prototype.setRemoteDescription = function setRemoteDescription(desc) {
         if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
@@ -6782,2362 +6501,7 @@ SDPUtils.isValidSDP = function(blob) {
 };
 module.exports = SDPUtils;
 
-},{}],"eEXLc":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "Encoder", ()=>(0, _encodeJs.Encoder));
-parcelHelpers.export(exports, "addExtension", ()=>(0, _encodeJs.addExtension));
-parcelHelpers.export(exports, "encode", ()=>(0, _encodeJs.encode));
-parcelHelpers.export(exports, "encodeAsIterable", ()=>(0, _encodeJs.encodeAsIterable));
-parcelHelpers.export(exports, "encodeAsAsyncIterable", ()=>(0, _encodeJs.encodeAsAsyncIterable));
-parcelHelpers.export(exports, "NEVER", ()=>(0, _encodeJs.NEVER));
-parcelHelpers.export(exports, "ALWAYS", ()=>(0, _encodeJs.ALWAYS));
-parcelHelpers.export(exports, "DECIMAL_ROUND", ()=>(0, _encodeJs.DECIMAL_ROUND));
-parcelHelpers.export(exports, "DECIMAL_FIT", ()=>(0, _encodeJs.DECIMAL_FIT));
-parcelHelpers.export(exports, "REUSE_BUFFER_MODE", ()=>(0, _encodeJs.REUSE_BUFFER_MODE));
-parcelHelpers.export(exports, "Tag", ()=>(0, _decodeJs.Tag));
-parcelHelpers.export(exports, "Decoder", ()=>(0, _decodeJs.Decoder));
-parcelHelpers.export(exports, "decodeMultiple", ()=>(0, _decodeJs.decodeMultiple));
-parcelHelpers.export(exports, "decode", ()=>(0, _decodeJs.decode));
-parcelHelpers.export(exports, "FLOAT32_OPTIONS", ()=>(0, _decodeJs.FLOAT32_OPTIONS));
-parcelHelpers.export(exports, "clearSource", ()=>(0, _decodeJs.clearSource));
-parcelHelpers.export(exports, "roundFloat32", ()=>(0, _decodeJs.roundFloat32));
-parcelHelpers.export(exports, "isNativeAccelerationEnabled", ()=>(0, _decodeJs.isNativeAccelerationEnabled));
-parcelHelpers.export(exports, "decodeIter", ()=>(0, _iteratorsJs.decodeIter));
-parcelHelpers.export(exports, "encodeIter", ()=>(0, _iteratorsJs.encodeIter));
-var _encodeJs = require("./encode.js");
-var _decodeJs = require("./decode.js");
-var _iteratorsJs = require("./iterators.js");
-
-},{"./encode.js":"oo8Y1","./decode.js":"hZrAw","./iterators.js":"kAKPZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"oo8Y1":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "FLOAT32_OPTIONS", ()=>(0, _decodeJs.FLOAT32_OPTIONS));
-parcelHelpers.export(exports, "Encoder", ()=>Encoder);
-parcelHelpers.export(exports, "addExtension", ()=>addExtension);
-parcelHelpers.export(exports, "encode", ()=>encode);
-parcelHelpers.export(exports, "encodeAsIterable", ()=>encodeAsIterable);
-parcelHelpers.export(exports, "encodeAsAsyncIterable", ()=>encodeAsAsyncIterable);
-parcelHelpers.export(exports, "NEVER", ()=>NEVER);
-parcelHelpers.export(exports, "ALWAYS", ()=>ALWAYS);
-parcelHelpers.export(exports, "DECIMAL_ROUND", ()=>DECIMAL_ROUND);
-parcelHelpers.export(exports, "DECIMAL_FIT", ()=>DECIMAL_FIT);
-parcelHelpers.export(exports, "REUSE_BUFFER_MODE", ()=>REUSE_BUFFER_MODE);
-parcelHelpers.export(exports, "RESET_BUFFER_MODE", ()=>RESET_BUFFER_MODE);
-parcelHelpers.export(exports, "THROW_ON_ITERABLE", ()=>THROW_ON_ITERABLE);
-var _decodeJs = require("./decode.js");
-let textEncoder;
-try {
-    textEncoder = new TextEncoder();
-} catch (error) {}
-let extensions, extensionClasses;
-const Buffer = typeof globalThis === 'object' && globalThis.Buffer;
-const hasNodeBuffer = typeof Buffer !== 'undefined';
-const ByteArrayAllocate = hasNodeBuffer ? Buffer.allocUnsafeSlow : Uint8Array;
-const ByteArray = hasNodeBuffer ? Buffer : Uint8Array;
-const MAX_STRUCTURES = 0x100;
-const MAX_BUFFER_SIZE = hasNodeBuffer ? 0x100000000 : 0x7fd00000;
-let serializationId = 1;
-let throwOnIterable;
-let target;
-let targetView;
-let position = 0;
-let safeEnd;
-let bundledStrings = null;
-const MAX_BUNDLE_SIZE = 0xf000;
-const hasNonLatin = /[\u0080-\uFFFF]/;
-const RECORD_SYMBOL = Symbol('record-id');
-class Encoder extends (0, _decodeJs.Decoder) {
-    constructor(options){
-        super(options);
-        this.offset = 0;
-        let typeBuffer;
-        let start;
-        let sharedStructures;
-        let hasSharedUpdate;
-        let structures;
-        let referenceMap;
-        options = options || {};
-        let encodeUtf8 = ByteArray.prototype.utf8Write ? function(string, position, maxBytes) {
-            return target.utf8Write(string, position, maxBytes);
-        } : textEncoder && textEncoder.encodeInto ? function(string, position) {
-            return textEncoder.encodeInto(string, target.subarray(position)).written;
-        } : false;
-        let encoder = this;
-        let hasSharedStructures = options.structures || options.saveStructures;
-        let maxSharedStructures = options.maxSharedStructures;
-        if (maxSharedStructures == null) maxSharedStructures = hasSharedStructures ? 128 : 0;
-        if (maxSharedStructures > 8190) throw new Error('Maximum maxSharedStructure is 8190');
-        let isSequential = options.sequential;
-        if (isSequential) maxSharedStructures = 0;
-        if (!this.structures) this.structures = [];
-        if (this.saveStructures) this.saveShared = this.saveStructures;
-        let samplingPackedValues, packedObjectMap1, sharedValues = options.sharedValues;
-        let sharedPackedObjectMap1;
-        if (sharedValues) {
-            sharedPackedObjectMap1 = Object.create(null);
-            for(let i = 0, l = sharedValues.length; i < l; i++)sharedPackedObjectMap1[sharedValues[i]] = i;
-        }
-        let recordIdsToRemove = [];
-        let transitionsCount = 0;
-        let serializationsSinceTransitionRebuild = 0;
-        this.mapEncode = function(value, encodeOptions) {
-            // Experimental support for premapping keys using _keyMap instad of keyMap - not optiimised yet)
-            if (this._keyMap && !this._mapped) //console.log('encoding ', value)
-            switch(value.constructor.name){
-                case 'Array':
-                    value = value.map((r)=>this.encodeKeys(r));
-                    break;
-            }
-            return this.encode(value, encodeOptions);
-        };
-        this.encode = function(value, encodeOptions) {
-            if (!target) {
-                target = new ByteArrayAllocate(8192);
-                targetView = new DataView(target.buffer, 0, 8192);
-                position = 0;
-            }
-            safeEnd = target.length - 10;
-            if (safeEnd - position < 0x800) {
-                // don't start too close to the end, 
-                target = new ByteArrayAllocate(target.length);
-                targetView = new DataView(target.buffer, 0, target.length);
-                safeEnd = target.length - 10;
-                position = 0;
-            } else if (encodeOptions === REUSE_BUFFER_MODE) position = position + 7 & 0x7ffffff8 // Word align to make any future copying of this buffer faster
-            ;
-            start = position;
-            if (encoder.useSelfDescribedHeader) {
-                targetView.setUint32(position, 0xd9d9f700) // tag two byte, then self-descriptive tag
-                ;
-                position += 3;
-            }
-            referenceMap = encoder.structuredClone ? new Map() : null;
-            if (encoder.bundleStrings && typeof value !== 'string') {
-                bundledStrings = [];
-                bundledStrings.size = Infinity // force a new bundle start on first string
-                ;
-            } else bundledStrings = null;
-            sharedStructures = encoder.structures;
-            if (sharedStructures) {
-                if (sharedStructures.uninitialized) {
-                    let sharedData = encoder.getShared() || {};
-                    encoder.structures = sharedStructures = sharedData.structures || [];
-                    encoder.sharedVersion = sharedData.version;
-                    let sharedValues = encoder.sharedValues = sharedData.packedValues;
-                    if (sharedValues) {
-                        sharedPackedObjectMap1 = {};
-                        for(let i = 0, l = sharedValues.length; i < l; i++)sharedPackedObjectMap1[sharedValues[i]] = i;
-                    }
-                }
-                let sharedStructuresLength = sharedStructures.length;
-                if (sharedStructuresLength > maxSharedStructures && !isSequential) sharedStructuresLength = maxSharedStructures;
-                if (!sharedStructures.transitions) {
-                    // rebuild our structure transitions
-                    sharedStructures.transitions = Object.create(null);
-                    for(let i = 0; i < sharedStructuresLength; i++){
-                        let keys = sharedStructures[i];
-                        //console.log('shared struct keys:', keys)
-                        if (!keys) continue;
-                        let nextTransition, transition = sharedStructures.transitions;
-                        for(let j = 0, l = keys.length; j < l; j++){
-                            if (transition[RECORD_SYMBOL] === undefined) transition[RECORD_SYMBOL] = i;
-                            let key = keys[j];
-                            nextTransition = transition[key];
-                            if (!nextTransition) nextTransition = transition[key] = Object.create(null);
-                            transition = nextTransition;
-                        }
-                        transition[RECORD_SYMBOL] = i | 0x100000;
-                    }
-                }
-                if (!isSequential) sharedStructures.nextId = sharedStructuresLength;
-            }
-            if (hasSharedUpdate) hasSharedUpdate = false;
-            structures = sharedStructures || [];
-            packedObjectMap1 = sharedPackedObjectMap1;
-            if (options.pack) {
-                let packedValues = new Map();
-                packedValues.values = [];
-                packedValues.encoder = encoder;
-                packedValues.maxValues = options.maxPrivatePackedValues || (sharedPackedObjectMap1 ? 16 : Infinity);
-                packedValues.objectMap = sharedPackedObjectMap1 || false;
-                packedValues.samplingPackedValues = samplingPackedValues;
-                findRepetitiveStrings(value, packedValues);
-                if (packedValues.values.length > 0) {
-                    target[position++] = 0xd8 // one-byte tag
-                    ;
-                    target[position++] = 51 // tag 51 for packed shared structures https://www.potaroo.net/ietf/ids/draft-ietf-cbor-packed-03.txt
-                    ;
-                    writeArrayHeader(4);
-                    let valuesArray = packedValues.values;
-                    encode(valuesArray);
-                    writeArrayHeader(0) // prefixes
-                    ;
-                    writeArrayHeader(0) // suffixes
-                    ;
-                    packedObjectMap1 = Object.create(sharedPackedObjectMap1 || null);
-                    for(let i = 0, l = valuesArray.length; i < l; i++)packedObjectMap1[valuesArray[i]] = i;
-                }
-            }
-            throwOnIterable = encodeOptions & THROW_ON_ITERABLE;
-            try {
-                if (throwOnIterable) return;
-                encode(value);
-                if (bundledStrings) writeBundles(start, encode);
-                encoder.offset = position // update the offset so next serialization doesn't write over our buffer, but can continue writing to same buffer sequentially
-                ;
-                if (referenceMap && referenceMap.idsToInsert) {
-                    position += referenceMap.idsToInsert.length * 2;
-                    if (position > safeEnd) makeRoom(position);
-                    encoder.offset = position;
-                    let serialized = insertIds(target.subarray(start, position), referenceMap.idsToInsert);
-                    referenceMap = null;
-                    return serialized;
-                }
-                if (encodeOptions & REUSE_BUFFER_MODE) {
-                    target.start = start;
-                    target.end = position;
-                    return target;
-                }
-                return target.subarray(start, position) // position can change if we call encode again in saveShared, so we get the buffer now
-                ;
-            } finally{
-                if (sharedStructures) {
-                    if (serializationsSinceTransitionRebuild < 10) serializationsSinceTransitionRebuild++;
-                    if (sharedStructures.length > maxSharedStructures) sharedStructures.length = maxSharedStructures;
-                    if (transitionsCount > 10000) {
-                        // force a rebuild occasionally after a lot of transitions so it can get cleaned up
-                        sharedStructures.transitions = null;
-                        serializationsSinceTransitionRebuild = 0;
-                        transitionsCount = 0;
-                        if (recordIdsToRemove.length > 0) recordIdsToRemove = [];
-                    } else if (recordIdsToRemove.length > 0 && !isSequential) {
-                        for(let i = 0, l = recordIdsToRemove.length; i < l; i++)recordIdsToRemove[i][RECORD_SYMBOL] = undefined;
-                        recordIdsToRemove = [];
-                    //sharedStructures.nextId = maxSharedStructures
-                    }
-                }
-                if (hasSharedUpdate && encoder.saveShared) {
-                    if (encoder.structures.length > maxSharedStructures) encoder.structures = encoder.structures.slice(0, maxSharedStructures);
-                    // we can't rely on start/end with REUSE_BUFFER_MODE since they will (probably) change when we save
-                    let returnBuffer = target.subarray(start, position);
-                    if (encoder.updateSharedData() === false) return encoder.encode(value) // re-encode if it fails
-                    ;
-                    return returnBuffer;
-                }
-                if (encodeOptions & RESET_BUFFER_MODE) position = start;
-            }
-        };
-        this.findCommonStringsToPack = ()=>{
-            samplingPackedValues = new Map();
-            if (!sharedPackedObjectMap1) sharedPackedObjectMap1 = Object.create(null);
-            return (options)=>{
-                let threshold = options && options.threshold || 4;
-                let position = this.pack ? options.maxPrivatePackedValues || 16 : 0;
-                if (!sharedValues) sharedValues = this.sharedValues = [];
-                for (let [key, status] of samplingPackedValues)if (status.count > threshold) {
-                    sharedPackedObjectMap1[key] = position++;
-                    sharedValues.push(key);
-                    hasSharedUpdate = true;
-                }
-                while(this.saveShared && this.updateSharedData() === false);
-                samplingPackedValues = null;
-            };
-        };
-        const encode = (value)=>{
-            if (position > safeEnd) target = makeRoom(position);
-            var type = typeof value;
-            var length;
-            if (type === 'string') {
-                if (packedObjectMap1) {
-                    let packedPosition = packedObjectMap1[value];
-                    if (packedPosition >= 0) {
-                        if (packedPosition < 16) target[position++] = packedPosition + 0xe0 // simple values, defined in https://www.potaroo.net/ietf/ids/draft-ietf-cbor-packed-03.txt
-                        ;
-                        else {
-                            target[position++] = 0xc6 // tag 6 defined in https://www.potaroo.net/ietf/ids/draft-ietf-cbor-packed-03.txt
-                            ;
-                            if (packedPosition & 1) encode(15 - packedPosition >> 1);
-                            else encode(packedPosition - 16 >> 1);
-                        }
-                        return;
-                    /*						} else if (packedStatus.serializationId != serializationId) {
-							packedStatus.serializationId = serializationId
-							packedStatus.count = 1
-							if (options.sharedPack) {
-								let sharedCount = packedStatus.sharedCount = (packedStatus.sharedCount || 0) + 1
-								if (shareCount > (options.sharedPack.threshold || 5)) {
-									let sharedPosition = packedStatus.position = packedStatus.nextSharedPosition
-									hasSharedUpdate = true
-									if (sharedPosition < 16)
-										target[position++] = sharedPosition + 0xc0
-
-								}
-							}
-						} // else any in-doc incrementation?*/ } else if (samplingPackedValues && !options.pack) {
-                        let status = samplingPackedValues.get(value);
-                        if (status) status.count++;
-                        else samplingPackedValues.set(value, {
-                            count: 1
-                        });
-                    }
-                }
-                let strLength = value.length;
-                if (bundledStrings && strLength >= 4 && strLength < 0x400) {
-                    if ((bundledStrings.size += strLength) > MAX_BUNDLE_SIZE) {
-                        let extStart;
-                        let maxBytes = (bundledStrings[0] ? bundledStrings[0].length * 3 + bundledStrings[1].length : 0) + 10;
-                        if (position + maxBytes > safeEnd) target = makeRoom(position + maxBytes);
-                        target[position++] = 0xd9 // tag 16-bit
-                        ;
-                        target[position++] = 0xdf // tag 0xdff9
-                        ;
-                        target[position++] = 0xf9;
-                        // TODO: If we only have one bundle with any string data, only write one string bundle
-                        target[position++] = bundledStrings.position ? 0x84 : 0x82 // array of 4 or 2 elements depending on if we write bundles
-                        ;
-                        target[position++] = 0x1a // 32-bit unsigned int
-                        ;
-                        extStart = position - start;
-                        position += 4 // reserve for writing bundle reference
-                        ;
-                        if (bundledStrings.position) writeBundles(start, encode) // write the last bundles
-                        ;
-                        bundledStrings = [
-                            '',
-                            ''
-                        ] // create new ones
-                        ;
-                        bundledStrings.size = 0;
-                        bundledStrings.position = extStart;
-                    }
-                    let twoByte = hasNonLatin.test(value);
-                    bundledStrings[twoByte ? 0 : 1] += value;
-                    target[position++] = twoByte ? 0xce : 0xcf;
-                    encode(strLength);
-                    return;
-                }
-                let headerSize;
-                // first we estimate the header size, so we can write to the correct location
-                if (strLength < 0x20) headerSize = 1;
-                else if (strLength < 0x100) headerSize = 2;
-                else if (strLength < 0x10000) headerSize = 3;
-                else headerSize = 5;
-                let maxBytes = strLength * 3;
-                if (position + maxBytes > safeEnd) target = makeRoom(position + maxBytes);
-                if (strLength < 0x40 || !encodeUtf8) {
-                    let i, c1, c2, strPosition = position + headerSize;
-                    for(i = 0; i < strLength; i++){
-                        c1 = value.charCodeAt(i);
-                        if (c1 < 0x80) target[strPosition++] = c1;
-                        else if (c1 < 0x800) {
-                            target[strPosition++] = c1 >> 6 | 0xc0;
-                            target[strPosition++] = c1 & 0x3f | 0x80;
-                        } else if ((c1 & 0xfc00) === 0xd800 && ((c2 = value.charCodeAt(i + 1)) & 0xfc00) === 0xdc00) {
-                            c1 = 0x10000 + ((c1 & 0x03ff) << 10) + (c2 & 0x03ff);
-                            i++;
-                            target[strPosition++] = c1 >> 18 | 0xf0;
-                            target[strPosition++] = c1 >> 12 & 0x3f | 0x80;
-                            target[strPosition++] = c1 >> 6 & 0x3f | 0x80;
-                            target[strPosition++] = c1 & 0x3f | 0x80;
-                        } else {
-                            target[strPosition++] = c1 >> 12 | 0xe0;
-                            target[strPosition++] = c1 >> 6 & 0x3f | 0x80;
-                            target[strPosition++] = c1 & 0x3f | 0x80;
-                        }
-                    }
-                    length = strPosition - position - headerSize;
-                } else length = encodeUtf8(value, position + headerSize, maxBytes);
-                if (length < 0x18) target[position++] = 0x60 | length;
-                else if (length < 0x100) {
-                    if (headerSize < 2) target.copyWithin(position + 2, position + 1, position + 1 + length);
-                    target[position++] = 0x78;
-                    target[position++] = length;
-                } else if (length < 0x10000) {
-                    if (headerSize < 3) target.copyWithin(position + 3, position + 2, position + 2 + length);
-                    target[position++] = 0x79;
-                    target[position++] = length >> 8;
-                    target[position++] = length & 0xff;
-                } else {
-                    if (headerSize < 5) target.copyWithin(position + 5, position + 3, position + 3 + length);
-                    target[position++] = 0x7a;
-                    targetView.setUint32(position, length);
-                    position += 4;
-                }
-                position += length;
-            } else if (type === 'number') {
-                if (!this.alwaysUseFloat && value >>> 0 === value) {
-                    // positive uint
-                    if (value < 0x18) target[position++] = value;
-                    else if (value < 0x100) {
-                        target[position++] = 0x18;
-                        target[position++] = value;
-                    } else if (value < 0x10000) {
-                        target[position++] = 0x19;
-                        target[position++] = value >> 8;
-                        target[position++] = value & 0xff;
-                    } else {
-                        target[position++] = 0x1a;
-                        targetView.setUint32(position, value);
-                        position += 4;
-                    }
-                } else if (!this.alwaysUseFloat && value >> 0 === value) {
-                    if (value >= -24) target[position++] = 0x1f - value;
-                    else if (value >= -256) {
-                        target[position++] = 0x38;
-                        target[position++] = ~value;
-                    } else if (value >= -65536) {
-                        target[position++] = 0x39;
-                        targetView.setUint16(position, ~value);
-                        position += 2;
-                    } else {
-                        target[position++] = 0x3a;
-                        targetView.setUint32(position, ~value);
-                        position += 4;
-                    }
-                } else {
-                    let useFloat32;
-                    if ((useFloat32 = this.useFloat32) > 0 && value < 0x100000000 && value >= -2147483648) {
-                        target[position++] = 0xfa;
-                        targetView.setFloat32(position, value);
-                        let xShifted;
-                        if (useFloat32 < 4 || (xShifted = value * (0, _decodeJs.mult10)[(target[position] & 0x7f) << 1 | target[position + 1] >> 7]) >> 0 === xShifted) {
-                            position += 4;
-                            return;
-                        } else position-- // move back into position for writing a double
-                        ;
-                    }
-                    target[position++] = 0xfb;
-                    targetView.setFloat64(position, value);
-                    position += 8;
-                }
-            } else if (type === 'object') {
-                if (!value) target[position++] = 0xf6;
-                else {
-                    if (referenceMap) {
-                        let referee = referenceMap.get(value);
-                        if (referee) {
-                            target[position++] = 0xd8;
-                            target[position++] = 29 // http://cbor.schmorp.de/value-sharing
-                            ;
-                            target[position++] = 0x19 // 16-bit uint
-                            ;
-                            if (!referee.references) {
-                                let idsToInsert = referenceMap.idsToInsert || (referenceMap.idsToInsert = []);
-                                referee.references = [];
-                                idsToInsert.push(referee);
-                            }
-                            referee.references.push(position - start);
-                            position += 2 // TODO: also support 32-bit
-                            ;
-                            return;
-                        } else referenceMap.set(value, {
-                            offset: position - start
-                        });
-                    }
-                    let constructor = value.constructor;
-                    if (constructor === Object) writeObject(value, true);
-                    else if (constructor === Array) {
-                        length = value.length;
-                        if (length < 0x18) target[position++] = 0x80 | length;
-                        else writeArrayHeader(length);
-                        for(let i = 0; i < length; i++)encode(value[i]);
-                    } else if (constructor === Map) {
-                        if (this.mapsAsObjects ? this.useTag259ForMaps !== false : this.useTag259ForMaps) {
-                            // use Tag 259 (https://github.com/shanewholloway/js-cbor-codec/blob/master/docs/CBOR-259-spec--explicit-maps.md) for maps if the user wants it that way
-                            target[position++] = 0xd9;
-                            target[position++] = 1;
-                            target[position++] = 3;
-                        }
-                        length = value.size;
-                        if (length < 0x18) target[position++] = 0xa0 | length;
-                        else if (length < 0x100) {
-                            target[position++] = 0xb8;
-                            target[position++] = length;
-                        } else if (length < 0x10000) {
-                            target[position++] = 0xb9;
-                            target[position++] = length >> 8;
-                            target[position++] = length & 0xff;
-                        } else {
-                            target[position++] = 0xba;
-                            targetView.setUint32(position, length);
-                            position += 4;
-                        }
-                        if (encoder.keyMap) for (let [key, entryValue] of value){
-                            encode(encoder.encodeKey(key));
-                            encode(entryValue);
-                        }
-                        else for (let [key, entryValue] of value){
-                            encode(key);
-                            encode(entryValue);
-                        }
-                    } else {
-                        for(let i = 0, l = extensions.length; i < l; i++){
-                            let extensionClass = extensionClasses[i];
-                            if (value instanceof extensionClass) {
-                                let extension = extensions[i];
-                                let tag = extension.tag;
-                                if (tag == undefined) tag = extension.getTag && extension.getTag.call(this, value);
-                                if (tag < 0x18) target[position++] = 0xc0 | tag;
-                                else if (tag < 0x100) {
-                                    target[position++] = 0xd8;
-                                    target[position++] = tag;
-                                } else if (tag < 0x10000) {
-                                    target[position++] = 0xd9;
-                                    target[position++] = tag >> 8;
-                                    target[position++] = tag & 0xff;
-                                } else if (tag > -1) {
-                                    target[position++] = 0xda;
-                                    targetView.setUint32(position, tag);
-                                    position += 4;
-                                } // else undefined, don't write tag
-                                extension.encode.call(this, value, encode, makeRoom);
-                                return;
-                            }
-                        }
-                        if (value[Symbol.iterator]) {
-                            if (throwOnIterable) {
-                                let error = new Error('Iterable should be serialized as iterator');
-                                error.iteratorNotHandled = true;
-                                throw error;
-                            }
-                            target[position++] = 0x9f // indefinite length array
-                            ;
-                            for (let entry of value)encode(entry);
-                            target[position++] = 0xff // stop-code
-                            ;
-                            return;
-                        }
-                        if (value[Symbol.asyncIterator] || isBlob(value)) {
-                            let error = new Error('Iterable/blob should be serialized as iterator');
-                            error.iteratorNotHandled = true;
-                            throw error;
-                        }
-                        if (this.useToJSON && value.toJSON) {
-                            const json = value.toJSON();
-                            // if for some reason value.toJSON returns itself it'll loop forever
-                            if (json !== value) return encode(json);
-                        }
-                        // no extension found, write as object
-                        writeObject(value, !value.hasOwnProperty) // if it doesn't have hasOwnProperty, don't do hasOwnProperty checks
-                        ;
-                    }
-                }
-            } else if (type === 'boolean') target[position++] = value ? 0xf5 : 0xf4;
-            else if (type === 'bigint') {
-                if (value < BigInt(1) << BigInt(64) && value >= 0) {
-                    // use an unsigned int as long as it fits
-                    target[position++] = 0x1b;
-                    targetView.setBigUint64(position, value);
-                } else if (value > -(BigInt(1) << BigInt(64)) && value < 0) {
-                    // if we can fit an unsigned int, use that
-                    target[position++] = 0x3b;
-                    targetView.setBigUint64(position, -value - BigInt(1));
-                } else {
-                    // overflow
-                    if (this.largeBigIntToFloat) {
-                        target[position++] = 0xfb;
-                        targetView.setFloat64(position, Number(value));
-                    } else throw new RangeError(value + ' was too large to fit in CBOR 64-bit integer format, set largeBigIntToFloat to convert to float-64');
-                }
-                position += 8;
-            } else if (type === 'undefined') target[position++] = 0xf7;
-            else throw new Error('Unknown type: ' + type);
-        };
-        const writeObject = this.useRecords === false ? this.variableMapSize ? (object)=>{
-            // this method is slightly slower, but generates "preferred serialization" (optimally small for smaller objects)
-            let keys = Object.keys(object);
-            let vals = Object.values(object);
-            let length = keys.length;
-            if (length < 0x18) target[position++] = 0xa0 | length;
-            else if (length < 0x100) {
-                target[position++] = 0xb8;
-                target[position++] = length;
-            } else if (length < 0x10000) {
-                target[position++] = 0xb9;
-                target[position++] = length >> 8;
-                target[position++] = length & 0xff;
-            } else {
-                target[position++] = 0xba;
-                targetView.setUint32(position, length);
-                position += 4;
-            }
-            let key;
-            if (encoder.keyMap) for(let i = 0; i < length; i++){
-                encode(encoder.encodeKey(keys[i]));
-                encode(vals[i]);
-            }
-            else for(let i = 0; i < length; i++){
-                encode(keys[i]);
-                encode(vals[i]);
-            }
-        } : (object, safePrototype)=>{
-            target[position++] = 0xb9 // always use map 16, so we can preallocate and set the length afterwards
-            ;
-            let objectOffset = position - start;
-            position += 2;
-            let size = 0;
-            if (encoder.keyMap) {
-                for(let key in object)if (safePrototype || object.hasOwnProperty(key)) {
-                    encode(encoder.encodeKey(key));
-                    encode(object[key]);
-                    size++;
-                }
-            } else {
-                for(let key in object)if (safePrototype || object.hasOwnProperty(key)) {
-                    encode(key);
-                    encode(object[key]);
-                    size++;
-                }
-            }
-            target[objectOffset++ + start] = size >> 8;
-            target[objectOffset + start] = size & 0xff;
-        } : (object, safePrototype)=>{
-            let nextTransition, transition = structures.transitions || (structures.transitions = Object.create(null));
-            let newTransitions = 0;
-            let length = 0;
-            let parentRecordId;
-            let keys;
-            if (this.keyMap) {
-                keys = Object.keys(object).map((k)=>this.encodeKey(k));
-                length = keys.length;
-                for(let i = 0; i < length; i++){
-                    let key = keys[i];
-                    nextTransition = transition[key];
-                    if (!nextTransition) {
-                        nextTransition = transition[key] = Object.create(null);
-                        newTransitions++;
-                    }
-                    transition = nextTransition;
-                }
-            } else {
-                for(let key in object)if (safePrototype || object.hasOwnProperty(key)) {
-                    nextTransition = transition[key];
-                    if (!nextTransition) {
-                        if (transition[RECORD_SYMBOL] & 0x100000) parentRecordId = transition[RECORD_SYMBOL] & 0xffff;
-                        nextTransition = transition[key] = Object.create(null);
-                        newTransitions++;
-                    }
-                    transition = nextTransition;
-                    length++;
-                }
-            }
-            let recordId = transition[RECORD_SYMBOL];
-            if (recordId !== undefined) {
-                recordId &= 0xffff;
-                target[position++] = 0xd9;
-                target[position++] = recordId >> 8 | 0xe0;
-                target[position++] = recordId & 0xff;
-            } else {
-                if (!keys) keys = transition.__keys__ || (transition.__keys__ = Object.keys(object));
-                if (parentRecordId === undefined) {
-                    recordId = structures.nextId++;
-                    if (!recordId) {
-                        recordId = 0;
-                        structures.nextId = 1;
-                    }
-                    if (recordId >= MAX_STRUCTURES) structures.nextId = (recordId = maxSharedStructures) + 1;
-                } else recordId = parentRecordId;
-                structures[recordId] = keys;
-                if (recordId < maxSharedStructures) {
-                    target[position++] = 0xd9;
-                    target[position++] = recordId >> 8 | 0xe0;
-                    target[position++] = recordId & 0xff;
-                    transition = structures.transitions;
-                    for(let i = 0; i < length; i++){
-                        if (transition[RECORD_SYMBOL] === undefined || transition[RECORD_SYMBOL] & 0x100000) transition[RECORD_SYMBOL] = recordId;
-                        transition = transition[keys[i]];
-                    }
-                    transition[RECORD_SYMBOL] = recordId | 0x100000 // indicates it is a extendable terminal
-                    ;
-                    hasSharedUpdate = true;
-                } else {
-                    transition[RECORD_SYMBOL] = recordId;
-                    targetView.setUint32(position, 0xd9dfff00) // tag two byte, then record definition id
-                    ;
-                    position += 3;
-                    if (newTransitions) transitionsCount += serializationsSinceTransitionRebuild * newTransitions;
-                    // record the removal of the id, we can maintain our shared structure
-                    if (recordIdsToRemove.length >= MAX_STRUCTURES - maxSharedStructures) recordIdsToRemove.shift()[RECORD_SYMBOL] = undefined // we are cycling back through, and have to remove old ones
-                    ;
-                    recordIdsToRemove.push(transition);
-                    writeArrayHeader(length + 2);
-                    encode(0xe000 + recordId);
-                    encode(keys);
-                    if (safePrototype === null) return; // special exit for iterator
-                    for(let key in object)if (safePrototype || object.hasOwnProperty(key)) encode(object[key]);
-                    return;
-                }
-            }
-            if (length < 0x18) target[position++] = 0x80 | length;
-            else writeArrayHeader(length);
-            if (safePrototype === null) return; // special exit for iterator
-            for(let key in object)if (safePrototype || object.hasOwnProperty(key)) encode(object[key]);
-        };
-        const makeRoom = (end)=>{
-            let newSize;
-            if (end > 0x1000000) {
-                // special handling for really large buffers
-                if (end - start > MAX_BUFFER_SIZE) throw new Error('Encoded buffer would be larger than maximum buffer size');
-                newSize = Math.min(MAX_BUFFER_SIZE, Math.round(Math.max((end - start) * (end > 0x4000000 ? 1.25 : 2), 0x400000) / 0x1000) * 0x1000);
-            } else newSize = (Math.max(end - start << 2, target.length - 1) >> 12) + 1 << 12;
-            let newBuffer = new ByteArrayAllocate(newSize);
-            targetView = new DataView(newBuffer.buffer, 0, newSize);
-            if (target.copy) target.copy(newBuffer, 0, start, end);
-            else newBuffer.set(target.slice(start, end));
-            position -= start;
-            start = 0;
-            safeEnd = newBuffer.length - 10;
-            return target = newBuffer;
-        };
-        let chunkThreshold = 100;
-        let continuedChunkThreshold = 1000;
-        this.encodeAsIterable = function(value, options) {
-            return startEncoding(value, options, encodeObjectAsIterable);
-        };
-        this.encodeAsAsyncIterable = function(value, options) {
-            return startEncoding(value, options, encodeObjectAsAsyncIterable);
-        };
-        function* encodeObjectAsIterable(object, iterateProperties, finalIterable) {
-            let constructor = object.constructor;
-            if (constructor === Object) {
-                let useRecords = encoder.useRecords !== false;
-                if (useRecords) writeObject(object, null); // write the record identifier
-                else writeEntityLength(Object.keys(object).length, 0xa0);
-                for(let key in object){
-                    let value = object[key];
-                    if (!useRecords) encode(key);
-                    if (value && typeof value === 'object') {
-                        if (iterateProperties[key]) yield* encodeObjectAsIterable(value, iterateProperties[key]);
-                        else yield* tryEncode(value, iterateProperties, key);
-                    } else encode(value);
-                }
-            } else if (constructor === Array) {
-                let length = object.length;
-                writeArrayHeader(length);
-                for(let i = 0; i < length; i++){
-                    let value = object[i];
-                    if (value && (typeof value === 'object' || position - start > chunkThreshold)) {
-                        if (iterateProperties.element) yield* encodeObjectAsIterable(value, iterateProperties.element);
-                        else yield* tryEncode(value, iterateProperties, 'element');
-                    } else encode(value);
-                }
-            } else if (object[Symbol.iterator]) {
-                target[position++] = 0x9f; // start indefinite array
-                for (let value of object)if (value && (typeof value === 'object' || position - start > chunkThreshold)) {
-                    if (iterateProperties.element) yield* encodeObjectAsIterable(value, iterateProperties.element);
-                    else yield* tryEncode(value, iterateProperties, 'element');
-                } else encode(value);
-                target[position++] = 0xff; // stop byte
-            } else if (isBlob(object)) {
-                writeEntityLength(object.size, 0x40); // encode as binary data
-                yield target.subarray(start, position);
-                yield object; // directly return blobs, they have to be encoded asynchronously
-                restartEncoding();
-            } else if (object[Symbol.asyncIterator]) {
-                target[position++] = 0x9f; // start indefinite array
-                yield target.subarray(start, position);
-                yield object; // directly return async iterators, they have to be encoded asynchronously
-                restartEncoding();
-                target[position++] = 0xff; // stop byte
-            } else encode(object);
-            if (finalIterable && position > start) yield target.subarray(start, position);
-            else if (position - start > chunkThreshold) {
-                yield target.subarray(start, position);
-                restartEncoding();
-            }
-        }
-        function* tryEncode(value, iterateProperties, key) {
-            let restart = position - start;
-            try {
-                encode(value);
-                if (position - start > chunkThreshold) {
-                    yield target.subarray(start, position);
-                    restartEncoding();
-                }
-            } catch (error) {
-                if (error.iteratorNotHandled) {
-                    iterateProperties[key] = {};
-                    position = start + restart; // restart our position so we don't have partial data from last encode
-                    yield* encodeObjectAsIterable.call(this, value, iterateProperties[key]);
-                } else throw error;
-            }
-        }
-        function restartEncoding() {
-            chunkThreshold = continuedChunkThreshold;
-            encoder.encode(null, THROW_ON_ITERABLE); // restart encoding
-        }
-        function startEncoding(value, options, encodeIterable) {
-            if (options && options.chunkThreshold) chunkThreshold = continuedChunkThreshold = options.chunkThreshold;
-            else chunkThreshold = 100;
-            if (value && typeof value === 'object') {
-                encoder.encode(null, THROW_ON_ITERABLE); // start encoding
-                return encodeIterable(value, encoder.iterateProperties || (encoder.iterateProperties = {}), true);
-            }
-            return [
-                encoder.encode(value)
-            ];
-        }
-        async function* encodeObjectAsAsyncIterable(value, iterateProperties) {
-            for (let encodedValue of encodeObjectAsIterable(value, iterateProperties, true)){
-                let constructor = encodedValue.constructor;
-                if (constructor === ByteArray || constructor === Uint8Array) yield encodedValue;
-                else if (isBlob(encodedValue)) {
-                    let reader = encodedValue.stream().getReader();
-                    let next;
-                    while(!(next = await reader.read()).done)yield next.value;
-                } else if (encodedValue[Symbol.asyncIterator]) for await (let asyncValue of encodedValue){
-                    restartEncoding();
-                    if (asyncValue) yield* encodeObjectAsAsyncIterable(asyncValue, iterateProperties.async || (iterateProperties.async = {}));
-                    else yield encoder.encode(asyncValue);
-                }
-                else yield encodedValue;
-            }
-        }
-    }
-    useBuffer(buffer) {
-        // this means we are finished using our own buffer and we can write over it safely
-        target = buffer;
-        targetView = new DataView(target.buffer, target.byteOffset, target.byteLength);
-        position = 0;
-    }
-    clearSharedData() {
-        if (this.structures) this.structures = [];
-        if (this.sharedValues) this.sharedValues = undefined;
-    }
-    updateSharedData() {
-        let lastVersion = this.sharedVersion || 0;
-        this.sharedVersion = lastVersion + 1;
-        let structuresCopy = this.structures.slice(0);
-        let sharedData = new SharedData(structuresCopy, this.sharedValues, this.sharedVersion);
-        let saveResults = this.saveShared(sharedData, (existingShared)=>(existingShared && existingShared.version || 0) == lastVersion);
-        if (saveResults === false) {
-            // get updated structures and try again if the update failed
-            sharedData = this.getShared() || {};
-            this.structures = sharedData.structures || [];
-            this.sharedValues = sharedData.packedValues;
-            this.sharedVersion = sharedData.version;
-            this.structures.nextId = this.structures.length;
-        } else // restore structures
-        structuresCopy.forEach((structure, i)=>this.structures[i] = structure);
-        // saveShared may fail to write and reload, or may have reloaded to check compatibility and overwrite saved data, either way load the correct shared data
-        return saveResults;
-    }
-}
-function writeEntityLength(length, majorValue) {
-    if (length < 0x18) target[position++] = majorValue | length;
-    else if (length < 0x100) {
-        target[position++] = majorValue | 0x18;
-        target[position++] = length;
-    } else if (length < 0x10000) {
-        target[position++] = majorValue | 0x19;
-        target[position++] = length >> 8;
-        target[position++] = length & 0xff;
-    } else {
-        target[position++] = majorValue | 0x1a;
-        targetView.setUint32(position, length);
-        position += 4;
-    }
-}
-class SharedData {
-    constructor(structures, values, version){
-        this.structures = structures;
-        this.packedValues = values;
-        this.version = version;
-    }
-}
-function writeArrayHeader(length) {
-    if (length < 0x18) target[position++] = 0x80 | length;
-    else if (length < 0x100) {
-        target[position++] = 0x98;
-        target[position++] = length;
-    } else if (length < 0x10000) {
-        target[position++] = 0x99;
-        target[position++] = length >> 8;
-        target[position++] = length & 0xff;
-    } else {
-        target[position++] = 0x9a;
-        targetView.setUint32(position, length);
-        position += 4;
-    }
-}
-const BlobConstructor = typeof Blob === 'undefined' ? function() {} : Blob;
-function isBlob(object) {
-    if (object instanceof BlobConstructor) return true;
-    let tag = object[Symbol.toStringTag];
-    return tag === 'Blob' || tag === 'File';
-}
-function findRepetitiveStrings(value, packedValues) {
-    switch(typeof value){
-        case 'string':
-            if (value.length > 3) {
-                if (packedValues.objectMap[value] > -1 || packedValues.values.length >= packedValues.maxValues) return;
-                let packedStatus = packedValues.get(value);
-                if (packedStatus) {
-                    if (++packedStatus.count == 2) packedValues.values.push(value);
-                } else {
-                    packedValues.set(value, {
-                        count: 1
-                    });
-                    if (packedValues.samplingPackedValues) {
-                        let status = packedValues.samplingPackedValues.get(value);
-                        if (status) status.count++;
-                        else packedValues.samplingPackedValues.set(value, {
-                            count: 1
-                        });
-                    }
-                }
-            }
-            break;
-        case 'object':
-            if (value) {
-                if (value instanceof Array) for(let i = 0, l = value.length; i < l; i++)findRepetitiveStrings(value[i], packedValues);
-                else {
-                    let includeKeys = !packedValues.encoder.useRecords;
-                    for(var key in value)if (value.hasOwnProperty(key)) {
-                        if (includeKeys) findRepetitiveStrings(key, packedValues);
-                        findRepetitiveStrings(value[key], packedValues);
-                    }
-                }
-            }
-            break;
-        case 'function':
-            console.log(value);
-    }
-}
-const isLittleEndianMachine = new Uint8Array(new Uint16Array([
-    1
-]).buffer)[0] == 1;
-extensionClasses = [
-    Date,
-    Set,
-    Error,
-    RegExp,
-    (0, _decodeJs.Tag),
-    ArrayBuffer,
-    Uint8Array,
-    Uint8ClampedArray,
-    Uint16Array,
-    Uint32Array,
-    typeof BigUint64Array == 'undefined' ? function() {} : BigUint64Array,
-    Int8Array,
-    Int16Array,
-    Int32Array,
-    typeof BigInt64Array == 'undefined' ? function() {} : BigInt64Array,
-    Float32Array,
-    Float64Array,
-    SharedData
-];
-//Object.getPrototypeOf(Uint8Array.prototype).constructor /*TypedArray*/
-extensions = [
-    {
-        tag: 1,
-        encode (date, encode) {
-            let seconds = date.getTime() / 1000;
-            if ((this.useTimestamp32 || date.getMilliseconds() === 0) && seconds >= 0 && seconds < 0x100000000) {
-                // Timestamp 32
-                target[position++] = 0x1a;
-                targetView.setUint32(position, seconds);
-                position += 4;
-            } else {
-                // Timestamp float64
-                target[position++] = 0xfb;
-                targetView.setFloat64(position, seconds);
-                position += 8;
-            }
-        }
-    },
-    {
-        tag: 258,
-        encode (set, encode) {
-            let array = Array.from(set);
-            encode(array);
-        }
-    },
-    {
-        tag: 27,
-        encode (error, encode) {
-            encode([
-                error.name,
-                error.message
-            ]);
-        }
-    },
-    {
-        tag: 27,
-        encode (regex, encode) {
-            encode([
-                'RegExp',
-                regex.source,
-                regex.flags
-            ]);
-        }
-    },
-    {
-        getTag (tag) {
-            return tag.tag;
-        },
-        encode (tag, encode) {
-            encode(tag.value);
-        }
-    },
-    {
-        encode (arrayBuffer, encode, makeRoom) {
-            writeBuffer(arrayBuffer, makeRoom);
-        }
-    },
-    {
-        getTag (typedArray) {
-            if (typedArray.constructor === Uint8Array) {
-                if (this.tagUint8Array || hasNodeBuffer && this.tagUint8Array !== false) return 64;
-            } // else no tag
-        },
-        encode (typedArray, encode, makeRoom) {
-            writeBuffer(typedArray, makeRoom);
-        }
-    },
-    typedArrayEncoder(68, 1),
-    typedArrayEncoder(69, 2),
-    typedArrayEncoder(70, 4),
-    typedArrayEncoder(71, 8),
-    typedArrayEncoder(72, 1),
-    typedArrayEncoder(77, 2),
-    typedArrayEncoder(78, 4),
-    typedArrayEncoder(79, 8),
-    typedArrayEncoder(85, 4),
-    typedArrayEncoder(86, 8),
-    {
-        encode (sharedData, encode) {
-            let packedValues = sharedData.packedValues || [];
-            let sharedStructures = sharedData.structures || [];
-            if (packedValues.values.length > 0) {
-                target[position++] = 0xd8 // one-byte tag
-                ;
-                target[position++] = 51 // tag 51 for packed shared structures https://www.potaroo.net/ietf/ids/draft-ietf-cbor-packed-03.txt
-                ;
-                writeArrayHeader(4);
-                let valuesArray = packedValues.values;
-                encode(valuesArray);
-                writeArrayHeader(0) // prefixes
-                ;
-                writeArrayHeader(0) // suffixes
-                ;
-                packedObjectMap = Object.create(sharedPackedObjectMap || null);
-                for(let i = 0, l = valuesArray.length; i < l; i++)packedObjectMap[valuesArray[i]] = i;
-            }
-            if (sharedStructures) {
-                targetView.setUint32(position, 0xd9dffe00);
-                position += 3;
-                let definitions = sharedStructures.slice(0);
-                definitions.unshift(0xe000);
-                definitions.push(new (0, _decodeJs.Tag)(sharedData.version, 0x53687264));
-                encode(definitions);
-            } else encode(new (0, _decodeJs.Tag)(sharedData.version, 0x53687264));
-        }
-    }
-];
-function typedArrayEncoder(tag, size) {
-    if (!isLittleEndianMachine && size > 1) tag -= 4 // the big endian equivalents are 4 less
-    ;
-    return {
-        tag: tag,
-        encode: function writeExtBuffer(typedArray, encode) {
-            let length = typedArray.byteLength;
-            let offset = typedArray.byteOffset || 0;
-            let buffer = typedArray.buffer || typedArray;
-            encode(hasNodeBuffer ? Buffer.from(buffer, offset, length) : new Uint8Array(buffer, offset, length));
-        }
-    };
-}
-function writeBuffer(buffer, makeRoom) {
-    let length = buffer.byteLength;
-    if (length < 0x18) target[position++] = 0x40 + length;
-    else if (length < 0x100) {
-        target[position++] = 0x58;
-        target[position++] = length;
-    } else if (length < 0x10000) {
-        target[position++] = 0x59;
-        target[position++] = length >> 8;
-        target[position++] = length & 0xff;
-    } else {
-        target[position++] = 0x5a;
-        targetView.setUint32(position, length);
-        position += 4;
-    }
-    if (position + length >= target.length) makeRoom(position + length);
-    // if it is already a typed array (has an ArrayBuffer), use that, but if it is an ArrayBuffer itself,
-    // must wrap it to set it.
-    target.set(buffer.buffer ? buffer : new Uint8Array(buffer), position);
-    position += length;
-}
-function insertIds(serialized, idsToInsert) {
-    // insert the ids that need to be referenced for structured clones
-    let nextId;
-    let distanceToMove = idsToInsert.length * 2;
-    let lastEnd = serialized.length - distanceToMove;
-    idsToInsert.sort((a, b)=>a.offset > b.offset ? 1 : -1);
-    for(let id = 0; id < idsToInsert.length; id++){
-        let referee = idsToInsert[id];
-        referee.id = id;
-        for (let position of referee.references){
-            serialized[position++] = id >> 8;
-            serialized[position] = id & 0xff;
-        }
-    }
-    while(nextId = idsToInsert.pop()){
-        let offset = nextId.offset;
-        serialized.copyWithin(offset + distanceToMove, offset, lastEnd);
-        distanceToMove -= 2;
-        let position = offset + distanceToMove;
-        serialized[position++] = 0xd8;
-        serialized[position++] = 28 // http://cbor.schmorp.de/value-sharing
-        ;
-        lastEnd = offset;
-    }
-    return serialized;
-}
-function writeBundles(start, encode) {
-    targetView.setUint32(bundledStrings.position + start, position - bundledStrings.position - start + 1) // the offset to bundle
-    ;
-    let writeStrings = bundledStrings;
-    bundledStrings = null;
-    encode(writeStrings[0]);
-    encode(writeStrings[1]);
-}
-function addExtension(extension) {
-    if (extension.Class) {
-        if (!extension.encode) throw new Error('Extension has no encode function');
-        extensionClasses.unshift(extension.Class);
-        extensions.unshift(extension);
-    }
-    (0, _decodeJs.addExtension)(extension);
-}
-let defaultEncoder = new Encoder({
-    useRecords: false
-});
-const encode = defaultEncoder.encode;
-const encodeAsIterable = defaultEncoder.encodeAsIterable;
-const encodeAsAsyncIterable = defaultEncoder.encodeAsAsyncIterable;
-const { NEVER, ALWAYS, DECIMAL_ROUND, DECIMAL_FIT } = (0, _decodeJs.FLOAT32_OPTIONS);
-const REUSE_BUFFER_MODE = 512;
-const RESET_BUFFER_MODE = 1024;
-const THROW_ON_ITERABLE = 2048;
-
-},{"./decode.js":"hZrAw","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hZrAw":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "Decoder", ()=>Decoder);
-parcelHelpers.export(exports, "getPosition", ()=>getPosition);
-parcelHelpers.export(exports, "checkedRead", ()=>checkedRead);
-parcelHelpers.export(exports, "read", ()=>read);
-parcelHelpers.export(exports, "isNativeAccelerationEnabled", ()=>isNativeAccelerationEnabled);
-parcelHelpers.export(exports, "setExtractor", ()=>setExtractor);
-parcelHelpers.export(exports, "Tag", ()=>Tag);
-parcelHelpers.export(exports, "typedArrays", ()=>typedArrays);
-parcelHelpers.export(exports, "clearSource", ()=>clearSource);
-parcelHelpers.export(exports, "addExtension", ()=>addExtension);
-parcelHelpers.export(exports, "mult10", ()=>mult10);
-parcelHelpers.export(exports, "decode", ()=>decode);
-parcelHelpers.export(exports, "decodeMultiple", ()=>decodeMultiple);
-parcelHelpers.export(exports, "FLOAT32_OPTIONS", ()=>FLOAT32_OPTIONS);
-parcelHelpers.export(exports, "roundFloat32", ()=>roundFloat32);
-var Buffer = require("5e5a521ce10d430f").Buffer;
-let decoder;
-try {
-    decoder = new TextDecoder();
-} catch (error) {}
-let src;
-let srcEnd;
-let position = 0;
-let alreadySet;
-const EMPTY_ARRAY = [];
-const LEGACY_RECORD_INLINE_ID = 105;
-const RECORD_DEFINITIONS_ID = 0xdffe;
-const RECORD_INLINE_ID = 0xdfff // temporary first-come first-serve tag // proposed tag: 0x7265 // 're'
-;
-const BUNDLED_STRINGS_ID = 0xdff9;
-const PACKED_TABLE_TAG_ID = 51;
-const PACKED_REFERENCE_TAG_ID = 6;
-const STOP_CODE = {};
-let strings = EMPTY_ARRAY;
-let stringPosition = 0;
-let currentDecoder = {};
-let currentStructures;
-let srcString;
-let srcStringStart = 0;
-let srcStringEnd = 0;
-let bundledStrings;
-let referenceMap;
-let currentExtensions = [];
-let currentExtensionRanges = [];
-let packedValues;
-let dataView;
-let restoreMapsAsObject;
-let defaultOptions = {
-    useRecords: false,
-    mapsAsObjects: true
-};
-let sequentialMode = false;
-let inlineObjectReadThreshold = 2;
-var BlockedFunction // we use search and replace to change the next call to BlockedFunction to avoid CSP issues for
-;
-// no-eval build
-try {
-    new Function('');
-} catch (error) {
-    // if eval variants are not supported, do not create inline object readers ever
-    inlineObjectReadThreshold = Infinity;
-}
-class Decoder {
-    constructor(options){
-        if (options) {
-            if ((options.keyMap || options._keyMap) && !options.useRecords) {
-                options.useRecords = false;
-                options.mapsAsObjects = true;
-            }
-            if (options.useRecords === false && options.mapsAsObjects === undefined) options.mapsAsObjects = true;
-            if (options.getStructures) options.getShared = options.getStructures;
-            if (options.getShared && !options.structures) (options.structures = []).uninitialized = true // this is what we use to denote an uninitialized structures
-            ;
-            if (options.keyMap) {
-                this.mapKey = new Map();
-                for (let [k, v] of Object.entries(options.keyMap))this.mapKey.set(v, k);
-            }
-        }
-        Object.assign(this, options);
-    }
-    /*
-	decodeKey(key) {
-		return this.keyMap
-			? Object.keys(this.keyMap)[Object.values(this.keyMap).indexOf(key)] || key
-			: key
-	}
-	*/ decodeKey(key) {
-        return this.keyMap ? this.mapKey.get(key) || key : key;
-    }
-    encodeKey(key) {
-        return this.keyMap && this.keyMap.hasOwnProperty(key) ? this.keyMap[key] : key;
-    }
-    encodeKeys(rec) {
-        if (!this._keyMap) return rec;
-        let map = new Map();
-        for (let [k, v] of Object.entries(rec))map.set(this._keyMap.hasOwnProperty(k) ? this._keyMap[k] : k, v);
-        return map;
-    }
-    decodeKeys(map) {
-        if (!this._keyMap || map.constructor.name != 'Map') return map;
-        if (!this._mapKey) {
-            this._mapKey = new Map();
-            for (let [k, v] of Object.entries(this._keyMap))this._mapKey.set(v, k);
-        }
-        let res = {};
-        //map.forEach((v,k) => res[Object.keys(this._keyMap)[Object.values(this._keyMap).indexOf(k)] || k] = v)
-        map.forEach((v, k)=>res[safeKey(this._mapKey.has(k) ? this._mapKey.get(k) : k)] = v);
-        return res;
-    }
-    mapDecode(source, end) {
-        let res = this.decode(source);
-        if (this._keyMap) //Experiemntal support for Optimised KeyMap  decoding 
-        switch(res.constructor.name){
-            case 'Array':
-                return res.map((r)=>this.decodeKeys(r));
-        }
-        return res;
-    }
-    decode(source, end) {
-        if (src) // re-entrant execution, save the state and restore it after we do this decode
-        return saveState(()=>{
-            clearSource();
-            return this ? this.decode(source, end) : Decoder.prototype.decode.call(defaultOptions, source, end);
-        });
-        srcEnd = end > -1 ? end : source.length;
-        position = 0;
-        stringPosition = 0;
-        srcStringEnd = 0;
-        srcString = null;
-        strings = EMPTY_ARRAY;
-        bundledStrings = null;
-        src = source;
-        // this provides cached access to the data view for a buffer if it is getting reused, which is a recommend
-        // technique for getting data from a database where it can be copied into an existing buffer instead of creating
-        // new ones
-        try {
-            dataView = source.dataView || (source.dataView = new DataView(source.buffer, source.byteOffset, source.byteLength));
-        } catch (error) {
-            // if it doesn't have a buffer, maybe it is the wrong type of object
-            src = null;
-            if (source instanceof Uint8Array) throw error;
-            throw new Error('Source must be a Uint8Array or Buffer but was a ' + (source && typeof source == 'object' ? source.constructor.name : typeof source));
-        }
-        if (this instanceof Decoder) {
-            currentDecoder = this;
-            packedValues = this.sharedValues && (this.pack ? new Array(this.maxPrivatePackedValues || 16).concat(this.sharedValues) : this.sharedValues);
-            if (this.structures) {
-                currentStructures = this.structures;
-                return checkedRead();
-            } else if (!currentStructures || currentStructures.length > 0) currentStructures = [];
-        } else {
-            currentDecoder = defaultOptions;
-            if (!currentStructures || currentStructures.length > 0) currentStructures = [];
-            packedValues = null;
-        }
-        return checkedRead();
-    }
-    decodeMultiple(source, forEach) {
-        let values, lastPosition = 0;
-        try {
-            let size = source.length;
-            sequentialMode = true;
-            let value = this ? this.decode(source, size) : defaultDecoder.decode(source, size);
-            if (forEach) {
-                if (forEach(value) === false) return;
-                while(position < size){
-                    lastPosition = position;
-                    if (forEach(checkedRead()) === false) return;
-                }
-            } else {
-                values = [
-                    value
-                ];
-                while(position < size){
-                    lastPosition = position;
-                    values.push(checkedRead());
-                }
-                return values;
-            }
-        } catch (error) {
-            error.lastPosition = lastPosition;
-            error.values = values;
-            throw error;
-        } finally{
-            sequentialMode = false;
-            clearSource();
-        }
-    }
-}
-function getPosition() {
-    return position;
-}
-function checkedRead() {
-    try {
-        let result = read();
-        if (bundledStrings) {
-            if (position >= bundledStrings.postBundlePosition) {
-                let error = new Error('Unexpected bundle position');
-                error.incomplete = true;
-                throw error;
-            }
-            // bundled strings to skip past
-            position = bundledStrings.postBundlePosition;
-            bundledStrings = null;
-        }
-        if (position == srcEnd) {
-            // finished reading this source, cleanup references
-            currentStructures = null;
-            src = null;
-            if (referenceMap) referenceMap = null;
-        } else if (position > srcEnd) {
-            // over read
-            let error = new Error('Unexpected end of CBOR data');
-            error.incomplete = true;
-            throw error;
-        } else if (!sequentialMode) throw new Error('Data read, but end of buffer not reached');
-        // else more to read, but we are reading sequentially, so don't clear source yet
-        return result;
-    } catch (error) {
-        clearSource();
-        if (error instanceof RangeError || error.message.startsWith('Unexpected end of buffer')) error.incomplete = true;
-        throw error;
-    }
-}
-function read() {
-    let token = src[position++];
-    let majorType = token >> 5;
-    token = token & 0x1f;
-    if (token > 0x17) switch(token){
-        case 0x18:
-            token = src[position++];
-            break;
-        case 0x19:
-            if (majorType == 7) return getFloat16();
-            token = dataView.getUint16(position);
-            position += 2;
-            break;
-        case 0x1a:
-            if (majorType == 7) {
-                let value = dataView.getFloat32(position);
-                if (currentDecoder.useFloat32 > 2) {
-                    // this does rounding of numbers that were encoded in 32-bit float to nearest significant decimal digit that could be preserved
-                    let multiplier = mult10[(src[position] & 0x7f) << 1 | src[position + 1] >> 7];
-                    position += 4;
-                    return (multiplier * value + (value > 0 ? 0.5 : -0.5) >> 0) / multiplier;
-                }
-                position += 4;
-                return value;
-            }
-            token = dataView.getUint32(position);
-            position += 4;
-            break;
-        case 0x1b:
-            if (majorType == 7) {
-                let value = dataView.getFloat64(position);
-                position += 8;
-                return value;
-            }
-            if (majorType > 1) {
-                if (dataView.getUint32(position) > 0) throw new Error('JavaScript does not support arrays, maps, or strings with length over 4294967295');
-                token = dataView.getUint32(position + 4);
-            } else if (currentDecoder.int64AsNumber) {
-                token = dataView.getUint32(position) * 0x100000000;
-                token += dataView.getUint32(position + 4);
-            } else token = dataView.getBigUint64(position);
-            position += 8;
-            break;
-        case 0x1f:
-            // indefinite length
-            switch(majorType){
-                case 2:
-                case 3:
-                    throw new Error('Indefinite length not supported for byte or text strings');
-                case 4:
-                    let array = [];
-                    let value, i = 0;
-                    while((value = read()) != STOP_CODE)array[i++] = value;
-                    return majorType == 4 ? array : majorType == 3 ? array.join('') : Buffer.concat(array);
-                case 5:
-                    let key;
-                    if (currentDecoder.mapsAsObjects) {
-                        let object = {};
-                        if (currentDecoder.keyMap) while((key = read()) != STOP_CODE)object[safeKey(currentDecoder.decodeKey(key))] = read();
-                        else while((key = read()) != STOP_CODE)object[safeKey(key)] = read();
-                        return object;
-                    } else {
-                        if (restoreMapsAsObject) {
-                            currentDecoder.mapsAsObjects = true;
-                            restoreMapsAsObject = false;
-                        }
-                        let map = new Map();
-                        if (currentDecoder.keyMap) while((key = read()) != STOP_CODE)map.set(currentDecoder.decodeKey(key), read());
-                        else while((key = read()) != STOP_CODE)map.set(key, read());
-                        return map;
-                    }
-                case 7:
-                    return STOP_CODE;
-                default:
-                    throw new Error('Invalid major type for indefinite length ' + majorType);
-            }
-        default:
-            throw new Error('Unknown token ' + token);
-    }
-    switch(majorType){
-        case 0:
-            return token;
-        case 1:
-            return ~token;
-        case 2:
-            return readBin(token);
-        case 3:
-            if (srcStringEnd >= position) return srcString.slice(position - srcStringStart, (position += token) - srcStringStart);
-            if (srcStringEnd == 0 && srcEnd < 140 && token < 32) {
-                // for small blocks, avoiding the overhead of the extract call is helpful
-                let string = token < 16 ? shortStringInJS(token) : longStringInJS(token);
-                if (string != null) return string;
-            }
-            return readFixedString(token);
-        case 4:
-            let array1 = new Array(token);
-            //if (currentDecoder.keyMap) for (let i = 0; i < token; i++) array[i] = currentDecoder.decodeKey(read())	
-            //else 
-            for(let i = 0; i < token; i++)array1[i] = read();
-            return array1;
-        case 5:
-            if (currentDecoder.mapsAsObjects) {
-                let object = {};
-                if (currentDecoder.keyMap) for(let i = 0; i < token; i++)object[safeKey(currentDecoder.decodeKey(read()))] = read();
-                else for(let i = 0; i < token; i++)object[safeKey(read())] = read();
-                return object;
-            } else {
-                if (restoreMapsAsObject) {
-                    currentDecoder.mapsAsObjects = true;
-                    restoreMapsAsObject = false;
-                }
-                let map = new Map();
-                if (currentDecoder.keyMap) for(let i = 0; i < token; i++)map.set(currentDecoder.decodeKey(read()), read());
-                else for(let i = 0; i < token; i++)map.set(read(), read());
-                return map;
-            }
-        case 6:
-            if (token >= BUNDLED_STRINGS_ID) {
-                let structure = currentStructures[token & 0x1fff] // check record structures first
-                ;
-                // At some point we may provide an option for dynamic tag assignment with a range like token >= 8 && (token < 16 || (token > 0x80 && token < 0xc0) || (token > 0x130 && token < 0x4000))
-                if (structure) {
-                    if (!structure.read) structure.read = createStructureReader(structure);
-                    return structure.read();
-                }
-                if (token < 0x10000) {
-                    if (token == RECORD_INLINE_ID) {
-                        // currentExtensions as densely stored array (v8 stores arrays densely under about 3000 elements)
-                        let length = readJustLength();
-                        let id = read();
-                        let structure = read();
-                        recordDefinition(id, structure);
-                        let object = {};
-                        if (currentDecoder.keyMap) for(let i = 2; i < length; i++){
-                            let key = currentDecoder.decodeKey(structure[i - 2]);
-                            object[safeKey(key)] = read();
-                        }
-                        else for(let i = 2; i < length; i++){
-                            let key = structure[i - 2];
-                            object[safeKey(key)] = read();
-                        }
-                        return object;
-                    } else if (token == RECORD_DEFINITIONS_ID) {
-                        let length = readJustLength();
-                        let id = read();
-                        for(let i = 2; i < length; i++)recordDefinition(id++, read());
-                        return read();
-                    } else if (token == BUNDLED_STRINGS_ID) return readBundleExt();
-                    if (currentDecoder.getShared) {
-                        loadShared();
-                        structure = currentStructures[token & 0x1fff];
-                        if (structure) {
-                            if (!structure.read) structure.read = createStructureReader(structure);
-                            return structure.read();
-                        }
-                    }
-                }
-            }
-            let extension = currentExtensions[token];
-            if (extension) {
-                if (extension.handlesRead) return extension(read);
-                else return extension(read());
-            } else {
-                let input = read();
-                for(let i = 0; i < currentExtensionRanges.length; i++){
-                    let value = currentExtensionRanges[i](token, input);
-                    if (value !== undefined) return value;
-                }
-                return new Tag(input, token);
-            }
-        case 7:
-            switch(token){
-                case 0x14:
-                    return false;
-                case 0x15:
-                    return true;
-                case 0x16:
-                    return null;
-                case 0x17:
-                    return; // undefined
-                case 0x1f:
-                default:
-                    let packedValue = (packedValues || getPackedValues())[token];
-                    if (packedValue !== undefined) return packedValue;
-                    throw new Error('Unknown token ' + token);
-            }
-        default:
-            if (isNaN(token)) {
-                let error = new Error('Unexpected end of CBOR data');
-                error.incomplete = true;
-                throw error;
-            }
-            throw new Error('Unknown CBOR token ' + token);
-    }
-}
-const validName = /^[a-zA-Z_$][a-zA-Z\d_$]*$/;
-function createStructureReader(structure) {
-    function readObject() {
-        // get the array size from the header
-        let length = src[position++];
-        //let majorType = token >> 5
-        length = length & 0x1f;
-        if (length > 0x17) switch(length){
-            case 0x18:
-                length = src[position++];
-                break;
-            case 0x19:
-                length = dataView.getUint16(position);
-                position += 2;
-                break;
-            case 0x1a:
-                length = dataView.getUint32(position);
-                position += 4;
-                break;
-            default:
-                throw new Error('Expected array header, but got ' + src[position - 1]);
-        }
-        // This initial function is quick to instantiate, but runs slower. After several iterations pay the cost to build the faster function
-        let compiledReader = this.compiledReader // first look to see if we have the fast compiled function
-        ;
-        while(compiledReader){
-            // we have a fast compiled object literal reader
-            if (compiledReader.propertyCount === length) return compiledReader(read) // with the right length, so we use it
-            ;
-            compiledReader = compiledReader.next // see if there is another reader with the right length
-            ;
-        }
-        if (this.slowReads++ >= inlineObjectReadThreshold) {
-            let array = this.length == length ? this : this.slice(0, length);
-            compiledReader = currentDecoder.keyMap ? new Function('r', 'return {' + array.map((k)=>currentDecoder.decodeKey(k)).map((k)=>validName.test(k) ? safeKey(k) + ':r()' : '[' + JSON.stringify(k) + ']:r()').join(',') + '}') : new Function('r', 'return {' + array.map((key)=>validName.test(key) ? safeKey(key) + ':r()' : '[' + JSON.stringify(key) + ']:r()').join(',') + '}');
-            if (this.compiledReader) compiledReader.next = this.compiledReader // if there is an existing one, we store multiple readers as a linked list because it is usually pretty rare to have multiple readers (of different length) for the same structure
-            ;
-            compiledReader.propertyCount = length;
-            this.compiledReader = compiledReader;
-            return compiledReader(read);
-        }
-        let object = {};
-        if (currentDecoder.keyMap) for(let i = 0; i < length; i++)object[safeKey(currentDecoder.decodeKey(this[i]))] = read();
-        else for(let i = 0; i < length; i++)object[safeKey(this[i])] = read();
-        return object;
-    }
-    structure.slowReads = 0;
-    return readObject;
-}
-function safeKey(key) {
-    return key === '__proto__' ? '__proto_' : key;
-}
-let readFixedString = readStringJS;
-let readString8 = readStringJS;
-let readString16 = readStringJS;
-let readString32 = readStringJS;
-let isNativeAccelerationEnabled = false;
-function setExtractor(extractStrings) {
-    isNativeAccelerationEnabled = true;
-    readFixedString = readString(1);
-    readString8 = readString(2);
-    readString16 = readString(3);
-    readString32 = readString(5);
-    function readString(headerLength) {
-        return function readString(length) {
-            let string = strings[stringPosition++];
-            if (string == null) {
-                if (bundledStrings) return readStringJS(length);
-                let extraction = extractStrings(position, srcEnd, length, src);
-                if (typeof extraction == 'string') {
-                    string = extraction;
-                    strings = EMPTY_ARRAY;
-                } else {
-                    strings = extraction;
-                    stringPosition = 1;
-                    srcStringEnd = 1 // even if a utf-8 string was decoded, must indicate we are in the midst of extracted strings and can't skip strings
-                    ;
-                    string = strings[0];
-                    if (string === undefined) throw new Error('Unexpected end of buffer');
-                }
-            }
-            let srcStringLength = string.length;
-            if (srcStringLength <= length) {
-                position += length;
-                return string;
-            }
-            srcString = string;
-            srcStringStart = position;
-            srcStringEnd = position + srcStringLength;
-            position += length;
-            return string.slice(0, length) // we know we just want the beginning
-            ;
-        };
-    }
-}
-function readStringJS(length) {
-    let result;
-    if (length < 16) {
-        if (result = shortStringInJS(length)) return result;
-    }
-    if (length > 64 && decoder) return decoder.decode(src.subarray(position, position += length));
-    const end = position + length;
-    const units = [];
-    result = '';
-    while(position < end){
-        const byte1 = src[position++];
-        if ((byte1 & 0x80) === 0) // 1 byte
-        units.push(byte1);
-        else if ((byte1 & 0xe0) === 0xc0) {
-            // 2 bytes
-            const byte2 = src[position++] & 0x3f;
-            units.push((byte1 & 0x1f) << 6 | byte2);
-        } else if ((byte1 & 0xf0) === 0xe0) {
-            // 3 bytes
-            const byte2 = src[position++] & 0x3f;
-            const byte3 = src[position++] & 0x3f;
-            units.push((byte1 & 0x1f) << 12 | byte2 << 6 | byte3);
-        } else if ((byte1 & 0xf8) === 0xf0) {
-            // 4 bytes
-            const byte2 = src[position++] & 0x3f;
-            const byte3 = src[position++] & 0x3f;
-            const byte4 = src[position++] & 0x3f;
-            let unit = (byte1 & 0x07) << 0x12 | byte2 << 0x0c | byte3 << 0x06 | byte4;
-            if (unit > 0xffff) {
-                unit -= 0x10000;
-                units.push(unit >>> 10 & 0x3ff | 0xd800);
-                unit = 0xdc00 | unit & 0x3ff;
-            }
-            units.push(unit);
-        } else units.push(byte1);
-        if (units.length >= 0x1000) {
-            result += fromCharCode.apply(String, units);
-            units.length = 0;
-        }
-    }
-    if (units.length > 0) result += fromCharCode.apply(String, units);
-    return result;
-}
-let fromCharCode = String.fromCharCode;
-function longStringInJS(length) {
-    let start = position;
-    let bytes = new Array(length);
-    for(let i = 0; i < length; i++){
-        const byte = src[position++];
-        if ((byte & 0x80) > 0) {
-            position = start;
-            return;
-        }
-        bytes[i] = byte;
-    }
-    return fromCharCode.apply(String, bytes);
-}
-function shortStringInJS(length) {
-    if (length < 4) {
-        if (length < 2) {
-            if (length === 0) return '';
-            else {
-                let a = src[position++];
-                if ((a & 0x80) > 1) {
-                    position -= 1;
-                    return;
-                }
-                return fromCharCode(a);
-            }
-        } else {
-            let a = src[position++];
-            let b = src[position++];
-            if ((a & 0x80) > 0 || (b & 0x80) > 0) {
-                position -= 2;
-                return;
-            }
-            if (length < 3) return fromCharCode(a, b);
-            let c = src[position++];
-            if ((c & 0x80) > 0) {
-                position -= 3;
-                return;
-            }
-            return fromCharCode(a, b, c);
-        }
-    } else {
-        let a = src[position++];
-        let b = src[position++];
-        let c = src[position++];
-        let d = src[position++];
-        if ((a & 0x80) > 0 || (b & 0x80) > 0 || (c & 0x80) > 0 || (d & 0x80) > 0) {
-            position -= 4;
-            return;
-        }
-        if (length < 6) {
-            if (length === 4) return fromCharCode(a, b, c, d);
-            else {
-                let e = src[position++];
-                if ((e & 0x80) > 0) {
-                    position -= 5;
-                    return;
-                }
-                return fromCharCode(a, b, c, d, e);
-            }
-        } else if (length < 8) {
-            let e = src[position++];
-            let f = src[position++];
-            if ((e & 0x80) > 0 || (f & 0x80) > 0) {
-                position -= 6;
-                return;
-            }
-            if (length < 7) return fromCharCode(a, b, c, d, e, f);
-            let g = src[position++];
-            if ((g & 0x80) > 0) {
-                position -= 7;
-                return;
-            }
-            return fromCharCode(a, b, c, d, e, f, g);
-        } else {
-            let e = src[position++];
-            let f = src[position++];
-            let g = src[position++];
-            let h = src[position++];
-            if ((e & 0x80) > 0 || (f & 0x80) > 0 || (g & 0x80) > 0 || (h & 0x80) > 0) {
-                position -= 8;
-                return;
-            }
-            if (length < 10) {
-                if (length === 8) return fromCharCode(a, b, c, d, e, f, g, h);
-                else {
-                    let i = src[position++];
-                    if ((i & 0x80) > 0) {
-                        position -= 9;
-                        return;
-                    }
-                    return fromCharCode(a, b, c, d, e, f, g, h, i);
-                }
-            } else if (length < 12) {
-                let i = src[position++];
-                let j = src[position++];
-                if ((i & 0x80) > 0 || (j & 0x80) > 0) {
-                    position -= 10;
-                    return;
-                }
-                if (length < 11) return fromCharCode(a, b, c, d, e, f, g, h, i, j);
-                let k = src[position++];
-                if ((k & 0x80) > 0) {
-                    position -= 11;
-                    return;
-                }
-                return fromCharCode(a, b, c, d, e, f, g, h, i, j, k);
-            } else {
-                let i = src[position++];
-                let j = src[position++];
-                let k = src[position++];
-                let l = src[position++];
-                if ((i & 0x80) > 0 || (j & 0x80) > 0 || (k & 0x80) > 0 || (l & 0x80) > 0) {
-                    position -= 12;
-                    return;
-                }
-                if (length < 14) {
-                    if (length === 12) return fromCharCode(a, b, c, d, e, f, g, h, i, j, k, l);
-                    else {
-                        let m = src[position++];
-                        if ((m & 0x80) > 0) {
-                            position -= 13;
-                            return;
-                        }
-                        return fromCharCode(a, b, c, d, e, f, g, h, i, j, k, l, m);
-                    }
-                } else {
-                    let m = src[position++];
-                    let n = src[position++];
-                    if ((m & 0x80) > 0 || (n & 0x80) > 0) {
-                        position -= 14;
-                        return;
-                    }
-                    if (length < 15) return fromCharCode(a, b, c, d, e, f, g, h, i, j, k, l, m, n);
-                    let o = src[position++];
-                    if ((o & 0x80) > 0) {
-                        position -= 15;
-                        return;
-                    }
-                    return fromCharCode(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
-                }
-            }
-        }
-    }
-}
-function readBin(length) {
-    return currentDecoder.copyBuffers ? // specifically use the copying slice (not the node one)
-    Uint8Array.prototype.slice.call(src, position, position += length) : src.subarray(position, position += length);
-}
-function readExt(length) {
-    let type = src[position++];
-    if (currentExtensions[type]) return currentExtensions[type](src.subarray(position, position += length));
-    else throw new Error('Unknown extension type ' + type);
-}
-let f32Array = new Float32Array(1);
-let u8Array = new Uint8Array(f32Array.buffer, 0, 4);
-function getFloat16() {
-    let byte0 = src[position++];
-    let byte1 = src[position++];
-    let exponent = (byte0 & 0x7f) >> 2;
-    if (exponent === 0x1f) {
-        if (byte1 || byte0 & 3) return NaN;
-        return byte0 & 0x80 ? -Infinity : Infinity;
-    }
-    if (exponent === 0) {
-        // significand with 10 fractional bits and divided by 2^14
-        let abs = ((byte0 & 3) << 8 | byte1) / 16777216;
-        return byte0 & 0x80 ? -abs : abs;
-    }
-    u8Array[3] = byte0 & 0x80 | // sign bit
-    (exponent >> 1) + 56 // 4 of 5 of the exponent bits, re-offset-ed
-    ;
-    u8Array[2] = (byte0 & 7) << 5 | // last exponent bit and first two mantissa bits
-    byte1 >> 3 // next 5 bits of mantissa
-    ;
-    u8Array[1] = byte1 << 5; // last three bits of mantissa
-    u8Array[0] = 0;
-    return f32Array[0];
-}
-let keyCache = new Array(4096);
-function readKey() {
-    let length = src[position++];
-    if (length >= 0x60 && length < 0x78) {
-        // fixstr, potentially use key cache
-        length = length - 0x60;
-        if (srcStringEnd >= position) return srcString.slice(position - srcStringStart, (position += length) - srcStringStart);
-        else if (!(srcStringEnd == 0 && srcEnd < 180)) return readFixedString(length);
-    } else {
-        position--;
-        return read();
-    }
-    let key = (length << 5 ^ (length > 1 ? dataView.getUint16(position) : length > 0 ? src[position] : 0)) & 0xfff;
-    let entry = keyCache[key];
-    let checkPosition = position;
-    let end = position + length - 3;
-    let chunk;
-    let i = 0;
-    if (entry && entry.bytes == length) {
-        while(checkPosition < end){
-            chunk = dataView.getUint32(checkPosition);
-            if (chunk != entry[i++]) {
-                checkPosition = 0x70000000;
-                break;
-            }
-            checkPosition += 4;
-        }
-        end += 3;
-        while(checkPosition < end){
-            chunk = src[checkPosition++];
-            if (chunk != entry[i++]) {
-                checkPosition = 0x70000000;
-                break;
-            }
-        }
-        if (checkPosition === end) {
-            position = checkPosition;
-            return entry.string;
-        }
-        end -= 3;
-        checkPosition = position;
-    }
-    entry = [];
-    keyCache[key] = entry;
-    entry.bytes = length;
-    while(checkPosition < end){
-        chunk = dataView.getUint32(checkPosition);
-        entry.push(chunk);
-        checkPosition += 4;
-    }
-    end += 3;
-    while(checkPosition < end){
-        chunk = src[checkPosition++];
-        entry.push(chunk);
-    }
-    // for small blocks, avoiding the overhead of the extract call is helpful
-    let string = length < 16 ? shortStringInJS(length) : longStringInJS(length);
-    if (string != null) return entry.string = string;
-    return entry.string = readFixedString(length);
-}
-class Tag {
-    constructor(value, tag){
-        this.value = value;
-        this.tag = tag;
-    }
-}
-currentExtensions[0] = (dateString)=>{
-    // string date extension
-    return new Date(dateString);
-};
-currentExtensions[1] = (epochSec)=>{
-    // numeric date extension
-    return new Date(Math.round(epochSec * 1000));
-};
-currentExtensions[2] = (buffer)=>{
-    // bigint extension
-    let value = BigInt(0);
-    for(let i = 0, l = buffer.byteLength; i < l; i++)value = BigInt(buffer[i]) + value << BigInt(8);
-    return value;
-};
-currentExtensions[3] = (buffer)=>{
-    // negative bigint extension
-    return BigInt(-1) - currentExtensions[2](buffer);
-};
-currentExtensions[4] = (fraction)=>{
-    // best to reparse to maintain accuracy
-    return +(fraction[1] + 'e' + fraction[0]);
-};
-currentExtensions[5] = (fraction)=>{
-    // probably not sufficiently accurate
-    return fraction[1] * Math.exp(fraction[0] * Math.log(2));
-};
-// the registration of the record definition extension
-const recordDefinition = (id, structure)=>{
-    id = id - 0xe000;
-    let existingStructure = currentStructures[id];
-    if (existingStructure && existingStructure.isShared) (currentStructures.restoreStructures || (currentStructures.restoreStructures = []))[id] = existingStructure;
-    currentStructures[id] = structure;
-    structure.read = createStructureReader(structure);
-};
-currentExtensions[LEGACY_RECORD_INLINE_ID] = (data)=>{
-    let length = data.length;
-    let structure = data[1];
-    recordDefinition(data[0], structure);
-    let object = {};
-    for(let i = 2; i < length; i++){
-        let key = structure[i - 2];
-        object[safeKey(key)] = data[i];
-    }
-    return object;
-};
-currentExtensions[14] = (value)=>{
-    if (bundledStrings) return bundledStrings[0].slice(bundledStrings.position0, bundledStrings.position0 += value);
-    return new Tag(value, 14);
-};
-currentExtensions[15] = (value)=>{
-    if (bundledStrings) return bundledStrings[1].slice(bundledStrings.position1, bundledStrings.position1 += value);
-    return new Tag(value, 15);
-};
-let glbl = {
-    Error,
-    RegExp
-};
-currentExtensions[27] = (data)=>{
-    return (glbl[data[0]] || Error)(data[1], data[2]);
-};
-const packedTable = (read)=>{
-    if (src[position++] != 0x84) throw new Error('Packed values structure must be followed by a 4 element array');
-    let newPackedValues = read() // packed values
-    ;
-    packedValues = packedValues ? newPackedValues.concat(packedValues.slice(newPackedValues.length)) : newPackedValues;
-    packedValues.prefixes = read();
-    packedValues.suffixes = read();
-    return read() // read the rump
-    ;
-};
-packedTable.handlesRead = true;
-currentExtensions[51] = packedTable;
-currentExtensions[PACKED_REFERENCE_TAG_ID] = (data)=>{
-    if (!packedValues) {
-        if (currentDecoder.getShared) loadShared();
-        else return new Tag(data, PACKED_REFERENCE_TAG_ID);
-    }
-    if (typeof data == 'number') return packedValues[16 + (data >= 0 ? 2 * data : -2 * data - 1)];
-    throw new Error('No support for non-integer packed references yet');
-};
-// The following code is an incomplete implementation of http://cbor.schmorp.de/stringref
-// the real thing would need to implemennt more logic to populate the stringRefs table and
-// maintain a stack of stringRef "namespaces".
-//
-// currentExtensions[25] = (id) => {
-// 	return stringRefs[id]
-// }
-// currentExtensions[256] = (read) => {
-// 	stringRefs = []
-// 	try {
-// 		return read()
-// 	} finally {
-// 		stringRefs = null
-// 	}
-// }
-// currentExtensions[256].handlesRead = true
-currentExtensions[28] = (read)=>{
-    // shareable http://cbor.schmorp.de/value-sharing (for structured clones)
-    if (!referenceMap) {
-        referenceMap = new Map();
-        referenceMap.id = 0;
-    }
-    let id = referenceMap.id++;
-    let token = src[position];
-    let target;
-    // TODO: handle Maps, Sets, and other types that can cycle; this is complicated, because you potentially need to read
-    // ahead past references to record structure definitions
-    if (token >> 5 == 4) target = [];
-    else target = {};
-    let refEntry = {
-        target
-    } // a placeholder object
-    ;
-    referenceMap.set(id, refEntry);
-    let targetProperties = read() // read the next value as the target object to id
-    ;
-    if (refEntry.used) return Object.assign(target, targetProperties);
-    refEntry.target = targetProperties // the placeholder wasn't used, replace with the deserialized one
-    ;
-    return targetProperties // no cycle, can just use the returned read object
-    ;
-};
-currentExtensions[28].handlesRead = true;
-currentExtensions[29] = (id)=>{
-    // sharedref http://cbor.schmorp.de/value-sharing (for structured clones)
-    let refEntry = referenceMap.get(id);
-    refEntry.used = true;
-    return refEntry.target;
-};
-currentExtensions[258] = (array)=>new Set(array); // https://github.com/input-output-hk/cbor-sets-spec/blob/master/CBOR_SETS.md
-(currentExtensions[259] = (read)=>{
-    // https://github.com/shanewholloway/js-cbor-codec/blob/master/docs/CBOR-259-spec
-    // for decoding as a standard Map
-    if (currentDecoder.mapsAsObjects) {
-        currentDecoder.mapsAsObjects = false;
-        restoreMapsAsObject = true;
-    }
-    return read();
-}).handlesRead = true;
-function combine(a, b) {
-    if (typeof a === 'string') return a + b;
-    if (a instanceof Array) return a.concat(b);
-    return Object.assign({}, a, b);
-}
-function getPackedValues() {
-    if (!packedValues) {
-        if (currentDecoder.getShared) loadShared();
-        else throw new Error('No packed values available');
-    }
-    return packedValues;
-}
-const SHARED_DATA_TAG_ID = 0x53687264 // ascii 'Shrd'
-;
-currentExtensionRanges.push((tag, input)=>{
-    if (tag >= 225 && tag <= 255) return combine(getPackedValues().prefixes[tag - 224], input);
-    if (tag >= 28704 && tag <= 32767) return combine(getPackedValues().prefixes[tag - 28672], input);
-    if (tag >= 1879052288 && tag <= 2147483647) return combine(getPackedValues().prefixes[tag - 1879048192], input);
-    if (tag >= 216 && tag <= 223) return combine(input, getPackedValues().suffixes[tag - 216]);
-    if (tag >= 27647 && tag <= 28671) return combine(input, getPackedValues().suffixes[tag - 27639]);
-    if (tag >= 1811940352 && tag <= 1879048191) return combine(input, getPackedValues().suffixes[tag - 1811939328]);
-    if (tag == SHARED_DATA_TAG_ID) return {
-        packedValues: packedValues,
-        structures: currentStructures.slice(0),
-        version: input
-    };
-    if (tag == 55799) return input;
-});
-const isLittleEndianMachine = new Uint8Array(new Uint16Array([
-    1
-]).buffer)[0] == 1;
-const typedArrays = [
-    Uint8Array,
-    Uint8ClampedArray,
-    Uint16Array,
-    Uint32Array,
-    typeof BigUint64Array == 'undefined' ? {
-        name: 'BigUint64Array'
-    } : BigUint64Array,
-    Int8Array,
-    Int16Array,
-    Int32Array,
-    typeof BigInt64Array == 'undefined' ? {
-        name: 'BigInt64Array'
-    } : BigInt64Array,
-    Float32Array,
-    Float64Array
-];
-const typedArrayTags = [
-    64,
-    68,
-    69,
-    70,
-    71,
-    72,
-    77,
-    78,
-    79,
-    85,
-    86
-];
-for(let i = 0; i < typedArrays.length; i++)registerTypedArray(typedArrays[i], typedArrayTags[i]);
-function registerTypedArray(TypedArray, tag) {
-    let dvMethod = 'get' + TypedArray.name.slice(0, -5);
-    let bytesPerElement;
-    if (typeof TypedArray === 'function') bytesPerElement = TypedArray.BYTES_PER_ELEMENT;
-    else TypedArray = null;
-    for(let littleEndian = 0; littleEndian < 2; littleEndian++){
-        if (!littleEndian && bytesPerElement == 1) continue;
-        let sizeShift = bytesPerElement == 2 ? 1 : bytesPerElement == 4 ? 2 : 3;
-        currentExtensions[littleEndian ? tag : tag - 4] = bytesPerElement == 1 || littleEndian == isLittleEndianMachine ? (buffer)=>{
-            if (!TypedArray) throw new Error('Could not find typed array for code ' + tag);
-            // we have to always slice/copy here to get a new ArrayBuffer that is word/byte aligned
-            return new TypedArray(Uint8Array.prototype.slice.call(buffer, 0).buffer);
-        } : (buffer)=>{
-            if (!TypedArray) throw new Error('Could not find typed array for code ' + tag);
-            let dv = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-            let elements = buffer.length >> sizeShift;
-            let ta = new TypedArray(elements);
-            let method = dv[dvMethod];
-            for(let i = 0; i < elements; i++)ta[i] = method.call(dv, i << sizeShift, littleEndian);
-            return ta;
-        };
-    }
-}
-function readBundleExt() {
-    let length = readJustLength();
-    let bundlePosition = position + read();
-    for(let i = 2; i < length; i++){
-        // skip past bundles that were already read
-        let bundleLength = readJustLength() // this will increment position, so must add to position afterwards
-        ;
-        position += bundleLength;
-    }
-    let dataPosition = position;
-    position = bundlePosition;
-    bundledStrings = [
-        readStringJS(readJustLength()),
-        readStringJS(readJustLength())
-    ];
-    bundledStrings.position0 = 0;
-    bundledStrings.position1 = 0;
-    bundledStrings.postBundlePosition = position;
-    position = dataPosition;
-    return read();
-}
-function readJustLength() {
-    let token = src[position++] & 0x1f;
-    if (token > 0x17) switch(token){
-        case 0x18:
-            token = src[position++];
-            break;
-        case 0x19:
-            token = dataView.getUint16(position);
-            position += 2;
-            break;
-        case 0x1a:
-            token = dataView.getUint32(position);
-            position += 4;
-            break;
-    }
-    return token;
-}
-function loadShared() {
-    if (currentDecoder.getShared) {
-        let sharedData = saveState(()=>{
-            // save the state in case getShared modifies our buffer
-            src = null;
-            return currentDecoder.getShared();
-        }) || {};
-        let updatedStructures = sharedData.structures || [];
-        currentDecoder.sharedVersion = sharedData.version;
-        packedValues = currentDecoder.sharedValues = sharedData.packedValues;
-        if (currentStructures === true) currentDecoder.structures = currentStructures = updatedStructures;
-        else currentStructures.splice.apply(currentStructures, [
-            0,
-            updatedStructures.length
-        ].concat(updatedStructures));
-    }
-}
-function saveState(callback) {
-    let savedSrcEnd = srcEnd;
-    let savedPosition = position;
-    let savedStringPosition = stringPosition;
-    let savedSrcStringStart = srcStringStart;
-    let savedSrcStringEnd = srcStringEnd;
-    let savedSrcString = srcString;
-    let savedStrings = strings;
-    let savedReferenceMap = referenceMap;
-    let savedBundledStrings = bundledStrings;
-    // TODO: We may need to revisit this if we do more external calls to user code (since it could be slow)
-    let savedSrc = new Uint8Array(src.slice(0, srcEnd)) // we copy the data in case it changes while external data is processed
-    ;
-    let savedStructures = currentStructures;
-    let savedDecoder = currentDecoder;
-    let savedSequentialMode = sequentialMode;
-    let value = callback();
-    srcEnd = savedSrcEnd;
-    position = savedPosition;
-    stringPosition = savedStringPosition;
-    srcStringStart = savedSrcStringStart;
-    srcStringEnd = savedSrcStringEnd;
-    srcString = savedSrcString;
-    strings = savedStrings;
-    referenceMap = savedReferenceMap;
-    bundledStrings = savedBundledStrings;
-    src = savedSrc;
-    sequentialMode = savedSequentialMode;
-    currentStructures = savedStructures;
-    currentDecoder = savedDecoder;
-    dataView = new DataView(src.buffer, src.byteOffset, src.byteLength);
-    return value;
-}
-function clearSource() {
-    src = null;
-    referenceMap = null;
-    currentStructures = null;
-}
-function addExtension(extension) {
-    currentExtensions[extension.tag] = extension.decode;
-}
-const mult10 = new Array(147) // this is a table matching binary exponents to the multiplier to determine significant digit rounding
-;
-for(let i = 0; i < 256; i++)mult10[i] = +('1e' + Math.floor(45.15 - i * 0.30103));
-let defaultDecoder = new Decoder({
-    useRecords: false
-});
-const decode = defaultDecoder.decode;
-const decodeMultiple = defaultDecoder.decodeMultiple;
-const FLOAT32_OPTIONS = {
-    NEVER: 0,
-    ALWAYS: 1,
-    DECIMAL_ROUND: 3,
-    DECIMAL_FIT: 4
-};
-function roundFloat32(float32Number) {
-    f32Array[0] = float32Number;
-    let multiplier = mult10[(u8Array[3] & 0x7f) << 1 | u8Array[2] >> 7];
-    return (multiplier * float32Number + (float32Number > 0 ? 0.5 : -0.5) >> 0) / multiplier;
-}
-
-},{"5e5a521ce10d430f":"jhUEF","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jhUEF":[function(require,module,exports,__globalThis) {
-"use strict";
-
-},{}],"kAKPZ":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-/**
- * Given an Iterable first argument, returns an Iterable where each value is encoded as a Buffer
- * If the argument is only Async Iterable, the return value will be an Async Iterable.
- * @param {Iterable|Iterator|AsyncIterable|AsyncIterator} objectIterator - iterable source, like a Readable object stream, an array, Set, or custom object
- * @param {options} [options] - cbor-x Encoder options
- * @returns {IterableIterator|Promise.<AsyncIterableIterator>}
- */ parcelHelpers.export(exports, "encodeIter", ()=>encodeIter);
-/**
- * Given an Iterable/Iterator input which yields buffers, returns an IterableIterator which yields sync decoded objects
- * Or, given an Async Iterable/Iterator which yields promises resolving in buffers, returns an AsyncIterableIterator.
- * @param {Iterable|Iterator|AsyncIterable|AsyncIterableIterator} bufferIterator
- * @param {object} [options] - Decoder options
- * @returns {IterableIterator|Promise.<AsyncIterableIterator}
- */ parcelHelpers.export(exports, "decodeIter", ()=>decodeIter);
-var _encodeJs = require("./encode.js");
-var _decodeJs = require("./decode.js");
-var Buffer = require("8248a489bcc79a18").Buffer;
-function encodeIter(objectIterator, options = {}) {
-    if (!objectIterator || typeof objectIterator !== 'object') throw new Error('first argument must be an Iterable, Async Iterable, or a Promise for an Async Iterable');
-    else if (typeof objectIterator[Symbol.iterator] === 'function') return encodeIterSync(objectIterator, options);
-    else if (typeof objectIterator.then === 'function' || typeof objectIterator[Symbol.asyncIterator] === 'function') return encodeIterAsync(objectIterator, options);
-    else throw new Error('first argument must be an Iterable, Async Iterable, Iterator, Async Iterator, or a Promise');
-}
-function* encodeIterSync(objectIterator, options) {
-    const encoder = new (0, _encodeJs.Encoder)(options);
-    for (const value of objectIterator)yield encoder.encode(value);
-}
-async function* encodeIterAsync(objectIterator, options) {
-    const encoder = new (0, _encodeJs.Encoder)(options);
-    for await (const value of objectIterator)yield encoder.encode(value);
-}
-function decodeIter(bufferIterator, options = {}) {
-    if (!bufferIterator || typeof bufferIterator !== 'object') throw new Error('first argument must be an Iterable, Async Iterable, Iterator, Async Iterator, or a promise');
-    const decoder = new (0, _decodeJs.Decoder)(options);
-    let incomplete;
-    const parser = (chunk)=>{
-        let yields;
-        // if there's incomplete data from previous chunk, concatinate and try again
-        if (incomplete) {
-            chunk = Buffer.concat([
-                incomplete,
-                chunk
-            ]);
-            incomplete = undefined;
-        }
-        try {
-            yields = decoder.decodeMultiple(chunk);
-        } catch (err) {
-            if (err.incomplete) {
-                incomplete = chunk.slice(err.lastPosition);
-                yields = err.values;
-            } else throw err;
-        }
-        return yields;
-    };
-    if (typeof bufferIterator[Symbol.iterator] === 'function') return function* iter() {
-        for (const value of bufferIterator)yield* parser(value);
-    }();
-    else if (typeof bufferIterator[Symbol.asyncIterator] === 'function') return async function* iter() {
-        for await (const value of bufferIterator)yield* parser(value);
-    }();
-}
-
-},{"8248a489bcc79a18":"jhUEF","./encode.js":"oo8Y1","./decode.js":"hZrAw","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dlMUQ":[function(require,module,exports,__globalThis) {
+},{}],"dlMUQ":[function(require,module,exports,__globalThis) {
 // Main Functions:
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -10353,9 +7717,8 @@ parcelHelpers.export(exports, "utf8DecodeJs", ()=>utf8DecodeJs);
 parcelHelpers.export(exports, "TEXT_DECODER_THRESHOLD", ()=>TEXT_DECODER_THRESHOLD);
 parcelHelpers.export(exports, "utf8DecodeTD", ()=>utf8DecodeTD);
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */ var _intMjs = require("./int.mjs");
-var process = require("6cc88a7d16d8461d");
 var _a, _b, _c;
-var TEXT_ENCODING_AVAILABLE = (typeof process === "undefined" || ((_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a["TEXT_ENCODING"]) !== "never") && typeof TextEncoder !== "undefined" && typeof TextDecoder !== "undefined";
+var TEXT_ENCODING_AVAILABLE = typeof TextEncoder !== "undefined" && typeof TextDecoder !== "undefined";
 function utf8Count(str) {
     var strLength = str.length;
     var byteLength = 0;
@@ -10427,7 +7790,7 @@ function utf8EncodeJs(str, output, outputOffset) {
     }
 }
 var sharedTextEncoder = TEXT_ENCODING_AVAILABLE ? new TextEncoder() : undefined;
-var TEXT_ENCODER_THRESHOLD = !TEXT_ENCODING_AVAILABLE ? (0, _intMjs.UINT32_MAX) : typeof process !== "undefined" && ((_b = process === null || process === void 0 ? void 0 : process.env) === null || _b === void 0 ? void 0 : _b["TEXT_ENCODING"]) !== "force" ? 200 : 0;
+var TEXT_ENCODER_THRESHOLD = !TEXT_ENCODING_AVAILABLE ? (0, _intMjs.UINT32_MAX) : 0;
 function utf8EncodeTEencode(str, output, outputOffset) {
     output.set(sharedTextEncoder.encode(str), outputOffset);
 }
@@ -10476,158 +7839,13 @@ function utf8DecodeJs(bytes, inputOffset, byteLength) {
     return result;
 }
 var sharedTextDecoder = TEXT_ENCODING_AVAILABLE ? new TextDecoder() : null;
-var TEXT_DECODER_THRESHOLD = !TEXT_ENCODING_AVAILABLE ? (0, _intMjs.UINT32_MAX) : typeof process !== "undefined" && ((_c = process === null || process === void 0 ? void 0 : process.env) === null || _c === void 0 ? void 0 : _c["TEXT_DECODER"]) !== "force" ? 200 : 0;
+var TEXT_DECODER_THRESHOLD = !TEXT_ENCODING_AVAILABLE ? (0, _intMjs.UINT32_MAX) : 0;
 function utf8DecodeTD(bytes, inputOffset, byteLength) {
     var stringBytes = bytes.subarray(inputOffset, inputOffset + byteLength);
     return sharedTextDecoder.decode(stringBytes);
 }
 
-},{"6cc88a7d16d8461d":"d5jf4","./int.mjs":"R0W7N","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"d5jf4":[function(require,module,exports,__globalThis) {
-// shim for using process in browser
-var process = module.exports = {};
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-var cachedSetTimeout;
-var cachedClearTimeout;
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout() {
-    throw new Error('clearTimeout has not been defined');
-}
-(function() {
-    try {
-        if (typeof setTimeout === 'function') cachedSetTimeout = setTimeout;
-        else cachedSetTimeout = defaultSetTimout;
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') cachedClearTimeout = clearTimeout;
-        else cachedClearTimeout = defaultClearTimeout;
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-})();
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) //normal enviroments in sane situations
-    return setTimeout(fun, 0);
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) //normal enviroments in sane situations
-    return clearTimeout(marker);
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) return;
-    draining = false;
-    if (currentQueue.length) queue = currentQueue.concat(queue);
-    else queueIndex = -1;
-    if (queue.length) drainQueue();
-}
-function drainQueue() {
-    if (draining) return;
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-    var len = queue.length;
-    while(len){
-        currentQueue = queue;
-        queue = [];
-        while(++queueIndex < len)if (currentQueue) currentQueue[queueIndex].run();
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-process.nextTick = function(fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) for(var i = 1; i < arguments.length; i++)args[i - 1] = arguments[i];
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) runTimeout(drainQueue);
-};
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function() {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-function noop() {}
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-process.listeners = function(name) {
-    return [];
-};
-process.binding = function(name) {
-    throw new Error('process.binding is not supported');
-};
-process.cwd = function() {
-    return '/';
-};
-process.chdir = function(dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() {
-    return 0;
-};
-
-},{}],"haKoZ":[function(require,module,exports,__globalThis) {
+},{"./int.mjs":"R0W7N","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"haKoZ":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "ensureUint8Array", ()=>ensureUint8Array);
@@ -11439,7 +8657,7 @@ var Encoder = /** @class */ function() {
     return Encoder;
 }();
 
-},{"./utils/utf8.mjs":"boCqR","./ExtensionCodec.mjs":"5G6eb","./utils/int.mjs":"R0W7N","./utils/typedArrays.mjs":"haKoZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"iPajw":[function(require,module,exports,__globalThis) {
+},{"./utils/utf8.mjs":"boCqR","./ExtensionCodec.mjs":"5G6eb","./utils/int.mjs":"R0W7N","./utils/typedArrays.mjs":"haKoZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6AmTH":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "DEFAULT_PEER_CONFIG", ()=>DEFAULT_PEER_CONFIG);
@@ -11512,7 +8730,7 @@ function processPeerConfig(config) {
     };
 }
 
-},{"./errors.js":"iCCCO","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"iCCCO":[function(require,module,exports,__globalThis) {
+},{"./errors.js":"6MIVN","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6MIVN":[function(require,module,exports,__globalThis) {
 /**
  * Base class for ngrok-related errors
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -11611,7 +8829,7 @@ const NgrokErrorCodes = {
     }
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gdc09":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"h1Eng":[function(require,module,exports,__globalThis) {
 /**
  * Represents a client-side ngrok connection state error
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -11878,7 +9096,7 @@ class NgrokClientState {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"eqMIC":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4Vd3Y":[function(require,module,exports,__globalThis) {
 /**
  * Debug configuration for Kinectron client
  * Controls logging output for different components
@@ -11951,7 +9169,7 @@ const log = {
     }
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6TzzH":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7ERZk":[function(require,module,exports,__globalThis) {
 /**
  * Stream handler factory functions
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -12082,7 +9300,7 @@ function createMultiFrameHandler(callback) {
     };
 }
 
-},{"../utils/imageProcessing.js":"979ko","../utils/debug.js":"eqMIC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"979ko":[function(require,module,exports,__globalThis) {
+},{"../utils/imageProcessing.js":"4Nygo","../utils/debug.js":"4Vd3Y","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4Nygo":[function(require,module,exports,__globalThis) {
 /**
  * Utility functions for processing image data from different streams
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -12196,9 +9414,23 @@ function convertToUint8ClampedArray(data) {
     return new Uint8ClampedArray(Object.values(data));
 }
 
-},{"./debug.js":"eqMIC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["dDsIj","1ygyc"], "1ygyc", "parcelRequire94c2")
+},{"./debug.js":"4Vd3Y","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["6dsOb","2qLMK"], "2qLMK", "parcelRequire1811", {})
 
 </script>
+
+    <!-- Visualizers -->
+    <script src="/stream-tester.46d200c2.js"></script>
+    <script src="/stream-tester.063731ce.js"></script>
+
+    <!-- Controllers -->
+    <script src="/stream-tester.c92a0a2f.js"></script>
+    <script src="/stream-tester.c0f6719d.js"></script>
+    <script src="/stream-tester.a1302c80.js"></script>
+    <script src="/stream-tester.96aaea89.js"></script>
+    <script src="/stream-tester.98d7e2c2.js"></script>
+
+    <!-- Main application -->
+    <script src="/stream-tester.8e8c3400.js"></script>
 </body>
 
 </html>

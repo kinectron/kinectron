@@ -1,0 +1,28 @@
+# Development files
+.parcel-cache/
+node_modules/
+tools/
+src/
+
+# Configuration files
+.eslintrc
+.prettierrc
+.gitignore
+
+# Build process
+rollup.config.js
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Only include the dist directory for npm
+# (the "files" field in package.json handles this)
