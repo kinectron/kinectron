@@ -271,3 +271,23 @@ With all core features implemented and thoroughly tested, we're now ready for th
   3. Updated example files to use the new API structure
   4. This change improves encapsulation, creates a more intuitive API, and follows modern JavaScript best practices
   5. Benefits include cleaner imports for users and more flexibility for future internal changes
+
+## API Modernization Plan
+
+We've created a roadmap for modernizing the Kinectron API for public release. The plan is broken into five manageable phases:
+
+1. **Build System Modernization**: Implementing Rollup for multi-format builds (ESM, CJS, UMD)
+2. **Documentation Enhancement**: Adding JSDoc comments and creating usage guides
+3. **NPM Publishing Setup**: Configuring for proper NPM publishing
+4. **CDN Distribution**: Setting up for CDN access via jsDelivr and unpkg
+5. **Update Project Documentation**: Ensuring README and CONTRIBUTE files are accurate
+
+The detailed roadmap is available in ROADMAP.md in the project root.
+
+**Important Note**: The current project documentation (README.md, CONTRIBUTE.md) is out of date and should not be used as a reference until updated in Phase 5.
+
+### Current Progress
+
+- ✅ API exports have been simplified to only expose the Kinectron class
+- ✅ Examples have been reorganized to the root level
+- ✅ Testing tools have been moved to client/tools/
