@@ -110,18 +110,9 @@
         <pre id="ngrok-details"></pre>
     </div>
 
-    <div class="interface-test">
-        <h2>Legacy Interface Test</h2>
-        <div id="legacy-status">Status: Initializing...</div>
-        <pre id="legacy-details"></pre>
-        <div>
-            <button id="legacy-start-color">Start Color</button>
-            <button id="legacy-stop">Stop All</button>
-        </div>
-    </div>
 
     <script type="module">
-        import { PeerConnection, ModernKinectron, DEFAULT_PEER_CONFIG } from '../../src/index.js';
+        import { Kinectron } from '../../src/index.js';
         import { NgrokValidationError, NgrokErrorCodes } from '../../src/peer/errors.js';
 
         // Modern Interface Setup
@@ -129,7 +120,7 @@
         const modernDetails = document.getElementById('modern-details');
         const modernReconnect = document.getElementById('modern-reconnect');
         const modernDisconnect = document.getElementById('modern-disconnect');
-        let activePeer = null;
+        let activeKinectron = null;
 
         function updateModernStatus(message, isError = false, isSuccess = false) {
             modernStatus.textContent = 'Status: ' + message;
@@ -142,7 +133,7 @@
                 : JSON.stringify(details, null, 2);
         }
 
-        function initializeModernPeer() {
+        function initializeModernKinectron() {
             const config = {
                 host: '127.0.0.1',
                 port: 9001,
@@ -155,9 +146,12 @@
                     sdpSemantics: 'unified-plan'
                 }
             };
-            activePeer = new PeerConnection(config);
 
-            activePeer.on('ready', (data) => {
+            // Create a Kinectron instance with the config
+            activeKinectron = new Kinectron(config);
+
+            // Access the peer connection through the Kinectron instance
+            activeKinectron.on('ready', (data) => {
                 updateModernStatus(`Connected to peer: kinectron`, false, true);
                 updateModernDetails({
                     status: 'connected',
@@ -168,11 +162,11 @@
                 modernDisconnect.disabled = false;
             });
 
-            activePeer.on('error', (error) => {
-                updateModernStatus(`Error: ${error.message}`, true);
+            activeKinectron.on('error', (error) => {
+                updateModernStatus(`Error: ${error.error || error.message}`, true);
                 updateModernDetails({
                     status: 'error',
-                    error: error.message,
+                    error: error.error || error.message,
                     details: error.details,
                     timestamp: new Date().toISOString()
                 });
@@ -180,101 +174,33 @@
                 modernDisconnect.disabled = true;
             });
 
-            return activePeer;
+            // Connect to the peer server
+            activeKinectron.peer.connect();
+
+            return activeKinectron;
         }
 
-        // Legacy Interface Setup
-        const legacyStatus = document.getElementById('legacy-status');
-        const legacyDetails = document.getElementById('legacy-details');
-        const legacyStartColor = document.getElementById('legacy-start-color');
-        const legacyStop = document.getElementById('legacy-stop');
-        let kinectron = null;
-
-        function updateLegacyStatus(message, isError = false, isSuccess = false) {
-            legacyStatus.textContent = 'Status: ' + message;
-            legacyStatus.className = isError ? 'error' : (isSuccess ? 'success' : '');
-        }
-
-        function updateLegacyDetails(details) {
-            legacyDetails.textContent = typeof details === 'string'
-                ? details
-                : JSON.stringify(details, null, 2);
-        }
-
-        function initializeLegacy() {
-            const config = {
-                host: '127.0.0.1',
-                port: 9001,
-                path: '/',
-                secure: false,
-                debug: 3,
-                role: 'legacy-test',
-                config: {
-                    iceServers: [],
-                    sdpSemantics: 'unified-plan'
-                }
-            };
-            kinectron = new ModernKinectron(config);
-
-            kinectron.on('ready', (data) => {
-                updateLegacyStatus(`Connected to peer: kinectron`, false, true);
-                updateLegacyDetails({
-                    status: 'connected',
-                    peerId: 'kinectron',
-                    timestamp: data.timestamp
-                });
-            });
-
-            kinectron.on('error', (error) => {
-                updateLegacyStatus(`Error: ${error.message}`, true);
-                updateLegacyDetails({
-                    status: 'error',
-                    error: error.message,
-                    timestamp: new Date().toISOString()
-                });
-            });
-
-            kinectron.on('frame', (frame) => {
-                updateLegacyDetails({
-                    status: 'received frame',
-                    timestamp: new Date().toISOString()
-                });
-            });
-        }
-
-        // Initialize both interfaces
-        initializeModernPeer();
-        initializeLegacy();
+        // Initialize interface
+        initializeModernKinectron();
 
         // Modern Interface Event Handlers
         modernReconnect.addEventListener('click', () => {
-            if (activePeer) {
-                activePeer.close();
+            if (activeKinectron) {
+                activeKinectron.close();
             }
             updateModernStatus('Reconnecting...');
             updateModernDetails('Initializing new connection...');
-            initializeModernPeer();
+            initializeModernKinectron();
         });
 
         modernDisconnect.addEventListener('click', () => {
-            if (activePeer) {
-                activePeer.close();
+            if (activeKinectron) {
+                activeKinectron.close();
                 updateModernStatus('Disconnected', false, false);
                 updateModernDetails('Connection closed by user');
                 modernReconnect.disabled = false;
                 modernDisconnect.disabled = true;
             }
-        });
-
-        // Legacy Interface Event Handlers
-        legacyStartColor.addEventListener('click', () => {
-            kinectron.startColor();
-            updateLegacyStatus('Starting color feed...', false, false);
-        });
-
-        legacyStop.addEventListener('click', () => {
-            kinectron.stopAll();
-            updateLegacyStatus('Stopped all feeds', false, false);
         });
 
         // Ngrok Interface Setup
@@ -283,7 +209,7 @@
         const ngrokDisconnect = document.getElementById('ngrok-disconnect');
         const ngrokStatus = document.getElementById('ngrok-status');
         const ngrokDetails = document.getElementById('ngrok-details');
-        let ngrokPeer = null;
+        let ngrokKinectron = null;
 
         function updateNgrokStatus(message, isError = false, isSuccess = false) {
             ngrokStatus.textContent = 'Status: ' + message;
@@ -329,13 +255,14 @@
             }
         }
 
-        function initializeNgrokPeer(url) {
-            if (ngrokPeer) {
-                ngrokPeer.close();
+        function initializeNgrokKinectron(url) {
+            if (ngrokKinectron) {
+                ngrokKinectron.close();
             }
 
             try {
-                ngrokPeer = new PeerConnection({
+                // Create a Kinectron instance with ngrok config
+                ngrokKinectron = new Kinectron({
                     host: url,
                     port: '443',
                     path: '/',
@@ -343,7 +270,7 @@
                     role: 'ngrok-test'
                 });
 
-                ngrokPeer.on('ready', (data) => {
+                ngrokKinectron.on('ready', (data) => {
                     updateNgrokStatus(`Connected via ngrok: ${url}`, false, true);
                     updateNgrokDetails({
                         status: 'connected',
@@ -352,37 +279,37 @@
                         timestamp: data.timestamp,
                         connectionType: 'ngrok',
                         secure: url.startsWith('https'),
-                        retryAttempts: ngrokPeer.connectionAttempts,
-                        maxRetries: ngrokPeer.maxConnectionAttempts,
-                        serverState: ngrokPeer.serverState
+                        state: ngrokKinectron.getState()
                     });
                     ngrokConnect.disabled = true;
                     ngrokDisconnect.disabled = false;
                     ngrokUrl.disabled = true;
                 });
 
-                // Listen for reconnection attempts
-                ngrokPeer.on('reconnecting', (data) => {
-                    updateNgrokStatus(`Reconnecting... Attempt ${data.attempt} of ${data.maxAttempts}`, false, false);
-                    updateNgrokDetails({
-                        status: 'reconnecting',
-                        attempt: data.attempt,
-                        maxAttempts: data.maxAttempts,
-                        nextAttemptIn: Math.round(data.delay),
-                        error: data.error,
-                        timestamp: new Date().toISOString()
-                    });
+                // Listen for state changes
+                ngrokKinectron.on('stateChange', (data) => {
+                    if (data.to === 'reconnecting') {
+                        updateNgrokStatus(`Reconnecting...`, false, false);
+                        updateNgrokDetails({
+                            status: 'reconnecting',
+                            timestamp: new Date().toISOString(),
+                            state: ngrokKinectron.getState()
+                        });
+                    }
                 });
 
-                ngrokPeer.on('error', (error) => {
-                    updateNgrokStatus(error.message, true);
+                ngrokKinectron.on('error', (error) => {
+                    updateNgrokStatus(error.error || error.message, true);
                     updateNgrokDetails(error);
                     ngrokConnect.disabled = false;
                     ngrokDisconnect.disabled = true;
                     ngrokUrl.disabled = false;
                 });
 
-                return ngrokPeer;
+                // Connect to the peer server
+                ngrokKinectron.peer.connect();
+
+                return ngrokKinectron;
             } catch (error) {
                 updateNgrokStatus(error.message, true);
                 updateNgrokDetails(error);
@@ -410,16 +337,16 @@
             try {
                 updateNgrokStatus('Connecting via ngrok...');
                 updateNgrokDetails('Initializing ngrok connection...');
-                initializeNgrokPeer(url);
+                initializeNgrokKinectron(url);
             } catch (error) {
-                // Error handling is done in initializeNgrokPeer
-                console.error('Failed to initialize ngrok peer:', error);
+                // Error handling is done in initializeNgrokKinectron
+                console.error('Failed to initialize ngrok connection:', error);
             }
         });
 
         ngrokDisconnect.addEventListener('click', () => {
-            if (ngrokPeer) {
-                ngrokPeer.close();
+            if (ngrokKinectron) {
+                ngrokKinectron.close();
                 updateNgrokStatus('Disconnected', false, false);
                 updateNgrokDetails('Ngrok connection closed by user');
                 ngrokConnect.disabled = false;
@@ -430,14 +357,11 @@
 
         // Clean up on page unload
         window.addEventListener('unload', () => {
-            if (ngrokPeer) {
-                ngrokPeer.close();
+            if (ngrokKinectron) {
+                ngrokKinectron.close();
             }
-            if (activePeer) {
-                activePeer.close();
-            }
-            if (kinectron) {
-                kinectron.close();
+            if (activeKinectron) {
+                activeKinectron.close();
             }
         });
     </script>

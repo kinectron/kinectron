@@ -242,6 +242,7 @@ With all core features implemented and thoroughly tested, we're now ready for th
   7. Prioritizes fresh data over complete data, which is critical for interactive applications
 
 - **Removing legacy API from client implementation**:
+
   1. Identified issue where the legacy API was included in the modern code
   2. Removed the legacy `Kinectron` class implementation from `index.js`
   3. Renamed `kinectron-modern.js` to `kinectron.js` to establish it as the only implementation
@@ -249,3 +250,17 @@ With all core features implemented and thoroughly tested, we're now ready for th
   5. Simplified exports to only include the modern API components
   6. This change supports our version 1.0.0 release as a clean break from legacy code
   7. Benefits include reduced bundle size, simplified maintenance, and a cleaner API
+
+- **Updating examples to modern API**:
+
+  1. Removed legacy API references from client examples
+  2. Updated import paths from 'kinectron-modern.js' to 'kinectron.js'
+  3. Removed "Legacy Interface Test" section from test example
+  4. Verified all examples work with the modern API
+
+- **Refining API exports for cleaner interface**:
+  1. Identified that the API was exporting implementation details (PeerConnection, DEFAULT_PEER_CONFIG, DEFAULT_PEER_ID)
+  2. Simplified exports to only include the Kinectron class as both named and default export
+  3. Updated example files to use the new API structure
+  4. This change improves encapsulation, creates a more intuitive API, and follows modern JavaScript best practices
+  5. Benefits include cleaner imports for users and more flexibility for future internal changes
