@@ -70,37 +70,37 @@
 
 ### Documentation Updates for MVP Launch
 
-- **Status**: Completed and ready for launch
-- **Implementation**:
-  - **README.md Updates**:
-    - Added "MVP Launch Ready!" section highlighting all completed features
-    - Updated the introduction to reflect that the project is now ready for launch
-    - Enhanced installation and usage instructions with clearer steps
-    - Updated the "Available Streams" section to clearly indicate that all streams are now fully implemented
-    - Added detailed information about the "Block API Calls" feature
-    - Updated the troubleshooting section with information about the notification system
-    - Enhanced the debugging system documentation
-    - Added information about known issues and their current status
-    - Updated development workflow information
-  - **CONTRIBUTE.md Updates**:
-    - Updated introduction to reflect MVP status instead of "work in progress"
-    - Updated SDK references from Kinect 2 to Azure Kinect
-    - Updated file paths and project structure to match current architecture
-    - Added comprehensive information about the stream implementation pattern
-    - Added detailed information about the debugging system
-    - Added information about error handling and notification system
-    - Incorporated content from DEVELOPMENT.md for client development
-    - Added troubleshooting section for common development issues
-    - Added code style and conventions section
-    - Added pull request process section
+- **Status**: In progress - not complete
+- **Implementation Plan**:
+  - **README.md Updates Needed**:
+    - Add "MVP Launch Ready!" section highlighting all completed features
+    - Update the introduction to reflect that the project is now ready for launch
+    - Enhance installation and usage instructions with clearer steps
+    - Update the "Available Streams" section to clearly indicate that all streams are now fully implemented
+    - Add detailed information about the "Block API Calls" feature
+    - Update the troubleshooting section with information about the notification system
+    - Enhance the debugging system documentation
+    - Add information about known issues and their current status
+    - Update development workflow information
+  - **CONTRIBUTE.md Updates Needed**:
+    - Update introduction to reflect MVP status instead of "work in progress"
+    - Update SDK references from Kinect 2 to Azure Kinect
+    - Update file paths and project structure to match current architecture
+    - Add comprehensive information about the stream implementation pattern
+    - Add detailed information about the debugging system
+    - Add information about error handling and notification system
+    - Incorporate content from DEVELOPMENT.md for client development
+    - Add troubleshooting section for common development issues
+    - Add code style and conventions section
+    - Add pull request process section
 - **Current State**:
-  - Documentation now clearly separates user instructions (README.md) from developer instructions (CONTRIBUTE.md)
-  - README.md focuses on how to use the built application and client API
-  - CONTRIBUTE.md focuses on how to develop and modify the Kinectron codebase
-  - All features are clearly documented
-  - Installation and usage instructions are comprehensive
-  - Development workflows are well-documented
-  - Known issues and their solutions are documented
+  - Documentation needs to be updated to clearly separate user instructions (README.md) from developer instructions (CONTRIBUTE.md)
+  - README.md needs to focus on how to use the built application and client API
+  - CONTRIBUTE.md needs to focus on how to develop and modify the Kinectron codebase
+  - All features need to be clearly documented
+  - Installation and usage instructions need to be comprehensive
+  - Development workflows need to be well-documented
+  - Known issues and their solutions need to be documented
 
 ### Block API Calls Button Implementation
 
@@ -466,7 +466,32 @@
 
 ## In Progress
 
-1. **UI Refinements**:
+1. **API Modernization**:
+
+   - **Status**: In progress
+   - **Current Focus**:
+     - Preparing the API for public release
+     - Following the roadmap outlined in ROADMAP.md
+   - **Next Steps**:
+     - Phase 1: Build System Modernization (Rollup for multi-format builds)
+     - Phase 2: Documentation Enhancement (JSDoc comments)
+     - Phase 3: NPM Publishing Setup
+     - Phase 4: CDN Distribution
+     - Phase 5: Update Project Documentation
+
+2. **Documentation Updates**:
+
+   - **Status**: In progress
+   - **Current Focus**:
+     - Updating README.md and CONTRIBUTE.md for MVP launch
+     - Ensuring documentation accurately reflects the current state of the project
+   - **Next Steps**:
+     - Complete README.md updates with installation and usage instructions
+     - Update CONTRIBUTE.md with development workflows
+     - Create CHANGELOG.md to track version changes
+     - Document API usage with examples
+
+3. **UI Refinements**:
    - **Status**: In progress
    - **Current Focus**:
      - Ensuring consistent UI behavior across all components
