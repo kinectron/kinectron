@@ -808,23 +808,81 @@ window.log = (0, _debugJs.log);
 /**
  * @fileoverview Main entry point for the Kinectron client library
  * @version 1.0.0
+ * @description Kinectron enables real-time streaming of Microsoft Azure Kinect data into web browsers using WebRTC.
+ * This client library connects to a Kinectron server running on a computer with an Azure Kinect device.
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _kinectronJs = require("./kinectron.js");
 console.log('You are running Kinectron API version 1.0.0');
-// Export the Kinectron class as the default export
-exports.default = (0, _kinectronJs.Kinectron);
+/**
+ * Kinectron client class for connecting to a Kinectron server and accessing Azure Kinect data streams
+ *
+ * @module kinectron
+ * @exports Kinectron
+ * @example
+ * // Using ES modules (recommended)
+ * import Kinectron from 'kinectron';
+ *
+ * // Create a new Kinectron instance
+ * const kinectron = new Kinectron('127.0.0.1');
+ *
+ * // Connect and initialize
+ * kinectron.on('ready', () => {
+ *   console.log('Connected to Kinectron server');
+ *   kinectron.initKinect()
+ *     .then(() => {
+ *       // Start a color stream
+ *       kinectron.startColor((colorFrame) => {
+ *         // Display the color image
+ *         document.getElementById('colorImage').src = colorFrame.src;
+ *       });
+ *     });
+ * });
+ *
+ * // Using script tag (UMD build)
+ * // <script src="https://cdn.jsdelivr.net/npm/kinectron@1.0.0/dist/kinectron.umd.js"></\script>
+ * // const kinectron = new Kinectron('127.0.0.1');
+ */ exports.default = (0, _kinectronJs.Kinectron);
 
 },{"./kinectron.js":"g31sf","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"g31sf":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "Kinectron", ()=>Kinectron);
+/**
+ * Kinectron client for connecting to a Kinectron server and accessing Azure Kinect data streams
+ *
+ * @class
+ */ parcelHelpers.export(exports, "Kinectron", ()=>Kinectron);
 var _peerConnectionJs = require("./peer/peerConnection.js");
 var _ngrokStateJs = require("./peer/ngrokState.js");
 var _debugJs = require("./utils/debug.js");
 var _streamHandlersJs = require("./streams/streamHandlers.js");
 class Kinectron {
-    constructor(networkConfig){
+    /**
+   * Creates a new Kinectron client instance for connecting to a Kinectron server
+   *
+   * @param {Object|string} [networkConfig] - Network configuration or server IP address
+   * @param {string} [networkConfig.host='127.0.0.1'] - Host address for the peer server
+   * @param {number|string} [networkConfig.port=9001] - Port number for the peer server
+   * @param {string} [networkConfig.path='/'] - Path for the peer server
+   * @param {boolean} [networkConfig.secure=false] - Whether to use secure connection
+   * @param {string} [networkConfig.role='default'] - Role identifier for the connection
+   * @example
+   * // Connect to local server
+   * const kinectron = new Kinectron();
+   *
+   * // Connect to specific IP
+   * const kinectron = new Kinectron('192.168.0.1');
+   *
+   * // Connect to ngrok tunnel
+   * const kinectron = new Kinectron('https://abcd1234.ngrok-free.app');
+   *
+   * // Connect with custom config
+   * const kinectron = new Kinectron({
+   *   host: '192.168.0.1',
+   *   port: 9001,
+   *   secure: false
+   * });
+   */ constructor(networkConfig){
         this.peer = new (0, _peerConnectionJs.PeerConnection)(networkConfig);
         this.messageHandlers = new Map();
         this.state = null;
@@ -858,28 +916,101 @@ class Kinectron {
             else (0, _debugJs.log).warn('Kinectron: No handler found for event:', event);
         });
     }
-    // Event registration
-    on(event, callback) {
+    /**
+   * Register an event handler for a specific event type
+   *
+   * @param {string} event - Event type to handle
+   * @param {Function} callback - Handler function for the event
+   * @example
+   * // Handle connection ready event
+   * kinectron.on('ready', (data) => {
+   *   console.log('Connected to Kinectron server!');
+   * });
+   *
+   * // Handle connection errors
+   * kinectron.on('error', (error) => {
+   *   console.error('Connection error:', error);
+   * });
+   *
+   * // Handle state changes
+   * kinectron.on('stateChange', (data) => {
+   *   console.log('Connection state changed from', data.from, 'to', data.to);
+   * });
+   */ on(event, callback) {
         this.messageHandlers.set(event, callback);
     }
-    // Get current state
-    getState() {
+    /**
+   * Get the current connection state and metadata
+   *
+   * @returns {Object} Current state information including connection status, metrics, and error history
+   * @example
+   * const state = kinectron.getState();
+   * console.log('Connection state:', state.currentState);
+   * console.log('Connection quality:', state.metrics.connectionQuality);
+   * console.log('Latency:', state.metrics.latency.current, 'ms');
+   */ getState() {
         return this.peer.getState();
     }
-    // Check if connected
-    isConnected() {
+    /**
+   * Check if the client is currently connected to a Kinectron server
+   *
+   * @returns {boolean} True if connected, false otherwise
+   * @example
+   * if (kinectron.isConnected()) {
+   *   console.log('Connected to Kinectron server');
+   * } else {
+   *   console.log('Not connected');
+   * }
+   */ isConnected() {
         return this.state === (0, _ngrokStateJs.NgrokClientState).STATES.CONNECTED;
     }
-    // Set Kinect type (azure or windows)
-    setKinectType(kinectType) {
+    /**
+   * Set the Kinect hardware type to use
+   *
+   * @param {string} kinectType - The type of Kinect hardware ('azure' or 'windows')
+   * @returns {void}
+   * @example
+   * // Set to Azure Kinect
+   * kinectron.setKinectType('azure');
+   *
+   * // Set to Kinect for Windows v2
+   * kinectron.setKinectType('windows');
+   */ setKinectType(kinectType) {
         if (!this.isConnected()) {
             (0, _debugJs.log).warn('Cannot set Kinect type: not connected');
             return;
         }
         this.send('setkinect', kinectType);
     }
-    // Initialize Kinect
-    initKinect(callback) {
+    /**
+   * Initialize the Kinect hardware on the server
+   *
+   * @param {Function} [callback] - Optional callback for backward compatibility
+   * @returns {Promise<Object>} Promise resolving to initialization result
+   * @throws {Error} If not connected or initialization fails
+   * @example
+   * // Using Promise-based approach (recommended)
+   * kinectron.initKinect()
+   *   .then(result => {
+   *     console.log('Kinect initialized:', result.success);
+   *     // Start streams after successful initialization
+   *     kinectron.startColor(handleColorFrame);
+   *   })
+   *   .catch(error => {
+   *     console.error('Failed to initialize Kinect:', error);
+   *   });
+   *
+   * // Using callback approach (legacy)
+   * kinectron.initKinect((result) => {
+   *   if (result.success) {
+   *     console.log('Kinect initialized successfully');
+   *     // Start streams after successful initialization
+   *     kinectron.startColor(handleColorFrame);
+   *   } else {
+   *     console.error('Failed to initialize Kinect:', result.error);
+   *   }
+   * });
+   */ initKinect(callback) {
         if (!this.isConnected()) {
             (0, _debugJs.log).warn('Cannot initialize Kinect: not connected');
             return Promise.reject(new Error('Cannot initialize Kinect: not connected'));
@@ -916,23 +1047,66 @@ class Kinectron {
         // Return the promise for modern Promise-based usage
         return initPromise;
     }
-    // Send data to peer
-    send(event, data) {
+    /**
+   * Send data to the Kinectron server
+   *
+   * @param {string} event - Event type
+   * @param {*} data - Data to send
+   * @returns {void}
+   * @example
+   * // Send custom data to the server
+   * kinectron.send('custom-event', { message: 'Hello from client' });
+   */ send(event, data) {
         if (!this.isConnected()) {
             (0, _debugJs.log).warn('Cannot send data: not connected');
             return;
         }
         this.peer.send(event, data);
     }
-    // Start feed methods
-    startColor(callback) {
+    /**
+   * Start the color camera stream
+   *
+   * @param {Function} [callback] - Callback function that receives color frames
+   * @returns {void}
+   * @example
+   * kinectron.startColor((colorFrame) => {
+   *   // colorFrame contains:
+   *   // - src: Data URL of the color image
+   *   // - width: Image width
+   *   // - height: Image height
+   *   // - raw: Raw image data
+   *   // - timestamp: Frame timestamp
+   *
+   *   // Display the color image
+   *   const img = document.getElementById('colorImage');
+   *   img.src = colorFrame.src;
+   * });
+   */ startColor(callback) {
         if (callback) // Set up frame handler to process color frames
         this.messageHandlers.set('frame', (0, _streamHandlersJs.createFrameHandler)('color', callback));
         this.send('feed', {
             feed: 'color'
         });
     }
-    startDepth(callback) {
+    /**
+   * Start the depth camera stream (processed depth image)
+   *
+   * @param {Function} [callback] - Callback function that receives depth frames
+   * @returns {void}
+   * @example
+   * kinectron.startDepth((depthFrame) => {
+   *   // depthFrame contains:
+   *   // - src: Data URL of the depth image (colorized)
+   *   // - width: Image width
+   *   // - height: Image height
+   *   // - raw: Raw image data
+   *   // - timestamp: Frame timestamp
+   *
+   *   // Display the depth image
+   *   const img = document.getElementById('depthImage');
+   *   img.src = depthFrame.src;
+   * });
+   */ startDepth(callback) {
         if (callback) // Set up frame handler to process depth frames
         this.messageHandlers.set('frame', (0, _streamHandlersJs.createFrameHandler)('depth', callback));
         this.send('feed', {
@@ -1002,54 +1176,193 @@ class Kinectron {
             img.src = dataUrl;
         });
     }
-    startRawDepth(callback) {
+    /**
+   * Start the raw depth stream (16-bit depth values)
+   *
+   * @param {Function} [callback] - Callback function that receives raw depth frames
+   * @returns {void}
+   * @example
+   * kinectron.startRawDepth((rawDepthFrame) => {
+   *   // rawDepthFrame contains:
+   *   // - depthValues: Uint16Array of 16-bit depth values
+   *   // - width: Frame width
+   *   // - height: Frame height
+   *   // - timestamp: Frame timestamp
+   *
+   *   // Access raw depth values
+   *   const depthValues = rawDepthFrame.depthValues;
+   *
+   *   // Example: Find minimum and maximum depth
+   *   let min = Infinity;
+   *   let max = 0;
+   *   for (let i = 0; i < depthValues.length; i++) {
+   *     if (depthValues[i] > 0) { // Ignore zero values (no data)
+   *       min = Math.min(min, depthValues[i]);
+   *       max = Math.max(max, depthValues[i]);
+   *     }
+   *   }
+   *   console.log(`Depth range: ${min}mm to ${max}mm`);
+   * });
+   */ startRawDepth(callback) {
         if (callback) // Set up handler to process raw depth frames
         this.messageHandlers.set('rawDepth', (0, _streamHandlersJs.createRawDepthHandler)(callback, this._unpackRawDepthData.bind(this)));
         this.send('feed', {
             feed: 'raw-depth'
         });
     }
-    startBodies(callback) {
+    /**
+   * Start the body tracking stream
+   *
+   * @param {Function} [callback] - Callback function that receives body tracking frames
+   * @returns {void}
+   * @example
+   * kinectron.startBodies((bodyFrame) => {
+   *   // bodyFrame contains:
+   *   // - bodies: Array of tracked bodies
+   *   // - timestamp: Frame timestamp
+   *   // - floorClipPlane: Floor plane data
+   *   // - trackingId: Tracking session ID
+   *
+   *   // Process each tracked body
+   *   bodyFrame.bodies.forEach(body => {
+   *     // Each body contains joint positions and orientations
+   *     const joints = body.joints;
+   *
+   *     // Example: Get head position
+   *     const head = joints.find(joint => joint.name === 'head');
+   *     if (head) {
+   *       console.log('Head position:', head.position);
+   *     }
+   *   });
+   * });
+   */ startBodies(callback) {
         if (callback) // Set up handler to process body tracking frames
         this.messageHandlers.set('bodyFrame', (0, _streamHandlersJs.createBodyHandler)(callback));
         this.send('feed', {
             feed: 'body'
         });
     }
-    startKey(callback) {
+    /**
+   * Start the key (green screen) stream
+   *
+   * @param {Function} [callback] - Callback function that receives key frames
+   * @returns {void}
+   * @example
+   * kinectron.startKey((keyFrame) => {
+   *   // keyFrame contains:
+   *   // - src: Data URL of the key image (color with background removed)
+   *   // - width: Image width
+   *   // - height: Image height
+   *   // - raw: Raw image data
+   *   // - timestamp: Frame timestamp
+   *
+   *   // Display the key image
+   *   const img = document.getElementById('keyImage');
+   *   img.src = keyFrame.src;
+   * });
+   */ startKey(callback) {
         if (callback) // Set up frame handler to process key frames
         this.messageHandlers.set('frame', (0, _streamHandlersJs.createFrameHandler)('key', callback));
         this.send('feed', {
             feed: 'key'
         });
     }
-    startDepthKey(callback) {
+    /**
+   * Start the depth key stream (depth data with background removed)
+   *
+   * @param {Function} [callback] - Callback function that receives depth key frames
+   * @returns {void}
+   * @example
+   * kinectron.startDepthKey((depthKeyFrame) => {
+   *   // depthKeyFrame contains:
+   *   // - src: Data URL of the depth key image
+   *   // - width: Image width
+   *   // - height: Image height
+   *   // - raw: Raw image data
+   *   // - timestamp: Frame timestamp
+   *
+   *   // Display the depth key image
+   *   const img = document.getElementById('depthKeyImage');
+   *   img.src = depthKeyFrame.src;
+   * });
+   */ startDepthKey(callback) {
         if (callback) // Set up handler to process depth key frames
         this.messageHandlers.set('depth-key', (0, _streamHandlersJs.createFrameHandler)('depth-key', callback));
         this.send('feed', {
             feed: 'depth-key'
         });
     }
-    startRGBD(callback) {
+    /**
+   * Start the RGBD stream (aligned color and depth)
+   *
+   * @param {Function} [callback] - Callback function that receives RGBD frames
+   * @returns {void}
+   * @example
+   * kinectron.startRGBD((rgbdFrame) => {
+   *   // rgbdFrame contains:
+   *   // - src: Data URL of the RGBD image
+   *   // - width: Image width
+   *   // - height: Image height
+   *   // - raw: Raw image data
+   *   // - timestamp: Frame timestamp
+   *
+   *   // Display the RGBD image
+   *   const img = document.getElementById('rgbdImage');
+   *   img.src = rgbdFrame.src;
+   * });
+   */ startRGBD(callback) {
         if (callback) // Set up frame handler to process RGBD frames
         this.messageHandlers.set('frame', (0, _streamHandlersJs.createFrameHandler)('rgbd', callback));
         this.send('feed', {
             feed: 'rgbd'
         });
     }
-    startMultiFrame(frames, callback) {
+    /**
+   * Start multiple streams simultaneously
+   *
+   * @param {string[]} frames - Array of stream types to start ('color', 'depth', 'body', etc.)
+   * @param {Function} [callback] - Callback function that receives multi-frame data
+   * @returns {void}
+   * @example
+   * // Start color and depth streams together
+   * kinectron.startMultiFrame(['color', 'depth'], (multiFrame) => {
+   *   // multiFrame contains:
+   *   // - frames: Object with a property for each requested stream type
+   *   // - timestamp: Frame timestamp
+   *
+   *   // Access individual frames
+   *   const colorFrame = multiFrame.frames.color;
+   *   const depthFrame = multiFrame.frames.depth;
+   *
+   *   // Display the images
+   *   document.getElementById('colorImage').src = colorFrame.src;
+   *   document.getElementById('depthImage').src = depthFrame.src;
+   * });
+   */ startMultiFrame(frames, callback) {
         if (callback) // Set up handler to process multi-frame data
         this.messageHandlers.set('multiFrame', (0, _streamHandlersJs.createMultiFrameHandler)(callback));
         this.send('multi', frames);
     }
-    // Stop all feeds
-    stopAll() {
+    /**
+   * Stop all active streams
+   *
+   * @returns {void}
+   * @example
+   * // Stop all active streams
+   * kinectron.stopAll();
+   */ stopAll() {
         this.send('feed', {
             feed: 'stop-all'
         });
     }
-    // Clean up
-    close() {
+    /**
+   * Close the connection and clean up resources
+   *
+   * @returns {void}
+   * @example
+   * // Close the connection when done
+   * kinectron.close();
+   */ close() {
         this.peer.close();
         this.messageHandlers.clear();
         this.state = null;
@@ -9100,71 +9413,188 @@ class NgrokClientState {
 /**
  * Debug configuration for Kinectron client
  * Controls logging output for different components
+ *
+ * @namespace DEBUG
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "DEBUG", ()=>DEBUG);
 parcelHelpers.export(exports, "log", ()=>log);
 const DEBUG = {
-    // Master switches for components
-    FRAMES: false,
-    HANDLERS: false,
-    PEER: false,
-    // Specific logging categories
-    PERFORMANCE: false,
-    DATA: false,
-    NETWORK: false,
-    // Helper method to enable all logs
-    enableAll: function() {
+    /**
+   * Master switch for frame-related logging
+   * Controls logs about frame processing, transmission, and visualization
+   * @type {boolean}
+   */ FRAMES: false,
+    /**
+   * Master switch for handler-related logging
+   * Controls logs about stream handlers and event processing
+   * @type {boolean}
+   */ HANDLERS: false,
+    /**
+   * Master switch for peer connection logs
+   * Controls logs about WebRTC connections, state changes, and data channels
+   * @type {boolean}
+   */ PEER: false,
+    /**
+   * For performance-related logs
+   * Controls logs about timing, frame rates, and processing efficiency
+   * @type {boolean}
+   */ PERFORMANCE: false,
+    /**
+   * For data integrity logs
+   * Controls logs about data validation, transformation, and verification
+   * @type {boolean}
+   */ DATA: false,
+    /**
+   * For network-related logs
+   * Controls logs about network status, bandwidth, and transmission
+   * @type {boolean}
+   */ NETWORK: false,
+    /**
+   * Enable all debug flags
+   * Turns on all logging categories for comprehensive debugging
+   * @returns {void}
+   * @example
+   * // Enable all debug logs
+   * DEBUG.enableAll();
+   */ enableAll: function() {
         Object.keys(this).forEach((key)=>{
             if (typeof this[key] === 'boolean') this[key] = true;
         });
     },
-    // Helper method to disable all logs
-    disableAll: function() {
+    /**
+   * Disable all debug flags
+   * Turns off all logging categories for clean console output
+   * @returns {void}
+   * @example
+   * // Disable all debug logs
+   * DEBUG.disableAll();
+   */ disableAll: function() {
         Object.keys(this).forEach((key)=>{
             if (typeof this[key] === 'boolean') this[key] = false;
         });
     }
 };
 const log = {
-    // Always log errors regardless of debug flags
-    error: function(message, ...args) {
+    /**
+   * Log error messages (always visible regardless of debug flags)
+   * Use for critical errors that should always be visible
+   *
+   * @param {string} message - The error message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.error('Failed to connect to server:', error);
+   */ error: function(message, ...args) {
         console.error(message, ...args);
     },
-    // Always log warnings regardless of debug flags
-    warn: function(message, ...args) {
+    /**
+   * Log warning messages (always visible regardless of debug flags)
+   * Use for potential issues that should always be visible
+   *
+   * @param {string} message - The warning message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.warn('Connection attempt timed out, retrying...');
+   */ warn: function(message, ...args) {
         console.warn(message, ...args);
     },
-    // Always log info messages regardless of debug flags
-    info: function(message, ...args) {
+    /**
+   * Log informational messages (always visible regardless of debug flags)
+   * Use for important status updates that should always be visible
+   *
+   * @param {string} message - The info message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.info('Connected to Kinectron server');
+   */ info: function(message, ...args) {
         console.log(message, ...args);
     },
-    // Only log if the specified debug flag is enabled
-    debug: function(flag, message, ...args) {
+    /**
+   * Log debug messages for a specific category
+   * Only logs if the specified debug flag is enabled
+   *
+   * @param {string} flag - The debug flag to check
+   * @param {string} message - The debug message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.debug('PERFORMANCE', 'Frame processing took:', processingTime, 'ms');
+   */ debug: function(flag, message, ...args) {
         if (DEBUG[flag]) console.debug(`[${flag}] ${message}`, ...args);
     },
-    // Only log frame-related messages if FRAMES flag is enabled
-    frame: function(message, ...args) {
+    /**
+   * Log frame-related messages
+   * Only logs if the FRAMES debug flag is enabled
+   *
+   * @param {string} message - The frame-related message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.frame('Received color frame with dimensions:', width, 'x', height);
+   */ frame: function(message, ...args) {
         if (DEBUG.FRAMES) console.debug(`[FRAMES] ${message}`, ...args);
     },
-    // Only log handler-related messages if HANDLERS flag is enabled
-    handler: function(message, ...args) {
+    /**
+   * Log handler-related messages
+   * Only logs if the HANDLERS debug flag is enabled
+   *
+   * @param {string} message - The handler-related message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.handler('Creating body handler with callback');
+   */ handler: function(message, ...args) {
         if (DEBUG.HANDLERS) console.debug(`[HANDLERS] ${message}`, ...args);
     },
-    // Only log peer-related messages if PEER flag is enabled
-    peer: function(message, ...args) {
+    /**
+   * Log peer connection-related messages
+   * Only logs if the PEER debug flag is enabled
+   *
+   * @param {string} message - The peer-related message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.peer('Connected to peer:', peerId);
+   */ peer: function(message, ...args) {
         if (DEBUG.PEER) console.debug(`[PEER] ${message}`, ...args);
     },
-    // Only log performance-related messages if PERFORMANCE flag is enabled
-    performance: function(message, ...args) {
+    /**
+   * Log performance-related messages
+   * Only logs if the PERFORMANCE debug flag is enabled
+   *
+   * @param {string} message - The performance-related message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.performance('Frame rate:', frameRate, 'fps');
+   */ performance: function(message, ...args) {
         if (DEBUG.PERFORMANCE) console.debug(`[PERFORMANCE] ${message}`, ...args);
     },
-    // Only log data-related messages if DATA flag is enabled
-    data: function(message, ...args) {
+    /**
+   * Log data integrity-related messages
+   * Only logs if the DATA debug flag is enabled
+   *
+   * @param {string} message - The data-related message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.data('Unpacking raw depth data with dimensions:', width, 'x', height);
+   */ data: function(message, ...args) {
         if (DEBUG.DATA) console.debug(`[DATA] ${message}`, ...args);
     },
-    // Only log network-related messages if NETWORK flag is enabled
-    network: function(message, ...args) {
+    /**
+   * Log network-related messages
+   * Only logs if the NETWORK debug flag is enabled
+   *
+   * @param {string} message - The network-related message
+   * @param {...any} args - Additional arguments to log
+   * @returns {void}
+   * @example
+   * log.network('Data channel buffer size:', bufferAmount, 'bytes');
+   */ network: function(message, ...args) {
         if (DEBUG.NETWORK) console.debug(`[NETWORK] ${message}`, ...args);
     }
 };
