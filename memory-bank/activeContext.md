@@ -84,11 +84,17 @@ With all core features implemented and thoroughly tested, we're now ready for th
    - Fixed build issues by exposing the log object globally through window.log
    - Updated the streamTest example UI with additional debug flag toggles
 
-5. **StreamTest Refactoring**:
+5. **Tools and Examples Reorganization**:
 
-   - Reorganized example files into dedicated examples/ directory structure
-   - Moved streamTest and test files to their respective subdirectories
+   - Renamed client/examples to client/tools to better reflect their purpose as developer tools
+   - Reorganized tools into dedicated directories:
+     - connection-tester: For testing basic connectivity to the Kinect server
+     - stream-tester: For testing and visualizing different data streams
+   - Created a separate examples/ directory for educational examples:
+     - p5_examples: Examples using p5.js for visualization
+     - threejs_examples: Examples using Three.js for 3D visualization
    - Updated all references and import paths to maintain functionality
+   - Fixed import path issues in tools files (removed incorrect 'client/' from paths)
    - Updated package.json scripts and documentation
    - Resolved Parcel caching issues affecting development workflow
    - Added clean script to package.json to prevent caching problems
@@ -97,6 +103,7 @@ With all core features implemented and thoroughly tested, we're now ready for th
    - Implemented proper p5.js instance mode usage
    - Fixed visualization issues with color stream
    - Resolved frameRate error in metrics controller
+   - Note: Educational examples are not currently functional but will be implemented soon
 
 6. **Error Notification System**:
    - Implemented a reusable notification system for the application

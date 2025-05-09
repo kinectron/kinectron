@@ -22,8 +22,8 @@
   - Modified client/src/index.js to only export the Kinectron class
   - Added default export for more flexible importing options
   - Removed exports of implementation details (PeerConnection, DEFAULT_PEER_CONFIG, DEFAULT_PEER_ID)
-  - Updated client/examples/test/index.html to use the new API structure
-  - Modified client/examples/streamTest/index.html to import from the main entry point
+  - Updated client/tools/connection-tester/index.html to use the new API structure
+  - Modified client/tools/stream-tester/index.html to import from the main entry point
 - **Current Behavior**:
   - Cleaner API with a single, clear entry point
   - Implementation details properly hidden
@@ -48,16 +48,25 @@
   - Simplified maintenance with only one implementation to maintain
   - Console log clearly indicates "You are running Kinectron API version 1.0.0"
 
-### Example Files Update
+### Tools and Examples Reorganization
 
 - **Status**: Completed
 - **Implementation**:
-  - Removed legacy API references from client/examples/test/index.html
-  - Updated import paths in client/examples/streamTest/index.html
+  - Renamed client/examples to client/tools to better reflect their purpose as developer tools
+  - Reorganized tools into dedicated directories:
+    - connection-tester: For testing basic connectivity to the Kinect server
+    - stream-tester: For testing and visualizing different data streams
+  - Created a separate examples/ directory for educational examples:
+    - p5_examples: Examples using p5.js for visualization
+    - threejs_examples: Examples using Three.js for 3D visualization
+  - Fixed import path issues in tools files (removed incorrect 'client/' from paths)
+  - Updated all references and import paths to maintain functionality
   - Verified functionality with modern API
 - **Current Behavior**:
-  - All examples use modern API exclusively
+  - All tools use modern API exclusively
   - No legacy API references remain
+  - Clear separation between developer tools and educational examples
+  - Educational examples are not currently functional but will be implemented soon
 
 ### Documentation Updates for MVP Launch
 
@@ -314,13 +323,14 @@
   - Debug panel only shows essential information by default
   - Peer connection logs can be toggled independently from other debug logs
 
-### StreamTest Refactoring
+### Stream Tester Tool Refactoring
 
 - **Status**: Completed and working correctly
 - **Implementation**:
-  - Refactored streamTest.html into modular components
+  - Refactored stream-tester/index.html into modular components
   - Created separate controller files for different functionalities
-  - Reorganized file structure with dedicated examples/ directory
+  - Reorganized file structure with dedicated tools/ directory
+  - Fixed import path issues (removed incorrect 'client/' from paths)
   - Updated references, paths, and documentation
   - Resolved Parcel caching issues affecting development workflow
   - Added clean script to package.json to prevent caching problems

@@ -13,8 +13,8 @@
     "clean": "rm -rf .parcel-cache dist",
     "start": "npm run clean && parcel watch src/index.js",
     "build": "npm run clean && parcel build src/index.js",
-    "test": "npm run clean && parcel serve examples/test/index.html --open",
-    "test:stream": "npm run clean && parcel build src/index.js --no-optimize && parcel serve examples/streamTest/index.html --open"
+    "test": "npm run clean && parcel serve tools/connection-tester/index.html --open",
+    "test:stream": "npm run clean && parcel build src/index.js --no-optimize && parcel serve tools/stream-tester/index.html --open"
   },
   "repository": {
     "type": "git",
