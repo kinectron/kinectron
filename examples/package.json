@@ -5,6 +5,7 @@
   "scripts": {
     "clean": "rimraf .parcel-cache dist",
     "start": "npm run clean && parcel serve p5_examples/gettingstarted/index.html --open",
+    "start:npm": "npm run clean && parcel serve p5_examples/gettingstarted_module/index.html --open",
     "serve:p5": "npm run clean && parcel serve p5_examples/*/index.html",
     "serve:threejs": "npm run clean && parcel serve threejs_examples/*/index.html"
   },

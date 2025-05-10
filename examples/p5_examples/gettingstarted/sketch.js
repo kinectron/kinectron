@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 /* ===
-Kinectron Getting Started Example
+Kinectron Getting Started Example (UMD Version)
 Kinect Azure camera feeds example using p5.js
 
 This example demonstrates how to:
@@ -13,18 +13,18 @@ This example demonstrates how to:
 3. Process and display the incoming frames
 === */
 
-// Declare variables
-let kinectron = null;
-let statusDiv;
-let framerateDiv;
-let canvasContainer;
-let activeStream = null;
+// --- VARIABLES ---
+let kinectron = null; // Kinectron instance
+let statusDiv; // Status display element
+let framerateDiv; // Framerate display element
+let canvasContainer; // Container for the p5 canvas
+let activeStream = null; // Current active stream type
 
-// Default canvas dimensions - will be updated when we receive frames
+// Canvas dimensions - will be updated when we receive frames
 let canvasWidth = 640;
 let canvasHeight = 480;
-let canvasInitialized = false;
 
+// --- SETUP ---
 function setup() {
   // Create canvas and place it in the container
   canvasContainer = select('#canvas-container');
@@ -36,19 +36,29 @@ function setup() {
   statusDiv = select('#status');
   framerateDiv = select('#framerate');
 
-  // Initialize Kinectron
+  // Initialize Kinectron with local server address
   // Replace with your Kinectron server IP address if not running locally
-  const kinectronServerIPAddress = '127.0.0.1';
+  const serverIP = '127.0.0.1';
+  kinectron = new Kinectron(serverIP);
 
-  // Create a new Kinectron instance
-  // This automatically initiates the connection to the server
-  kinectron = new Kinectron(kinectronServerIPAddress);
+  // Set up connection event handlers
+  setupConnectionEvents();
 
-  // Set up event handlers for connection events
+  // Update status
+  statusDiv.html('Connection status: <strong>Connecting...</strong>');
+}
 
+// --- DRAW LOOP ---
+function draw() {
+  // Display the framerate
+  let fps = frameRate();
+  framerateDiv.html('FPS: ' + fps.toFixed(0));
+}
+
+// --- CONNECTION SETUP ---
+function setupConnectionEvents() {
   // When connection is ready
   kinectron.on('ready', () => {
-    console.log('Connected to Kinectron server!');
     statusDiv.html('Connection status: <strong>Connected</strong>');
 
     // Set kinect type to azure after connection is established
@@ -60,7 +70,6 @@ function setup() {
 
   // When connection has an error
   kinectron.on('error', (error) => {
-    console.error('Connection error:', error);
     statusDiv.html(
       'Connection status: <strong>Error</strong> - ' + error.message,
     );
@@ -68,29 +77,13 @@ function setup() {
 
   // When connection state changes
   kinectron.on('stateChange', (data) => {
-    console.log(
-      'Connection state changed from',
-      data.from,
-      'to',
-      data.to,
-    );
     statusDiv.html(
       'Connection status: <strong>' + data.to + '</strong>',
     );
   });
-
-  // Log connection attempt
-  console.log('Connecting to Kinectron server...');
-  statusDiv.html('Connection status: <strong>Connecting...</strong>');
 }
 
-function draw() {
-  // Display the framerate
-  let fps = frameRate();
-  framerateDiv.html('FPS: ' + fps.toFixed(0));
-}
-
-// Choose camera to start based on key pressed
+// --- KEY CONTROLS ---
 function keyPressed() {
   if (keyCode === ENTER) {
     startColorStream();
@@ -101,61 +94,45 @@ function keyPressed() {
   }
 }
 
+// --- STREAM CONTROLS ---
+
 // Start the color stream
 function startColorStream() {
-  // Update status
-  console.log('Starting color stream...');
   statusDiv.html(
     'Connection status: <strong>Connected</strong> - Color stream active',
   );
   activeStream = 'color';
-
-  // Start the color stream with a callback function
   kinectron.startColor(drawFeed);
 }
 
 // Start the depth stream
 function startDepthStream() {
-  // Update status
-  console.log('Starting depth stream...');
   statusDiv.html(
     'Connection status: <strong>Connected</strong> - Depth stream active',
   );
   activeStream = 'depth';
-
-  // Start the depth stream with a callback function
   kinectron.startDepth(drawFeed);
 }
 
 // Stop all streams
 function stopAllStreams() {
-  // Update status
-  console.log('Stopping all streams...');
   statusDiv.html(
     'Connection status: <strong>Connected</strong> - No active streams',
   );
   activeStream = null;
-
-  // Stop all active streams
   kinectron.stopAll();
-
-  // Clear the canvas
   background(0);
 }
 
-// Initialize the Kinect hardware on the server
+// --- KINECT INITIALIZATION ---
 function initializeKinect() {
-  // Update status
-  console.log('Initializing Kinect...');
   statusDiv.html(
     'Connection status: <strong>Connected</strong> - Initializing Kinect...',
   );
 
-  // Call the initKinect method
   kinectron
     .initKinect()
     .then((result) => {
-      console.log('Kinect initialized:', result);
       if (result.success || result.alreadyInitialized) {
         statusDiv.html(
           'Connection status: <strong>Connected</strong> - Kinect initialized',
@@ -167,7 +144,6 @@ function initializeKinect() {
       }
     })
     .catch((error) => {
-      console.error('Failed to initialize Kinect:', error);
       statusDiv.html(
         'Connection status: <strong>Error</strong> - ' +
           error.message,
@@ -175,31 +151,25 @@ function initializeKinect() {
     });
 }
 
-// Callback function for processing incoming frames
+// --- FRAME PROCESSING ---
 function drawFeed(frame) {
-  // The frame object contains the image data URL in the src property
+  // Load the image from the data URL in the frame
   loadImage(frame.src, function (loadedImage) {
     // Resize canvas if needed to match the frame dimensions
     if (
       loadedImage.width !== canvasWidth ||
       loadedImage.height !== canvasHeight
     ) {
-      console.log(
-        `Resizing canvas to ${loadedImage.width}x${loadedImage.height}`,
-      );
       canvasWidth = loadedImage.width;
       canvasHeight = loadedImage.height;
       resizeCanvas(canvasWidth, canvasHeight);
-      canvasInitialized = true;
     }
 
-    // Clear the background
-    background(0);
-
     // Display the image
+    background(0);
     image(loadedImage, 0, 0);
 
-    // Add a label to show which stream is active and its dimensions
+    // Add an info overlay
     fill(0, 0, 0, 180);
     noStroke();
     rect(10, 10, 250, 60);

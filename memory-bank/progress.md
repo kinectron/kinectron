@@ -15,6 +15,23 @@
 
 ## Completed Features
 
+### Getting Started Examples Simplification
+
+- **Status**: Completed and working correctly
+- **Implementation**:
+  - Simplified both UMD and ES Module examples
+  - Organized code with clear section headers
+  - Removed excessive console logs
+  - Enhanced educational comments
+  - Removed redundant gettingstarted_npm example
+  - Updated package.json scripts
+- **Current Behavior**:
+  - Two distinct examples demonstrating different import patterns:
+    - UMD version using script tag (simpler for students)
+    - ES Module version using p5 instance mode (modern approach)
+  - Both examples maintain the same core functionality
+  - Code is cleaner and more educational
+
 ### PeerJS Bundling in UMD Build
 
 - **Status**: Completed and working correctly

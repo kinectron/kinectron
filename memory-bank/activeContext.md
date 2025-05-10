@@ -128,6 +128,17 @@ With all core features implemented and thoroughly tested, we're now focusing on 
 
 ### Recent Progress
 
+- **Simplified Getting Started Examples**
+
+  - Reorganized examples to provide two clear patterns:
+    - UMD version (gettingstarted/) - Simple script tag approach for students
+    - ES Module version (gettingstarted_module/) - Modern import approach
+  - Removed redundant gettingstarted_npm example
+  - Improved code organization with clear section headers
+  - Reduced console logging for cleaner output
+  - Enhanced educational comments
+  - Updated package.json scripts to point to correct examples
+
 - **Implemented PeerJS Bundling in UMD Build**
 
   - Modified Rollup configuration to bundle PeerJS directly into the UMD build

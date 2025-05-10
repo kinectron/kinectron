@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Kinectron Getting Started Example</title>
+  <!-- Using p5.js version 1.7.0 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js" type="text/javascript"></script>
+
+  <!-- Your sketch code - using type="module" to enable ES module imports -->
+  <script src="sketch.js" type="module"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .instructions {
+      background-color: #f0f0f0;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .key {
+      font-weight: bold;
+      background-color: #ddd;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    #canvas-container {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #status {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      padding: 10px;
+      color: #333;
+      background-color: #f8f8f8;
+      border-left: 4px solid #007bff;
+      font-weight: 500;
+    }
+
+    #framerate {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Kinectron Getting Started Example</h1>
+
+  <div class="instructions">
+    <h2>Instructions:</h2>
+    <p>This example demonstrates how to connect to a Kinectron server, initialize the Kinect, and display color and
+      depth feeds.</p>
+    <p>When you load this page, it will:</p>
+    <ol>
+      <li>Connect to the Kinectron server (default: localhost)</li>
+      <li>Set the Kinect type to Azure</li>
+      <li>Initialize the Kinect hardware</li>
+    </ol>
+    <p>Once connected and initialized, you can:</p>
+    <ul>
+      <li>Press <span class="key">ENTER</span> to start the color feed</li>
+      <li>Press <span class="key">UP ARROW</span> to start the depth feed</li>
+      <li>Press <span class="key">RIGHT ARROW</span> to stop all feeds</li>
+    </ul>
+    <p><strong>Note:</strong> Make sure your Kinectron server is running before testing this example.</p>
+  </div>
+
+  <div id="status">Connection status: Waiting to connect...</div>
+  <div id="canvas-container"></div>
+  <div id="framerate"></div>
+</body>
+
+</html>
