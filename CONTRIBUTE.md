@@ -1,6 +1,6 @@
 # Contributing to Kinectron
 
-Thank you for your interest in contributing to Kinectron! Now that we've reached our MVP launch, we welcome contributions to help improve and expand the project.
+Thank you for your interest in contributing to Kinectron! Now that we've released version 1.0.0, we welcome contributions to help improve and expand the project.
 
 ## Overview
 

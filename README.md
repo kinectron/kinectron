@@ -4,7 +4,18 @@ Kinectron is an Electron-based application that enables real-time streaming of M
 
 ## Kinectron Version 1.0.0
 
-Kinectron is now at version 1, which supports the Azure Kinect. If you are looking for support for the Kinect 2 for Windows, see the legacy version 0 (unsupported as of May 2025).
+Kinectron is now at version 1.0.0, which fully supports the Azure Kinect with all data streams implemented and thoroughly tested. This release represents a complete rewrite of the codebase with a modern, modular architecture and improved performance.
+
+### Version 1.0.0 Highlights:
+
+- **Complete Stream Support**: All Azure Kinect data streams are fully implemented and working
+- **Modern Architecture**: Modular JavaScript architecture with clear separation of concerns
+- **Improved Performance**: Optimized data handling and transmission
+- **Enhanced Security**: New "Block API Calls" feature for controlled access
+- **Comprehensive Documentation**: Detailed guides and API documentation
+- **Multiple Distribution Formats**: Support for ESM, CJS, and UMD with CDN availability
+
+If you are looking for support for the Kinect 2 for Windows, see the legacy version 0 (unsupported as of May 2025).
 
 ## Features
 
