@@ -15,6 +15,40 @@
 
 ## Completed Features
 
+### PeerJS Bundling in UMD Build
+
+- **Status**: Completed and working correctly
+- **Implementation**:
+  - Modified Rollup configuration to bundle PeerJS directly into the UMD build
+  - Removed PeerJS from the `external` array in `client/rollup.config.js`
+  - Removed the `globals` entry for PeerJS
+  - Updated the Getting Started example to remove the separate PeerJS script tag
+  - Built the client with the updated configuration
+- **Current Behavior**:
+  - Users only need to include a single script tag for the Kinectron UMD build
+  - PeerJS is bundled directly into the UMD build
+  - Simplified usage for educational examples
+  - Reduced potential for errors from missing dependencies
+  - Ensures version compatibility between Kinectron and PeerJS
+
+### Getting Started Example Modernization
+
+- **Status**: Completed and working correctly
+- **Implementation**:
+  - Updated the example to use the modern Kinectron API
+  - Implemented event-based connection handling
+  - Added Kinect initialization functionality
+  - Created a dynamic canvas that resizes to match the frame dimensions
+  - Added visual indicators for the active stream and resolution
+  - Improved error handling and status updates
+  - Removed the separate PeerJS script tag (using bundled version)
+- **Current Behavior**:
+  - Example provides a complete workflow for using Kinectron
+  - Connects to the server, initializes the Kinect, and displays streams
+  - Automatically resizes the canvas to match the dimensions of incoming frames
+  - Provides clear status updates and visual indicators
+  - Serves as a good starting point for new users
+
 ### Export Style Modernization
 
 - **Status**: Completed and working correctly

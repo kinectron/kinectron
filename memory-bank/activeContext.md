@@ -128,15 +128,26 @@ With all core features implemented and thoroughly tested, we're now focusing on 
 
 ### Recent Progress
 
+- **Implemented PeerJS Bundling in UMD Build**
+
+  - Modified Rollup configuration to bundle PeerJS directly into the UMD build
+  - Removed PeerJS from the external dependencies in rollup.config.js
+  - Updated the Getting Started example to use the bundled version
+  - Users now only need to include a single script tag for the Kinectron UMD build
+  - This simplifies usage for educational examples and reduces potential for errors
+
+- **Updated Getting Started Example**
+
+  - Modernized the example to use the current Kinectron API
+  - Implemented event-based connection handling
+  - Added Kinect initialization functionality
+  - Created a dynamic canvas that resizes to match the frame dimensions
+  - Added visual indicators for the active stream and resolution
+  - Improved error handling and status updates
+  - Removed the separate PeerJS script tag (using bundled version)
+  - This example now provides a complete workflow for using Kinectron
+
 - **Implemented JSDoc Documentation**
-
-  - Added comprehensive JSDoc comments to all public methods in the Kinectron class
-  - Enhanced module-level documentation in index.js with detailed description and examples
-  - Improved debug utilities documentation with detailed descriptions and examples
-  - Ensured all documentation follows JSDoc best practices with clear descriptions, parameter types, return types, and examples
-  - This completes Phase 2 of the API Modernization Roadmap (Documentation Enhancement)
-
-### Recent Progress
 
 - **Implemented Export Style Modernization**
 

@@ -21,9 +21,7 @@ export default [
         format: 'umd',
         name: 'Kinectron',
         sourcemap: true,
-        globals: {
-          peerjs: 'Peer',
-        },
+        // No globals needed as we're bundling all dependencies
       },
     ],
     plugins: [
@@ -37,6 +35,6 @@ export default [
         },
       }),
     ],
-    external: ['peerjs'],
+    // No external dependencies - bundle everything
   },
 ];

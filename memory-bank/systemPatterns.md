@@ -707,7 +707,7 @@ flowchart TD
         DefaultExport[Default Export]
         ESM[ESM Format]
         CJS[CommonJS Format]
-        UMD[UMD Format]
+        UMD[UMD Format with PeerJS Bundled]
     end
 
     subgraph "Import Methods"
@@ -751,7 +751,21 @@ flowchart TD
    - Follows modern JavaScript best practices for library exports
    - Simplifies usage for developers
 
-4. **Implementation Details**:
+4. **PeerJS Bundling**:
+
+   - PeerJS is now bundled directly into the UMD build
+   - Users no longer need to include PeerJS separately
+   - Simplified usage with a single script tag
+   - Ensures version compatibility between Kinectron and PeerJS
+   - Reduces potential for errors from missing dependencies
+   - Implementation:
+     ```javascript
+     // In rollup.config.js
+     // Removed from external dependencies to bundle it
+     // No external dependencies - bundle everything
+     ```
+
+5. **Implementation Details**:
    - Rollup configured to output three formats (ESM, CJS, UMD)
    - Package.json configured with appropriate entry points
    - Examples updated to use the new import style
