@@ -12,6 +12,10 @@
     "build:client": "npm run build --workspace=client",
     "dev:client": "npm run start --workspace=client",
     "examples": "npm run start --workspace=examples",
+    "examples:umd": "npm run start --workspace=examples",
+    "examples:module": "npm run start:npm --workspace=examples",
+    "test:stream": "npm run test:stream --workspace=client",
+    "test": "npm run test --workspace=client",
     "build:all": "npm run build --workspace=client && npm run build --workspace=app"
   }
 }

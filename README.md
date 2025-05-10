@@ -10,8 +10,6 @@ Kinectron is now at version 1.0.0, which fully supports the Azure Kinect with al
 
 - **Complete Stream Support**: All Azure Kinect data streams are fully implemented and working
 - **Modern Architecture**: Modular JavaScript architecture with clear separation of concerns
-- **Improved Performance**: Optimized data handling and transmission
-- **Enhanced Security**: New "Block API Calls" feature for controlled access
 - **Comprehensive Documentation**: Detailed guides and API documentation
 - **Multiple Distribution Formats**: Support for ESM, CJS, and UMD with CDN availability
 
@@ -54,7 +52,7 @@ flowchart TD
 
 ### Hardware Requirements
 
-- Microsoft Azure Kinect DK
+- Microsoft Azure Kinect
 - Windows 10/11 computer with USB 3.0 port
 - Sufficient processing power for real-time data handling. See [Azure Kinect system requirements](https://learn.microsoft.com/en-us/previous-versions/azure/kinect-dk/system-requirements)
 
@@ -98,7 +96,7 @@ npm start
 
 ```javascript
 // Include the Kinectron client library in your HTML
-<script src="https://cdn.jsdelivr.net/gh/kinectron/kinectron@latest/client/dist/kinectron-client.js"></script>;
+<script src="https://cdn.jsdelivr.net/npm/kinectron-client@latest/dist/kinectron.umd.js"></script>;
 
 // Create a new Kinectron instance with just the server IP
 const kinectron = new Kinectron('127.0.0.1'); // Enter IP address from application here!
@@ -146,7 +144,7 @@ const kinectron = new Kinectron('your-ngrok-url.ngrok-free.app');
 kinectron.on('ready', () => {
   console.log('Connected to Kinectron server via Ngrok');
 
-  // Set Kinect type (azure or windows)
+  // Set Kinect type (azure)
   kinectron.setKinectType('azure');
 });
 
@@ -292,48 +290,139 @@ The Kinectron client API provides methods for connecting to the server and acces
 - `startDepthKey(callback)`: Starts the depth key stream
 - `stopAll()`: Stops all active streams
 
-### Utility Methods
-
-- `setKinectType(type)`: Sets the Kinect type ('azure' or 'windows')
-- `getJoints(body)`: Gets joint positions from a body object
-- `getHands(body)`: Gets hand states from a body object
-
 ## Examples
 
-Kinectron includes examples to help you get started:
+Kinectron includes two different types of examples to demonstrate different ways of using the library:
 
-To run examples first install dev dependencies
+### Example Types
+
+1. **UMD (Universal Module Definition) Example**
+
+   - Located in `/examples/p5_examples/gettingstarted/`
+   - Uses traditional script tags to load the library
+   - Simpler approach for beginners or educational settings
+   - Works directly in browsers without a build step
+   - Uses global p5.js functions
+
+2. **ES Module Example**
+   - Located in `/examples/p5_examples/gettingstarted_module/`
+   - Uses modern ES module imports
+   - Demonstrates integration with module bundlers
+   - Uses p5.js in instance mode (required for ES modules)
+   - Better for production applications and modern development workflows
+
+### Running the Examples
+
+To run the examples, install dependencies from the project root:
 
 ```bash
-cd client
+# From the root directory
 npm install
 ```
 
-### Stream Test Example
+#### Running the UMD Example
+
+```bash
+# From the root directory
+npm run examples:umd
+```
+
+This will:
+
+- Build the client library with the UMD format
+- Start a development server
+- Open the UMD example in your browser
+
+#### Running the ES Module Example
+
+```bash
+# From the root directory
+npm run examples:module
+```
+
+This will:
+
+- Build the client library with the ES module format
+- Start a development server
+- Open the ES module example in your browser
+
+### Key Differences in Code
+
+**UMD Example (Traditional Script Tags):**
+
+```html
+<!-- Include the UMD build of Kinectron -->
+<script src="../../../client/dist/kinectron.umd.js"></script>
+
+<!-- Your sketch code -->
+<script src="sketch.js"></script>
+```
+
+```javascript
+// Global p5.js functions
+function setup() {
+  // Create Kinectron instance
+  kinectron = new Kinectron('127.0.0.1');
+
+  // Connect to server
+  kinectron.peer.connect();
+}
+```
+
+**ES Module Example (Modern Imports):**
+
+```html
+<!-- Your sketch code - using type="module" to enable ES module imports -->
+<script src="sketch.js" type="module"></script>
+```
+
+```javascript
+// Import Kinectron from the npm package
+import Kinectron from 'kinectron-client';
+
+// Create a p5 instance - required when using ES modules with p5.js
+const sketch = (p) => {
+  p.setup = function () {
+    // Create Kinectron instance
+    kinectron = new Kinectron('127.0.0.1');
+
+    // Connect to server
+    kinectron.peer.connect();
+  };
+};
+
+// Start the sketch with the p5 instance
+new p5(sketch);
+```
+
+### Which Example Should You Use?
+
+- **UMD Example**: Best for beginners, educational settings, or quick prototypes
+- **ES Module Example**: Best for production applications, modern development workflows, or when using build tools
+
+Both examples demonstrate the same core functionality but use different module loading approaches.
+
+### Additional Examples
+
+#### Stream Test Example
 
 The Stream Test example provides a comprehensive interface for testing all available streams and visualizing the data using both p5.js and Three.js.
 
 To run the Stream Test example:
 
 ```bash
-cd client
+# From the root directory
 npm run test:stream
 ```
 
-This will:
-
-1. Build the client library
-2. Start a development server
-3. Open the Stream Test example in your browser
-
-### Simple Connection Test
+#### Simple Connection Test
 
 The Simple Connection Test example provides a minimal implementation for testing the connection to the Kinectron server.
 
 To run the Simple Connection Test:
 
 ```bash
-cd client
+# From the root directory
 npm run test
 ```
 
@@ -460,10 +549,6 @@ There are some inconsistencies in naming conventions between the server and clie
 - Inconsistent use of hyphens vs camelCase
 
 These issues have been addressed with workarounds for specific streams, but a systematic approach to standardize naming conventions is planned for future updates.
-
-#### Raw Depth Visualization Quality
-
-The depth data may appear in distinct planes rather than smooth contours, creating a banding/quantization effect in the point cloud visualization. While the data integrity is correct, visualization quality improvements are planned for future updates.
 
 For a complete list of known issues and their solutions, see the [Known Issues](memory-bank/progress.md#known-issues) section in the progress.md file.
 
