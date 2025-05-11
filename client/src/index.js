@@ -6,8 +6,9 @@
  */
 
 import { Kinectron } from './kinectron.js';
+import packageJson from '../package.json';
 
-console.log('You are running Kinectron API version 1.0.0');
+console.log(`You are running Kinectron API version ${packageJson.version}`);
 
 /**
  * Kinectron client class for connecting to a Kinectron server and accessing Azure Kinect data streams
@@ -35,7 +36,7 @@ console.log('You are running Kinectron API version 1.0.0');
  * });
  *
  * // Using script tag (UMD build)
- * // <script src="https://cdn.jsdelivr.net/npm/kinectron@1.0.0/dist/kinectron.umd.js"></script>
+ * // <script src="https://cdn.jsdelivr.net/npm/kinectron/dist/kinectron.umd.js"></script>
  * // const kinectron = new Kinectron('127.0.0.1');
  */
 export default Kinectron;
