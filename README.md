@@ -25,28 +25,24 @@ If you are looking for support for the Kinect 2 for Windows, see the legacy vers
 
 ## Architecture
 
-Kinectron consists of two main components:
-
-1. **Application (`app/`)**: An Electron-based desktop application that interfaces with the Azure Kinect hardware and broadcasts data over WebRTC
-2. **Client API (`client/`)**: A JavaScript library that connects to the Kinectron server and provides methods for accessing different data streams
+Kinectron uses a server-client architecture to stream data from the Azure Kinect to web browsers:
 
 ```mermaid
 flowchart TD
     subgraph "Kinectron App"
         KinectHW[Azure Kinect Hardware]
-        KinectController[Kinect Controller]
-        Processors[Stream Processors]
-        Handlers[Stream Handlers]
-        PeerManager[Peer Connection Manager]
+        PeerManager[WebRTC Connection]
     end
 
     subgraph "Web Clients"
         ClientAPI[Kinectron Client API]
-        WebApp[Web Application]
+        WebApp[Your Web Application]
     end
 
-    KinectHW --> KinectController --> Processors --> Handlers --> PeerManager <--> ClientAPI --> WebApp
+    KinectHW --> PeerManager <--> ClientAPI --> WebApp
 ```
+
+For detailed information about the architecture and internal components, please see [CONTRIBUTE.md](CONTRIBUTE.md).
 
 ## Installation
 
