@@ -36,7 +36,7 @@ console.log(`You are running Kinectron API version ${packageJson.version}`);
  * });
  *
  * // Using script tag (UMD build)
- * // <script src="https://cdn.jsdelivr.net/npm/kinectron/dist/kinectron.umd.js"></script>
+ * // <script src="https://cdn.jsdelivr.net/npm/kinectron-client/dist/kinectron.umd.js"></script>
  * // const kinectron = new Kinectron('127.0.0.1');
  */
 export default Kinectron;
