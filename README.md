@@ -70,16 +70,14 @@ OR
 
 1.  ```bash
     git clone https://github.com/kinectron/kinectron.git
-    cd app
+    cd kinectron
     npm install
     ```
 
-````
-
-2. Start the application:
-```bash
-npm start
-````
+2.  Start the application:
+    ```bash
+    npm run start:app
+    ```
 
 ## Getting Started
 
@@ -486,75 +484,20 @@ Essential logs (errors, warnings, important info) are always visible, while non-
 
 ## Development
 
-### Project Structure
+For detailed information about developing and contributing to Kinectron, please see [CONTRIBUTE.md](CONTRIBUTE.md).
 
-```
-kinectron/
-├── app/                  # Electron application
-│   ├── main/             # Main process code
-│   │   ├── handlers/     # Stream handlers
-│   │   ├── managers/     # Resource managers
-│   │   └── processors/   # Stream processors
-│   ├── preload/          # Preload scripts
-│   └── renderer/         # Renderer process code
-├── client/               # Client library
-│   ├── examples/         # Example applications
-│   │   ├── streamTest/   # Stream testing interface
-│   │   └── test/         # Simple connection test
-│   └── src/              # Client source code
-│       ├── peer/         # Peer connection code
-│       ├── streams/      # Stream handlers
-│       └── utils/        # Utility functions
-└── memory-bank/          # Project documentation
-```
+This document covers:
 
-### Build Process
-
-#### Building the Application
-
-```bash
-# From the root directory
-npm install
-npm start
-```
-
-#### Building the Client Library
-
-```bash
-# From the client directory
-npm install
-npm run build
-```
-
-This will create a bundled version of the client library in the `client/dist` directory.
-
-### Development Workflow
-
-1. Make changes to the code
-2. Run the clean script to prevent Parcel caching issues: `npm run clean`
-3. Test changes using the appropriate example
-4. Build the client library if necessary
-5. Commit changes with descriptive commit messages
-
-For more detailed information about the development workflow, see the [DEVELOPMENT.md](client/DEVELOPMENT.md) file.
-
-### Known Issues and Solutions
-
-#### Data Structure and Naming Convention Inconsistencies
-
-There are some inconsistencies in naming conventions between the server and client:
-
-- Case differences (imageData vs. imagedata)
-- Format differences (depth-key vs depthKey)
-- Inconsistent use of hyphens vs camelCase
-
-These issues have been addressed with workarounds for specific streams, but a systematic approach to standardize naming conventions is planned for future updates.
-
-For a complete list of known issues and their solutions, see the [Known Issues](memory-bank/progress.md#known-issues) section in the progress.md file.
+- Project structure and architecture
+- Setting up the development environment
+- Building and testing both the application and client library
+- Code style and conventions
+- Pull request process
+- Troubleshooting common development issues
 
 ## Contributing
 
-We welcome contributions to Kinectron! Please see [CONTRIBUTE.md](CONTRIBUTE.md) for guidelines on how to contribute to the project.
+We welcome contributions to Kinectron. Please see [CONTRIBUTE.md](CONTRIBUTE.md) for guidelines on how to contribute to the project.
 
 ## License
 
