@@ -156,6 +156,7 @@ All core features are now fully implemented and thoroughly tested. The project i
     - Enhanced the debugging system documentation
     - Added information about known issues and their current status
     - Updated development workflow information
+    - Simplified architecture section to reduce redundancy with CONTRIBUTE.md
   - **CONTRIBUTE.md Updates**:
     - Updated introduction to reflect 1.0.0 release status
     - Updated SDK references from Kinect 2 to Azure Kinect
@@ -167,9 +168,16 @@ All core features are now fully implemented and thoroughly tested. The project i
     - Added troubleshooting section for common development issues
     - Added code style and conventions section
     - Added pull request process section
+    - Updated all npm commands to use the monorepo workspace structure
+  - **Documentation Consolidation**:
+    - Removed redundant DEVELOPMENT.md file after consolidating content into CONTRIBUTE.md
+    - Established CONTRIBUTE.md as the single source of truth for development information
+    - Simplified README.md to focus on usage rather than development details
+    - Updated all references to point to the correct documentation files
   - **Additional Documentation**:
     - Created root-level CHANGELOG.md to track version changes
     - Updated ROADMAP.md with the 1.0.0 release plan
+    - Marked Phase 5 (Update Project Documentation) as completed in ROADMAP.md
 - **Current State**:
   - Documentation clearly separates user instructions (README.md) from developer instructions (CONTRIBUTE.md)
   - README.md focuses on how to use the built application and client API
@@ -178,6 +186,8 @@ All core features are now fully implemented and thoroughly tested. The project i
   - Installation and usage instructions are comprehensive
   - Development workflows are well-documented
   - Known issues and their solutions are documented
+  - Documentation is streamlined with reduced redundancy
+  - All npm commands reflect the monorepo structure
 
 ### Block API Calls Button Implementation
 
