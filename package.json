@@ -9,7 +9,8 @@
   "scripts": {
     "start:app": "npm run start --workspace=app",
     "build:app": "npm run build --workspace=app",
-    "build:client": "npm run clean --workspace=client && npm run build --workspace=client",
+    "build:client": "npm run build --workspace=client",
+    "publish:client": "npm run clean --workspace=client && npm run build --workspace=client && npm publish --access public --workspace=client",
     "dev:client": "npm run start --workspace=client",
     "examples": "npm run start --workspace=examples",
     "examples:umd": "npm run start --workspace=examples",
