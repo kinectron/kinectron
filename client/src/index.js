@@ -1,6 +1,6 @@
 /**
  * @fileoverview Main entry point for the Kinectron client library
- * @version 1.0.0
+ * @version 1.0.1
  * @description Kinectron enables real-time streaming of Microsoft Azure Kinect data into web browsers using WebRTC.
  * This client library connects to a Kinectron server running on a computer with an Azure Kinect device.
  */

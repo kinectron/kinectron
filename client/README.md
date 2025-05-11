@@ -2,10 +2,6 @@
 
 Kinectron Client is a JavaScript library that enables web browsers to connect to the Kinectron server and receive real-time Microsoft Azure Kinect data streams using WebRTC. This library makes it easy for creative coders, interactive designers, and researchers to access depth-sensing data in web applications without native code.
 
-## Usage
-
-Kinectron Client must be used with the Kinectron Server. Download instructions can be found here https://github.com/kinectron/kinectron
-
 ## Installation
 
 ### NPM
@@ -24,6 +20,8 @@ npm install kinectron-client
 ## Getting Started
 
 ### Connecting to a Kinectron Server
+
+Kinectron Client must be used with the Kinectron Server. Download and setup instructions can be found here https://github.com/kinectron/kinectron
 
 #### Basic Connection (Simplified)
 
