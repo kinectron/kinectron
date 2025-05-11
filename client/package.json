@@ -1,6 +1,6 @@
 {
   "name": "kinectron-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Client for Kinectron peer server",
   "type": "module",
   "main": "dist/kinectron.cjs.js",
