@@ -1,7 +1,7 @@
 // main/main.js
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const electronReload = require('electron-reload');
+// const electronReload = require('electron-reload');
 
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
@@ -28,11 +28,12 @@ process.on('unhandledRejection', (error) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-electronReload(dirname(__dirname), {
-  electron: process.execPath,
-  hardResetMethod: 'exit',
-  watched: ['js', 'css', 'html', 'json', 'mjs'],
-});
+// TO DO Refactor envs. Causing issue in electron packager
+// electronReload(dirname(__dirname), {
+//   electron: process.execPath,
+//   hardResetMethod: 'exit',
+//   watched: ['js', 'css', 'html', 'json', 'mjs'],
+// });
 
 const kinectController = new KinectController();
 const peerManager = new PeerConnectionManager();
