@@ -372,8 +372,11 @@ export class PeerController {
    * @param {Object} data - The received data
    */
   handleIncomingData(conn, data) {
-    // Block only incoming API control calls, not outgoing streams
-    if (this.blockAPI) {
+    // Allow connection health checks even when API is blocked
+    const connectionEvents = ['ping', 'pong'];
+
+    // Block only incoming API control calls, not outgoing streams or connection health checks
+    if (this.blockAPI && !connectionEvents.includes(data.event)) {
       console.log('API call blocked:', data.event);
       return;
     }

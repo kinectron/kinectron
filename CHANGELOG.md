@@ -5,6 +5,12 @@ All notable changes to the Kinectron project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-10-09
+
+### Fixed
+
+- Client disconnection issue when "Block API Calls" mode is enabled. Clients now maintain connection health checks (ping/pong) even when API control calls are blocked, allowing streaming to continue indefinitely for teaching and performance scenarios with 15+ concurrent clients.
+
 ## [1.0.0] - 2025-05-10
 
 ### Added
