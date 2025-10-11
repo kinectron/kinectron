@@ -503,7 +503,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Kinectron Version 1 is generously supported by an [APOSSIBLE](https://apossible.com/) Applied Experiments grant. 
 
-Kinectron is maintained by [Lisa Jamhoury](https:lisajamhoury.com) with support from Aarón Montoya-Moraga. It was originally developed by Shawn van Every and Lisa Jamhoury at New York University's Interactive Telecommunications Program ([NYU ITP](https://tisch.nyu.edu/itp)) under the Google xStory Experiments in Storytelling Research Grant, which supports experiments with emerging technology in service of new forms of storytelling.
+Kinectron is maintained by [Lisa Jamhoury](https://lisajamhoury.com) with support from Aarón Montoya-Moraga. It was originally developed by Shawn van Every and Lisa Jamhoury at New York University's Interactive Telecommunications Program ([NYU ITP](https://tisch.nyu.edu/itp)) under the Google xStory Experiments in Storytelling Research Grant, which supports experiments with emerging technology in service of new forms of storytelling.
 
 Past collaborators include Stephanie Koltun, Or Fleisher, Tiri Kananuruk, and Dror Ayalon.
 
