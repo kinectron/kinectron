@@ -21,6 +21,9 @@ export class PeerController {
     this.reconnectDelay = 2000;
     this.messageQueue = new Map(); // clientId -> message[]
     this.maxQueueSize = 100;
+    // Max simultaneous client connections. Keep in sync with
+    // maxConnections in main/managers/peerConnectionManager.js.
+    this.maxConnections = 50;
     this.blockAPI = false; // Flag to control whether API calls from clients are blocked
 
     // Enhanced events
@@ -176,9 +179,9 @@ export class PeerController {
     });
 
     this.peer.on('connection', (conn) => {
-      if (this.connections.size >= 10) {
+      if (this.connections.size >= this.maxConnections) {
         console.warn(
-          'Connection limit reached, rejecting connection',
+          `Connection limit reached (${this.maxConnections}), rejecting connection from ${conn.peer}`,
         );
         conn.close();
         return;
