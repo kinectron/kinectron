@@ -84,6 +84,8 @@ OR
 3. The application will display the server IP address and port for client connections
 4. Click the "Open Kinect" button to initialize the device
 
+Up to 50 clients can connect to one Kinectron application at the same time (tested with 25), which makes it suitable for classrooms. With many clients, overall performance depends on your computer and network.
+
 ### Connecting Clients
 
 #### Local Connection (Simplified - Recommended)

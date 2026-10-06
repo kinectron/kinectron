@@ -144,19 +144,36 @@ The application includes a robust notification system for error handling:
 
 ### Building a Release
 
-To create a packaged application:
+Packaging does not currently work from inside the monorepo, because npm workspaces hoist dependencies to the root `node_modules/` where Electron Packager can't find them (see [issue #127](https://github.com/kinectron/kinectron/issues/127)). Until that is fixed, package from a standalone copy of `app/`:
 
-```bash
-npm run build:app
-```
+1. Bump the version in `app/package.json` and add an entry to `CHANGELOG.md`. Only bump `client/package.json` if the client library changed.
+2. Copy `app/` to a folder outside the repo, leaving out `node_modules/`, `dist/` and any previous `kinectron-server-win32-x64/` build output:
 
-Or if you need to run the package command directly:
+   ```bash
+   robocopy app C:\path\to\kinectron-build\app /E /XD node_modules dist kinectron-server-win32-x64
+   ```
 
-```bash
-cd app && npm run package
-```
+3. In the copy, install and package:
 
-This will create an application for the platform and architecture of the computer you are working on. To learn more about packaging options, read the [Electron Packager documentation](https://github.com/electron-userland/electron-packager).
+   ```bash
+   cd C:\path\to\kinectron-build\app
+   npm install
+   npm run package
+   ```
+
+   You can ignore the many "Found 'electron' but not as a devDependency" warnings.
+
+4. Copy all the `.dll` and `.onnx` files from `app/` into the packaged `kinectron-server-win32-x64/` folder, next to `kinectron-server.exe`. Electron Packager only places them in `resources/app/`, and body tracking needs them next to the exe.
+5. Test the packaged app, e.g. with several tabs of the connection tester (`npm run test`).
+6. Zip the folder:
+
+   ```bash
+   tar -a -c -f Kinectron-Server-<version>-win32-x64.zip kinectron-server-win32-x64
+   ```
+
+7. Tag the release (`git tag -a v<version>` and `git push origin v<version>`) and create a GitHub release from the tag. The zip is about 3.6 GB, which is over GitHub's 2 GB limit for release files, so upload it to Dropbox and link to it from the release notes.
+
+Note: `npm run build:app` at the root is a leftover Kinect 2 build script and doesn't package the app. To learn more about packaging options, read the [Electron Packager documentation](https://github.com/electron-userland/electron-packager).
 
 ## Client Library Development (Cross-Platform)
 
